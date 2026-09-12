@@ -1,0 +1,43 @@
+{
+  "title": "SEO Setup",
+  "description": "Standard SEO configuration for launch-ready WordPress sites.",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "seo_permalinks",
+      "title": "Set Post Name Permalinks",
+      "instructions": "Change permalink structure to Post name (/%postname%/).",
+      "deep_link": "options-permalink.php",
+      "type": "manual"
+    },
+    {
+      "id": "seo_discourage_search",
+      "title": "Enable Search Indexing",
+      "instructions": "Uncheck 'Discourage search engines' in Settings → Reading.",
+      "deep_link": "options-reading.php",
+      "type": "manual"
+    },
+    {
+      "id": "seo_sitemap",
+      "title": "Configure XML Sitemap",
+      "instructions": "Enable and submit XML sitemap to Google Search Console.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "seo_meta_plugin",
+      "title": "Install SEO Plugin",
+      "instructions": "Install Yoast, Rank Math, or similar and configure site title templates.",
+      "deep_link": "plugin-install.php",
+      "type": "manual"
+    },
+    {
+      "id": "seo_schema",
+      "title": "Add Organization Schema",
+      "instructions": "Configure Organization/LocalBusiness schema with logo and contact info.",
+      "deep_link": "",
+      "type": "manual"
+    }
+  ]
+}

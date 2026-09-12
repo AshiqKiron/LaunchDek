@@ -1,0 +1,167 @@
+---
+description: Core conventions for the LaunchDek WordPress plugin
+alwaysApply: true
+---
+
+# LaunchDek Project Rules
+
+Self-hosted WordPress master hub for agencies — govern, configure, and automate remote client sites via Application Passwords and core REST APIs. No child plugin required on targets. PHP 7.4+, WordPress 6.0+, GPL-3.0.
+
+See `launchdek-standards.mdc` (quality), `launchdek-compliance.mdc` (security gate), `wordpress-php.mdc` (PHP/REST/DB), `admin-assets.mdc` (JS/CSS).
+
+## Directory Layout
+
+```
+launchdek.php                          # bootstrap + constants + requires
+includes/
+  class-launchdek-plugin.php           # hook orchestrator
+  class-launchdek-admin.php            # menus, settings UI, assets
+  class-launchdek-settings.php         # options, defaults, sanitize
+  class-launchdek-installer.php        # dbDelta schema
+  class-launchdek-capabilities.php     # custom caps + role guardrails
+  class-launchdek-credential-vault.php # AES-256 app password encryption
+  class-launchdek-audit-log.php        # immutable audit trail
+  class-launchdek-{site,workflow,run}-repository.php
+  class-launchdek-remote-client.php    # wp_remote_* to remote REST
+  class-launchdek-connection-tester.php
+  class-launchdek-payload-mapper.php   # API step execution
+  class-launchdek-step-executor.php
+  class-launchdek-workflow-runner.php
+  class-launchdek-drift-verifier.php
+  class-launchdek-drift-cron.php
+  class-launchdek-webhook-dispatcher.php
+  class-launchdek-templates.php
+  class-launchdek-integrations.php
+  class-launchdek-rest-api.php
+  class-launchdek-{activator,deactivator}.php
+  integrations/
+    interface-launchdek-integration.php
+    class-launchdek-integration-{mainwp,managewp,wp-umbrella,wp-engine,wpvibe}.php
+admin/
+  css/launchdek-admin.css
+  js/launchdek-admin.js
+  partials/launchdek-{admin,sites,workflows,automation,templates,integrations,settings}-page.php
+templates/                           # built-in workflow JSON stacks
+assets/                              # reserved for future static assets (index.php only)
+languages/
+uninstall.php
+readme.txt
+```
+
+## Architecture
+
+- Bootstrap defines constants, requires all classes, registers activation/deactivation hooks, calls `launchdek_run_plugin()`.
+- `LAUNCHDEK_Plugin::run()` wires admin UI, `LAUNCHDEK_REST_API::register()`, `LAUNCHDEK_Drift_Cron::register()`.
+- `LAUNCHDEK_Plugin::init()` on `plugins_loaded`: `LAUNCHDEK_Installer::maybe_install()`, `LAUNCHDEK_Capabilities::register()`, `LAUNCHDEK_Templates::seed_builtin()`.
+- Settings: `launchdek_settings` via `LAUNCHDEK_Settings` (group `launchdek_settings_group`). Global kill switch: `enabled`.
+- Custom tables via `LAUNCHDEK_Installer` (version `launchdek_db_version`). All DB access through `*_Repository` classes.
+- Remote calls: `LAUNCHDEK_Remote_Client` (Application Password basic auth) — never store plaintext passwords outside vault.
+- Workflow engine: `LAUNCHDEK_Workflow_Runner::start()` creates run → `execute_next()` / `auto_advance()` → `LAUNCHDEK_Step_Executor` → `LAUNCHDEK_Payload_Mapper` for `api` steps; `manual` steps set `awaiting_manual` until `/runs/{id}/steps/{step}/complete`. Failures trigger `LAUNCHDEK_Webhook_Dispatcher`.
+- Admin UI: thin partials in `admin/partials/` with `data-launchdek-page`; JS drives CRUD via REST (`launchdekAdmin` global). Workflows use a drag-and-drop canvas builder with step config sidebar (role mapping, API payload mapper).
+- Plugin-free remote architecture: targets need only WP 6.0+ with Application Passwords enabled.
+
+## Admin Pages
+
+Use `LAUNCHDEK_Admin::PAGE_SLUG` — never hardcode slug strings.
+
+| Page | Slug | Partial | JS init |
+|------|------|---------|---------|
+| Dashboard | `PAGE_SLUG` | `launchdek-admin-page.php` | `initDashboard()` |
+| Sites | `PAGE_SLUG . '-sites'` | `launchdek-sites-page.php` | `initSites()` |
+| Workflows | `PAGE_SLUG . '-workflows'` | `launchdek-workflows-page.php` | `initWorkflows()` |
+| Automation & Audit | `PAGE_SLUG . '-automation'` | `launchdek-automation-page.php` | `initAutomation()` |
+| Templates | `PAGE_SLUG . '-templates'` | `launchdek-templates-page.php` | `initTemplates()` |
+| Integrations | `PAGE_SLUG . '-integrations'` | `launchdek-integrations-page.php` | `initIntegrations()` |
+| Settings | `PAGE_SLUG . '-settings'` | `launchdek-settings-page.php` | Settings API form |
+
+Menu capability: `LAUNCHDEK_Capabilities::admin_menu_capability()` (`launchdek_view_dashboard`). Settings page render checks `MANAGE_SETTINGS` even though the submenu uses the menu cap.
+
+## REST Permission Callbacks
+
+`LAUNCHDEK_REST_API` delegates to `can_*()` methods — always add matching callbacks for new routes:
+
+| Callback | Capability |
+|----------|------------|
+| `can_view_dashboard` | `VIEW_DASHBOARD` |
+| `can_manage_sites` | `MANAGE_SITES` |
+| `can_edit_workflows` | `EDIT_WORKFLOWS` |
+| `can_execute` | `EXECUTE_WORKFLOWS` |
+| `can_view_audit` | `VIEW_AUDIT` |
+| `can_manage_settings` | `MANAGE_SETTINGS` |
+
+## Custom Capabilities
+
+`LAUNCHDEK_Capabilities` — use `::current_user_can( $cap )` for permission checks (respects `role_permissions` settings). `manage_options` always passes. Settings UI uses `get_agency_role_presets()` (Admin/Developer/Auditor archetypes) and `get_capability_labels()` for the role-permission matrix.
+
+| Constant | Purpose |
+|----------|---------|
+| `VIEW_DASHBOARD` | Dashboard + menu access |
+| `MANAGE_SITES` | Site CRUD, connection tests |
+| `EDIT_WORKFLOWS` | Workflow/template CRUD |
+| `EXECUTE_WORKFLOWS` | Run control, drift verify |
+| `VIEW_AUDIT` | Audit log access |
+| `MANAGE_SETTINGS` | Settings page |
+
+## REST API (`launchdek/v1`)
+
+Registered in `LAUNCHDEK_REST_API`. Auth: `X-WP-Nonce` (`wp_rest`) + capability callbacks.
+
+| Group | Routes |
+|-------|--------|
+| Dashboard | `/dashboard/stats`, `/connections/ticker`, `/logs/feed` |
+| Sites | `/sites`, `/sites/{id}`, `/sites/{id}/test`, `/sites/test`, `/sites/tags` |
+| Workflows | `/workflows`, `/workflows/{id}`, `/workflows/import`, `/workflows/{id}/export`, `/workflows/{id}/validate-step` |
+| Runs | `/runs/batch`, `/runs`, `/runs/{id}`, `/runs/{id}/next`, `/runs/{id}/auto`, `/runs/{id}/steps/{step}/complete` |
+| Audit/Drift | `/audit/meta`, `/audit`, `/drift/status`, `/drift/verify`, `/drift/verify/{id}` |
+| Templates | `/templates`, `/templates/vault`, `/templates/{slug}/clone` |
+| Integrations | `/integrations`, `/integrations/{slug}/push`, `/integrations/telemetry-rules` |
+
+## Database Tables
+
+`{prefix}launchdek_sites`, `launchdek_site_tags`, `launchdek_workflows`, `launchdek_runs`, `launchdek_run_steps`, `launchdek_audit_log`, `launchdek_connection_events`. Bump `LAUNCHDEK_Installer::DB_VERSION` for schema changes.
+
+## Built-in Templates
+
+JSON in `templates/`: `security-hardening`, `woocommerce-optimization`, `seo-setup`, `migration-checklist`. Seeded once via `LAUNCHDEK_Templates::seed_builtin()` (`launchdek_templates_seeded` option).
+
+## Integrations
+
+Implement `LAUNCHDEK_Integration_Interface` in `includes/integrations/`, register in `LAUNCHDEK_Integrations::get_all()`. Current: MainWP, ManageWP, WP Umbrella, WP Engine, WPvibe. Display names use `* Connector` suffix (translatable).
+
+Integrations admin page (`launchdek-integrations-page.php`) has two sections:
+- **Platform Connectors Hub** — connector list with Connected/Not Detected badge + Setup modal (Push Agent, docs link).
+- **Telemetry Sync Mapping Rules** — table of platform → LaunchDek field mappings; enabled state saved via REST.
+
+`LAUNCHDEK_Integrations` helpers: `get_statuses()`, `get_launchdek_fields()`, `get_default_telemetry_rules()`, `get_telemetry_rules()`, `save_telemetry_rules()`. Rules persist in `launchdek_settings.telemetry_sync_rules` (id + enabled only; defaults are code-defined).
+
+Integration REST routes require `MANAGE_SETTINGS` (`can_manage_settings`).
+
+## Naming
+
+| Kind | Pattern | Example |
+|------|---------|---------|
+| Constants | `LAUNCHDEK_*` | `LAUNCHDEK_VERSION`, `LAUNCHDEK_REST_NAMESPACE` |
+| Classes | `LAUNCHDEK_{Name}` | `LAUNCHDEK_Site_Repository` |
+| Functions | `launchdek_{action}` | `launchdek_run_plugin()` |
+| Options | `launchdek_{key}` | `launchdek_settings`, `launchdek_db_version` |
+| CSS/JS handles | `launchdek-{name}` | `launchdek-admin` |
+| CSS classes | `launchdek-*` | `launchdek-card`, `launchdek-stats-grid` |
+| JS global | `launchdekAdmin` | REST URL, nonce, strings |
+| Cron hook | `launchdek_drift_verify_cron` | twicedaily drift checks |
+
+`LAUNCHDEK_TEXT_DOMAIN` must match `LAUNCHDEK_PLUGIN_SLUG` (`launchdek`).
+
+## Extension Hooks
+
+- `launchdek_settings_defaults`, `launchdek_settings_sanitize`
+
+## Scope & Change Discipline
+
+- Minimize diff scope; match existing class-based layout.
+- Add `index.php` silence files when creating new directories.
+- Update `readme.txt` changelog for user-facing changes.
+- New repositories/integrations follow existing `class-launchdek-*` naming.
+
+## Constants (use, don't redefine)
+
+`LAUNCHDEK_VERSION`, `LAUNCHDEK_PLUGIN_FILE`, `LAUNCHDEK_PLUGIN_DIR`, `LAUNCHDEK_PLUGIN_URL`, `LAUNCHDEK_PLUGIN_BASENAME`, `LAUNCHDEK_PLUGIN_SLUG`, `LAUNCHDEK_TEXT_DOMAIN`, `LAUNCHDEK_PLUGIN_DOCS_URL`, `LAUNCHDEK_REST_NAMESPACE`

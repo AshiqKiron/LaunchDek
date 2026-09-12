@@ -1,0 +1,50 @@
+{
+  "title": "Migration Checklist",
+  "description": "Post-migration verification steps for moved WordPress sites.",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "migrate_urls",
+      "title": "Verify Site URL",
+      "instructions": "Confirm WordPress Address and Site Address match the live domain.",
+      "deep_link": "options-general.php",
+      "type": "manual"
+    },
+    {
+      "id": "migrate_search_replace",
+      "title": "Run URL Search-Replace",
+      "instructions": "Run serialized-safe search-replace for old domain references in database.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "migrate_permalinks",
+      "title": "Flush Permalinks",
+      "instructions": "Visit Settings → Permalinks and save to flush rewrite rules.",
+      "deep_link": "options-permalink.php",
+      "type": "manual"
+    },
+    {
+      "id": "migrate_ssl",
+      "title": "Verify SSL Certificate",
+      "instructions": "Confirm HTTPS works without mixed-content warnings.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "migrate_cron",
+      "title": "Verify WP-Cron",
+      "instructions": "Ensure wp-cron or system cron is firing scheduled tasks.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "migrate_email",
+      "title": "Test Email Delivery",
+      "instructions": "Send a test email from contact form or WP mail to verify SMTP.",
+      "deep_link": "",
+      "type": "manual"
+    }
+  ]
+}

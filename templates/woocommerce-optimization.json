@@ -1,0 +1,43 @@
+{
+  "title": "WooCommerce Optimization",
+  "description": "Performance and checkout optimization checklist for WooCommerce stores.",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "wc_permalinks",
+      "title": "Configure Product Permalinks",
+      "instructions": "Set product permalink structure to /shop/ or category-based URLs.",
+      "deep_link": "options-permalink.php",
+      "type": "manual"
+    },
+    {
+      "id": "wc_cart_fragments",
+      "title": "Optimize Cart Fragments",
+      "instructions": "Disable cart fragments on non-shop pages or defer loading for performance.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "wc_image_sizes",
+      "title": "Regenerate Product Images",
+      "instructions": "Regenerate WooCommerce thumbnail sizes after theme switch.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "wc_checkout_fields",
+      "title": "Streamline Checkout",
+      "instructions": "Remove unnecessary checkout fields and enable guest checkout if appropriate.",
+      "deep_link": "admin.php?page=wc-settings&tab=checkout",
+      "type": "manual"
+    },
+    {
+      "id": "wc_cache_exclusions",
+      "title": "Configure Cache Exclusions",
+      "instructions": "Exclude cart, checkout, and my-account from full-page cache.",
+      "deep_link": "",
+      "type": "manual"
+    }
+  ]
+}

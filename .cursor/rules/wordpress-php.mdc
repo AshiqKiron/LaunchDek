@@ -1,0 +1,128 @@
+---
+description: WordPress PHP standards for LaunchDek
+globs: "**/*.php"
+alwaysApply: false
+---
+
+# WordPress PHP Conventions
+
+See `launchdek-compliance.mdc` for the security gate.
+
+## File Header
+
+Every PHP file must start with:
+
+```php
+<?php
+/**
+ * Brief description.
+ *
+ * @package LaunchDek
+ */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+```
+
+## Security
+
+- Admin pages: `LAUNCHDEK_Capabilities::current_user_can( $cap )` — not raw `manage_options` except in capability class itself.
+- REST routes: `permission_callback` on every route; delegate to `LAUNCHDEK_REST_API::can_*()` methods.
+- Escape output: `esc_html()`, `esc_attr()`, `esc_url()`, `esc_html__()`, `esc_html_e()`.
+- Sanitize settings via `LAUNCHDEK_Settings::sanitize()` as `sanitize_callback`.
+- Settings API: `show_in_rest => false`.
+- Never return decrypted app passwords in REST responses; mask or omit `app_password_enc`.
+- SQL: `$wpdb->prepare()` only; all queries in `*_Repository` classes.
+
+## WordPress APIs
+
+- Register hooks in `LAUNCHDEK_Plugin::run()` or static `::register()` on service classes — not in bootstrap.
+- REST namespace: `LAUNCHDEK_REST_NAMESPACE` (`launchdek/v1`).
+- Enqueue assets with `filemtime()` fallback to `LAUNCHDEK_VERSION`.
+- Localize `launchdekAdmin` with `rest_url()`, `wp_create_nonce( 'wp_rest' )`, and translatable strings.
+- Page slugs: use `LAUNCHDEK_Admin::PAGE_SLUG` + suffixes.
+
+## Class Wiring
+
+- Bootstrap requires all classes; instantiate only via `launchdek_run_plugin()`.
+- `LAUNCHDEK_Plugin` constructor: `LAUNCHDEK_Admin` only.
+- Data layer: `LAUNCHDEK_{Site,Workflow,Run}_Repository` — no direct `$wpdb` in REST handlers or admin.
+- Remote: `LAUNCHDEK_Remote_Client::from_site( $id )` for authenticated requests (returns `null` if credentials missing).
+- Credentials: `LAUNCHDEK_Credential_Vault::encrypt()` / `::decrypt()` on save/read.
+- Audit: `LAUNCHDEK_Audit_Log::log()` for privileged actions.
+- Activation: `LAUNCHDEK_Activator`; deactivation: `LAUNCHDEK_Deactivator` (clears drift cron).
+
+## Settings Option Shape
+
+```php
+array(
+	'enabled'                    => true,
+	'encrypt_credentials'        => true,
+	'drift_verification_enabled'  => true,
+	'slack_webhook'              => '',
+	'discord_webhook'            => '',
+	'teams_webhook'              => '',
+	'notification_events'        => array( 'run_started', 'run_completed', 'run_failed', 'step_failed' ), // also supports drift_detected — see LAUNCHDEK_Settings::get_notification_events()
+	'role_permissions'           => array(), // cap => array of role slugs
+	'telemetry_sync_rules'       => array(), // array of { id, enabled } — see LAUNCHDEK_Integrations::get_default_telemetry_rules()
+)
+```
+
+## Workflow Step Types
+
+Steps live in `workflow.steps[]` (JSON in DB or template files).
+
+**`manual`** — fields: `id`, `title`, `instructions`, `target_roles` (optional array of WP role slugs — UI metadata for agency assignment), `deep_link` (optional admin path), `type: manual`. Executor sets status `awaiting_manual` and resolves `deep_link` via `LAUNCHDEK_Remote_Client::admin_link()`. User completes via `/runs/{id}/steps/{step}/complete`.
+
+**`api`** — executed by `LAUNCHDEK_Payload_Mapper::execute()` using nested `api` object:
+
+```php
+array(
+	'type'  => 'api',
+	'title' => 'Step title',
+	'api'   => array(
+		'route'   => '/wp/v2/settings', // must start with /
+		'method'  => 'GET',             // GET|POST|PUT|PATCH|DELETE
+		'payload' => array(),           // request body for mutating methods
+	),
+)
+```
+
+Validate dry-runs with `LAUNCHDEK_Payload_Mapper::validate()` (used by `/workflows/{id}/validate-step`).
+
+## Partials
+
+All non-settings pages use `render_page()` which passes `$settings`, `$page`, and sets `data-launchdek-page` on `.launchdek-admin` root.
+
+| Partial | `$page` value |
+|---------|---------------|
+| `launchdek-admin-page.php` | `dashboard` |
+| `launchdek-sites-page.php` | `sites` |
+| `launchdek-workflows-page.php` | `workflows` |
+| `launchdek-automation-page.php` | `automation` |
+| `launchdek-templates-page.php` | `templates` |
+| `launchdek-integrations-page.php` | `integrations` |
+| `launchdek-settings-page.php` | `settings` (Settings API form) |
+
+Document `@var` annotations at the top of partials.
+
+## Settings Page Sections
+
+Settings partial (`launchdek-settings-page.php`) uses Settings API form with cards:
+- **Platform** — `enabled`, `encrypt_credentials`, `drift_verification_enabled`
+- **Notification Channels** — Slack/Teams/Discord webhooks + event checkboxes (`LAUNCHDEK_Settings::get_notification_events()`)
+- **Agency Role Guardrails** — preset cards (`get_agency_role_presets()`) + role-permission matrix (`role_permissions`)
+
+Telemetry sync rules are managed on the Integrations page (REST), not the Settings form.
+
+## New Integration Checklist
+
+1. Create `includes/integrations/class-launchdek-integration-{slug}.php` implementing `LAUNCHDEK_Integration_Interface`.
+2. Register in `LAUNCHDEK_Integrations::get_all()`.
+3. Add platform field mappings in `LAUNCHDEK_Integrations::get_default_telemetry_rules()` if connector exposes sync fields.
+4. Push agent via existing `/integrations/{slug}/push` route; telemetry rules via `/integrations/telemetry-rules`.
+
+## Docblocks
+
+Document public methods with `@param`, `@return`, and `@var` on class properties.

@@ -2,9 +2,6 @@
 /**
  * Centralized plugin settings — defaults, retrieval, sanitization.
  *
- * Purpose: Single source of truth for the launchdek_settings option.
- *          Uses wp_options (no custom tables).
- *
  * @package LaunchDek
  */
 
@@ -17,33 +14,10 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class LAUNCHDEK_Settings {
 
-	/**
-	 * Settings option name.
-	 *
-	 * @var string
-	 */
-	const OPTION_NAME = 'launchdek_settings';
-
-	/**
-	 * Installed version option name.
-	 *
-	 * @var string
-	 */
+	const OPTION_NAME    = 'launchdek_settings';
 	const VERSION_OPTION = 'launchdek_version';
-
-	/**
-	 * Settings API group identifier.
-	 *
-	 * @var string
-	 */
 	const SETTINGS_GROUP = 'launchdek_settings_group';
-
-	/**
-	 * Required capability for settings access.
-	 *
-	 * @var string
-	 */
-	const CAPABILITY = 'manage_options';
+	const CAPABILITY     = 'manage_options';
 
 	/**
 	 * Default settings.
@@ -52,14 +26,17 @@ class LAUNCHDEK_Settings {
 	 */
 	public static function get_defaults() {
 		$defaults = array(
-			'enabled' => true,
+			'enabled'                      => true,
+			'encrypt_credentials'          => true,
+			'drift_verification_enabled'   => true,
+			'slack_webhook'                => '',
+			'discord_webhook'              => '',
+			'teams_webhook'                => '',
+			'notification_events'          => array( 'run_started', 'run_completed', 'run_failed', 'step_failed' ),
+			'role_permissions'             => array(),
+			'telemetry_sync_rules'         => array(),
 		);
 
-		/**
-		 * Filter default plugin settings.
-		 *
-		 * @param array $defaults Default settings.
-		 */
 		return apply_filters( 'launchdek_settings_defaults', $defaults );
 	}
 
@@ -92,17 +69,65 @@ class LAUNCHDEK_Settings {
 			return $output;
 		}
 
-		if ( array_key_exists( 'enabled', $input ) ) {
-			$output['enabled'] = (bool) $input['enabled'];
+		$checkboxes = array( 'enabled', 'encrypt_credentials', 'drift_verification_enabled' );
+		foreach ( $checkboxes as $key ) {
+			if ( array_key_exists( $key, $input ) ) {
+				$output[ $key ] = (bool) $input[ $key ];
+			} elseif ( isset( $_POST['option_page'] ) && self::SETTINGS_GROUP === $_POST['option_page'] ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+				$output[ $key ] = false;
+			}
 		}
 
-		/**
-		 * Filter sanitized plugin settings.
-		 *
-		 * @param array $output   Sanitized settings.
-		 * @param array $input    Raw input.
-		 * @param array $defaults Default settings.
-		 */
+		$urls = array( 'slack_webhook', 'discord_webhook', 'teams_webhook' );
+		foreach ( $urls as $key ) {
+			if ( isset( $input[ $key ] ) ) {
+				$output[ $key ] = esc_url_raw( $input[ $key ] );
+			}
+		}
+
+		if ( isset( $input['notification_events'] ) && is_array( $input['notification_events'] ) ) {
+			$output['notification_events'] = array_map( 'sanitize_key', $input['notification_events'] );
+		}
+
+		if ( isset( $input['role_permissions'] ) && is_array( $input['role_permissions'] ) ) {
+			$clean = array();
+			foreach ( $input['role_permissions'] as $cap => $roles ) {
+				if ( is_array( $roles ) ) {
+					$clean[ sanitize_key( $cap ) ] = array_map( 'sanitize_key', $roles );
+				}
+			}
+			$output['role_permissions'] = $clean;
+		}
+
+		if ( isset( $input['telemetry_sync_rules'] ) && is_array( $input['telemetry_sync_rules'] ) ) {
+			$clean = array();
+			foreach ( $input['telemetry_sync_rules'] as $rule ) {
+				if ( ! is_array( $rule ) || empty( $rule['id'] ) ) {
+					continue;
+				}
+				$clean[] = array(
+					'id'      => sanitize_key( $rule['id'] ),
+					'enabled' => ! empty( $rule['enabled'] ),
+				);
+			}
+			$output['telemetry_sync_rules'] = $clean;
+		}
+
 		return apply_filters( 'launchdek_settings_sanitize', $output, $input, $defaults );
+	}
+
+	/**
+	 * Available notification events.
+	 *
+	 * @return array
+	 */
+	public static function get_notification_events() {
+		return array(
+			'run_started'   => __( 'Workflow run started', LAUNCHDEK_TEXT_DOMAIN ),
+			'run_completed' => __( 'Workflow run completed', LAUNCHDEK_TEXT_DOMAIN ),
+			'run_failed'    => __( 'Workflow run failed', LAUNCHDEK_TEXT_DOMAIN ),
+			'step_failed'   => __( 'Step failed', LAUNCHDEK_TEXT_DOMAIN ),
+			'drift_detected' => __( 'Configuration drift detected', LAUNCHDEK_TEXT_DOMAIN ),
+		);
 	}
 }

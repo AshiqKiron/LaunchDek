@@ -2,8 +2,6 @@
 /**
  * Plugin deactivation handler.
  *
- * Purpose: Reserved for clearing scheduled hooks or transient cleanup on deactivate.
- *
  * @package LaunchDek
  */
 
@@ -22,6 +20,9 @@ class LAUNCHDEK_Deactivator {
 	 * @return void
 	 */
 	public static function deactivate() {
+		require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-drift-cron.php';
+
 		delete_transient( 'launchdek_activation_redirect' );
+		LAUNCHDEK_Drift_Cron::deactivate();
 	}
 }

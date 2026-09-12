@@ -1,0 +1,66 @@
+---
+description: Coding, i18n, accessibility, UX, performance, privacy, and release standards for LaunchDek
+alwaysApply: true
+---
+
+# LaunchDek Standards
+
+Cross-cutting quality standards. See also: `launchdek-project.mdc` (architecture), `launchdek-compliance.mdc` (pre-ship gate), `wordpress-php.mdc` (PHP/REST), `admin-assets.mdc` (JS/CSS).
+
+## Coding Standards
+
+- **PHP**: WordPress PHP Coding Standards — spacing, arrays, docblocks where useful, clear naming.
+- **JS**: Vanilla admin JS with `fetch` + `launchdekAdmin` REST helpers; no frameworks unless justified.
+- **CSS**: Scope styles to `.launchdek-*` selectors; avoid bleeding into wp-admin or themes.
+- **HTML**: Semantic markup, accessible labels, buttons, headings.
+- Never output inline CSS/JS unless there is a good reason.
+- Keep lines and functions readable rather than clever.
+
+## I18N
+
+- All user-facing strings must be translatable via `LAUNCHDEK_TEXT_DOMAIN`.
+- Use `__()`, `_e()`, `esc_html__()`, `esc_attr__()`, etc. appropriately.
+- REST error messages returned to admin UI must also be translatable.
+
+## Accessibility
+
+- Every settings field must have a label.
+- Use `<button>` elements for actions, not clickable divs.
+- Respect keyboard navigation and focus states.
+- Modals use `[hidden]` attribute; ensure focus trap where appropriate.
+
+## Admin UX
+
+- Add notices sparingly; use `.launchdek-notice-area` + `.notice-inline` for inline feedback.
+- Load plugin-screen assets only via `is_plugin_screen()`.
+- Features must respect the global `enabled` kill switch.
+- Settings page uses WordPress Settings API (platform toggles, webhooks, role-permission matrix); all other pages use REST-driven JS UI.
+
+## Performance
+
+- Load code only where needed.
+- Avoid expensive queries on every request; repositories should use indexed columns.
+- Remote API calls only on user action, workflow execution, connection tests, or scheduled drift cron — never on every admin page load except dashboard ticker/feed fetches.
+- Avoid autoloading large options.
+
+## Privacy & External Communication
+
+- No telemetry or undisclosed tracking.
+- **Allowed outbound**: remote site REST calls (Application Passwords), webhook notifications (Slack/Discord/Teams — user-configured URLs only), integration adapter pushes (user-initiated).
+- Webhook URLs and notification events are opt-in via Settings (`run_started`, `run_completed`, `run_failed`, `step_failed`, `drift_detected`).
+- Credential vault encrypts app passwords at rest when `encrypt_credentials` is enabled.
+- Document any new external integration in `readme.txt`.
+- **Telemetry Sync Mapping Rules** on the Integrations page are user-configured field mappings for connector sync — not undisclosed tracking or outbound telemetry.
+
+## Uninstall & Lifecycle
+
+- **Activate**: seed settings, install DB tables, register caps, schedule drift cron, redirect to dashboard.
+- **Deactivate**: clear activation redirect transient, unschedule drift cron.
+- **Delete**: `uninstall.php` drops all tables, removes options (`launchdek_settings`, `launchdek_version`, `launchdek_db_version`, `launchdek_templates_seeded`), unregisters capabilities.
+- If adding new options or tables, update `uninstall.php` and `LAUNCHDEK_Installer::uninstall()`.
+
+## Release
+
+- Include `readme.txt` with changelog.
+- Include license headers and `LAUNCHDEK_VERSION` in plugin header.
+- Bump `LAUNCHDEK_Installer::DB_VERSION` when schema changes.

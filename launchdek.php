@@ -2,12 +2,10 @@
 /**
  * Plugin bootstrap — defines constants, loads dependencies, registers lifecycle hooks.
  *
- * Purpose: Single entry point. No business logic here; delegates to LAUNCHDEK_Plugin.
- *
  * Plugin Name: LaunchDek
  * Plugin URI: https://asphaltthemes.com/launchdek
- * Description: Build and manage product launch decks in WordPress.
- * Version: 0.1.0
+ * Description: Remote WordPress site orchestration for agencies — workflows, audit, and integrations.
+ * Version: 1.0.0
  * Requires at least: 6.0
  * Requires PHP: 7.4
  * Author: ashiquzzaman
@@ -24,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'LAUNCHDEK_VERSION', '0.1.0' );
+define( 'LAUNCHDEK_VERSION', '1.0.0' );
 define( 'LAUNCHDEK_PLUGIN_FILE', __FILE__ );
 define( 'LAUNCHDEK_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'LAUNCHDEK_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
@@ -32,10 +30,36 @@ define( 'LAUNCHDEK_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
 define( 'LAUNCHDEK_PLUGIN_SLUG', 'launchdek' );
 define( 'LAUNCHDEK_TEXT_DOMAIN', 'launchdek' );
 define( 'LAUNCHDEK_PLUGIN_DOCS_URL', 'https://asphaltthemes.com/launchdek/docs' );
+define( 'LAUNCHDEK_REST_NAMESPACE', 'launchdek/v1' );
 
+// Core.
+require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-settings.php';
+require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-installer.php';
+require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-capabilities.php';
+require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-credential-vault.php';
+require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-audit-log.php';
+
+// Data layer.
+require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-site-repository.php';
+require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-workflow-repository.php';
+require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-run-repository.php';
+
+// Remote & engine.
+require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-remote-client.php';
+require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-connection-tester.php';
+require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-payload-mapper.php';
+require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-step-executor.php';
+require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-workflow-runner.php';
+require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-drift-verifier.php';
+require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-webhook-dispatcher.php';
+require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-templates.php';
+require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-integrations.php';
+require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-drift-cron.php';
+require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-rest-api.php';
+
+// Admin.
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-activator.php';
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-deactivator.php';
-require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-settings.php';
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-admin.php';
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-plugin.php';
 

@@ -1,0 +1,96 @@
+---
+description: Admin JS and CSS conventions for LaunchDek
+globs: "admin/**/*.{js,css}"
+alwaysApply: false
+---
+
+# Admin Assets
+
+## JavaScript (`admin/js/launchdek-admin.js`)
+
+- Wrap in an IIFE with `'use strict'`; guard on `typeof launchdekAdmin`.
+- REST helpers: `request()`, `get()`, `post()`, `put()`, `del()` — all send `X-WP-Nonce` header.
+- DOM helpers: `el( tag, attrs, children )`, `fillSelect( select, items, valueKey, labelKey, placeholder )`; notices via `notice( container, message, type )`.
+- Scope queries to `.launchdek-admin` or `[data-launchdek-page]`.
+- No jQuery unless WordPress already loads it.
+- On `DOMContentLoaded`: set `data-launchdek-ready="true"`, then call all page inits.
+
+### Page init functions
+
+| Function | Page attr | Key elements |
+|----------|-----------|--------------|
+| `initDashboard()` | `dashboard` | `#launchdek-stats`, `#launchdek-ticker`, `#launchdek-log-feed`, `#launchdek-quick-launch` bar |
+| `initSites()` | `sites` | site list, add/edit modal (`.launchdek-modal`), connection test |
+| `initWorkflows()` | `workflows` | workflow list + canvas builder (`#launchdek-workflow-canvas`, `#launchdek-canvas-steps`), step config sidebar with role mapping, import/export |
+| `initAutomation()` | `automation` | batch queue (`#launchdek-batch-table`), run controls, audit filters (`/audit/meta`), drift status (`/drift/status`) |
+| `initTemplates()` | `templates` | built-in stack chips (`#launchdek-builtin-stacks`), vault save/list, clone actions |
+| `initIntegrations()` | `integrations` | Platform Connectors Hub (`#launchdek-connectors-list`), telemetry rules table, connector setup modal |
+
+Each init no-ops if `[data-launchdek-page="{page}"]` is absent.
+
+### `launchdekAdmin` shape
+
+```javascript
+{
+	restUrl: string,    // rest_url( 'launchdek/v1' )
+	nonce: string,      // wp_create_nonce( 'wp_rest' )
+	adminUrl: string,
+	pageSlug: string,
+	roles: object,      // WP role slug => translated label (for step target_roles UI)
+	strings: {
+		confirmDelete, confirmDeleteSite, saved, error, loading,
+		healthOk, healthFail, healthUnknown, connectionOk, connectionFail,
+		cloneToWorkflow, templateCloned, savedToVault, noVaultTemplates, stepsCount,
+		connected, notDetected, setup
+	}
+}
+```
+
+## CSS (`admin/css/launchdek-admin.css`)
+
+Prefix all selectors with `.launchdek-`.
+
+| Class | Purpose |
+|-------|---------|
+| `.launchdek-admin` | Page root wrapper (`data-launchdek-ready` set on DOMContentLoaded) |
+| `.launchdek-card` | Content card |
+| `.launchdek-stats-grid`, `.launchdek-stat-card`, `.launchdek-stat-value`, `.launchdek-stat-label` | Dashboard stats |
+| `.launchdek-quick-launch`, `.launchdek-inline-form` | Quick launch bar (`#launchdek-quick-launch`) |
+| `.launchdek-ticker-inline`, `.launchdek-ticker-chip`, `.launchdek-ticker-sep`, `.launchdek-ticker-dot` | Connection ticker (`#launchdek-ticker`) |
+| `.launchdek-log-feed`, `.launchdek-log-item` | Activity feed (`#launchdek-log-feed`) |
+| `.launchdek-badge`, `.launchdek-tag` | Site health / tags |
+| `.launchdek-modal`, `.launchdek-modal-backdrop`, `.launchdek-modal-content`, `.launchdek-modal-actions` | Modals (`[hidden]` when closed) |
+| `.launchdek-list` | Selectable lists |
+| `.launchdek-builder-layout`, `.launchdek-builder-workspace` | Workflow builder layout |
+| `.launchdek-canvas-card`, `.launchdek-workflow-canvas`, `.launchdek-canvas-flow` | Drag-and-drop workflow canvas |
+| `.launchdek-canvas-node`, `.launchdek-canvas-node-roles`, `.launchdek-canvas-connector` | Canvas step nodes + role badges + flow arrows |
+| `.launchdek-step-config-sidebar`, `.launchdek-role-mapping`, `.launchdek-role-option` | Step config panel + role target mapping |
+| `.launchdek-target-selector`, `.launchdek-batch-queue`, `.launchdek-automation-layout` | Automation run/batch UI |
+| `.launchdek-run-steps`, `.launchdek-run-step` | Run step tracker |
+| `.launchdek-audit-filters`, `.launchdek-audit-diff` | Audit log filters + drift diff display |
+| `.launchdek-drift-sites`, `.launchdek-drift-site-row` | Drift status panel |
+| `.launchdek-stack-list`, `.launchdek-stack-chip`, `.launchdek-template-detail` | Built-in template stack selector |
+| `.launchdek-template-grid`, `.launchdek-template-card` | Vault template cards |
+| `.launchdek-connector-list`, `.launchdek-connector-row`, `.launchdek-connector-actions` | Platform Connectors Hub |
+| `#launchdek-telemetry-rules-table` | Telemetry sync mapping rules table |
+| `.launchdek-integration-card` | Legacy integration card style (prefer connector list) |
+| `.launchdek-import-export` | Workflow import/export controls |
+| `.launchdek-settings-*` | Settings page cards, toggles, channels, role presets, perm table |
+| `.launchdek-notice-area .notice-inline` | Inline success/error |
+| `.launchdek-grid-2` | Two-column layout |
+| `.launchdek-select`, `.launchdek-muted` | Form controls |
+
+Status modifiers: `.healthy`, `.unhealthy`, `.unknown`, `.active`, `.success`, `.error`. Run steps: `.status-completed`, `.status-failed`, `.status-awaiting_manual`, `.status-running`.
+
+## Partials (`admin/partials/`)
+
+Thin shells only — no business logic. Each sets `data-launchdek-page` on `.launchdek-admin` root (including `settings`). Settings page uses Settings API form, not REST-driven CRUD.
+
+## Enqueuing
+
+| Handle | File | When |
+|--------|------|------|
+| `launchdek-admin` (style) | `admin/css/launchdek-admin.css` | `is_plugin_screen()` |
+| `launchdek-admin` (script) | `admin/js/launchdek-admin.js` | `is_plugin_screen()` + `wp_localize_script` |
+
+Version: `filemtime()` when file exists, otherwise `LAUNCHDEK_VERSION`.

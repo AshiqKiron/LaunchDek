@@ -1,13 +1,936 @@
+/* LaunchDek Admin Styles */
+
 .launchdek-admin .launchdek-card {
 	background: #fff;
 	border: 1px solid #c3c4c7;
 	border-radius: 4px;
+	padding: 16px 20px;
+	margin: 16px 0;
 	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
-	margin-top: 20px;
-	max-width: 720px;
-	padding: 20px 24px;
 }
 
-.launchdek-admin .launchdek-card h2 {
+.launchdek-admin h2 {
 	margin-top: 0;
+	font-size: 1.1em;
+}
+
+.launchdek-stats-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+	gap: 12px;
+	margin: 16px 0;
+}
+
+.launchdek-stat-card {
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+	padding: 16px;
+	text-align: center;
+}
+
+.launchdek-stat-value {
+	display: block;
+	font-size: 2em;
+	font-weight: 600;
+	color: #1d2327;
+	line-height: 1.2;
+}
+
+.launchdek-stat-label {
+	display: block;
+	font-size: 12px;
+	color: #646970;
+	margin-top: 4px;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+}
+
+.launchdek-grid-2 {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 0 16px;
+}
+
+@media (max-width: 960px) {
+	.launchdek-grid-2,
+	.launchdek-builder-layout {
+		grid-template-columns: 1fr;
+	}
+}
+
+.launchdek-inline-form {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	align-items: center;
+	margin: 8px 0;
+}
+
+/* Sites toolbar */
+.launchdek-sites-toolbar {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px 16px;
+}
+
+.launchdek-sites-toolbar-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	align-items: center;
+}
+
+.launchdek-sites-toolbar-filters {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	align-items: center;
+	margin-left: auto;
+}
+
+.launchdek-filter-label {
+	margin: 0;
+}
+
+.launchdek-actions {
+	white-space: nowrap;
+}
+
+.launchdek-select {
+	min-width: 180px;
+	max-width: 100%;
+}
+
+.launchdek-muted {
+	color: #646970;
+	font-style: italic;
+}
+
+.launchdek-notice-area {
+	margin: 8px 0;
+}
+
+.launchdek-notice-area .notice-inline {
+	padding: 8px 12px;
+	border-left: 4px solid #72aee6;
+	background: #f0f6fc;
+	margin: 4px 0;
+}
+
+.launchdek-notice-area .notice-inline.error {
+	border-color: #d63638;
+	background: #fcf0f1;
+}
+
+.launchdek-notice-area .notice-inline.success {
+	border-color: #00a32a;
+	background: #edfaef;
+}
+
+/* Ticker */
+.launchdek-ticker-inline {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 6px 10px;
+	padding: 4px 0;
+	font-size: 13px;
+	line-height: 1.5;
+}
+
+.launchdek-ticker-chip {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	white-space: nowrap;
+}
+
+.launchdek-ticker-sep {
+	color: #c3c4c7;
+	user-select: none;
+}
+
+.launchdek-ticker-dot {
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	flex-shrink: 0;
+}
+
+.launchdek-ticker-dot.healthy,
+.launchdek-ticker-dot.success { background: #00a32a; }
+
+.launchdek-ticker-dot.unhealthy,
+.launchdek-ticker-dot.error { background: #d63638; }
+
+.launchdek-ticker-dot.unknown { background: #dba617; }
+
+/* Log feed */
+.launchdek-log-feed {
+	max-height: 280px;
+	overflow-y: auto;
+}
+
+.launchdek-log-item {
+	padding: 6px 0 6px 14px;
+	border-bottom: 1px solid #f0f0f1;
+	font-size: 13px;
+	position: relative;
+}
+
+.launchdek-log-item::before {
+	content: '–';
+	position: absolute;
+	left: 0;
+	color: #646970;
+}
+
+.launchdek-log-item time {
+	color: #646970;
+	font-size: 12px;
+	font-variant-numeric: tabular-nums;
+}
+
+/* Health badges */
+.launchdek-badge {
+	display: inline-block;
+	padding: 2px 8px;
+	border-radius: 3px;
+	font-size: 11px;
+	font-weight: 600;
+	text-transform: uppercase;
+}
+
+.launchdek-badge.healthy { background: #edfaef; color: #007017; }
+.launchdek-badge.unhealthy { background: #fcf0f1; color: #8a2424; }
+.launchdek-badge.warning { background: #fcf9e8; color: #996800; }
+.launchdek-badge.success { background: #edfaef; color: #007017; }
+.launchdek-badge.failed { background: #fcf0f1; color: #8a2424; }
+.launchdek-badge.unknown { background: #f0f0f1; color: #646970; }
+
+.launchdek-tag {
+	display: inline-block;
+	background: #f0f6fc;
+	color: #2271b1;
+	padding: 2px 6px;
+	border-radius: 3px;
+	font-size: 11px;
+	margin: 1px 2px;
+}
+
+/* Modal */
+.launchdek-modal[hidden] { display: none !important; }
+
+.launchdek-modal {
+	position: fixed;
+	inset: 0;
+	z-index: 100100;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.launchdek-modal-backdrop {
+	position: absolute;
+	inset: 0;
+	background: rgba(0, 0, 0, 0.5);
+}
+
+.launchdek-modal-content {
+	position: relative;
+	z-index: 1;
+	width: 90%;
+	max-width: 520px;
+	max-height: 90vh;
+	overflow-y: auto;
+}
+
+.launchdek-modal-actions {
+	display: flex;
+	gap: 8px;
+	flex-wrap: wrap;
+}
+
+/* Workflow builder */
+.launchdek-builder-workspace {
+	display: grid;
+	grid-template-columns: 1fr 320px;
+	gap: 16px;
+	margin: 16px 0;
+}
+
+@media (max-width: 1100px) {
+	.launchdek-builder-workspace {
+		grid-template-columns: 1fr;
+	}
+}
+
+.launchdek-canvas-card {
+	background: #f6f7f7;
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+	padding: 16px;
+	min-height: 220px;
+}
+
+.launchdek-canvas-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	margin-bottom: 12px;
+}
+
+.launchdek-canvas-header h3 {
+	margin: 0;
+	font-size: 1em;
+}
+
+.launchdek-workflow-canvas {
+	overflow-x: auto;
+	padding: 8px 4px 16px;
+}
+
+.launchdek-canvas-steps {
+	min-height: 140px;
+}
+
+.launchdek-canvas-empty {
+	text-align: center;
+	padding: 48px 16px;
+	margin: 0;
+}
+
+.launchdek-canvas-flow {
+	display: flex;
+	align-items: stretch;
+	gap: 0;
+	min-width: min-content;
+}
+
+.launchdek-canvas-node {
+	flex: 0 0 180px;
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	padding: 14px 12px;
+	border: 2px solid #c3c4c7;
+	border-radius: 6px;
+	background: #fff;
+	cursor: grab;
+	transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.launchdek-canvas-node:hover,
+.launchdek-canvas-node:focus {
+	border-color: #72aee6;
+	outline: none;
+}
+
+.launchdek-canvas-node.active {
+	border-color: #2271b1;
+	box-shadow: 0 0 0 1px #2271b1;
+}
+
+.launchdek-canvas-node.dragging {
+	opacity: 0.55;
+}
+
+.launchdek-canvas-node-num {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 24px;
+	height: 24px;
+	border-radius: 50%;
+	background: #2271b1;
+	color: #fff;
+	font-size: 12px;
+	font-weight: 600;
+}
+
+.launchdek-canvas-node-title {
+	font-weight: 600;
+	font-size: 13px;
+	line-height: 1.3;
+	color: #1d2327;
+}
+
+.launchdek-canvas-node-type {
+	font-size: 11px;
+	text-transform: uppercase;
+	letter-spacing: 0.4px;
+	color: #646970;
+}
+
+.launchdek-canvas-node-roles {
+	font-size: 11px;
+	color: #50575e;
+	line-height: 1.3;
+}
+
+.launchdek-canvas-connector {
+	display: flex;
+	align-items: center;
+	padding: 0 6px;
+	color: #a7aaad;
+	font-size: 20px;
+	flex-shrink: 0;
+}
+
+.launchdek-step-config-sidebar {
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+	padding: 16px;
+}
+
+.launchdek-step-config-sidebar h3 {
+	margin: 0 0 12px;
+	font-size: 1em;
+}
+
+.launchdek-config-subheading {
+	margin: 12px 0 8px;
+	font-size: 0.95em;
+}
+
+.launchdek-role-mapping {
+	border: 1px solid #dcdcde;
+	border-radius: 3px;
+	padding: 10px 12px;
+	margin: 0 0 12px;
+}
+
+.launchdek-role-mapping legend {
+	font-weight: 600;
+	padding: 0 4px;
+}
+
+.launchdek-role-option {
+	display: block;
+	font-weight: 400;
+	margin: 4px 0;
+}
+
+.launchdek-role-option input {
+	margin-right: 6px;
+}
+
+.launchdek-wf-meta {
+	margin-bottom: 4px;
+}
+
+.launchdek-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.launchdek-list li {
+	padding: 10px 12px;
+	border: 1px solid #dcdcde;
+	border-radius: 3px;
+	margin-bottom: 6px;
+	cursor: pointer;
+	background: #fafafa;
+}
+
+.launchdek-list li.active,
+.launchdek-list li:hover {
+	border-color: #2271b1;
+	background: #f0f6fc;
+}
+
+.launchdek-steps-list {
+	list-style: none;
+	margin: 0 0 12px;
+	padding: 0;
+	min-height: 40px;
+}
+
+.launchdek-step-item {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 10px 12px;
+	border: 1px solid #dcdcde;
+	border-radius: 3px;
+	margin-bottom: 6px;
+	background: #fff;
+	cursor: grab;
+}
+
+.launchdek-step-item.active {
+	border-color: #2271b1;
+	box-shadow: 0 0 0 1px #2271b1;
+}
+
+.launchdek-step-item.dragging {
+	opacity: 0.5;
+}
+
+.launchdek-step-handle {
+	color: #a7aaad;
+	cursor: grab;
+	user-select: none;
+}
+
+.launchdek-step-config label {
+	display: block;
+	margin-bottom: 8px;
+	font-weight: 600;
+}
+
+.launchdek-step-config input,
+.launchdek-step-config textarea,
+.launchdek-step-config select {
+	width: 100%;
+	margin-top: 4px;
+}
+
+/* Automation layout */
+.launchdek-target-selector {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+}
+
+.launchdek-target-form {
+	align-items: flex-start;
+	flex-wrap: wrap;
+}
+
+.launchdek-select-multi {
+	min-width: 220px;
+	max-width: 320px;
+}
+
+.launchdek-target-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	align-items: center;
+}
+
+.launchdek-batch-queue h3 {
+	margin: 0 0 8px;
+	font-size: 13px;
+}
+
+.launchdek-run-controls {
+	margin-top: 4px;
+}
+
+.launchdek-automation-layout {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) 340px;
+	gap: 16px;
+	align-items: start;
+	margin-bottom: 16px;
+}
+
+.launchdek-automation-sidebar {
+	position: sticky;
+	top: 32px;
+	max-height: calc(100vh - 64px);
+	overflow-y: auto;
+}
+
+.launchdek-audit-filters {
+	flex-wrap: wrap;
+	margin-bottom: 12px;
+}
+
+.launchdek-filter-date input[type="date"] {
+	height: 30px;
+}
+
+.launchdek-audit-table td {
+	vertical-align: top;
+}
+
+.launchdek-audit-action {
+	font-weight: 600;
+	margin-bottom: 4px;
+}
+
+.launchdek-audit-diff {
+	font-size: 12px;
+	color: #50575e;
+	background: #f6f7f7;
+	border-radius: 3px;
+	padding: 8px;
+	margin: 0;
+	overflow-x: auto;
+	white-space: pre-wrap;
+	word-break: break-word;
+	max-height: 120px;
+}
+
+.launchdek-drift-status {
+	margin-bottom: 12px;
+	padding: 10px 12px;
+	background: #f6f7f7;
+	border-radius: 3px;
+	font-size: 13px;
+}
+
+.launchdek-drift-site-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	padding: 8px 0;
+	border-bottom: 1px solid #dcdcde;
+}
+
+.launchdek-drift-site-row:last-child {
+	border-bottom: 0;
+}
+
+.launchdek-drift-results {
+	margin-top: 12px;
+}
+
+@media (max-width: 1200px) {
+	.launchdek-automation-layout {
+		grid-template-columns: 1fr;
+	}
+
+	.launchdek-automation-sidebar {
+		position: static;
+		max-height: none;
+		order: -1;
+	}
+}
+
+/* Run steps */
+.launchdek-run-steps {
+	list-style: none;
+	margin: 12px 0 0;
+	padding: 0;
+}
+
+.launchdek-run-step {
+	padding: 10px 12px;
+	border: 1px solid #dcdcde;
+	border-radius: 3px;
+	margin-bottom: 6px;
+	background: #fff;
+}
+
+.launchdek-run-step.status-completed { border-left: 4px solid #00a32a; }
+.launchdek-run-step.status-failed { border-left: 4px solid #d63638; }
+.launchdek-run-step.status-awaiting_manual { border-left: 4px solid #dba617; }
+.launchdek-run-step.status-running { border-left: 4px solid #72aee6; }
+.launchdek-run-step.status-pending { border-left: 4px solid #c3c4c7; }
+
+.launchdek-run-step-meta {
+	font-size: 12px;
+	color: #646970;
+	margin-top: 4px;
+}
+
+.launchdek-run-step-error {
+	color: #d63638;
+	font-size: 12px;
+	margin-top: 6px;
+}
+
+.launchdek-run-step-response {
+	margin-top: 8px;
+}
+
+.launchdek-run-step-response summary {
+	cursor: pointer;
+	font-size: 12px;
+	color: #2271b1;
+}
+
+.launchdek-run-step-response pre {
+	font-size: 11px;
+	background: #f6f7f7;
+	padding: 8px;
+	overflow: auto;
+	max-height: 160px;
+	margin: 6px 0 0;
+	border-radius: 3px;
+}
+
+/* Templates stack list */
+.launchdek-stack-list {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 4px 8px;
+	margin: 8px 0 0;
+}
+
+.launchdek-stack-chip {
+	background: none;
+	border: none;
+	padding: 4px 0;
+	font-size: 13px;
+	font-weight: 600;
+	color: #2271b1;
+	cursor: pointer;
+	text-decoration: underline;
+}
+
+.launchdek-stack-chip:hover,
+.launchdek-stack-chip:focus {
+	color: #135e96;
+}
+
+.launchdek-stack-chip.active {
+	color: #1d2327;
+	text-decoration: none;
+	cursor: default;
+}
+
+.launchdek-stack-sep {
+	color: #c3c4c7;
+	user-select: none;
+	font-size: 13px;
+}
+
+.launchdek-template-detail {
+	margin-top: 16px;
+	padding-top: 16px;
+	border-top: 1px solid #dcdcde;
+}
+
+.launchdek-template-detail p {
+	margin: 0 0 12px;
+}
+
+/* Templates & integrations grid */
+.launchdek-template-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+	gap: 12px;
+	margin-top: 12px;
+}
+
+.launchdek-template-card {
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+	padding: 16px;
+	background: #fafafa;
+}
+
+.launchdek-template-card h3 {
+	margin: 0 0 8px;
+	font-size: 14px;
+}
+
+.launchdek-template-card p {
+	margin: 0 0 12px;
+	font-size: 13px;
+	color: #646970;
+}
+
+.launchdek-template-card .launchdek-badge {
+	margin-bottom: 8px;
+}
+
+.launchdek-integration-card.available {
+	border-color: #00a32a;
+}
+
+.launchdek-integration-card.unavailable {
+	opacity: 0.75;
+}
+
+/* Integrations — Platform Connectors Hub */
+.launchdek-connector-list {
+	list-style: none;
+	margin: 12px 0 0;
+	padding: 0;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+	background: #fff;
+}
+
+.launchdek-connector-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	padding: 12px 16px;
+	border-bottom: 1px solid #dcdcde;
+}
+
+.launchdek-connector-row:last-child {
+	border-bottom: 0;
+}
+
+.launchdek-connector-row.unavailable {
+	opacity: 0.85;
+}
+
+.launchdek-connector-name {
+	font-weight: 500;
+	color: #1d2327;
+}
+
+.launchdek-connector-actions {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex-shrink: 0;
+}
+
+#launchdek-telemetry-rules-table .check-column {
+	width: 2.2em;
+}
+
+.launchdek-import-export {
+	margin-bottom: 0;
+}
+
+/* Settings */
+.launchdek-settings-form {
+	max-width: 1100px;
+}
+
+.launchdek-settings-card h2 {
+	margin: 0 0 8px;
+	font-size: 1.1em;
+}
+
+.launchdek-settings-lead {
+	margin: 0 0 16px;
+	font-weight: 600;
+	color: #1d2327;
+}
+
+.launchdek-settings-note {
+	margin: 12px 0 0;
+	font-size: 13px;
+}
+
+.launchdek-settings-toggles {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px 24px;
+}
+
+.launchdek-settings-toggle {
+	display: inline-flex;
+	align-items: flex-start;
+	gap: 8px;
+	margin: 0;
+	font-weight: 400;
+}
+
+.launchdek-settings-toggle input {
+	margin-top: 2px;
+}
+
+.launchdek-settings-channels {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 12px;
+	margin-bottom: 20px;
+}
+
+.launchdek-settings-channel {
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+	padding: 12px;
+	background: #fafafa;
+}
+
+.launchdek-settings-channel label {
+	display: block;
+	margin-bottom: 8px;
+}
+
+.launchdek-settings-channel input {
+	width: 100%;
+}
+
+.launchdek-settings-events h3,
+.launchdek-settings-role-mapping h3 {
+	margin: 0 0 8px;
+	font-size: 0.95em;
+}
+
+.launchdek-settings-event-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+	gap: 8px 16px;
+}
+
+.launchdek-settings-role-presets {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 12px;
+	margin-bottom: 20px;
+}
+
+.launchdek-settings-role-preset {
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+	padding: 12px;
+	background: #f6f7f7;
+}
+
+.launchdek-settings-role-preset h3 {
+	margin: 0 0 6px;
+	font-size: 0.95em;
+}
+
+.launchdek-settings-role-preset p {
+	margin: 0 0 8px;
+	font-size: 13px;
+	color: #646970;
+}
+
+.launchdek-settings-role-caps {
+	margin: 0;
+	padding-left: 18px;
+	font-size: 12px;
+	color: #50575e;
+}
+
+.launchdek-settings-role-caps li {
+	margin: 2px 0;
+}
+
+.launchdek-settings-perm-table {
+	margin-top: 12px;
+}
+
+.launchdek-settings-perm-table th,
+.launchdek-settings-perm-table td {
+	text-align: center;
+	vertical-align: middle;
+}
+
+.launchdek-settings-perm-table th[scope="row"] {
+	text-align: left;
+	font-weight: 600;
+}
+
+.launchdek-settings-perm-check {
+	display: inline-flex;
+	margin: 0;
+}
+
+@media (max-width: 960px) {
+	.launchdek-settings-channels,
+	.launchdek-settings-role-presets {
+		grid-template-columns: 1fr;
+	}
+
+	.launchdek-settings-perm-table {
+		display: block;
+		overflow-x: auto;
+	}
 }

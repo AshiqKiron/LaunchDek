@@ -2,9 +2,6 @@
 /**
  * Admin area — menus, settings pages, asset enqueuing.
  *
- * Purpose: Register admin UI via admin_menu and Settings API.
- *          Render dashboard/settings partials. Enqueue assets only on plugin screens.
- *
  * @package LaunchDek
  */
 
@@ -17,11 +14,6 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class LAUNCHDEK_Admin {
 
-	/**
-	 * Admin page slug.
-	 *
-	 * @var string
-	 */
 	const PAGE_SLUG = LAUNCHDEK_PLUGIN_SLUG;
 
 	/**
@@ -30,33 +22,38 @@ class LAUNCHDEK_Admin {
 	 * @return void
 	 */
 	public function register_menu() {
+		$cap = LAUNCHDEK_Capabilities::admin_menu_capability();
+
 		add_menu_page(
 			__( 'LaunchDek', LAUNCHDEK_TEXT_DOMAIN ),
 			__( 'LaunchDek', LAUNCHDEK_TEXT_DOMAIN ),
-			LAUNCHDEK_Settings::CAPABILITY,
+			$cap,
 			self::PAGE_SLUG,
 			array( $this, 'render_admin_page' ),
-			'dashicons-slides',
+			'dashicons-networking',
 			73
 		);
 
-		add_submenu_page(
-			self::PAGE_SLUG,
-			__( 'Dashboard', LAUNCHDEK_TEXT_DOMAIN ),
-			__( 'Dashboard', LAUNCHDEK_TEXT_DOMAIN ),
-			LAUNCHDEK_Settings::CAPABILITY,
-			self::PAGE_SLUG,
-			array( $this, 'render_admin_page' )
+		$pages = array(
+			self::PAGE_SLUG              => array( __( 'Dashboard', LAUNCHDEK_TEXT_DOMAIN ), 'render_admin_page' ),
+			self::PAGE_SLUG . '-sites'   => array( __( 'Sites', LAUNCHDEK_TEXT_DOMAIN ), 'render_sites_page' ),
+			self::PAGE_SLUG . '-workflows' => array( __( 'Workflows', LAUNCHDEK_TEXT_DOMAIN ), 'render_workflows_page' ),
+			self::PAGE_SLUG . '-automation' => array( __( 'Automation & Audit', LAUNCHDEK_TEXT_DOMAIN ), 'render_automation_page' ),
+			self::PAGE_SLUG . '-templates' => array( __( 'Templates', LAUNCHDEK_TEXT_DOMAIN ), 'render_templates_page' ),
+			self::PAGE_SLUG . '-integrations' => array( __( 'Integrations', LAUNCHDEK_TEXT_DOMAIN ), 'render_integrations_page' ),
+			self::PAGE_SLUG . '-settings' => array( __( 'Settings', LAUNCHDEK_TEXT_DOMAIN ), 'render_settings_page' ),
 		);
 
-		add_submenu_page(
-			self::PAGE_SLUG,
-			__( 'Settings', LAUNCHDEK_TEXT_DOMAIN ),
-			__( 'Settings', LAUNCHDEK_TEXT_DOMAIN ),
-			LAUNCHDEK_Settings::CAPABILITY,
-			self::PAGE_SLUG . '-settings',
-			array( $this, 'render_settings_page' )
-		);
+		foreach ( $pages as $slug => $page ) {
+			add_submenu_page(
+				self::PAGE_SLUG,
+				$page[0],
+				$page[0],
+				$cap,
+				$slug,
+				array( $this, $page[1] )
+			);
+		}
 	}
 
 	/**
@@ -74,196 +71,130 @@ class LAUNCHDEK_Admin {
 				'default'           => LAUNCHDEK_Settings::get_defaults(),
 			)
 		);
-
-		add_settings_section(
-			'launchdek_general_section',
-			__( 'General', LAUNCHDEK_TEXT_DOMAIN ),
-			array( $this, 'render_general_section' ),
-			self::PAGE_SLUG . '-settings'
-		);
-
-		add_settings_field(
-			'launchdek_enabled',
-			__( 'Enable LaunchDek', LAUNCHDEK_TEXT_DOMAIN ),
-			array( $this, 'render_enabled_field' ),
-			self::PAGE_SLUG . '-settings',
-			'launchdek_general_section'
-		);
 	}
 
-	/**
-	 * Redirect to the dashboard after activation.
-	 *
-	 * @return void
-	 */
 	public function maybe_activation_redirect() {
 		if ( ! get_transient( 'launchdek_activation_redirect' ) ) {
 			return;
 		}
-
 		delete_transient( 'launchdek_activation_redirect' );
-
 		if ( wp_doing_ajax() || is_network_admin() || isset( $_GET['activate-multi'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			return;
 		}
-
 		wp_safe_redirect( admin_url( 'admin.php?page=' . self::PAGE_SLUG ) );
 		exit;
 	}
 
-	/**
-	 * Enqueue admin styles on plugin screens.
-	 *
-	 * @param string $hook Current admin page hook.
-	 * @return void
-	 */
 	public function enqueue_styles( $hook ) {
 		if ( ! $this->is_plugin_screen( $hook ) ) {
 			return;
 		}
-
-		$stylesheet_path = LAUNCHDEK_PLUGIN_DIR . 'admin/css/launchdek-admin.css';
-
-		wp_enqueue_style(
-			'launchdek-admin',
-			LAUNCHDEK_PLUGIN_URL . 'admin/css/launchdek-admin.css',
-			array(),
-			file_exists( $stylesheet_path ) ? (string) filemtime( $stylesheet_path ) : LAUNCHDEK_VERSION
-		);
+		$path = LAUNCHDEK_PLUGIN_DIR . 'admin/css/launchdek-admin.css';
+		wp_enqueue_style( 'launchdek-admin', LAUNCHDEK_PLUGIN_URL . 'admin/css/launchdek-admin.css', array(), file_exists( $path ) ? (string) filemtime( $path ) : LAUNCHDEK_VERSION );
 	}
 
-	/**
-	 * Enqueue admin scripts on plugin screens.
-	 *
-	 * @param string $hook Current admin page hook.
-	 * @return void
-	 */
 	public function enqueue_scripts( $hook ) {
 		if ( ! $this->is_plugin_screen( $hook ) ) {
 			return;
 		}
+		$path = LAUNCHDEK_PLUGIN_DIR . 'admin/js/launchdek-admin.js';
+		wp_enqueue_script( 'launchdek-admin', LAUNCHDEK_PLUGIN_URL . 'admin/js/launchdek-admin.js', array(), file_exists( $path ) ? (string) filemtime( $path ) : LAUNCHDEK_VERSION, true );
+		$wp_roles = array();
+		if ( function_exists( 'wp_roles' ) && wp_roles() ) {
+			foreach ( wp_roles()->get_names() as $role_slug => $role_name ) {
+				$wp_roles[ $role_slug ] = translate_user_role( $role_name );
+			}
+		}
 
-		$script_path = LAUNCHDEK_PLUGIN_DIR . 'admin/js/launchdek-admin.js';
-
-		wp_enqueue_script(
+		wp_localize_script(
 			'launchdek-admin',
-			LAUNCHDEK_PLUGIN_URL . 'admin/js/launchdek-admin.js',
-			array(),
-			file_exists( $script_path ) ? (string) filemtime( $script_path ) : LAUNCHDEK_VERSION,
-			true
+			'launchdekAdmin',
+			array(
+				'restUrl'   => esc_url_raw( rest_url( LAUNCHDEK_REST_NAMESPACE ) ),
+				'nonce'     => wp_create_nonce( 'wp_rest' ),
+				'adminUrl'  => admin_url( 'admin.php' ),
+				'pageSlug'  => self::PAGE_SLUG,
+				'roles'     => $wp_roles,
+				'strings'   => array(
+					'confirmDelete'  => __( 'Are you sure you want to delete this?', LAUNCHDEK_TEXT_DOMAIN ),
+					'confirmDeleteSite' => __( 'Are you sure you want to delete this site?', LAUNCHDEK_TEXT_DOMAIN ),
+					'saved'          => __( 'Saved successfully.', LAUNCHDEK_TEXT_DOMAIN ),
+					'error'          => __( 'Something went wrong.', LAUNCHDEK_TEXT_DOMAIN ),
+					'loading'        => __( 'Loading…', LAUNCHDEK_TEXT_DOMAIN ),
+					'healthOk'       => __( 'OK', LAUNCHDEK_TEXT_DOMAIN ),
+					'healthFail'     => __( 'Fail', LAUNCHDEK_TEXT_DOMAIN ),
+					'healthUnknown'  => __( 'Unknown', LAUNCHDEK_TEXT_DOMAIN ),
+					'connectionOk'   => __( 'Connection OK', LAUNCHDEK_TEXT_DOMAIN ),
+					'connectionFail' => __( 'Connection failed', LAUNCHDEK_TEXT_DOMAIN ),
+					'cloneToWorkflow' => __( 'Clone to Workflow', LAUNCHDEK_TEXT_DOMAIN ),
+					'templateCloned'  => __( 'Template cloned. Edit it under Workflows.', LAUNCHDEK_TEXT_DOMAIN ),
+					'savedToVault'    => __( 'Saved to vault.', LAUNCHDEK_TEXT_DOMAIN ),
+					'noVaultTemplates' => __( 'No vault templates yet.', LAUNCHDEK_TEXT_DOMAIN ),
+					'stepsCount'      => __( '%d steps', LAUNCHDEK_TEXT_DOMAIN ),
+					'connected'       => __( 'Connected', LAUNCHDEK_TEXT_DOMAIN ),
+					'notDetected'     => __( 'Not Detected', LAUNCHDEK_TEXT_DOMAIN ),
+					'setup'           => __( 'Setup', LAUNCHDEK_TEXT_DOMAIN ),
+				),
+			)
 		);
 	}
 
-	/**
-	 * Add a Settings link on the Plugins screen.
-	 *
-	 * @param array $links Existing action links.
-	 * @return array
-	 */
 	public function add_settings_link( $links ) {
-		$settings_link = sprintf(
-			'<a href="%s">%s</a>',
-			esc_url( admin_url( 'admin.php?page=' . self::PAGE_SLUG . '-settings' ) ),
-			esc_html__( 'Settings', LAUNCHDEK_TEXT_DOMAIN )
-		);
-
-		array_unshift( $links, $settings_link );
-
+		array_unshift( $links, sprintf( '<a href="%s">%s</a>', esc_url( admin_url( 'admin.php?page=' . self::PAGE_SLUG . '-settings' ) ), esc_html__( 'Settings', LAUNCHDEK_TEXT_DOMAIN ) ) );
 		return $links;
 	}
 
-	/**
-	 * Add documentation link to plugin row meta.
-	 *
-	 * @param array  $links Plugin row meta links.
-	 * @param string $file  Plugin file path.
-	 * @return array
-	 */
 	public function add_plugin_row_meta( $links, $file ) {
 		if ( LAUNCHDEK_PLUGIN_BASENAME !== $file ) {
 			return $links;
 		}
-
-		$links[] = sprintf(
-			'<a href="%s" target="_blank" rel="noopener noreferrer">%s</a>',
-			esc_url( LAUNCHDEK_PLUGIN_DOCS_URL ),
-			esc_html__( 'Docs', LAUNCHDEK_TEXT_DOMAIN )
-		);
-
+		$links[] = sprintf( '<a href="%s" target="_blank" rel="noopener noreferrer">%s</a>', esc_url( LAUNCHDEK_PLUGIN_DOCS_URL ), esc_html__( 'Docs', LAUNCHDEK_TEXT_DOMAIN ) );
 		return $links;
 	}
 
-	/**
-	 * Render the dashboard page.
-	 *
-	 * @return void
-	 */
 	public function render_admin_page() {
-		if ( ! current_user_can( LAUNCHDEK_Settings::CAPABILITY ) ) {
-			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', LAUNCHDEK_TEXT_DOMAIN ) );
-		}
-
-		$settings = LAUNCHDEK_Settings::get();
-
-		require LAUNCHDEK_PLUGIN_DIR . 'admin/partials/launchdek-admin-page.php';
+		$this->render_page( 'launchdek-admin-page.php', array( 'page' => 'dashboard' ) );
 	}
 
-	/**
-	 * Render the settings page.
-	 *
-	 * @return void
-	 */
-	public function render_settings_page() {
-		if ( ! current_user_can( LAUNCHDEK_Settings::CAPABILITY ) ) {
-			wp_die( esc_html__( 'You do not have sufficient permissions to access this page.', LAUNCHDEK_TEXT_DOMAIN ) );
-		}
+	public function render_sites_page() {
+		$this->render_page( 'launchdek-sites-page.php', array( 'page' => 'sites' ) );
+	}
 
+	public function render_workflows_page() {
+		$this->render_page( 'launchdek-workflows-page.php', array( 'page' => 'workflows' ) );
+	}
+
+	public function render_automation_page() {
+		$this->render_page( 'launchdek-automation-page.php', array( 'page' => 'automation' ) );
+	}
+
+	public function render_templates_page() {
+		$this->render_page( 'launchdek-templates-page.php', array( 'page' => 'templates' ) );
+	}
+
+	public function render_integrations_page() {
+		$this->render_page( 'launchdek-integrations-page.php', array( 'page' => 'integrations' ) );
+	}
+
+	public function render_settings_page() {
+		if ( ! LAUNCHDEK_Capabilities::current_user_can( LAUNCHDEK_Capabilities::MANAGE_SETTINGS ) ) {
+			wp_die( esc_html__( 'You do not have sufficient permissions.', LAUNCHDEK_TEXT_DOMAIN ) );
+		}
+		$settings = LAUNCHDEK_Settings::get();
 		require LAUNCHDEK_PLUGIN_DIR . 'admin/partials/launchdek-settings-page.php';
 	}
 
-	/**
-	 * Render the general settings section description.
-	 *
-	 * @return void
-	 */
-	public function render_general_section() {
-		echo '<p>' . esc_html__( 'Configure core LaunchDek behavior.', LAUNCHDEK_TEXT_DOMAIN ) . '</p>';
-	}
-
-	/**
-	 * Render the enabled checkbox field.
-	 *
-	 * @return void
-	 */
-	public function render_enabled_field() {
-		$settings = LAUNCHDEK_Settings::get();
-		?>
-		<label for="launchdek_enabled">
-			<input
-				type="checkbox"
-				id="launchdek_enabled"
-				name="<?php echo esc_attr( LAUNCHDEK_Settings::OPTION_NAME ); ?>[enabled]"
-				value="1"
-				<?php checked( ! empty( $settings['enabled'] ) ); ?>
-			/>
-			<?php esc_html_e( 'Enable LaunchDek features site-wide.', LAUNCHDEK_TEXT_DOMAIN ); ?>
-		</label>
-		<?php
-	}
-
-	/**
-	 * Determine whether the current screen belongs to this plugin.
-	 *
-	 * @param string $hook Current admin page hook.
-	 * @return bool
-	 */
-	protected function is_plugin_screen( $hook ) {
-		$screen = function_exists( 'get_current_screen' ) ? get_current_screen() : null;
-
-		if ( $screen && 0 === strpos( $screen->id, 'toplevel_page_' . self::PAGE_SLUG ) ) {
-			return true;
+	protected function render_page( $partial, $vars = array() ) {
+		if ( ! LAUNCHDEK_Capabilities::current_user_can( LAUNCHDEK_Capabilities::VIEW_DASHBOARD ) ) {
+			wp_die( esc_html__( 'You do not have sufficient permissions.', LAUNCHDEK_TEXT_DOMAIN ) );
 		}
+		$settings = LAUNCHDEK_Settings::get();
+		extract( $vars, EXTR_SKIP ); // phpcs:ignore WordPress.PHP.DontExtract.extract_extract
+		require LAUNCHDEK_PLUGIN_DIR . 'admin/partials/' . $partial;
+	}
 
+
+	protected function is_plugin_screen( $hook ) {
 		return false !== strpos( $hook, self::PAGE_SLUG );
 	}
 }

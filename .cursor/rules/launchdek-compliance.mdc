@@ -1,0 +1,65 @@
+---
+description: Security, WordPress.org directory, and pre-ship review checklist for LaunchDek
+alwaysApply: true
+---
+
+# LaunchDek Compliance
+
+Gate before presenting final code. If any checklist item is "no", fix it first.
+
+See `launchdek-project.mdc` (architecture), `launchdek-standards.mdc` (quality), `wordpress-php.mdc` (PHP/REST patterns).
+
+## Security
+
+- Sanitize on input, escape on output, authorize before action.
+- REST: every route has `permission_callback`; use `LAUNCHDEK_Capabilities::current_user_can()`.
+- Admin UI auth: `X-WP-Nonce` with `wp_rest` nonce on all `fetch` calls.
+- Never expose decrypted Application Passwords in REST responses, logs, or audit entries.
+- Store credentials via `LAUNCHDEK_Credential_Vault::encrypt()`; decrypt only at request time in `LAUNCHDEK_Remote_Client`.
+- Settings API: `sanitize_callback`, `show_in_rest => false`.
+- Remote requests: validate URLs with `esc_url_raw()`; use `wp_remote_*` with timeouts; handle `WP_Error`.
+- SQL: `$wpdb->prepare()` only; no user input in table names.
+- Webhook URLs: sanitize with `esc_url_raw()`; only POST on configured user events.
+
+## Remote Site Access
+
+- Plugin-free model: only WordPress core REST API + Application Passwords.
+- Connection tests must not leak credentials in error messages shown to non-privileged users.
+- Payload mapper must whitelist/validate endpoint paths and methods before remote execution.
+- Drift verification reads remote state for comparison only — no arbitrary code execution.
+
+## Directory & Privacy
+
+- No obfuscated code or undisclosed telemetry.
+- Outbound requests are limited to: user-registered remote sites, user-configured webhook URLs, and integration adapters (user-initiated push).
+- Integrations **Telemetry Sync Mapping Rules** store field-mapping preferences only (`telemetry_sync_rules`); they do not emit tracking data.
+- Webhook and integration behavior must be documented in `readme.txt`.
+- No spammy readme or deceptive behavior.
+
+## Code Quality
+
+- Prefer WordPress core APIs over custom hacks.
+- Keep code human-readable for directory review.
+- Follow WPCS across PHP, CSS, JS, and HTML.
+- Enqueue assets via `is_plugin_screen()` only.
+- Use `launchdek` / `LAUNCHDEK_` prefix consistently.
+
+## Self-Review Checklist
+
+- [ ] No WordPress core modifications
+- [ ] GPL-compatible
+- [ ] Human-readable, reviewable code
+- [ ] User-facing strings translatable (`LAUNCHDEK_TEXT_DOMAIN`)
+- [ ] REST routes: capability checks on every endpoint
+- [ ] Credentials encrypted at rest when enabled; never leaked in API responses
+- [ ] Input sanitized; output escaped
+- [ ] SQL prepared in repositories
+- [ ] Remote calls use timeouts and error handling
+- [ ] Webhooks opt-in and user-configured
+- [ ] Uninstall drops all tables, options, and capabilities
+- [ ] Unique `LAUNCHDEK_` / `launchdek_` prefix
+- [ ] Would survive WordPress.org review
+
+## Unsafe Requests
+
+If a feature conflicts with the Plugin Handbook, Coding Standards, security best practices, privacy expectations, or Directory Guidelines — refuse the unsafe approach and propose a compliant alternative.
