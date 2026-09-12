@@ -1,6 +1,6 @@
 <?php
 /**
- * Workflow persistence layer.
+ * Checklist persistence layer.
  *
  * @package LaunchDek
  */
@@ -10,9 +10,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Workflow repository.
+ * Checklist repository.
  */
-class LAUNCHDEK_Workflow_Repository {
+class LAUNCHDEK_Checklist_Repository {
 
 	/**
 	 * Get table name.
@@ -21,13 +21,13 @@ class LAUNCHDEK_Workflow_Repository {
 	 */
 	public static function table() {
 		global $wpdb;
-		return $wpdb->prefix . 'launchdek_workflows';
+		return $wpdb->prefix . 'launchdek_checklists';
 	}
 
 	/**
-	 * Find workflow by ID.
+	 * Find checklist by ID.
 	 *
-	 * @param int $id Workflow ID.
+	 * @param int $id Checklist ID.
 	 * @return array|null
 	 */
 	public static function find( $id ) {
@@ -42,7 +42,7 @@ class LAUNCHDEK_Workflow_Repository {
 	}
 
 	/**
-	 * List workflows.
+	 * List checklists.
 	 *
 	 * @param array $args Filters.
 	 * @return array
@@ -80,7 +80,7 @@ class LAUNCHDEK_Workflow_Repository {
 	}
 
 	/**
-	 * Count active (non-template) workflows.
+	 * Count active (non-template) checklists.
 	 *
 	 * @return int
 	 */
@@ -93,9 +93,9 @@ class LAUNCHDEK_Workflow_Repository {
 	}
 
 	/**
-	 * Create workflow.
+	 * Create checklist.
 	 *
-	 * @param array $data Workflow data.
+	 * @param array $data Checklist data.
 	 * @return int|false
 	 */
 	public static function create( $data ) {
@@ -106,7 +106,7 @@ class LAUNCHDEK_Workflow_Repository {
 		$result = $wpdb->insert(
 			self::table(),
 			array(
-				'title'         => sanitize_text_field( $data['title'] ?? __( 'Untitled Workflow', LAUNCHDEK_TEXT_DOMAIN ) ),
+				'title'         => sanitize_text_field( $data['title'] ?? __( 'Untitled Checklist', LAUNCHDEK_TEXT_DOMAIN ) ),
 				'description'   => sanitize_textarea_field( $data['description'] ?? '' ),
 				'steps_json'    => wp_json_encode( $steps ),
 				'is_template'   => ! empty( $data['is_template'] ) ? 1 : 0,
@@ -125,15 +125,15 @@ class LAUNCHDEK_Workflow_Repository {
 		}
 
 		$id = (int) $wpdb->insert_id;
-		LAUNCHDEK_Audit_Log::log( 'workflow_created', array( 'workflow_id' => $id, 'title' => $data['title'] ?? '' ) );
+		LAUNCHDEK_Audit_Log::log( 'checklist_created', array( 'checklist_id' => $id, 'title' => $data['title'] ?? '' ) );
 
 		return $id;
 	}
 
 	/**
-	 * Update workflow.
+	 * Update checklist.
 	 *
-	 * @param int   $id   Workflow ID.
+	 * @param int   $id   Checklist ID.
 	 * @param array $data Data.
 	 * @return bool
 	 */
@@ -167,16 +167,16 @@ class LAUNCHDEK_Workflow_Repository {
 		$result = $wpdb->update( self::table(), $fields, array( 'id' => absint( $id ) ), $format, array( '%d' ) );
 
 		if ( false !== $result ) {
-			LAUNCHDEK_Audit_Log::log( 'workflow_updated', array( 'workflow_id' => $id ) );
+			LAUNCHDEK_Audit_Log::log( 'checklist_updated', array( 'checklist_id' => $id ) );
 		}
 
 		return false !== $result;
 	}
 
 	/**
-	 * Delete workflow.
+	 * Delete checklist.
 	 *
-	 * @param int $id Workflow ID.
+	 * @param int $id Checklist ID.
 	 * @return bool
 	 */
 	public static function delete( $id ) {
@@ -185,14 +185,14 @@ class LAUNCHDEK_Workflow_Repository {
 		$result = $wpdb->delete( self::table(), array( 'id' => absint( $id ) ), array( '%d' ) );
 
 		if ( $result ) {
-			LAUNCHDEK_Audit_Log::log( 'workflow_deleted', array( 'workflow_id' => $id ) );
+			LAUNCHDEK_Audit_Log::log( 'checklist_deleted', array( 'checklist_id' => $id ) );
 		}
 
 		return (bool) $result;
 	}
 
 	/**
-	 * Import workflow from array/JSON structure.
+	 * Import checklist from array/JSON structure.
 	 *
 	 * @param array $payload Import payload.
 	 * @return int|false
@@ -204,7 +204,7 @@ class LAUNCHDEK_Workflow_Repository {
 
 		return self::create(
 			array(
-				'title'       => $payload['title'] ?? __( 'Imported Workflow', LAUNCHDEK_TEXT_DOMAIN ),
+				'title'       => $payload['title'] ?? __( 'Imported Checklist', LAUNCHDEK_TEXT_DOMAIN ),
 				'description' => $payload['description'] ?? '',
 				'steps'       => $payload['steps'] ?? array(),
 				'version'     => $payload['version'] ?? '1.0.0',
@@ -215,21 +215,21 @@ class LAUNCHDEK_Workflow_Repository {
 	}
 
 	/**
-	 * Export workflow as portable array.
+	 * Export checklist as portable array.
 	 *
-	 * @param int $id Workflow ID.
+	 * @param int $id Checklist ID.
 	 * @return array|null
 	 */
 	public static function export( $id ) {
-		$workflow = self::find( $id );
+		$checklist = self::find( $id );
 
-		if ( ! $workflow ) {
+		if ( ! $checklist ) {
 			return null;
 		}
 
-		unset( $workflow['id'], $workflow['created_at'], $workflow['updated_at'], $workflow['created_by'] );
+		unset( $checklist['id'], $checklist['created_at'], $checklist['updated_at'], $checklist['created_by'] );
 
-		return $workflow;
+		return $checklist;
 	}
 
 	/**

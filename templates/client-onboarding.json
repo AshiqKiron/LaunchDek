@@ -1,0 +1,58 @@
+{
+  "title": "New Client Onboarding",
+  "description": "Standard intake checklist when adding a new client site to your agency hub.",
+  "category": "launch",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "collect_access",
+      "title": "Collect Access Credentials",
+      "instructions": "Gather hosting panel, DNS, SFTP/SSH, WordPress admin, and domain registrar access. Store in your password manager — never in plaintext tickets.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "register_in_launchdek",
+      "title": "Register Site in LaunchDek",
+      "instructions": "Add the site URL, create a dedicated Application Password user, run a connection test, and apply client/project tags.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "document_stack",
+      "title": "Document Theme & Plugin Stack",
+      "instructions": "Export a plugin list, note custom code locations, page builder used, and any host-specific must-use plugins.",
+      "deep_link": "plugins.php",
+      "type": "manual"
+    },
+    {
+      "id": "baseline_backup",
+      "title": "Take Baseline Backup",
+      "instructions": "Create a full backup (files + database) before making changes. Confirm restore procedure with the host or backup plugin.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "staging_environment",
+      "title": "Confirm Staging Environment",
+      "instructions": "Verify whether staging exists, how to sync prod→staging, and whether search engines are blocked on staging.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "support_scope",
+      "title": "Define Support Scope",
+      "instructions": "Document SLA, included hours, escalation contacts, and which plugins/themes the agency supports vs. client-managed.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "run_health_baseline",
+      "title": "Run Initial Health Baseline",
+      "instructions": "Record WP/PHP versions, SSL status, update backlog, and PageSpeed scores. Attach to the client record for future drift comparison.",
+      "deep_link": "update-core.php",
+      "type": "manual"
+    }
+  ]
+}

@@ -19,14 +19,20 @@ alwaysApply: false
 
 | Function | Page attr | Key elements |
 |----------|-----------|--------------|
-| `initDashboard()` | `dashboard` | `#launchdek-stats`, `#launchdek-ticker`, `#launchdek-log-feed`, `#launchdek-quick-launch` bar |
-| `initSites()` | `sites` | site list, add/edit modal (`.launchdek-modal`), connection test |
-| `initWorkflows()` | `workflows` | workflow list + canvas builder (`#launchdek-workflow-canvas`, `#launchdek-canvas-steps`), step config sidebar with role mapping, import/export |
-| `initAutomation()` | `automation` | batch queue (`#launchdek-batch-table`), run controls, audit filters (`/audit/meta`), drift status (`/drift/status`) |
-| `initTemplates()` | `templates` | built-in stack chips (`#launchdek-builtin-stacks`), vault save/list, clone actions |
-| `initIntegrations()` | `integrations` | Platform Connectors Hub (`#launchdek-connectors-list`), telemetry rules table, connector setup modal |
+| `initDashboard()` | `dashboard` | `#launchdek-stats`, `#launchdek-ticker`, `#launchdek-log-feed`, quick launch (`#launchdek-quick-site`, `#launchdek-quick-checklist`, `#launchdek-quick-launch`, `#launchdek-quick-result`); calls `initOnboarding()` for `#launchdek-onboarding-modal` |
+| `initSites()` | `sites` | toolbar (`#launchdek-add-site`, `#launchdek-connection-tester`), tag/group filters, `#launchdek-sites-table`, site modal (`#launchdek-site-modal`), standalone connection tester modal |
+| `initChecklists()` | `checklists` | `#launchdek-checklist-list`, editor (`#launchdek-checklist-editor`), canvas (`#launchdek-checklist-canvas`, `#launchdek-canvas-steps`), step config (`#launchdek-step-config`), save/export/delete/import controls |
+| `initAutomation()` | `automation` | batch queue (`#launchdek-batch-table`, `#launchdek-run-checklist`), run controls (`#launchdek-run-steps`, `#launchdek-run-auto`, `#launchdek-run-next`), audit filters/table (`#launchdek-audit-*`), drift panel (`#launchdek-drift-status`, `#launchdek-verify-drift`) |
+| `initTemplates()` | `templates` | category tabs (`#launchdek-category-tabs`, `#launchdek-category-description`), built-in grid (`#launchdek-builtin-templates`), custom checklists (`#launchdek-custom-checklists`), vault save (`#launchdek-vault-checklist`, `#launchdek-save-vault`), vault list (`#launchdek-vault-list`) |
+| `initIntegrations()` | `integrations` | Platform Connectors Hub (`#launchdek-connectors-list`, `#launchdek-connector-modal`), telemetry rules (`#launchdek-telemetry-rules-table`, `#launchdek-save-telemetry-rules`) |
 
 Each init no-ops if `[data-launchdek-page="{page}"]` is absent.
+
+### Onboarding helpers (dashboard)
+
+- `parsePastedChecklist( text )` — parses headings, bullets, and numbered lines into `{ title, steps[] }`.
+- `buildChecklistPayload( parsed )` — converts parsed steps to manual checklist REST payload.
+- `initOnboarding()` — 2-step modal flow: paste/preview → connect site (`/sites/test`, `/sites`) → save checklist (`POST /checklists`) → optional run (`POST /runs`) → dismiss (`POST /onboarding/dismiss`). Shows when `launchdekAdmin.onboarding.show` is true or URL has `?onboarding=1`.
 
 ### `launchdekAdmin` shape
 
@@ -37,11 +43,20 @@ Each init no-ops if `[data-launchdek-page="{page}"]` is absent.
 	adminUrl: string,
 	pageSlug: string,
 	roles: object,      // WP role slug => translated label (for step target_roles UI)
+	onboarding: {
+		show: boolean,          // ! onboarding_dismissed
+		templatesUrl: string,
+		checklistsUrl: string,
+		automationUrl: string
+	},
 	strings: {
 		confirmDelete, confirmDeleteSite, saved, error, loading,
 		healthOk, healthFail, healthUnknown, connectionOk, connectionFail,
-		cloneToWorkflow, templateCloned, savedToVault, noVaultTemplates, stepsCount,
-		connected, notDetected, setup
+		cloneToChecklist, templateCloned, savedToVault, noVaultTemplates, noCategoryTemplates,
+		stepsCount, viewSteps, hideSteps, checklistSteps, stepsPreviewHint,
+		connected, notDetected, setup,
+		onboardingTitle, onboardingIntro, onboardingNeedSteps, onboardingNeedConnection,
+		onboardingStatusConnected, onboardingStatusFailed, onboardingStatusPending, onboardingStatusTesting
 	}
 }
 ```
@@ -55,26 +70,29 @@ Prefix all selectors with `.launchdek-`.
 | `.launchdek-admin` | Page root wrapper (`data-launchdek-ready` set on DOMContentLoaded) |
 | `.launchdek-card` | Content card |
 | `.launchdek-stats-grid`, `.launchdek-stat-card`, `.launchdek-stat-value`, `.launchdek-stat-label` | Dashboard stats |
-| `.launchdek-quick-launch`, `.launchdek-inline-form` | Quick launch bar (`#launchdek-quick-launch`) |
+| `.launchdek-quick-launch`, `.launchdek-inline-form` | Quick launch bar and inline forms |
+| `.launchdek-sites-toolbar`, `.launchdek-sites-toolbar-actions`, `.launchdek-sites-toolbar-filters` | Sites page toolbar and filters |
 | `.launchdek-ticker-inline`, `.launchdek-ticker-chip`, `.launchdek-ticker-sep`, `.launchdek-ticker-dot` | Connection ticker (`#launchdek-ticker`) |
 | `.launchdek-log-feed`, `.launchdek-log-item` | Activity feed (`#launchdek-log-feed`) |
 | `.launchdek-badge`, `.launchdek-tag` | Site health / tags |
 | `.launchdek-modal`, `.launchdek-modal-backdrop`, `.launchdek-modal-content`, `.launchdek-modal-actions` | Modals (`[hidden]` when closed) |
+| `.launchdek-onboarding-modal`, `.launchdek-onboarding-columns`, `.launchdek-onboarding-preview`, `.launchdek-onboarding-connect-panel`, `.launchdek-onboarding-test-status` | Dashboard onboarding modal (`#launchdek-onboarding-modal`) |
 | `.launchdek-list` | Selectable lists |
-| `.launchdek-builder-layout`, `.launchdek-builder-workspace` | Workflow builder layout |
-| `.launchdek-canvas-card`, `.launchdek-workflow-canvas`, `.launchdek-canvas-flow` | Drag-and-drop workflow canvas |
+| `.launchdek-builder-layout`, `.launchdek-builder-workspace` | Checklist builder layout |
+| `.launchdek-canvas-card`, `.launchdek-checklist-canvas`, `.launchdek-canvas-flow` | Drag-and-drop checklist canvas |
 | `.launchdek-canvas-node`, `.launchdek-canvas-node-roles`, `.launchdek-canvas-connector` | Canvas step nodes + role badges + flow arrows |
 | `.launchdek-step-config-sidebar`, `.launchdek-role-mapping`, `.launchdek-role-option` | Step config panel + role target mapping |
 | `.launchdek-target-selector`, `.launchdek-batch-queue`, `.launchdek-automation-layout` | Automation run/batch UI |
 | `.launchdek-run-steps`, `.launchdek-run-step` | Run step tracker |
 | `.launchdek-audit-filters`, `.launchdek-audit-diff` | Audit log filters + drift diff display |
 | `.launchdek-drift-sites`, `.launchdek-drift-site-row` | Drift status panel |
-| `.launchdek-stack-list`, `.launchdek-stack-chip`, `.launchdek-template-detail` | Built-in template stack selector |
-| `.launchdek-template-grid`, `.launchdek-template-card` | Vault template cards |
+| `.launchdek-category-tabs`, `.launchdek-category-tab` | Template category tab bar (`#launchdek-category-tabs`) |
+| `.launchdek-template-grid`, `.launchdek-template-card`, `.launchdek-template-card-actions` | Built-in and vault template cards |
+| `.launchdek-template-steps-preview`, `.launchdek-template-steps-toggle`, `.launchdek-template-steps-list` | Step preview on template cards (hover or toggle) |
 | `.launchdek-connector-list`, `.launchdek-connector-row`, `.launchdek-connector-actions` | Platform Connectors Hub |
 | `#launchdek-telemetry-rules-table` | Telemetry sync mapping rules table |
 | `.launchdek-integration-card` | Legacy integration card style (prefer connector list) |
-| `.launchdek-import-export` | Workflow import/export controls |
+| `.launchdek-import-export` | Checklist import/export controls |
 | `.launchdek-settings-*` | Settings page cards, toggles, channels, role presets, perm table |
 | `.launchdek-notice-area .notice-inline` | Inline success/error |
 | `.launchdek-grid-2` | Two-column layout |

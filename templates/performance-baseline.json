@@ -1,0 +1,58 @@
+{
+  "title": "Performance Baseline",
+  "description": "Establish speed benchmarks and fix low-hanging performance issues on client sites.",
+  "category": "performance",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "measure_core_web_vitals",
+      "title": "Measure Core Web Vitals",
+      "instructions": "Run PageSpeed Insights or Lighthouse on homepage, a blog post, and a key landing page. Record LCP, INP, and CLS scores.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "enable_object_cache",
+      "title": "Enable Object Cache",
+      "instructions": "Confirm Redis or Memcached object cache is active via drop-in or host feature. Verify with Query Monitor or host dashboard.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "optimize_autoloaded_options",
+      "title": "Audit Autoloaded Options",
+      "instructions": "Identify oversized autoloaded options in wp_options. Clean up stale plugin data or move large blobs to non-autoload storage.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "defer_noncritical_js",
+      "title": "Defer Non-Critical JavaScript",
+      "instructions": "Audit third-party scripts (chat widgets, pixels, heatmaps). Load them deferred or only on pages that need them.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "optimize_fonts",
+      "title": "Optimize Web Fonts",
+      "instructions": "Self-host or preload critical font files. Limit font weights/styles loaded and use font-display: swap.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "lazy_load_media",
+      "title": "Enable Lazy Loading",
+      "instructions": "Confirm native lazy loading is on for images. Add lazy load for below-fold iframes and embeds in page builder templates.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "database_cleanup",
+      "title": "Clean Post Revisions & Transients",
+      "instructions": "Remove excessive revisions, expired transients, and spam comments. Schedule recurring cleanup if the site is high-traffic.",
+      "deep_link": "",
+      "type": "manual"
+    }
+  ]
+}

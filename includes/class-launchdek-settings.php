@@ -29,6 +29,7 @@ class LAUNCHDEK_Settings {
 			'enabled'                      => true,
 			'encrypt_credentials'          => true,
 			'drift_verification_enabled'   => true,
+			'onboarding_dismissed'         => false,
 			'slack_webhook'                => '',
 			'discord_webhook'              => '',
 			'teams_webhook'                => '',
@@ -69,7 +70,7 @@ class LAUNCHDEK_Settings {
 			return $output;
 		}
 
-		$checkboxes = array( 'enabled', 'encrypt_credentials', 'drift_verification_enabled' );
+		$checkboxes = array( 'enabled', 'encrypt_credentials', 'drift_verification_enabled', 'onboarding_dismissed' );
 		foreach ( $checkboxes as $key ) {
 			if ( array_key_exists( $key, $input ) ) {
 				$output[ $key ] = (bool) $input[ $key ];
@@ -123,9 +124,9 @@ class LAUNCHDEK_Settings {
 	 */
 	public static function get_notification_events() {
 		return array(
-			'run_started'   => __( 'Workflow run started', LAUNCHDEK_TEXT_DOMAIN ),
-			'run_completed' => __( 'Workflow run completed', LAUNCHDEK_TEXT_DOMAIN ),
-			'run_failed'    => __( 'Workflow run failed', LAUNCHDEK_TEXT_DOMAIN ),
+			'run_started'   => __( 'Checklist run started', LAUNCHDEK_TEXT_DOMAIN ),
+			'run_completed' => __( 'Checklist run completed', LAUNCHDEK_TEXT_DOMAIN ),
+			'run_failed'    => __( 'Checklist run failed', LAUNCHDEK_TEXT_DOMAIN ),
 			'step_failed'   => __( 'Step failed', LAUNCHDEK_TEXT_DOMAIN ),
 			'drift_detected' => __( 'Configuration drift detected', LAUNCHDEK_TEXT_DOMAIN ),
 		);

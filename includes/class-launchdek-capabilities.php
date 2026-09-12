@@ -16,8 +16,8 @@ class LAUNCHDEK_Capabilities {
 
 	const VIEW_DASHBOARD    = 'launchdek_view_dashboard';
 	const MANAGE_SITES      = 'launchdek_manage_sites';
-	const EDIT_WORKFLOWS    = 'launchdek_edit_workflows';
-	const EXECUTE_WORKFLOWS = 'launchdek_execute_workflows';
+	const EDIT_CHECKLISTS    = 'launchdek_edit_checklists';
+	const EXECUTE_CHECKLISTS = 'launchdek_execute_checklists';
 	const VIEW_AUDIT        = 'launchdek_view_audit';
 	const MANAGE_SETTINGS   = 'launchdek_manage_settings';
 
@@ -30,8 +30,8 @@ class LAUNCHDEK_Capabilities {
 		return array(
 			self::VIEW_DASHBOARD,
 			self::MANAGE_SITES,
-			self::EDIT_WORKFLOWS,
-			self::EXECUTE_WORKFLOWS,
+			self::EDIT_CHECKLISTS,
+			self::EXECUTE_CHECKLISTS,
 			self::VIEW_AUDIT,
 			self::MANAGE_SETTINGS,
 		);
@@ -43,6 +43,8 @@ class LAUNCHDEK_Capabilities {
 	 * @return void
 	 */
 	public static function register() {
+		self::migrate_workflow_caps();
+
 		$role = get_role( 'administrator' );
 
 		if ( ! $role ) {
@@ -51,6 +53,59 @@ class LAUNCHDEK_Capabilities {
 
 		foreach ( self::get_all() as $cap ) {
 			$role->add_cap( $cap );
+		}
+
+		$legacy_caps = array(
+			'launchdek_edit_workflows',
+			'launchdek_execute_workflows',
+		);
+
+		foreach ( $legacy_caps as $legacy_cap ) {
+			$role->remove_cap( $legacy_cap );
+		}
+	}
+
+	/**
+	 * Migrate stored role permissions and administrator caps from workflow naming.
+	 *
+	 * @return void
+	 */
+	public static function migrate_workflow_caps() {
+		$map = array(
+			'launchdek_edit_workflows'    => self::EDIT_CHECKLISTS,
+			'launchdek_execute_workflows' => self::EXECUTE_CHECKLISTS,
+		);
+
+		$settings = LAUNCHDEK_Settings::get();
+		$changed  = false;
+
+		if ( ! empty( $settings['role_permissions'] ) && is_array( $settings['role_permissions'] ) ) {
+			foreach ( $map as $old_cap => $new_cap ) {
+				if ( isset( $settings['role_permissions'][ $old_cap ] ) && ! isset( $settings['role_permissions'][ $new_cap ] ) ) {
+					$settings['role_permissions'][ $new_cap ] = $settings['role_permissions'][ $old_cap ];
+					$changed                                  = true;
+				}
+				if ( isset( $settings['role_permissions'][ $old_cap ] ) ) {
+					unset( $settings['role_permissions'][ $old_cap ] );
+					$changed = true;
+				}
+			}
+
+			if ( $changed ) {
+				update_option( LAUNCHDEK_Settings::OPTION_NAME, $settings, false );
+			}
+		}
+
+		$role = get_role( 'administrator' );
+		if ( ! $role ) {
+			return;
+		}
+
+		foreach ( $map as $old_cap => $new_cap ) {
+			if ( $role->has_cap( $old_cap ) && ! $role->has_cap( $new_cap ) ) {
+				$role->add_cap( $new_cap );
+			}
+			$role->remove_cap( $old_cap );
 		}
 	}
 
@@ -66,6 +121,11 @@ class LAUNCHDEK_Capabilities {
 			return;
 		}
 
+		$legacy_caps = array(
+			'launchdek_edit_workflows',
+			'launchdek_execute_workflows',
+		);
+
 		foreach ( array_keys( $roles->roles ) as $role_name ) {
 			$role = get_role( $role_name );
 
@@ -75,6 +135,10 @@ class LAUNCHDEK_Capabilities {
 
 			foreach ( self::get_all() as $cap ) {
 				$role->remove_cap( $cap );
+			}
+
+			foreach ( $legacy_caps as $legacy_cap ) {
+				$role->remove_cap( $legacy_cap );
 			}
 		}
 	}
@@ -128,24 +192,24 @@ class LAUNCHDEK_Capabilities {
 		return array(
 			'admin'     => array(
 				'label'       => __( 'Admin', LAUNCHDEK_TEXT_DOMAIN ),
-				'description' => __( 'Full platform access — manage sites, workflows, settings, and audit logs.', LAUNCHDEK_TEXT_DOMAIN ),
+				'description' => __( 'Full platform access — manage sites, checklists, settings, and audit logs.', LAUNCHDEK_TEXT_DOMAIN ),
 				'caps'        => array(
 					self::VIEW_DASHBOARD,
 					self::MANAGE_SITES,
-					self::EDIT_WORKFLOWS,
-					self::EXECUTE_WORKFLOWS,
+					self::EDIT_CHECKLISTS,
+					self::EXECUTE_CHECKLISTS,
 					self::VIEW_AUDIT,
 					self::MANAGE_SETTINGS,
 				),
 			),
 			'developer' => array(
 				'label'       => __( 'Developer', LAUNCHDEK_TEXT_DOMAIN ),
-				'description' => __( 'Operational access — manage sites, build workflows, and execute runs.', LAUNCHDEK_TEXT_DOMAIN ),
+				'description' => __( 'Operational access — manage sites, build checklists, and execute runs.', LAUNCHDEK_TEXT_DOMAIN ),
 				'caps'        => array(
 					self::VIEW_DASHBOARD,
 					self::MANAGE_SITES,
-					self::EDIT_WORKFLOWS,
-					self::EXECUTE_WORKFLOWS,
+					self::EDIT_CHECKLISTS,
+					self::EXECUTE_CHECKLISTS,
 				),
 			),
 			'auditor'   => array(
@@ -168,8 +232,8 @@ class LAUNCHDEK_Capabilities {
 		return array(
 			self::VIEW_DASHBOARD    => __( 'View Dashboard', LAUNCHDEK_TEXT_DOMAIN ),
 			self::MANAGE_SITES      => __( 'Manage Sites', LAUNCHDEK_TEXT_DOMAIN ),
-			self::EDIT_WORKFLOWS    => __( 'Edit Workflows', LAUNCHDEK_TEXT_DOMAIN ),
-			self::EXECUTE_WORKFLOWS => __( 'Execute Workflows', LAUNCHDEK_TEXT_DOMAIN ),
+			self::EDIT_CHECKLISTS    => __( 'Edit Checklists', LAUNCHDEK_TEXT_DOMAIN ),
+			self::EXECUTE_CHECKLISTS => __( 'Execute Checklists', LAUNCHDEK_TEXT_DOMAIN ),
 			self::VIEW_AUDIT        => __( 'View Audit Log', LAUNCHDEK_TEXT_DOMAIN ),
 			self::MANAGE_SETTINGS   => __( 'Manage Settings', LAUNCHDEK_TEXT_DOMAIN ),
 		);

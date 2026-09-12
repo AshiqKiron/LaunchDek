@@ -164,12 +164,12 @@ class LAUNCHDEK_Audit_Log {
 
 		switch ( $entry['action'] ) {
 			case 'run_started':
-				$workflow = $details['workflow'] ?? __( 'Workflow', LAUNCHDEK_TEXT_DOMAIN );
+				$checklist_title = $details['checklist'] ?? $details['workflow'] ?? __( 'Checklist', LAUNCHDEK_TEXT_DOMAIN );
 
 				return sprintf(
-					/* translators: 1: workflow title, 2: site name */
+					/* translators: 1: checklist title, 2: site name */
 					__( "Checklist '%1\$s' started on %2\$s", LAUNCHDEK_TEXT_DOMAIN ),
-					$workflow,
+					$checklist_title,
 					$site
 				);
 
@@ -181,7 +181,7 @@ class LAUNCHDEK_Audit_Log {
 					return sprintf(
 						/* translators: 1: workflow title, 2: site name */
 						__( "Checklist '%1\$s' completed on %2\$s", LAUNCHDEK_TEXT_DOMAIN ),
-						$run['workflow_title'] ?: __( 'Workflow', LAUNCHDEK_TEXT_DOMAIN ),
+						$run['checklist_title'] ?: __( 'Checklist', LAUNCHDEK_TEXT_DOMAIN ),
 						$run['site_name'] ?: $site
 					);
 				}
@@ -190,7 +190,7 @@ class LAUNCHDEK_Audit_Log {
 					return sprintf(
 						/* translators: 1: workflow title, 2: site name */
 						__( "Checklist '%1\$s' failed on %2\$s", LAUNCHDEK_TEXT_DOMAIN ),
-						$run['workflow_title'] ?: __( 'Workflow', LAUNCHDEK_TEXT_DOMAIN ),
+						$run['checklist_title'] ?: __( 'Checklist', LAUNCHDEK_TEXT_DOMAIN ),
 						$run['site_name'] ?: $site
 					);
 				}
@@ -219,11 +219,12 @@ class LAUNCHDEK_Audit_Log {
 			case 'site_deleted':
 				return __( 'Site removed', LAUNCHDEK_TEXT_DOMAIN );
 
+			case 'checklist_created':
 			case 'workflow_created':
 				return sprintf(
-					/* translators: %s: workflow title */
-					__( "Workflow '%s' created", LAUNCHDEK_TEXT_DOMAIN ),
-					$details['title'] ?? __( 'Workflow', LAUNCHDEK_TEXT_DOMAIN )
+					/* translators: %s: checklist title */
+					__( "Checklist '%s' created", LAUNCHDEK_TEXT_DOMAIN ),
+					$details['title'] ?? __( 'Checklist', LAUNCHDEK_TEXT_DOMAIN )
 				);
 
 			case 'connection_test':
@@ -302,7 +303,7 @@ class LAUNCHDEK_Audit_Log {
 	private static function status_where_clause( $status ) {
 		switch ( sanitize_key( $status ) ) {
 			case 'success':
-				return "(action IN ('run_started', 'manual_step_completed', 'site_created', 'site_updated', 'workflow_created', 'workflow_updated') OR (action = 'run_status_changed' AND details_json LIKE '%\"status\":\"completed\"%') OR (action = 'connection_test' AND details_json LIKE '%\"success\":true%') OR (action = 'drift_verified' AND details_json LIKE '%\"count\":0%'))";
+				return "(action IN ('run_started', 'manual_step_completed', 'site_created', 'site_updated', 'checklist_created', 'checklist_updated', 'workflow_created', 'workflow_updated') OR (action = 'run_status_changed' AND details_json LIKE '%\"status\":\"completed\"%') OR (action = 'connection_test' AND details_json LIKE '%\"success\":true%') OR (action = 'drift_verified' AND details_json LIKE '%\"count\":0%'))";
 
 			case 'failed':
 				return "(action LIKE '%failed%' OR (action = 'run_status_changed' AND details_json LIKE '%\"status\":\"failed\"%') OR (action = 'connection_test' AND details_json LIKE '%\"success\":false%') OR (action = 'drift_verified' AND details_json LIKE '%\"status\":\"error\"%'))";
@@ -381,9 +382,12 @@ class LAUNCHDEK_Audit_Log {
 			'site_created'           => __( 'Site registered', LAUNCHDEK_TEXT_DOMAIN ),
 			'site_updated'           => __( 'Site updated', LAUNCHDEK_TEXT_DOMAIN ),
 			'site_deleted'           => __( 'Site removed', LAUNCHDEK_TEXT_DOMAIN ),
-			'workflow_created'       => __( 'Workflow created', LAUNCHDEK_TEXT_DOMAIN ),
-			'workflow_updated'       => __( 'Workflow updated', LAUNCHDEK_TEXT_DOMAIN ),
-			'workflow_deleted'       => __( 'Workflow deleted', LAUNCHDEK_TEXT_DOMAIN ),
+			'checklist_created'       => __( 'Checklist created', LAUNCHDEK_TEXT_DOMAIN ),
+			'checklist_updated'       => __( 'Checklist updated', LAUNCHDEK_TEXT_DOMAIN ),
+			'checklist_deleted'       => __( 'Checklist deleted', LAUNCHDEK_TEXT_DOMAIN ),
+			'workflow_created'        => __( 'Checklist created', LAUNCHDEK_TEXT_DOMAIN ),
+			'workflow_updated'        => __( 'Checklist updated', LAUNCHDEK_TEXT_DOMAIN ),
+			'workflow_deleted'        => __( 'Checklist deleted', LAUNCHDEK_TEXT_DOMAIN ),
 			'connection_test'        => __( 'Connection test', LAUNCHDEK_TEXT_DOMAIN ),
 			'drift_verified'         => __( 'Drift verification', LAUNCHDEK_TEXT_DOMAIN ),
 			'integration_push'       => __( 'Integration push', LAUNCHDEK_TEXT_DOMAIN ),

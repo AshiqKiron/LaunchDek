@@ -4,7 +4,7 @@
  *
  * Plugin Name: LaunchDek
  * Plugin URI: https://asphaltthemes.com/launchdek
- * Description: Remote WordPress site orchestration for agencies — workflows, audit, and integrations.
+ * Description: Remote WordPress site orchestration for agencies — checklists, audit, and integrations.
  * Version: 1.0.0
  * Requires at least: 6.0
  * Requires PHP: 7.4
@@ -41,7 +41,7 @@ require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-audit-log.php';
 
 // Data layer.
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-site-repository.php';
-require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-workflow-repository.php';
+require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-checklist-repository.php';
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-run-repository.php';
 
 // Remote & engine.
@@ -49,7 +49,7 @@ require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-remote-client.php'
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-connection-tester.php';
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-payload-mapper.php';
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-step-executor.php';
-require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-workflow-runner.php';
+require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-checklist-runner.php';
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-drift-verifier.php';
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-webhook-dispatcher.php';
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-templates.php';

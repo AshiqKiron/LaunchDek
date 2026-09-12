@@ -1,0 +1,51 @@
+{
+  "title": "GDPR & Privacy Setup",
+  "description": "Cookie consent, privacy policy, and data-processing basics for EU/UK-facing WordPress sites.",
+  "category": "compliance",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "privacy_policy_page",
+      "title": "Publish Privacy Policy",
+      "instructions": "Create or import a privacy policy covering data collected, legal basis, retention, processors, and contact details for requests.",
+      "deep_link": "options-privacy.php",
+      "type": "manual"
+    },
+    {
+      "id": "cookie_consent_banner",
+      "title": "Install Cookie Consent Banner",
+      "instructions": "Add a GDPR-compliant cookie banner that blocks non-essential scripts until consent. Map categories to analytics and marketing tags.",
+      "deep_link": "plugin-install.php",
+      "type": "manual"
+    },
+    {
+      "id": "data_processor_list",
+      "title": "Document Data Processors",
+      "instructions": "List third-party processors (host, email, analytics, CRM, chat) and link their privacy policies in the privacy page.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "form_consent_checkboxes",
+      "title": "Add Form Consent Fields",
+      "instructions": "Ensure contact and newsletter forms include explicit consent checkboxes where required. Log consent timestamp if storing leads.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "data_export_erase",
+      "title": "Test Data Export & Erasure",
+      "instructions": "Use Tools → Export Personal Data and Erase Personal Data to verify the site can fulfill subject access requests.",
+      "deep_link": "export-personal-data.php",
+      "type": "manual"
+    },
+    {
+      "id": "disable_gravatars_if_needed",
+      "title": "Review Gravatar & External Embeds",
+      "instructions": "Disable Gravatars or lazy-load embeds that leak visitor IPs to third parties if strict privacy mode is required.",
+      "deep_link": "options-discussion.php",
+      "type": "manual"
+    }
+  ]
+}

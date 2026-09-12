@@ -1,48 +1,63 @@
 {
-  "title": "Migration Checklist",
-  "description": "Post-migration verification steps for moved WordPress sites.",
-  "version": "1.0.0",
+  "title": "Site Migration",
+  "description": "Post-migration verification after moving a WordPress site to a new host or domain.",
+  "category": "launch",
+  "version": "1.1.0",
   "is_template": true,
   "steps": [
     {
       "id": "migrate_urls",
-      "title": "Verify Site URL",
-      "instructions": "Confirm WordPress Address and Site Address match the live domain.",
+      "title": "Verify Site & Home URLs",
+      "instructions": "Confirm WordPress Address and Site Address in Settings → General match the live HTTPS domain.",
       "deep_link": "options-general.php",
       "type": "manual"
     },
     {
       "id": "migrate_search_replace",
-      "title": "Run URL Search-Replace",
-      "instructions": "Run serialized-safe search-replace for old domain references in database.",
+      "title": "Run Serialized URL Search-Replace",
+      "instructions": "Use a serialized-safe tool (WP-CLI search-replace, Better Search Replace, or host migration tool) to replace old domain references in the database.",
       "deep_link": "",
       "type": "manual"
     },
     {
       "id": "migrate_permalinks",
       "title": "Flush Permalinks",
-      "instructions": "Visit Settings → Permalinks and save to flush rewrite rules.",
+      "instructions": "Visit Settings → Permalinks and click Save to regenerate rewrite rules after the domain change.",
       "deep_link": "options-permalink.php",
       "type": "manual"
     },
     {
       "id": "migrate_ssl",
-      "title": "Verify SSL Certificate",
-      "instructions": "Confirm HTTPS works without mixed-content warnings.",
+      "title": "Verify SSL & Mixed Content",
+      "instructions": "Load homepage, a blog post, and checkout/contact pages over HTTPS. Fix any mixed-content warnings in assets or embeds.",
       "deep_link": "",
       "type": "manual"
     },
     {
       "id": "migrate_cron",
-      "title": "Verify WP-Cron",
-      "instructions": "Ensure wp-cron or system cron is firing scheduled tasks.",
+      "title": "Verify Cron & Scheduled Tasks",
+      "instructions": "Confirm wp-cron or system cron is firing. Check scheduled posts, backup jobs, and WooCommerce Action Scheduler queues.",
       "deep_link": "",
       "type": "manual"
     },
     {
       "id": "migrate_email",
-      "title": "Test Email Delivery",
-      "instructions": "Send a test email from contact form or WP mail to verify SMTP.",
+      "title": "Test Transactional Email",
+      "instructions": "Send test emails from contact forms, password reset, and WooCommerce order notifications. Confirm SPF/DKIM if using custom SMTP.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "migrate_redirects",
+      "title": "Configure 301 Redirects",
+      "instructions": "Map changed URLs and old domain paths to new locations. Verify redirect chains are single-hop where possible.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "migrate_dns_ttl",
+      "title": "Lower DNS TTL Before Cutover",
+      "instructions": "Reduce DNS TTL 24–48 hours before go-live so rollback is faster if issues appear after the switch.",
       "deep_link": "",
       "type": "manual"
     }

@@ -1,0 +1,51 @@
+{
+  "title": "Local SEO Setup",
+  "description": "Configure local business visibility for service-area and brick-and-mortar WordPress sites.",
+  "category": "seo",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "nap_consistency",
+      "title": "Standardize NAP Data",
+      "instructions": "Ensure business Name, Address, and Phone match exactly across the site footer, contact page, and Google Business Profile.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "local_schema",
+      "title": "Add LocalBusiness Schema",
+      "instructions": "Configure LocalBusiness schema with address, geo coordinates, opening hours, and price range where applicable.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "location_pages",
+      "title": "Create Location / Service Area Pages",
+      "instructions": "Build unique location or service-area landing pages with local content — avoid duplicate city swap templates.",
+      "deep_link": "edit.php?post_type=page",
+      "type": "manual"
+    },
+    {
+      "id": "google_business_profile",
+      "title": "Claim Google Business Profile",
+      "instructions": "Verify the listing, add categories, photos, services, and link the website URL with UTM parameters if tracking locally.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "embed_google_map",
+      "title": "Embed Map on Contact Page",
+      "instructions": "Add an embedded Google Map or static map image on the contact page with correct pin placement.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "local_citations",
+      "title": "Audit Top Citations",
+      "instructions": "List the business on key directories (Yelp, Bing Places, Apple Maps, industry-specific sites) with consistent NAP.",
+      "deep_link": "",
+      "type": "manual"
+    }
+  ]
+}

@@ -21,12 +21,12 @@ includes/
   class-launchdek-capabilities.php     # custom caps + role guardrails
   class-launchdek-credential-vault.php # AES-256 app password encryption
   class-launchdek-audit-log.php        # immutable audit trail
-  class-launchdek-{site,workflow,run}-repository.php
+  class-launchdek-{site,checklist,run}-repository.php
   class-launchdek-remote-client.php    # wp_remote_* to remote REST
   class-launchdek-connection-tester.php
   class-launchdek-payload-mapper.php   # API step execution
   class-launchdek-step-executor.php
-  class-launchdek-workflow-runner.php
+  class-launchdek-checklist-runner.php
   class-launchdek-drift-verifier.php
   class-launchdek-drift-cron.php
   class-launchdek-webhook-dispatcher.php
@@ -40,24 +40,29 @@ includes/
 admin/
   css/launchdek-admin.css
   js/launchdek-admin.js
-  partials/launchdek-{admin,sites,workflows,automation,templates,integrations,settings}-page.php
-templates/                           # built-in workflow JSON stacks
+  partials/launchdek-{admin,sites,checklists,automation,templates,integrations,settings}-page.php
+templates/                           # built-in checklist JSON templates (17 slugs)
 assets/                              # reserved for future static assets (index.php only)
 languages/
 uninstall.php
 readme.txt
 ```
 
+## Terminology
+
+Use **Checklist** in all user-facing copy, REST paths (`/checklists`), table names (`launchdek_checklists`), PHP classes (`LAUNCHDEK_Checklist_*`), and JS (`initChecklists`, `data-launchdek-page="checklists"`). Legacy `workflow_*` identifiers exist only in DB migration and backward-compat audit/webhook reads — never in new code.
+
 ## Architecture
 
 - Bootstrap defines constants, requires all classes, registers activation/deactivation hooks, calls `launchdek_run_plugin()`.
 - `LAUNCHDEK_Plugin::run()` wires admin UI, `LAUNCHDEK_REST_API::register()`, `LAUNCHDEK_Drift_Cron::register()`.
-- `LAUNCHDEK_Plugin::init()` on `plugins_loaded`: `LAUNCHDEK_Installer::maybe_install()`, `LAUNCHDEK_Capabilities::register()`, `LAUNCHDEK_Templates::seed_builtin()`.
+- `LAUNCHDEK_Plugin::init()` on `init`: `LAUNCHDEK_Installer::maybe_install()`, `LAUNCHDEK_Capabilities::register()`, `LAUNCHDEK_Templates::seed_builtin()`, `LAUNCHDEK_Templates::sync_builtin()`.
 - Settings: `launchdek_settings` via `LAUNCHDEK_Settings` (group `launchdek_settings_group`). Global kill switch: `enabled`.
-- Custom tables via `LAUNCHDEK_Installer` (version `launchdek_db_version`). All DB access through `*_Repository` classes.
+- Custom tables via `LAUNCHDEK_Installer` (`DB_VERSION` `1.1.0`, option `launchdek_db_version`). All DB access through `*_Repository` classes. Upgrades from pre-1.1.0 rename `launchdek_workflows` → `launchdek_checklists`, `workflow_id` → `checklist_id`, and migrate legacy capability keys via `LAUNCHDEK_Capabilities::migrate_workflow_caps()`.
 - Remote calls: `LAUNCHDEK_Remote_Client` (Application Password basic auth) — never store plaintext passwords outside vault.
-- Workflow engine: `LAUNCHDEK_Workflow_Runner::start()` creates run → `execute_next()` / `auto_advance()` → `LAUNCHDEK_Step_Executor` → `LAUNCHDEK_Payload_Mapper` for `api` steps; `manual` steps set `awaiting_manual` until `/runs/{id}/steps/{step}/complete`. Failures trigger `LAUNCHDEK_Webhook_Dispatcher`.
-- Admin UI: thin partials in `admin/partials/` with `data-launchdek-page`; JS drives CRUD via REST (`launchdekAdmin` global). Workflows use a drag-and-drop canvas builder with step config sidebar (role mapping, API payload mapper).
+- Checklist engine: `LAUNCHDEK_Checklist_Runner::start()` creates run → `execute_next()` / `auto_advance()` → `LAUNCHDEK_Step_Executor` → `LAUNCHDEK_Payload_Mapper` for `api` steps; `manual` steps set `awaiting_manual` until `/runs/{id}/steps/{step}/complete`. Failures trigger `LAUNCHDEK_Webhook_Dispatcher`.
+- Admin UI: thin partials in `admin/partials/` with `data-launchdek-page`; JS drives CRUD via REST (`launchdekAdmin` global). Checklists use a drag-and-drop canvas builder with step config sidebar (role mapping, API payload mapper).
+- Dashboard onboarding: activation redirect (`?onboarding=1`) opens a 2-step modal on the dashboard — paste plain-text SOPs → live preview → optional site connect/test → create checklist + site + first run. Dismissal persisted via `onboarding_dismissed` setting (`POST /onboarding/dismiss`, `can_view_dashboard`). Modal markup lives in `launchdek-admin-page.php`; logic in `initOnboarding()` (called from `initDashboard()`).
 - Plugin-free remote architecture: targets need only WP 6.0+ with Application Passwords enabled.
 
 ## Admin Pages
@@ -68,7 +73,7 @@ Use `LAUNCHDEK_Admin::PAGE_SLUG` — never hardcode slug strings.
 |------|------|---------|---------|
 | Dashboard | `PAGE_SLUG` | `launchdek-admin-page.php` | `initDashboard()` |
 | Sites | `PAGE_SLUG . '-sites'` | `launchdek-sites-page.php` | `initSites()` |
-| Workflows | `PAGE_SLUG . '-workflows'` | `launchdek-workflows-page.php` | `initWorkflows()` |
+| Checklists | `PAGE_SLUG . '-checklists'` | `launchdek-checklists-page.php` | `initChecklists()` |
 | Automation & Audit | `PAGE_SLUG . '-automation'` | `launchdek-automation-page.php` | `initAutomation()` |
 | Templates | `PAGE_SLUG . '-templates'` | `launchdek-templates-page.php` | `initTemplates()` |
 | Integrations | `PAGE_SLUG . '-integrations'` | `launchdek-integrations-page.php` | `initIntegrations()` |
@@ -84,8 +89,8 @@ Menu capability: `LAUNCHDEK_Capabilities::admin_menu_capability()` (`launchdek_v
 |----------|------------|
 | `can_view_dashboard` | `VIEW_DASHBOARD` |
 | `can_manage_sites` | `MANAGE_SITES` |
-| `can_edit_workflows` | `EDIT_WORKFLOWS` |
-| `can_execute` | `EXECUTE_WORKFLOWS` |
+| `can_edit_checklists` | `EDIT_CHECKLISTS` |
+| `can_execute` | `EXECUTE_CHECKLISTS` |
 | `can_view_audit` | `VIEW_AUDIT` |
 | `can_manage_settings` | `MANAGE_SETTINGS` |
 
@@ -97,8 +102,8 @@ Menu capability: `LAUNCHDEK_Capabilities::admin_menu_capability()` (`launchdek_v
 |----------|---------|
 | `VIEW_DASHBOARD` | Dashboard + menu access |
 | `MANAGE_SITES` | Site CRUD, connection tests |
-| `EDIT_WORKFLOWS` | Workflow/template CRUD |
-| `EXECUTE_WORKFLOWS` | Run control, drift verify |
+| `EDIT_CHECKLISTS` | Checklist/template CRUD |
+| `EXECUTE_CHECKLISTS` | Run control, drift verify |
 | `VIEW_AUDIT` | Audit log access |
 | `MANAGE_SETTINGS` | Settings page |
 
@@ -108,9 +113,9 @@ Registered in `LAUNCHDEK_REST_API`. Auth: `X-WP-Nonce` (`wp_rest`) + capability 
 
 | Group | Routes |
 |-------|--------|
-| Dashboard | `/dashboard/stats`, `/connections/ticker`, `/logs/feed` |
+| Dashboard | `/dashboard/stats`, `/connections/ticker`, `/logs/feed`, `/onboarding/dismiss` |
 | Sites | `/sites`, `/sites/{id}`, `/sites/{id}/test`, `/sites/test`, `/sites/tags` |
-| Workflows | `/workflows`, `/workflows/{id}`, `/workflows/import`, `/workflows/{id}/export`, `/workflows/{id}/validate-step` |
+| Checklists | `/checklists`, `/checklists/{id}`, `/checklists/import`, `/checklists/{id}/export`, `/checklists/{id}/validate-step` |
 | Runs | `/runs/batch`, `/runs`, `/runs/{id}`, `/runs/{id}/next`, `/runs/{id}/auto`, `/runs/{id}/steps/{step}/complete` |
 | Audit/Drift | `/audit/meta`, `/audit`, `/drift/status`, `/drift/verify`, `/drift/verify/{id}` |
 | Templates | `/templates`, `/templates/vault`, `/templates/{slug}/clone` |
@@ -118,11 +123,23 @@ Registered in `LAUNCHDEK_REST_API`. Auth: `X-WP-Nonce` (`wp_rest`) + capability 
 
 ## Database Tables
 
-`{prefix}launchdek_sites`, `launchdek_site_tags`, `launchdek_workflows`, `launchdek_runs`, `launchdek_run_steps`, `launchdek_audit_log`, `launchdek_connection_events`. Bump `LAUNCHDEK_Installer::DB_VERSION` for schema changes.
+`{prefix}launchdek_sites`, `launchdek_site_tags`, `launchdek_checklists`, `launchdek_runs`, `launchdek_run_steps`, `launchdek_audit_log`, `launchdek_connection_events`. Bump `LAUNCHDEK_Installer::DB_VERSION` for schema changes.
 
 ## Built-in Templates
 
-JSON in `templates/`: `security-hardening`, `woocommerce-optimization`, `seo-setup`, `migration-checklist`. Seeded once via `LAUNCHDEK_Templates::seed_builtin()` (`launchdek_templates_seeded` option).
+17 JSON files in `templates/` (one slug per file). Each file requires `title`, `description`, `category`, `steps[]`, and `is_template: true`. Categories from `LAUNCHDEK_Templates::get_categories()`:
+
+| Category slug | Templates |
+|---------------|-----------|
+| `security` | `security-hardening`, `security-audit` |
+| `launch` | `go-live-checklist`, `migration-checklist`, `client-onboarding` |
+| `performance` | `performance-baseline`, `caching-setup` |
+| `seo` | `seo-setup`, `local-seo-setup`, `analytics-tracking` |
+| `ecommerce` | `woocommerce-launch`, `woocommerce-optimization` |
+| `maintenance` | `monthly-maintenance`, `backup-verification`, `safe-update-routine` |
+| `compliance` | `gdpr-compliance`, `accessibility-basics` |
+
+`LAUNCHDEK_Templates::seed_builtin()` runs once (`launchdek_templates_seeded` option). `sync_builtin()` on every init adds any new JSON slugs missing from the DB. `/templates` GET returns `{ builtin, categories, stored }`.
 
 ## Integrations
 

@@ -1,0 +1,51 @@
+{
+  "title": "Analytics & Tracking",
+  "description": "Set up GA4, conversion events, and marketing pixels with privacy-conscious defaults.",
+  "category": "seo",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "create_ga4_property",
+      "title": "Create GA4 Property",
+      "instructions": "Create a GA4 property for the client domain. Use the client's Google account or transfer ownership after setup.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "install_gtm_or_ga",
+      "title": "Install GA4 Tag",
+      "instructions": "Add GA4 via Google Tag Manager or the SEO/analytics plugin. Avoid duplicate tags from theme + plugin + GTM.",
+      "deep_link": "plugin-install.php",
+      "type": "manual"
+    },
+    {
+      "id": "configure_conversions",
+      "title": "Define Key Conversions",
+      "instructions": "Mark form submissions, phone clicks, brochure downloads, and purchase events as conversions in GA4.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "exclude_internal_traffic",
+      "title": "Filter Internal Traffic",
+      "instructions": "Exclude agency office IPs and logged-in admin preview traffic from analytics reports.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "cookie_consent_integration",
+      "title": "Wire Cookie Consent",
+      "instructions": "Ensure analytics and ad pixels respect consent mode / cookie banner choices before firing on first visit.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "verify_realtime",
+      "title": "Verify Realtime Data",
+      "instructions": "Open GA4 Realtime while browsing the site in an incognito window. Confirm page_view and conversion events appear.",
+      "deep_link": "",
+      "type": "manual"
+    }
+  ]
+}

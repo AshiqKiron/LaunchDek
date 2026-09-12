@@ -27,7 +27,7 @@ class LAUNCHDEK_Plugin {
 	 * @return void
 	 */
 	public function run() {
-		add_action( 'plugins_loaded', array( $this, 'init' ) );
+		add_action( 'init', array( $this, 'init' ), 0 );
 		add_action( 'admin_menu', array( $this->admin, 'register_menu' ) );
 		add_action( 'admin_init', array( $this->admin, 'register_settings' ) );
 		add_action( 'admin_init', array( $this->admin, 'maybe_activation_redirect' ) );
@@ -41,13 +41,20 @@ class LAUNCHDEK_Plugin {
 	}
 
 	/**
-	 * Late init — DB migrations and template seeding.
+	 * Late init — textdomain, DB migrations, and template seeding.
 	 *
 	 * @return void
 	 */
 	public function init() {
+		load_plugin_textdomain(
+			LAUNCHDEK_TEXT_DOMAIN,
+			false,
+			dirname( LAUNCHDEK_PLUGIN_BASENAME ) . '/languages'
+		);
+
 		LAUNCHDEK_Installer::maybe_install();
 		LAUNCHDEK_Capabilities::register();
 		LAUNCHDEK_Templates::seed_builtin();
+		LAUNCHDEK_Templates::sync_builtin();
 	}
 }

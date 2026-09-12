@@ -55,7 +55,9 @@ class LAUNCHDEK_Webhook_Dispatcher {
 		/* translators: 1: event name */
 		$base = sprintf( __( 'LaunchDek: %s', LAUNCHDEK_TEXT_DOMAIN ), $event );
 
-		if ( ! empty( $data['workflow'] ) ) {
+		if ( ! empty( $data['checklist'] ) ) {
+			$base .= ' — ' . $data['checklist'];
+		} elseif ( ! empty( $data['workflow'] ) ) {
 			$base .= ' — ' . $data['workflow'];
 		}
 

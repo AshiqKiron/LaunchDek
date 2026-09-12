@@ -1,6 +1,6 @@
 <?php
 /**
- * Maps workflow API step definitions to REST calls.
+ * Maps checklist API step definitions to REST calls.
  *
  * @package LaunchDek
  */

@@ -17,19 +17,25 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 	<div class="launchdek-card">
 		<h2><?php esc_html_e( 'Execution & Run Control', LAUNCHDEK_TEXT_DOMAIN ); ?></h2>
-		<p class="launchdek-muted"><?php esc_html_e( 'Select targets and queue workflow runs across one or many remote sites.', LAUNCHDEK_TEXT_DOMAIN ); ?></p>
+		<p class="launchdek-muted"><?php esc_html_e( 'Select targets and queue checklist runs across one or many remote sites.', LAUNCHDEK_TEXT_DOMAIN ); ?></p>
 
 		<div class="launchdek-target-selector">
-			<div class="launchdek-inline-form launchdek-target-form">
-				<select id="launchdek-run-workflow" class="launchdek-select" aria-label="<?php esc_attr_e( 'Workflow', LAUNCHDEK_TEXT_DOMAIN ); ?>">
-					<option value=""><?php esc_html_e( 'Select workflow…', LAUNCHDEK_TEXT_DOMAIN ); ?></option>
-				</select>
-				<select id="launchdek-run-site" class="launchdek-select launchdek-select-multi" multiple size="5" aria-label="<?php esc_attr_e( 'Target sites', LAUNCHDEK_TEXT_DOMAIN ); ?>"></select>
-				<div class="launchdek-target-actions">
-					<button type="button" class="button" id="launchdek-queue-add"><?php esc_html_e( 'Add to Batch Queue', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
-					<button type="button" class="button button-primary" id="launchdek-start-run"><?php esc_html_e( 'Start Single Run', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
-					<button type="button" class="button" id="launchdek-queue-process"><?php esc_html_e( 'Process Queue', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
-					<button type="button" class="button" id="launchdek-queue-clear"><?php esc_html_e( 'Clear Queue', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
+			<div class="launchdek-target-form">
+				<div class="launchdek-target-form-controls launchdek-inline-form">
+					<select id="launchdek-run-checklist" class="launchdek-select" aria-label="<?php esc_attr_e( 'Checklist', LAUNCHDEK_TEXT_DOMAIN ); ?>">
+						<option value=""><?php esc_html_e( 'Select checklist…', LAUNCHDEK_TEXT_DOMAIN ); ?></option>
+					</select>
+					<div class="launchdek-target-actions">
+						<button type="button" class="button" id="launchdek-queue-add"><?php esc_html_e( 'Add to Batch Queue', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
+						<button type="button" class="button button-primary" id="launchdek-start-run"><?php esc_html_e( 'Start Single Run', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
+						<button type="button" class="button" id="launchdek-queue-process"><?php esc_html_e( 'Process Queue', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
+						<button type="button" class="button" id="launchdek-queue-clear"><?php esc_html_e( 'Clear Queue', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
+					</div>
+				</div>
+				<div class="launchdek-target-sites">
+					<label for="launchdek-run-site"><?php esc_html_e( 'Target sites', LAUNCHDEK_TEXT_DOMAIN ); ?></label>
+					<select id="launchdek-run-site" class="launchdek-select launchdek-select-multi" multiple size="5" aria-label="<?php esc_attr_e( 'Target sites', LAUNCHDEK_TEXT_DOMAIN ); ?>"></select>
+					<p class="launchdek-muted launchdek-field-hint"><?php esc_html_e( 'Hold Ctrl or Cmd to select multiple sites.', LAUNCHDEK_TEXT_DOMAIN ); ?></p>
 				</div>
 			</div>
 
@@ -39,7 +45,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 					<thead>
 						<tr>
 							<th><?php esc_html_e( 'Site', LAUNCHDEK_TEXT_DOMAIN ); ?></th>
-							<th><?php esc_html_e( 'Workflow', LAUNCHDEK_TEXT_DOMAIN ); ?></th>
+							<th><?php esc_html_e( 'Checklist', LAUNCHDEK_TEXT_DOMAIN ); ?></th>
 							<th><?php esc_html_e( 'Status', LAUNCHDEK_TEXT_DOMAIN ); ?></th>
 							<th><?php esc_html_e( 'Run', LAUNCHDEK_TEXT_DOMAIN ); ?></th>
 							<th></th>

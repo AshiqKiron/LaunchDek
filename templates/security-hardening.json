@@ -1,42 +1,64 @@
 {
   "title": "Security Hardening",
-  "description": "Essential security configuration checklist for new WordPress sites.",
-  "version": "1.0.0",
+  "description": "Baseline hardening for new WordPress sites before handoff or go-live.",
+  "category": "security",
+  "version": "1.1.0",
   "is_template": true,
   "steps": [
     {
       "id": "disable_file_edit",
-      "title": "Disable File Editor",
-      "instructions": "Confirm DISALLOW_FILE_EDIT is set in wp-config.php to prevent theme/plugin editing from admin.",
+      "title": "Disable Theme/Plugin Editor",
+      "instructions": "Add define('DISALLOW_FILE_EDIT', true); to wp-config.php so compromised admin accounts cannot edit code from the dashboard.",
       "deep_link": "",
       "type": "manual"
     },
     {
       "id": "force_ssl_admin",
       "title": "Force SSL for Admin",
-      "instructions": "Ensure FORCE_SSL_ADMIN is enabled in wp-config.php.",
+      "instructions": "Enable FORCE_SSL_ADMIN in wp-config.php and confirm wp-admin loads only over HTTPS.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "unique_table_prefix",
+      "title": "Verify Non-Default Table Prefix",
+      "instructions": "Confirm the database table prefix is not wp_ on production installs to reduce automated attack surface.",
       "deep_link": "",
       "type": "manual"
     },
     {
       "id": "disable_xmlrpc",
       "title": "Restrict XML-RPC",
-      "instructions": "Disable or restrict XML-RPC if not needed for Jetpack or mobile apps.",
-      "deep_link": "options-general.php",
-      "type": "manual"
-    },
-    {
-      "id": "hide_wp_version",
-      "title": "Remove WP Version from Head",
-      "instructions": "Verify wp_generator meta tag is removed from public pages.",
+      "instructions": "Disable XML-RPC if Jetpack, mobile apps, or pingbacks are not required. Block xmlrpc.php at the web server if possible.",
       "deep_link": "",
       "type": "manual"
     },
     {
+      "id": "hide_wp_version",
+      "title": "Remove Version Fingerprint",
+      "instructions": "Remove the wp_generator meta tag and ensure readme.html/license.txt are not publicly accessible on production.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "admin_user_audit",
+      "title": "Audit Administrator Accounts",
+      "instructions": "Remove unused admin users, enforce strong passwords, and confirm only named agency/client admins have the administrator role.",
+      "deep_link": "users.php",
+      "type": "manual"
+    },
+    {
       "id": "limit_login_attempts",
-      "title": "Install Login Protection",
-      "instructions": "Install and configure a login limiter or WAF rule for brute-force protection.",
+      "title": "Enable Login Protection",
+      "instructions": "Install or configure brute-force protection (plugin, WAF rule, or host firewall) and enable 2FA for all administrator accounts.",
       "deep_link": "plugin-install.php",
+      "type": "manual"
+    },
+    {
+      "id": "verify_search_indexing",
+      "title": "Confirm Public Indexing Setting",
+      "instructions": "Verify whether the site should be indexed. Staging should discourage search engines; production should allow indexing when ready.",
+      "deep_link": "options-reading.php",
       "type": "manual"
     }
   ]

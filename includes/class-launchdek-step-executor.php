@@ -1,6 +1,6 @@
 <?php
 /**
- * Executes individual workflow steps.
+ * Executes individual checklist steps.
  *
  * @package LaunchDek
  */
@@ -19,7 +19,7 @@ class LAUNCHDEK_Step_Executor {
 	 *
 	 * @param int   $run_id     Run ID.
 	 * @param int   $step_index Step index.
-	 * @param array $step_def   Step definition from workflow.
+	 * @param array $step_def   Step definition from checklist.
 	 * @param int   $site_id    Site ID.
 	 * @return array
 	 */

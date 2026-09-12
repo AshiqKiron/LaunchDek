@@ -37,7 +37,7 @@ class LAUNCHDEK_Admin {
 		$pages = array(
 			self::PAGE_SLUG              => array( __( 'Dashboard', LAUNCHDEK_TEXT_DOMAIN ), 'render_admin_page' ),
 			self::PAGE_SLUG . '-sites'   => array( __( 'Sites', LAUNCHDEK_TEXT_DOMAIN ), 'render_sites_page' ),
-			self::PAGE_SLUG . '-workflows' => array( __( 'Workflows', LAUNCHDEK_TEXT_DOMAIN ), 'render_workflows_page' ),
+			self::PAGE_SLUG . '-checklists' => array( __( 'Checklists', LAUNCHDEK_TEXT_DOMAIN ), 'render_checklists_page' ),
 			self::PAGE_SLUG . '-automation' => array( __( 'Automation & Audit', LAUNCHDEK_TEXT_DOMAIN ), 'render_automation_page' ),
 			self::PAGE_SLUG . '-templates' => array( __( 'Templates', LAUNCHDEK_TEXT_DOMAIN ), 'render_templates_page' ),
 			self::PAGE_SLUG . '-integrations' => array( __( 'Integrations', LAUNCHDEK_TEXT_DOMAIN ), 'render_integrations_page' ),
@@ -81,7 +81,7 @@ class LAUNCHDEK_Admin {
 		if ( wp_doing_ajax() || is_network_admin() || isset( $_GET['activate-multi'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			return;
 		}
-		wp_safe_redirect( admin_url( 'admin.php?page=' . self::PAGE_SLUG ) );
+		wp_safe_redirect( admin_url( 'admin.php?page=' . self::PAGE_SLUG . '&onboarding=1' ) );
 		exit;
 	}
 
@@ -115,6 +115,12 @@ class LAUNCHDEK_Admin {
 				'adminUrl'  => admin_url( 'admin.php' ),
 				'pageSlug'  => self::PAGE_SLUG,
 				'roles'     => $wp_roles,
+				'onboarding' => array(
+					'show'           => empty( LAUNCHDEK_Settings::get()['onboarding_dismissed'] ),
+					'templatesUrl'   => admin_url( 'admin.php?page=' . self::PAGE_SLUG . '-templates' ),
+					'checklistsUrl'  => admin_url( 'admin.php?page=' . self::PAGE_SLUG . '-checklists' ),
+					'automationUrl'  => admin_url( 'admin.php?page=' . self::PAGE_SLUG . '-automation' ),
+				),
 				'strings'   => array(
 					'confirmDelete'  => __( 'Are you sure you want to delete this?', LAUNCHDEK_TEXT_DOMAIN ),
 					'confirmDeleteSite' => __( 'Are you sure you want to delete this site?', LAUNCHDEK_TEXT_DOMAIN ),
@@ -126,14 +132,49 @@ class LAUNCHDEK_Admin {
 					'healthUnknown'  => __( 'Unknown', LAUNCHDEK_TEXT_DOMAIN ),
 					'connectionOk'   => __( 'Connection OK', LAUNCHDEK_TEXT_DOMAIN ),
 					'connectionFail' => __( 'Connection failed', LAUNCHDEK_TEXT_DOMAIN ),
-					'cloneToWorkflow' => __( 'Clone to Workflow', LAUNCHDEK_TEXT_DOMAIN ),
-					'templateCloned'  => __( 'Template cloned. Edit it under Workflows.', LAUNCHDEK_TEXT_DOMAIN ),
+					'cloneToChecklist' => __( 'Clone to Checklist', LAUNCHDEK_TEXT_DOMAIN ),
+					'templateCloned'  => __( 'Template cloned. Edit it under Checklists.', LAUNCHDEK_TEXT_DOMAIN ),
+					'checklistTitleRequired' => __( 'Checklist title is required.', LAUNCHDEK_TEXT_DOMAIN ),
+					'noCustomChecklists' => __( 'No custom checklists yet. Click New Checklist to create one.', LAUNCHDEK_TEXT_DOMAIN ),
+					'noCustomTemplates' => __( 'No custom checklists saved yet. Create one under Checklists.', LAUNCHDEK_TEXT_DOMAIN ),
+					'editChecklist' => __( 'Edit Checklist', LAUNCHDEK_TEXT_DOMAIN ),
+					'customChecklistBadge' => __( 'Custom', LAUNCHDEK_TEXT_DOMAIN ),
+					'checklistCloned' => __( 'Checklist cloned. Edit it under Checklists.', LAUNCHDEK_TEXT_DOMAIN ),
+					'confirmDeleteChecklist' => __( 'Are you sure you want to delete this checklist?', LAUNCHDEK_TEXT_DOMAIN ),
 					'savedToVault'    => __( 'Saved to vault.', LAUNCHDEK_TEXT_DOMAIN ),
 					'noVaultTemplates' => __( 'No vault templates yet.', LAUNCHDEK_TEXT_DOMAIN ),
+					'noCategoryTemplates' => __( 'No templates in this category yet.', LAUNCHDEK_TEXT_DOMAIN ),
 					'stepsCount'      => __( '%d steps', LAUNCHDEK_TEXT_DOMAIN ),
+					'viewSteps'       => __( 'View steps', LAUNCHDEK_TEXT_DOMAIN ),
+					'hideSteps'       => __( 'Hide steps', LAUNCHDEK_TEXT_DOMAIN ),
+					'checklistSteps'  => __( 'Checklist steps', LAUNCHDEK_TEXT_DOMAIN ),
+					'stepsPreviewHint' => __( 'Hover or click View steps to preview the checklist.', LAUNCHDEK_TEXT_DOMAIN ),
 					'connected'       => __( 'Connected', LAUNCHDEK_TEXT_DOMAIN ),
 					'notDetected'     => __( 'Not Detected', LAUNCHDEK_TEXT_DOMAIN ),
 					'setup'           => __( 'Setup', LAUNCHDEK_TEXT_DOMAIN ),
+					'onboardingTitle' => __( 'LaunchDek Onboarding', LAUNCHDEK_TEXT_DOMAIN ),
+					'onboardingProgressLabel' => __( 'Onboarding progress', LAUNCHDEK_TEXT_DOMAIN ),
+					'onboardingIntro' => __( 'Turn your messy Notion SOPs or Google Docs into an active workflow.', LAUNCHDEK_TEXT_DOMAIN ),
+					'onboardingPasteLabel' => __( 'Paste your checklist text here:', LAUNCHDEK_TEXT_DOMAIN ),
+					'onboardingPreviewLabel' => __( 'Live Interactive Preview:', LAUNCHDEK_TEXT_DOMAIN ),
+					'onboardingTestSite' => __( 'Test workflow immediately on:', LAUNCHDEK_TEXT_DOMAIN ),
+					'onboardingSelectSite' => __( 'Select site…', LAUNCHDEK_TEXT_DOMAIN ),
+					'onboardingUseTemplate' => __( 'Start from a template instead', LAUNCHDEK_TEXT_DOMAIN ),
+					'onboardingSkip' => __( 'Skip', LAUNCHDEK_TEXT_DOMAIN ),
+					'onboardingNextConnect' => __( 'Next: Connect', LAUNCHDEK_TEXT_DOMAIN ),
+					'onboardingConnectIntro' => __( 'Connect your first remote client site using WordPress App Passwords.', LAUNCHDEK_TEXT_DOMAIN ),
+					'onboardingBack' => __( 'Back', LAUNCHDEK_TEXT_DOMAIN ),
+					'onboardingLaunch' => __( 'Finish & Launch', LAUNCHDEK_TEXT_DOMAIN ),
+					'onboardingOutro' => __( 'Your imported checklist workflow will be ready to push instantly.', LAUNCHDEK_TEXT_DOMAIN ),
+					'onboardingTestConnection' => __( 'Test Connection', LAUNCHDEK_TEXT_DOMAIN ),
+					'onboardingStatusConnected' => __( 'Status: Connected & Verified (OK)', LAUNCHDEK_TEXT_DOMAIN ),
+					'onboardingStatusFailed' => __( 'Status: Connection failed', LAUNCHDEK_TEXT_DOMAIN ),
+					'onboardingStatusPending' => __( 'Status: Not tested yet', LAUNCHDEK_TEXT_DOMAIN ),
+					'onboardingStatusTesting' => __( 'Status: Testing…', LAUNCHDEK_TEXT_DOMAIN ),
+					'onboardingPreviewEmpty' => __( 'Start typing to see your checklist preview.', LAUNCHDEK_TEXT_DOMAIN ),
+					'onboardingNeedSteps' => __( 'Add at least one checklist step before continuing.', LAUNCHDEK_TEXT_DOMAIN ),
+					'onboardingNeedConnection' => __( 'Test the connection successfully before launching.', LAUNCHDEK_TEXT_DOMAIN ),
+					'onboardingExistingSiteReady' => __( 'Using selected site:', LAUNCHDEK_TEXT_DOMAIN ),
 				),
 			)
 		);
@@ -160,8 +201,8 @@ class LAUNCHDEK_Admin {
 		$this->render_page( 'launchdek-sites-page.php', array( 'page' => 'sites' ) );
 	}
 
-	public function render_workflows_page() {
-		$this->render_page( 'launchdek-workflows-page.php', array( 'page' => 'workflows' ) );
+	public function render_checklists_page() {
+		$this->render_page( 'launchdek-checklists-page.php', array( 'page' => 'checklists' ) );
 	}
 
 	public function render_automation_page() {

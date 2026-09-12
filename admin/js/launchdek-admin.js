@@ -60,6 +60,10 @@
 		container.innerHTML = '<div class="notice-inline ' + (type || '') + '">' + message + '</div>';
 	}
 
+	function escHtml(value) {
+		return String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+	}
+
 	function fillSelect(select, items, valueKey, labelKey, placeholder) {
 		if (!select) return;
 		select.innerHTML = '';
@@ -71,6 +75,335 @@
 				value: String(item[valueKey]),
 				text: item[labelKey]
 			}));
+		});
+	}
+
+	// ─── Onboarding ──────────────────────────────────────────
+	function parsePastedChecklist(text) {
+		var lines = text.split(/\r?\n/).map(function (line) { return line.trim(); }).filter(Boolean);
+		var title = '';
+		var steps = [];
+		var stepLine = /^(\[\s?[xX]?\s?\]|[-*•]|\d+[.)])\s*(.+)$/;
+
+		lines.forEach(function (line) {
+			var match = line.match(stepLine);
+			if (match) {
+				steps.push({ title: match[2].trim(), checked: false });
+				return;
+			}
+
+			var heading = line.match(/^#+\s*(.+)$/);
+			if (heading) {
+				if (!title) {
+					title = heading[1].trim();
+				} else {
+					steps.push({ title: heading[1].trim(), checked: false });
+				}
+				return;
+			}
+
+			if (!title) {
+				title = line;
+			} else {
+				steps.push({ title: line, checked: false });
+			}
+		});
+
+		return {
+			title: title || 'Untitled Checklist',
+			steps: steps
+		};
+	}
+
+	function buildChecklistPayload(parsed) {
+		return {
+			title: parsed.title,
+			description: '',
+			steps: parsed.steps.map(function (step, index) {
+				return {
+					id: 'step_' + (index + 1),
+					title: step.title,
+					type: 'manual',
+					instructions: '',
+					target_roles: [],
+					deep_link: ''
+				};
+			})
+		};
+	}
+
+	function initOnboarding() {
+		var modal = document.getElementById('launchdek-onboarding-modal');
+		if (!modal) return;
+
+		var onboarding = launchdekAdmin.onboarding || {};
+		var params = new URLSearchParams(window.location.search);
+		var shouldShow = onboarding.show || params.get('onboarding') === '1';
+		if (!shouldShow) return;
+
+		var step1 = document.getElementById('launchdek-onboarding-step-1');
+		var step2 = document.getElementById('launchdek-onboarding-step-2');
+		var pasteInput = document.getElementById('launchdek-onboarding-paste');
+		var preview = document.getElementById('launchdek-onboarding-preview');
+		var siteSelect = document.getElementById('launchdek-onboarding-site');
+		var step1Notice = document.getElementById('launchdek-onboarding-step1-notice');
+		var step2Notice = document.getElementById('launchdek-onboarding-step2-notice');
+		var connectPanel = document.getElementById('launchdek-onboarding-connect-panel');
+		var existingSiteNotice = document.getElementById('launchdek-onboarding-existing-site');
+		var testStatus = document.getElementById('launchdek-onboarding-test-status');
+		var launchBtn = document.getElementById('launchdek-onboarding-launch');
+		var parsedChecklist = { title: '', steps: [] };
+		var savedChecklistId = null;
+		var selectedSiteId = '';
+		var connectionVerified = false;
+
+		function dismissOnboarding() {
+			return post('/onboarding/dismiss', {}).catch(function () {});
+		}
+
+		function closeOnboarding() {
+			modal.hidden = true;
+		}
+
+		function renderPreview() {
+			parsedChecklist = parsePastedChecklist(pasteInput.value);
+			if (!parsedChecklist.steps.length && !parsedChecklist.title) {
+				preview.innerHTML = '<p class="launchdek-muted">' + escHtml(strings.onboardingPreviewEmpty || 'Start typing to see your checklist preview.') + '</p>';
+				return;
+			}
+
+			var html = '<p class="launchdek-onboarding-preview-title"><strong>' + escHtml(parsedChecklist.title) + '</strong></p>';
+			if (parsedChecklist.steps.length) {
+				html += '<ul class="launchdek-onboarding-preview-list">';
+				parsedChecklist.steps.forEach(function (step, index) {
+					html += '<li class="launchdek-onboarding-preview-item">' +
+						'<input type="checkbox" id="launchdek-onboarding-preview-step-' + index + '" data-preview-index="' + index + '"' + (step.checked ? ' checked' : '') + ' />' +
+						'<label for="launchdek-onboarding-preview-step-' + index + '">' + escHtml(step.title) + '</label>' +
+						'</li>';
+				});
+				html += '</ul>';
+			}
+			preview.innerHTML = html;
+
+			preview.querySelectorAll('input[type="checkbox"][data-preview-index]').forEach(function (checkbox) {
+				checkbox.addEventListener('change', function () {
+					var idx = parseInt(checkbox.getAttribute('data-preview-index'), 10);
+					if (parsedChecklist.steps[idx]) {
+						parsedChecklist.steps[idx].checked = checkbox.checked;
+					}
+				});
+			});
+		}
+
+		function setTestStatus(state, message) {
+			testStatus.textContent = message || '';
+			testStatus.className = 'launchdek-onboarding-test-status';
+			if (state) {
+				testStatus.classList.add(state);
+			}
+		}
+
+		function deriveSiteName(url) {
+			try {
+				var hostname = new URL(url).hostname.replace(/^www\./, '');
+				return hostname || url;
+			} catch (e) {
+				return url;
+			}
+		}
+
+		function getConnectCredentials() {
+			return {
+				url: document.getElementById('launchdek-onboarding-site-url').value.trim(),
+				admin_username: document.getElementById('launchdek-onboarding-site-username').value.trim(),
+				app_password: document.getElementById('launchdek-onboarding-site-password').value.trim()
+			};
+		}
+
+		function updateOnboardingProgress(step) {
+			var progress = document.getElementById('launchdek-onboarding-progress');
+			var fill = document.getElementById('launchdek-onboarding-progress-fill');
+			if (!progress || !fill) {
+				return;
+			}
+
+			var total = 2;
+			progress.setAttribute('aria-valuenow', String(step));
+			fill.style.width = ((step / total) * 100) + '%';
+		}
+
+		function showStep2() {
+			selectedSiteId = siteSelect.value;
+			step1.hidden = true;
+			step2.hidden = false;
+			updateOnboardingProgress(2);
+			step2Notice.innerHTML = '';
+			connectionVerified = false;
+
+			var hasExistingSite = !!selectedSiteId;
+			connectPanel.hidden = hasExistingSite;
+			existingSiteNotice.hidden = !hasExistingSite;
+
+			if (hasExistingSite) {
+				var option = siteSelect.options[siteSelect.selectedIndex];
+				existingSiteNotice.textContent = (strings.onboardingExistingSiteReady || 'Using selected site:') + ' ' + (option ? option.textContent : '');
+				connectionVerified = true;
+				setTestStatus('success', strings.onboardingStatusConnected || 'Status: Connected & Verified (OK)');
+			} else {
+				setTestStatus('', strings.onboardingStatusPending || 'Status: Not tested yet');
+			}
+		}
+
+		function showStep1() {
+			step2.hidden = true;
+			step1.hidden = false;
+			updateOnboardingProgress(1);
+			step2Notice.innerHTML = '';
+			setTestStatus('', '');
+		}
+
+		function finishOnboarding(runSiteId) {
+			var tasks = [dismissOnboarding()];
+			if (savedChecklistId && runSiteId) {
+				tasks.push(post('/runs', {
+					site_id: parseInt(runSiteId, 10),
+					checklist_id: parseInt(savedChecklistId, 10)
+				}));
+			}
+
+			return Promise.all(tasks).then(function (results) {
+				closeOnboarding();
+				if (results.length > 1 && onboarding.automationUrl) {
+					window.location.href = onboarding.automationUrl;
+				}
+			});
+		}
+
+		get('/sites').then(function (sites) {
+			fillSelect(siteSelect, sites, 'id', 'name', strings.onboardingSelectSite || 'Select site…');
+		}).catch(function () {});
+
+		pasteInput.addEventListener('input', renderPreview);
+		renderPreview();
+		updateOnboardingProgress(1);
+		modal.hidden = false;
+
+		modal.querySelectorAll('.launchdek-onboarding-close, .launchdek-modal-backdrop').forEach(function (node) {
+			node.addEventListener('click', function () {
+				dismissOnboarding().finally(closeOnboarding);
+			});
+		});
+
+		document.getElementById('launchdek-onboarding-skip').addEventListener('click', function () {
+			dismissOnboarding().finally(closeOnboarding);
+		});
+
+		document.getElementById('launchdek-onboarding-use-template').addEventListener('click', function () {
+			dismissOnboarding().finally(function () {
+				if (onboarding.templatesUrl) {
+					window.location.href = onboarding.templatesUrl;
+				} else {
+					closeOnboarding();
+				}
+			});
+		});
+
+		document.getElementById('launchdek-onboarding-next').addEventListener('click', function () {
+			step1Notice.innerHTML = '';
+			parsedChecklist = parsePastedChecklist(pasteInput.value);
+			if (!parsedChecklist.steps.length) {
+				notice(step1Notice, strings.onboardingNeedSteps || 'Add at least one checklist step before continuing.', 'error');
+				return;
+			}
+
+			var payload = buildChecklistPayload(parsedChecklist);
+			document.getElementById('launchdek-onboarding-next').disabled = true;
+
+			post('/checklists', payload).then(function (checklist) {
+				savedChecklistId = checklist.id;
+				showStep2();
+			}).catch(function (err) {
+				notice(step1Notice, err.message, 'error');
+			}).finally(function () {
+				document.getElementById('launchdek-onboarding-next').disabled = false;
+			});
+		});
+
+		document.getElementById('launchdek-onboarding-back').addEventListener('click', showStep1);
+
+		document.getElementById('launchdek-onboarding-skip-step2').addEventListener('click', function () {
+			dismissOnboarding().finally(closeOnboarding);
+		});
+
+		document.getElementById('launchdek-onboarding-test').addEventListener('click', function () {
+			var creds = getConnectCredentials();
+			step2Notice.innerHTML = '';
+
+			if (!creds.url || !creds.admin_username || !creds.app_password) {
+				notice(step2Notice, strings.error || 'Something went wrong.', 'error');
+				return;
+			}
+
+			var testBtn = document.getElementById('launchdek-onboarding-test');
+			testBtn.disabled = true;
+			connectionVerified = false;
+			setTestStatus('', strings.onboardingStatusTesting || 'Status: Testing…');
+
+			post('/sites/test', creds).then(function (result) {
+				if (result.success) {
+					connectionVerified = true;
+					setTestStatus('success', strings.onboardingStatusConnected || 'Status: Connected & Verified (OK)');
+				} else {
+					connectionVerified = false;
+					setTestStatus('error', (strings.onboardingStatusFailed || 'Status: Connection failed') + (result.message ? ' — ' + result.message : ''));
+				}
+			}).catch(function (err) {
+				connectionVerified = false;
+				setTestStatus('error', (strings.onboardingStatusFailed || 'Status: Connection failed') + ' — ' + err.message);
+			}).finally(function () {
+				testBtn.disabled = false;
+			});
+		});
+
+		['launchdek-onboarding-site-url', 'launchdek-onboarding-site-username', 'launchdek-onboarding-site-password'].forEach(function (id) {
+			document.getElementById(id).addEventListener('input', function () {
+				connectionVerified = false;
+				setTestStatus('', strings.onboardingStatusPending || 'Status: Not tested yet');
+			});
+		});
+
+		launchBtn.addEventListener('click', function () {
+			step2Notice.innerHTML = '';
+
+			if (!connectionVerified && !selectedSiteId) {
+				notice(step2Notice, strings.onboardingNeedConnection || 'Test the connection successfully before launching.', 'error');
+				return;
+			}
+
+			launchBtn.disabled = true;
+
+			var launchPromise;
+			if (selectedSiteId) {
+				launchPromise = finishOnboarding(selectedSiteId);
+			} else {
+				var creds = getConnectCredentials();
+				launchPromise = post('/sites', {
+					name: deriveSiteName(creds.url),
+					url: creds.url,
+					admin_username: creds.admin_username,
+					app_password: creds.app_password,
+					tags: [],
+					group_type: 'general'
+				}).then(function (site) {
+					return finishOnboarding(site.id);
+				});
+			}
+
+			launchPromise.catch(function (err) {
+				notice(step2Notice, err.message, 'error');
+			}).finally(function () {
+				launchBtn.disabled = false;
+			});
 		});
 	}
 
@@ -126,25 +459,27 @@
 			});
 		}).catch(function () {});
 
-		Promise.all([get('/sites'), get('/workflows?is_template=0')]).then(function (results) {
+		Promise.all([get('/sites'), get('/checklists?is_template=0')]).then(function (results) {
 			fillSelect(document.getElementById('launchdek-quick-site'), results[0], 'id', 'name', 'Select site…');
-			fillSelect(document.getElementById('launchdek-quick-workflow'), results[1], 'id', 'title', 'Select workflow…');
+			fillSelect(document.getElementById('launchdek-quick-checklist'), results[1], 'id', 'title', 'Select checklist…');
 		});
 
 		document.getElementById('launchdek-quick-launch').addEventListener('click', function () {
 			var siteId = document.getElementById('launchdek-quick-site').value;
-			var wfId = document.getElementById('launchdek-quick-workflow').value;
+			var wfId = document.getElementById('launchdek-quick-checklist').value;
 			var result = document.getElementById('launchdek-quick-result');
 			if (!siteId || !wfId) {
-				notice(result, 'Select both a site and workflow.', 'error');
+				notice(result, 'Select both a site and checklist.', 'error');
 				return;
 			}
-			post('/runs', { site_id: parseInt(siteId, 10), workflow_id: parseInt(wfId, 10) })
+			post('/runs', { site_id: parseInt(siteId, 10), checklist_id: parseInt(wfId, 10) })
 				.then(function (data) {
 					notice(result, 'Run #' + data.run_id + ' started. <a href="' + launchdekAdmin.adminUrl + '?page=' + launchdekAdmin.pageSlug + '-automation">Open runner →</a>', 'success');
 				})
 				.catch(function (err) { notice(result, err.message, 'error'); });
 		});
+
+		initOnboarding();
 	}
 
 	// ─── Sites ───────────────────────────────────────────────
@@ -325,49 +660,68 @@
 		});
 	}
 
-	// ─── Workflows ───────────────────────────────────────────
-	var currentWorkflowId = null;
+	// ─── Checklists ──────────────────────────────────────────
+	var currentChecklistId = null;
 	var currentSteps = [];
 	var selectedStepIndex = null;
 	var dragSrcIndex = null;
 
-	function loadWorkflowList() {
-		get('/workflows?is_template=0').then(function (workflows) {
-			var list = document.getElementById('launchdek-workflow-list');
+	function updateChecklistActions() {
+		var deleteBtn = document.getElementById('launchdek-delete-checklist');
+		var exportBtn = document.getElementById('launchdek-export-checklist');
+		if (deleteBtn) deleteBtn.disabled = !currentChecklistId;
+		if (exportBtn) exportBtn.disabled = !currentChecklistId;
+	}
+
+	function loadChecklistList() {
+		get('/checklists?is_template=0').then(function (checklists) {
+			var list = document.getElementById('launchdek-checklist-list');
 			list.innerHTML = '';
-			workflows.forEach(function (wf) {
+			if (!checklists.length) {
+				list.appendChild(el('li', {
+					className: 'launchdek-muted',
+					text: strings.noCustomChecklists || 'No custom checklists yet. Click New Checklist to create one.'
+				}));
+				return;
+			}
+			checklists.forEach(function (wf) {
 				var li = el('li', { text: wf.title + ' (' + (wf.steps || []).length + ' steps)' });
 				li.dataset.id = wf.id;
-				if (currentWorkflowId === wf.id) li.className = 'active';
-				li.onclick = function () { loadWorkflowEditor(wf.id); };
+				if (currentChecklistId === wf.id) li.className = 'active';
+				li.onclick = function () { loadChecklistEditor(wf.id); };
 				list.appendChild(li);
 			});
 		});
 	}
 
-	function loadWorkflowEditor(id) {
-		currentWorkflowId = id;
-		get('/workflows/' + id).then(function (wf) {
-			document.getElementById('launchdek-workflow-editor').hidden = false;
-			document.getElementById('launchdek-wf-title').value = wf.title;
-			document.getElementById('launchdek-wf-description').value = wf.description || '';
+	function loadChecklistEditor(id) {
+		currentChecklistId = id;
+		get('/checklists/' + id).then(function (wf) {
+			document.getElementById('launchdek-checklist-editor').hidden = false;
+			document.getElementById('launchdek-cl-title').value = wf.title;
+			document.getElementById('launchdek-cl-description').value = wf.description || '';
 			currentSteps = wf.steps || [];
 			selectedStepIndex = null;
+			notice(document.getElementById('launchdek-checklist-notice'), '', '');
 			renderSteps();
 			renderStepConfig();
-			loadWorkflowList();
+			updateChecklistActions();
+			loadChecklistList();
 		});
 	}
 
-	function newWorkflow() {
-		currentWorkflowId = null;
+	function newChecklist() {
+		currentChecklistId = null;
 		currentSteps = [];
 		selectedStepIndex = null;
-		document.getElementById('launchdek-workflow-editor').hidden = false;
-		document.getElementById('launchdek-wf-title').value = '';
-		document.getElementById('launchdek-wf-description').value = '';
+		document.getElementById('launchdek-checklist-editor').hidden = false;
+		document.getElementById('launchdek-cl-title').value = '';
+		document.getElementById('launchdek-cl-description').value = '';
+		notice(document.getElementById('launchdek-checklist-notice'), '', '');
 		renderSteps();
 		renderStepConfig();
+		updateChecklistActions();
+		document.getElementById('launchdek-cl-title').focus();
 	}
 
 	function renderSteps() {
@@ -378,7 +732,7 @@
 		if (!currentSteps.length) {
 			canvas.appendChild(el('p', {
 				className: 'launchdek-muted launchdek-canvas-empty',
-				text: 'Add a step to begin building your workflow.'
+				text: 'Add a step to begin building your checklist.'
 			}));
 			return;
 		}
@@ -492,7 +846,7 @@
 		};
 		document.getElementById('ld-validate-api').onclick = function () {
 			saveStepFromForm();
-			post('/workflows/0/validate-step', currentSteps[selectedStepIndex]).then(function (r) {
+			post('/checklists/0/validate-step', currentSteps[selectedStepIndex]).then(function (r) {
 				alert(r.valid ? 'API step is valid.' : r.errors.join('\n'));
 			}).catch(function (e) { alert(e.message); });
 		};
@@ -525,12 +879,19 @@
 		renderSteps();
 	}
 
-	function initWorkflows() {
-		if (!document.querySelector('[data-launchdek-page="workflows"]')) return;
+	function initChecklists() {
+		if (!document.querySelector('[data-launchdek-page="checklists"]')) return;
 
-		loadWorkflowList();
+		loadChecklistList();
+		updateChecklistActions();
 
-		document.getElementById('launchdek-new-workflow').onclick = newWorkflow;
+		var params = new URLSearchParams(window.location.search);
+		var openId = parseInt(params.get('checklist_id') || '0', 10);
+		if (openId) {
+			loadChecklistEditor(openId);
+		}
+
+		document.getElementById('launchdek-new-checklist').onclick = newChecklist;
 		document.getElementById('launchdek-add-step').onclick = function () {
 			currentSteps.push({
 				id: 'step_' + (currentSteps.length + 1),
@@ -546,44 +907,70 @@
 			renderStepConfig();
 		};
 
-		document.getElementById('launchdek-save-workflow').onclick = function () {
-			if (selectedStepIndex !== null) saveStepFromForm();
-			var payload = {
-				title: document.getElementById('launchdek-wf-title').value,
-				description: document.getElementById('launchdek-wf-description').value,
-				steps: currentSteps
-			};
-			var promise = currentWorkflowId
-				? put('/workflows/' + currentWorkflowId, payload)
-				: post('/workflows', payload);
-			promise.then(function (wf) {
-				currentWorkflowId = wf.id;
-				alert(strings.saved || 'Saved.');
-				loadWorkflowList();
-			}).catch(function (e) { alert(e.message); });
-		};
+		document.getElementById('launchdek-save-checklist').onclick = function () {
+			var noticeEl = document.getElementById('launchdek-checklist-notice');
+			var saveBtn = document.getElementById('launchdek-save-checklist');
 
-		document.getElementById('launchdek-delete-workflow').onclick = function () {
-			if (!currentWorkflowId || !confirm(strings.confirmDelete)) return;
-			del('/workflows/' + currentWorkflowId).then(function () {
-				currentWorkflowId = null;
-				document.getElementById('launchdek-workflow-editor').hidden = true;
-				loadWorkflowList();
+			if (selectedStepIndex !== null) saveStepFromForm();
+
+			var title = document.getElementById('launchdek-cl-title').value.trim();
+			if (!title) {
+				notice(noticeEl, strings.checklistTitleRequired || 'Checklist title is required.', 'error');
+				document.getElementById('launchdek-cl-title').focus();
+				return;
+			}
+
+			var payload = {
+				title: title,
+				description: document.getElementById('launchdek-cl-description').value,
+				steps: currentSteps,
+				is_template: false
+			};
+
+			saveBtn.disabled = true;
+			var promise = currentChecklistId
+				? put('/checklists/' + currentChecklistId, payload)
+				: post('/checklists', payload);
+
+			promise.then(function (wf) {
+				currentChecklistId = wf.id;
+				currentSteps = wf.steps || currentSteps;
+				notice(noticeEl, strings.saved || 'Saved successfully.', 'success');
+				loadChecklistList();
+				updateChecklistActions();
+			}).catch(function (e) {
+				notice(noticeEl, e.message, 'error');
+			}).finally(function () {
+				saveBtn.disabled = false;
 			});
 		};
 
-		document.getElementById('launchdek-export-workflow').onclick = function () {
-			if (!currentWorkflowId) return;
-			get('/workflows/' + currentWorkflowId + '/export').then(function (data) {
+		document.getElementById('launchdek-delete-checklist').onclick = function () {
+			var noticeEl = document.getElementById('launchdek-checklist-notice');
+			if (!currentChecklistId || !confirm(strings.confirmDeleteChecklist || strings.confirmDelete)) return;
+			del('/checklists/' + currentChecklistId).then(function () {
+				currentChecklistId = null;
+				document.getElementById('launchdek-checklist-editor').hidden = true;
+				notice(noticeEl, '', '');
+				loadChecklistList();
+				updateChecklistActions();
+			}).catch(function (e) {
+				notice(noticeEl, e.message, 'error');
+			});
+		};
+
+		document.getElementById('launchdek-export-checklist').onclick = function () {
+			if (!currentChecklistId) return;
+			get('/checklists/' + currentChecklistId + '/export').then(function (data) {
 				var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
 				var a = document.createElement('a');
 				a.href = URL.createObjectURL(blob);
-				a.download = (data.title || 'workflow') + '.json';
+				a.download = (data.title || 'checklist') + '.json';
 				a.click();
 			});
 		};
 
-		document.getElementById('launchdek-import-workflow').onclick = function () {
+		document.getElementById('launchdek-import-checklist').onclick = function () {
 			var fileInput = document.getElementById('launchdek-import-file');
 			var urlInput = document.getElementById('launchdek-import-url');
 			if (fileInput.files.length) {
@@ -591,12 +978,12 @@
 				reader.onload = function () {
 					try {
 						var data = JSON.parse(reader.result);
-						post('/workflows/import', data).then(function () { loadWorkflowList(); alert('Imported.'); });
+						post('/checklists/import', data).then(function () { loadChecklistList(); alert('Imported.'); });
 					} catch (e) { alert('Invalid JSON file.'); }
 				};
 				reader.readAsText(fileInput.files[0]);
 			} else if (urlInput.value) {
-				post('/workflows/import', { url: urlInput.value }).then(function () { loadWorkflowList(); alert('Imported.'); });
+				post('/checklists/import', { url: urlInput.value }).then(function () { loadChecklistList(); alert('Imported.'); });
 			}
 		};
 	}
@@ -605,12 +992,12 @@
 	var activeRunId = null;
 	var batchQueue = [];
 	var cachedSites = [];
-	var cachedWorkflows = [];
+	var cachedChecklists = [];
 
 	function loadRunSelects() {
-		return Promise.all([get('/sites'), get('/workflows?is_template=0')]).then(function (r) {
+		return Promise.all([get('/sites'), get('/checklists?is_template=0')]).then(function (r) {
 			cachedSites = r[0] || [];
-			cachedWorkflows = r[1] || [];
+			cachedChecklists = r[1] || [];
 
 			var siteSelect = document.getElementById('launchdek-run-site');
 			if (siteSelect) {
@@ -624,7 +1011,7 @@
 			}
 
 			fillSelect(document.getElementById('launchdek-drift-site'), cachedSites, 'id', 'name', 'All sites');
-			fillSelect(document.getElementById('launchdek-run-workflow'), cachedWorkflows, 'id', 'title', 'Select workflow…');
+			fillSelect(document.getElementById('launchdek-run-checklist'), cachedChecklists, 'id', 'title', 'Select checklist…');
 		});
 	}
 
@@ -636,13 +1023,13 @@
 		}).filter(function (id) { return id > 0; });
 	}
 
-	function getSelectedWorkflow() {
-		var wfId = parseInt(document.getElementById('launchdek-run-workflow').value, 10);
+	function getSelectedChecklist() {
+		var wfId = parseInt(document.getElementById('launchdek-run-checklist').value, 10);
 		if (!wfId) return null;
-		for (var i = 0; i < cachedWorkflows.length; i++) {
-			if (cachedWorkflows[i].id === wfId) return cachedWorkflows[i];
+		for (var i = 0; i < cachedChecklists.length; i++) {
+			if (cachedChecklists[i].id === wfId) return cachedChecklists[i];
 		}
-		return { id: wfId, title: 'Workflow #' + wfId };
+		return { id: wfId, title: 'Checklist #' + wfId };
 	}
 
 	function renderBatchQueue() {
@@ -662,7 +1049,7 @@
 			var badgeClass = item.status === 'done' ? 'healthy' : (item.status === 'failed' ? 'unhealthy' : (item.status === 'running' ? 'active' : 'unknown'));
 			tr.innerHTML =
 				'<td>' + escHtml(item.site_name) + '</td>' +
-				'<td>' + escHtml(item.workflow_title) + '</td>' +
+				'<td>' + escHtml(item.checklist_title) + '</td>' +
 				'<td><span class="launchdek-badge ' + badgeClass + '">' + escHtml(item.status) + '</span></td>' +
 				'<td>' + (item.run_id ? ('#' + item.run_id) : '—') + '</td>' +
 				'<td><button type="button" class="button button-link-delete" data-index="' + index + '">Remove</button></td>';
@@ -678,24 +1065,24 @@
 	}
 
 	function addToBatchQueue() {
-		var workflow = getSelectedWorkflow();
+		var checklist = getSelectedChecklist();
 		var siteIds = getSelectedSiteIds();
-		if (!workflow || !siteIds.length) {
-			alert('Select a workflow and at least one target site.');
+		if (!checklist || !siteIds.length) {
+			alert('Select a checklist and at least one target site.');
 			return;
 		}
 
 		siteIds.forEach(function (siteId) {
 			var site = cachedSites.find(function (s) { return s.id === siteId; });
 			var exists = batchQueue.some(function (item) {
-				return item.site_id === siteId && item.workflow_id === workflow.id && item.status === 'queued';
+				return item.site_id === siteId && item.checklist_id === checklist.id && item.status === 'queued';
 			});
 			if (exists) return;
 			batchQueue.push({
 				site_id: siteId,
 				site_name: site ? (site.name || site.url) : ('Site #' + siteId),
-				workflow_id: workflow.id,
-				workflow_title: workflow.title,
+				checklist_id: checklist.id,
+				checklist_title: checklist.title,
 				status: 'queued',
 				run_id: null
 			});
@@ -711,17 +1098,17 @@
 			return;
 		}
 
-		var workflowId = queued[0].workflow_id;
+		var checklistId = queued[0].checklist_id;
 		var siteIds = queued.map(function (item) { return item.site_id; });
 
 		queued.forEach(function (item) { item.status = 'running'; });
 		renderBatchQueue();
 
-		post('/runs/batch', { workflow_id: workflowId, site_ids: siteIds }).then(function (data) {
+		post('/runs/batch', { checklist_id: checklistId, site_ids: siteIds }).then(function (data) {
 			(data.runs || []).forEach(function (result) {
 				var run = result.run || {};
 				batchQueue.forEach(function (item) {
-					if (item.site_id === run.site_id && item.workflow_id === run.workflow_id) {
+					if (item.site_id === run.site_id && item.checklist_id === run.checklist_id) {
 						item.status = 'done';
 						item.run_id = run.id;
 					}
@@ -752,7 +1139,7 @@
 		activeRunId = run.id;
 		document.getElementById('launchdek-run-info').innerHTML =
 			'<strong>Run #' + run.id + '</strong><br>' +
-			escHtml(run.workflow_title) + ' on ' + escHtml(run.site_name) +
+			escHtml(run.checklist_title) + ' on ' + escHtml(run.site_name) +
 			' <span class="launchdek-badge ' + escHtml(run.status) + '">' + escHtml(run.status) + '</span>';
 
 		var list = document.getElementById('launchdek-run-steps');
@@ -916,14 +1303,14 @@
 
 		document.getElementById('launchdek-start-run').onclick = function () {
 			var siteIds = getSelectedSiteIds();
-			var workflow = getSelectedWorkflow();
-			if (!siteIds.length || !workflow) return alert('Select at least one site and a workflow.');
+			var checklist = getSelectedChecklist();
+			if (!siteIds.length || !checklist) return alert('Select at least one site and a checklist.');
 			if (siteIds.length > 1) {
 				addToBatchQueue();
 				processBatchQueue();
 				return;
 			}
-			post('/runs', { site_id: siteIds[0], workflow_id: workflow.id })
+			post('/runs', { site_id: siteIds[0], checklist_id: checklist.id })
 				.then(function (data) {
 					renderRun(data.run);
 					loadAudit();
@@ -959,69 +1346,254 @@
 	}
 
 	// ─── Templates ───────────────────────────────────────────
+	var builtinTemplates = [];
+	var templateCategories = {};
+	var activeTemplateCategory = '';
+
 	function formatStepsCount(count) {
 		var template = strings.stepsCount || '%d steps';
 		return template.replace('%d', count);
 	}
 
-	function renderBuiltinDetail(tpl) {
-		var detail = document.getElementById('launchdek-builtin-detail');
-		if (!detail || !tpl) return;
-
-		detail.innerHTML =
-			'<p class="launchdek-muted">' + escHtml(tpl.description || '') + '</p>' +
-			'<p><small>' + escHtml(formatStepsCount((tpl.steps || []).length)) + '</small></p>';
-
-		var btn = el('button', {
-			className: 'button button-primary',
-			text: strings.cloneToWorkflow || 'Clone to Workflow'
+	function buildTemplateStepsList(steps) {
+		var list = el('ol', { className: 'launchdek-template-steps-list' });
+		(steps || []).forEach(function (step) {
+			list.appendChild(el('li', { text: step.title || step.id || '' }));
 		});
-		btn.onclick = function () {
-			var noticeEl = document.getElementById('launchdek-builtin-notice');
-			post('/templates/' + tpl.template_slug + '/clone', {}).then(function () {
-				notice(noticeEl, strings.templateCloned || 'Template cloned. Edit it under Workflows.', 'success');
-			}).catch(function (err) {
-				notice(noticeEl, err.message, 'error');
-			});
-		};
-		detail.appendChild(btn);
+		return list;
 	}
 
-	function renderBuiltinStacks(builtin) {
-		var list = document.getElementById('launchdek-builtin-stacks');
-		if (!list) return;
+	function attachTemplateStepsPreview(contentEl, card, steps) {
+		var preview = el('div', { className: 'launchdek-template-steps-preview' });
+		var heading = el('p', {
+			className: 'launchdek-template-steps-heading',
+			text: (strings.checklistSteps || 'Checklist steps') + ' (' + (steps || []).length + ')'
+		});
+		preview.appendChild(heading);
+		preview.appendChild(buildTemplateStepsList(steps));
 
-		list.innerHTML = '';
-		if (!builtin.length) {
-			list.innerHTML = '<p class="launchdek-muted">' + escHtml(strings.loading || 'Loading…') + '</p>';
+		var toggle = el('button', {
+			type: 'button',
+			className: 'button button-link launchdek-template-steps-toggle',
+			text: strings.viewSteps || 'View steps',
+			'aria-expanded': 'false'
+		});
+		toggle.onclick = function (e) {
+			e.preventDefault();
+			e.stopPropagation();
+			var open = card.classList.toggle('is-steps-open');
+			toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+			toggle.textContent = open ? (strings.hideSteps || 'Hide steps') : (strings.viewSteps || 'View steps');
+		};
+
+		contentEl.appendChild(preview);
+
+		var actions = card.querySelector('.launchdek-template-card-actions');
+		if (actions) {
+			actions.insertBefore(toggle, actions.firstChild);
+		}
+
+		return card;
+	}
+
+	function createTemplateCard(tpl, options) {
+		options = options || {};
+		var steps = tpl.steps || [];
+		var card = el('div', { className: 'launchdek-template-card' });
+
+		var content = el('div', { className: 'launchdek-template-card-content' });
+		var main = el('div', { className: 'launchdek-template-card-main' });
+		var html = '';
+		if (options.badge) {
+			html += '<span class="launchdek-badge healthy">' + escHtml(options.badge) + '</span>';
+		}
+		html +=
+			'<h3>' + escHtml(tpl.title) + '</h3>' +
+			'<p>' + escHtml(tpl.description || '') + '</p>' +
+			'<p class="launchdek-template-step-count"><small>' + escHtml(formatStepsCount(steps.length)) + '</small></p>' +
+			'<p class="launchdek-template-preview-hint"><small>' + escHtml(strings.stepsPreviewHint || 'Hover or click View steps to preview the checklist.') + '</small></p>';
+		main.innerHTML = html;
+
+		var actions = el('div', { className: 'launchdek-template-card-actions' });
+		if (typeof options.onEdit === 'function') {
+			var editBtn = el('button', {
+				className: 'button',
+				text: strings.editChecklist || 'Edit Checklist'
+			});
+			editBtn.onclick = function () {
+				options.onEdit(tpl);
+			};
+			actions.appendChild(editBtn);
+		}
+		if (typeof options.onClone === 'function') {
+			var cloneBtn = el('button', {
+				className: 'button button-primary',
+				text: strings.cloneToChecklist || 'Clone to Checklist'
+			});
+			cloneBtn.onclick = function () {
+				options.onClone(tpl);
+			};
+			actions.appendChild(cloneBtn);
+		}
+
+		content.appendChild(main);
+		card.appendChild(content);
+		card.appendChild(actions);
+		attachTemplateStepsPreview(content, card, steps);
+
+		return card;
+	}
+
+	function cloneBuiltinTemplate(slug) {
+		var noticeEl = document.getElementById('launchdek-builtin-notice');
+		return post('/templates/' + slug + '/clone', {}).then(function () {
+			notice(noticeEl, strings.templateCloned || 'Template cloned. Edit it under Checklists.', 'success');
+		}).catch(function (err) {
+			notice(noticeEl, err.message, 'error');
+		});
+	}
+
+	function renderBuiltinTemplateCards(category) {
+		var grid = document.getElementById('launchdek-builtin-templates');
+		var desc = document.getElementById('launchdek-category-description');
+		if (!grid) return;
+
+		var items = builtinTemplates.filter(function (tpl) {
+			return tpl.category === category;
+		});
+
+		if (desc && templateCategories[category]) {
+			desc.textContent = templateCategories[category].description || '';
+		}
+
+		grid.innerHTML = '';
+		if (!items.length) {
+			grid.innerHTML = '<p class="launchdek-muted">' + escHtml(strings.noCategoryTemplates || 'No templates in this category yet.') + '</p>';
 			return;
 		}
 
-		builtin.forEach(function (tpl, index) {
-			if (index > 0) {
-				list.appendChild(el('span', { className: 'launchdek-stack-sep', text: '|' }));
-			}
-			var chip = el('button', {
-				type: 'button',
-				className: 'launchdek-stack-chip' + (index === 0 ? ' active' : ''),
-				text: tpl.title,
-				'data-slug': tpl.template_slug,
-				role: 'tab',
-				'aria-selected': index === 0 ? 'true' : 'false'
+		items.forEach(function (tpl) {
+			grid.appendChild(createTemplateCard(tpl, {
+				badge: templateCategories[category].label || category,
+				onClone: function () {
+					cloneBuiltinTemplate(tpl.template_slug);
+				}
+			}));
+		});
+	}
+
+	function selectTemplateCategory(category) {
+		activeTemplateCategory = category;
+		var tabs = document.getElementById('launchdek-category-tabs');
+		if (tabs) {
+			tabs.querySelectorAll('.launchdek-category-tab').forEach(function (node) {
+				var isActive = node.dataset.category === category;
+				node.classList.toggle('active', isActive);
+				node.setAttribute('aria-selected', isActive ? 'true' : 'false');
 			});
-			chip.onclick = function () {
-				list.querySelectorAll('.launchdek-stack-chip').forEach(function (node) {
-					node.classList.remove('active');
-					node.setAttribute('aria-selected', 'false');
-				});
-				chip.classList.add('active');
-				chip.setAttribute('aria-selected', 'true');
-				renderBuiltinDetail(tpl);
+		}
+		renderBuiltinTemplateCards(category);
+	}
+
+	function renderBuiltinCategories(builtin, categories) {
+		builtinTemplates = builtin || [];
+		templateCategories = categories || {};
+
+		var tabs = document.getElementById('launchdek-category-tabs');
+		if (!tabs) return;
+
+		tabs.innerHTML = '';
+		var categoryKeys = Object.keys(templateCategories);
+
+		if (!categoryKeys.length) {
+			tabs.innerHTML = '<p class="launchdek-muted">' + escHtml(strings.loading || 'Loading…') + '</p>';
+			return;
+		}
+
+		var firstCategory = null;
+
+		categoryKeys.forEach(function (slug) {
+			var meta = templateCategories[slug];
+			var count = builtinTemplates.filter(function (tpl) {
+				return tpl.category === slug;
+			}).length;
+			if (!count) {
+				return;
+			}
+
+			var isFirst = !firstCategory;
+			if (isFirst) {
+				firstCategory = slug;
+			}
+
+			var tab = el('button', {
+				type: 'button',
+				className: 'launchdek-category-tab' + (isFirst ? ' active' : ''),
+				text: meta.label + ' (' + count + ')',
+				'data-category': slug,
+				role: 'tab',
+				'aria-selected': isFirst ? 'true' : 'false'
+			});
+			tab.onclick = function () {
+				selectTemplateCategory(slug);
 			};
-			list.appendChild(chip);
+			tabs.appendChild(tab);
 		});
 
-		renderBuiltinDetail(builtin[0]);
+		if (firstCategory) {
+			selectTemplateCategory(firstCategory);
+		}
+	}
+
+	function openChecklistEditor(id) {
+		window.location.href = launchdekAdmin.adminUrl + '?page=' + launchdekAdmin.pageSlug + '-checklists&checklist_id=' + id;
+	}
+
+	function cloneCustomChecklist(tpl) {
+		var noticeEl = document.getElementById('launchdek-custom-notice');
+		return post('/checklists', {
+			title: (tpl.title || 'Checklist') + ' (Copy)',
+			description: tpl.description || '',
+			steps: tpl.steps || [],
+			is_template: false
+		}).then(function () {
+			notice(noticeEl, strings.checklistCloned || 'Checklist cloned. Edit it under Checklists.', 'success');
+			loadCustomChecklists();
+			refreshVaultChecklistSelect();
+		}).catch(function (err) {
+			notice(noticeEl, err.message, 'error');
+		});
+	}
+
+	function refreshVaultChecklistSelect() {
+		get('/checklists?is_template=0').then(function (wfs) {
+			fillSelect(document.getElementById('launchdek-vault-checklist'), wfs, 'id', 'title', 'Select checklist…');
+		});
+	}
+
+	function loadCustomChecklists() {
+		get('/checklists?is_template=0').then(function (checklists) {
+			var grid = document.getElementById('launchdek-custom-checklists');
+			if (!grid) return;
+
+			grid.innerHTML = '';
+			if (!checklists.length) {
+				grid.innerHTML = '<p class="launchdek-muted">' + escHtml(strings.noCustomTemplates || 'No custom checklists saved yet. Create one under Checklists.') + '</p>';
+				return;
+			}
+
+			checklists.forEach(function (tpl) {
+				grid.appendChild(createTemplateCard(tpl, {
+					badge: strings.customChecklistBadge || 'Custom',
+					onEdit: function () {
+						openChecklistEditor(tpl.id);
+					},
+					onClone: function () {
+						cloneCustomChecklist(tpl);
+					}
+				}));
+			});
+		});
 	}
 
 	function loadVaultTemplates() {
@@ -1033,13 +1605,12 @@
 				return;
 			}
 			vault.forEach(function (tpl) {
-				var card = el('div', { className: 'launchdek-template-card' });
-				card.innerHTML =
-					'<span class="launchdek-badge healthy">Vault</span>' +
-					'<h3>' + escHtml(tpl.title) + '</h3>' +
-					'<p>' + escHtml(tpl.description || '') + '</p>' +
-					'<p><small>' + escHtml(formatStepsCount((tpl.steps || []).length)) + '</small></p>';
-				grid.appendChild(card);
+				grid.appendChild(createTemplateCard(tpl, {
+					badge: 'Vault',
+					onClone: function () {
+						cloneCustomChecklist(tpl);
+					}
+				}));
 			});
 		});
 	}
@@ -1048,22 +1619,22 @@
 		if (!document.querySelector('[data-launchdek-page="templates"]')) return;
 
 		get('/templates').then(function (data) {
-			renderBuiltinStacks(data.builtin || []);
+			renderBuiltinCategories(data.builtin || [], data.categories || {});
 		});
 
-		get('/workflows?is_template=0').then(function (wfs) {
-			fillSelect(document.getElementById('launchdek-vault-workflow'), wfs, 'id', 'title', 'Select workflow…');
-		});
-
+		loadCustomChecklists();
+		refreshVaultChecklistSelect();
 		loadVaultTemplates();
 
 		document.getElementById('launchdek-save-vault').onclick = function () {
-			var id = document.getElementById('launchdek-vault-workflow').value;
+			var id = document.getElementById('launchdek-vault-checklist').value;
 			var noticeEl = document.getElementById('launchdek-vault-notice');
 			if (!id) return;
-			post('/templates/vault', { workflow_id: parseInt(id, 10) }).then(function () {
+			post('/templates/vault', { checklist_id: parseInt(id, 10) }).then(function () {
 				notice(noticeEl, strings.savedToVault || 'Saved to vault.', 'success');
-				document.getElementById('launchdek-vault-workflow').value = '';
+				document.getElementById('launchdek-vault-checklist').value = '';
+				loadCustomChecklists();
+				refreshVaultChecklistSelect();
 				loadVaultTemplates();
 			}).catch(function (err) {
 				notice(noticeEl, err.message, 'error');
@@ -1176,7 +1747,7 @@
 
 		initDashboard();
 		initSites();
-		initWorkflows();
+		initChecklists();
 		initAutomation();
 		initTemplates();
 		initIntegrations();

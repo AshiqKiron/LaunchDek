@@ -1,0 +1,58 @@
+{
+  "title": "Monthly Maintenance",
+  "description": "Recurring monthly care routine for managed WordPress client sites.",
+  "category": "maintenance",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "verify_backups",
+      "title": "Verify Backups Ran Successfully",
+      "instructions": "Check backup plugin or host logs for the last 30 days. Confirm off-site copies exist and retention matches the SLA.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "review_updates",
+      "title": "Review Available Updates",
+      "instructions": "List core, plugin, and theme updates. Read changelogs and defer risky updates until tested on staging.",
+      "deep_link": "update-core.php",
+      "type": "manual"
+    },
+    {
+      "id": "apply_safe_updates",
+      "title": "Apply Tested Updates",
+      "instructions": "Update core and plugins on staging first, smoke-test key flows, then deploy to production during a low-traffic window.",
+      "deep_link": "update-core.php",
+      "type": "manual"
+    },
+    {
+      "id": "check_uptime",
+      "title": "Review Uptime & Error Logs",
+      "instructions": "Check uptime monitor history and PHP/error logs for 500 errors, fatal errors, or spike in failed login attempts.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "scan_broken_links",
+      "title": "Scan for Broken Links",
+      "instructions": "Run a broken-link scan on top landing pages and the sitemap. Fix 404s from recent content changes or redirects.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "review_form_spam",
+      "title": "Review Form Spam & Comments",
+      "instructions": "Clear spam comments and form entries. Verify CAPTCHA or honeypot still works after plugin updates.",
+      "deep_link": "edit-comments.php",
+      "type": "manual"
+    },
+    {
+      "id": "client_report",
+      "title": "Send Client Maintenance Report",
+      "instructions": "Summarize updates applied, uptime, backup status, and any recommended follow-up work for the client.",
+      "deep_link": "",
+      "type": "manual"
+    }
+  ]
+}

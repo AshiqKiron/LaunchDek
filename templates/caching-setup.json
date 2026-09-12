@@ -1,0 +1,51 @@
+{
+  "title": "Caching & CDN Setup",
+  "description": "Configure full-page cache, CDN, and cache exclusion rules for production WordPress sites.",
+  "category": "performance",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "choose_cache_layer",
+      "title": "Select Cache Strategy",
+      "instructions": "Document whether the site uses host edge cache, Cloudflare, or a plugin (WP Rocket, LiteSpeed, etc.). Avoid stacking conflicting page caches.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "configure_cdn",
+      "title": "Configure CDN Origin",
+      "instructions": "Point CDN to origin, enable HTTPS, and verify static assets (CSS, JS, fonts, images) serve from the CDN hostname.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "exclude_dynamic_pages",
+      "title": "Exclude Dynamic Routes",
+      "instructions": "Exclude wp-admin, wp-login.php, cart, checkout, my-account, and logged-in user pages from full-page cache.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "cache_busting",
+      "title": "Verify Cache Purge Hooks",
+      "instructions": "Confirm cache purges when content is published or WooCommerce products update. Test by editing a post and checking the live page.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "browser_cache_headers",
+      "title": "Set Browser Cache Headers",
+      "instructions": "Configure long-lived cache headers for static assets and short/no-cache for HTML on dynamic sites.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "gzip_brotli",
+      "title": "Enable Compression",
+      "instructions": "Verify Brotli or Gzip compression is active for text assets. Check response headers on CSS and JS files.",
+      "deep_link": "",
+      "type": "manual"
+    }
+  ]
+}

@@ -1,0 +1,58 @@
+{
+  "title": "Quarterly Security Audit",
+  "description": "Recurring security review for managed client sites — run after major updates or quarterly.",
+  "category": "security",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "review_admin_users",
+      "title": "Review Administrator Users",
+      "instructions": "List all users with administrator or super-admin roles. Remove contractors, former staff, and unused service accounts.",
+      "deep_link": "users.php",
+      "type": "manual"
+    },
+    {
+      "id": "review_app_passwords",
+      "title": "Audit Application Passwords",
+      "instructions": "Revoke unused Application Passwords on each admin account. Document which integrations still require active credentials.",
+      "deep_link": "profile.php",
+      "type": "manual"
+    },
+    {
+      "id": "plugin_vulnerability_scan",
+      "title": "Check Plugin & Theme Updates",
+      "instructions": "Review available updates and changelogs. Prioritize security patches for plugins handling forms, login, or e-commerce.",
+      "deep_link": "update-core.php",
+      "type": "manual"
+    },
+    {
+      "id": "file_integrity_check",
+      "title": "Scan for Unexpected Files",
+      "instructions": "Check uploads/, wp-content/, and web root for suspicious PHP files, .htaccess changes, or unknown admin users.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "ssl_certificate_check",
+      "title": "Verify SSL Certificate",
+      "instructions": "Confirm the certificate is valid, auto-renewing, and serves the full chain without mixed-content warnings on key pages.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "backup_restore_test",
+      "title": "Test Backup Restore",
+      "instructions": "Restore the latest backup to staging and confirm the site boots, logins work, and media loads correctly.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "security_headers",
+      "title": "Review Security Headers",
+      "instructions": "Verify HSTS, X-Frame-Options, X-Content-Type-Options, and Referrer-Policy headers on production responses.",
+      "deep_link": "",
+      "type": "manual"
+    }
+  ]
+}

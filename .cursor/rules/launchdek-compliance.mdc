@@ -27,6 +27,7 @@ See `launchdek-project.mdc` (architecture), `launchdek-standards.mdc` (quality),
 - Connection tests must not leak credentials in error messages shown to non-privileged users.
 - Payload mapper must whitelist/validate endpoint paths and methods before remote execution.
 - Drift verification reads remote state for comparison only — no arbitrary code execution.
+- Legacy audit actions (`workflow_created`, `workflow_updated`) and webhook `details.workflow` are read-only backward-compat shims — new code must use `checklist_*` keys and `details.checklist`.
 
 ## Directory & Privacy
 

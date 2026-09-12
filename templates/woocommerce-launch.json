@@ -1,0 +1,65 @@
+{
+  "title": "WooCommerce Store Launch",
+  "description": "Pre-launch checklist for new WooCommerce stores — payments, shipping, taxes, and test orders.",
+  "category": "ecommerce",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "wc_store_address",
+      "title": "Set Store Address & Currency",
+      "instructions": "Configure store address, selling location, default customer location, and currency under WooCommerce → General.",
+      "deep_link": "admin.php?page=wc-settings",
+      "type": "manual"
+    },
+    {
+      "id": "wc_payment_gateways",
+      "title": "Configure Payment Gateways",
+      "instructions": "Enable Stripe, PayPal, or other gateways in live mode. Complete KYC and verify webhook endpoints respond with 200.",
+      "deep_link": "admin.php?page=wc-settings&tab=checkout",
+      "type": "manual"
+    },
+    {
+      "id": "wc_shipping_zones",
+      "title": "Set Up Shipping Zones",
+      "instructions": "Create zones for each region you ship to. Add flat-rate, free shipping, or live-rate methods and test edge postcodes.",
+      "deep_link": "admin.php?page=wc-settings&tab=shipping",
+      "type": "manual"
+    },
+    {
+      "id": "wc_tax_settings",
+      "title": "Configure Tax Rules",
+      "instructions": "Enable taxes if required. Set prices inclusive/exclusive of tax and verify rates for each jurisdiction you sell into.",
+      "deep_link": "admin.php?page=wc-settings&tab=tax",
+      "type": "manual"
+    },
+    {
+      "id": "wc_email_templates",
+      "title": "Customize Order Emails",
+      "instructions": "Brand WooCommerce email templates with logo and colors. Send test new-order, processing, and completed emails.",
+      "deep_link": "admin.php?page=wc-settings&tab=email",
+      "type": "manual"
+    },
+    {
+      "id": "wc_test_purchase",
+      "title": "Place Test Orders",
+      "instructions": "Complete test purchases with each payment method. Verify order emails, stock reduction, and admin new-order notifications.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "wc_legal_pages",
+      "title": "Link Shop Policies",
+      "instructions": "Assign refund, privacy, and terms pages in WooCommerce settings. Ensure checkout shows required policy checkboxes.",
+      "deep_link": "admin.php?page=wc-settings&tab=advanced",
+      "type": "manual"
+    },
+    {
+      "id": "wc_empty_cart_redirect",
+      "title": "Verify Empty Cart & 404s",
+      "instructions": "Browse shop categories, product variations, and out-of-stock items. Fix broken variation URLs and empty cart behavior.",
+      "deep_link": "",
+      "type": "manual"
+    }
+  ]
+}

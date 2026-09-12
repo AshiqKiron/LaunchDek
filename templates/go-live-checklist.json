@@ -1,0 +1,65 @@
+{
+  "title": "Go-Live Checklist",
+  "description": "Final pre-launch checks before pointing DNS and handing a site to the client.",
+  "category": "launch",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "remove_staging_notice",
+      "title": "Remove Staging Barriers",
+      "instructions": "Disable maintenance mode, HTTP basic auth, noindex plugins, and any 'coming soon' landing pages.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "enable_search_indexing",
+      "title": "Allow Search Engine Indexing",
+      "instructions": "Uncheck 'Discourage search engines from indexing this site' under Settings → Reading on production.",
+      "deep_link": "options-reading.php",
+      "type": "manual"
+    },
+    {
+      "id": "verify_forms",
+      "title": "Test All Forms",
+      "instructions": "Submit every contact, quote, newsletter, and checkout form. Confirm notifications arrive and CRM/webhook integrations fire.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "verify_analytics",
+      "title": "Confirm Analytics & Pixels",
+      "instructions": "Verify GA4, Meta Pixel, or other tags fire in Tag Assistant or browser devtools on key conversion pages.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "verify_favicon_social",
+      "title": "Check Favicon & Social Previews",
+      "instructions": "Confirm site icon, Open Graph image, and Twitter card metadata render correctly when sharing homepage and a sample post.",
+      "deep_link": "options-general.php",
+      "type": "manual"
+    },
+    {
+      "id": "verify_legal_pages",
+      "title": "Publish Legal Pages",
+      "instructions": "Ensure Privacy Policy, Terms, and cookie notice pages exist, are linked in the footer, and match the client's jurisdiction.",
+      "deep_link": "edit.php?post_type=page",
+      "type": "manual"
+    },
+    {
+      "id": "verify_robots_sitemap",
+      "title": "Submit Sitemap to Search Console",
+      "instructions": "Confirm robots.txt allows crawling, XML sitemap is reachable, and submit the property + sitemap in Google Search Console.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "client_admin_handoff",
+      "title": "Create Client Admin Account",
+      "instructions": "Provision the client's administrator account, document login URL, and remove temporary agency-only credentials where appropriate.",
+      "deep_link": "user-new.php",
+      "type": "manual"
+    }
+  ]
+}

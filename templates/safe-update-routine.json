@@ -1,0 +1,58 @@
+{
+  "title": "Safe Update Routine",
+  "description": "Structured process for applying WordPress core, plugin, and theme updates with rollback plan.",
+  "category": "maintenance",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "pre_update_backup",
+      "title": "Take Pre-Update Backup",
+      "instructions": "Create a fresh full backup immediately before updates. Note backup ID or snapshot name for quick rollback.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "read_changelogs",
+      "title": "Read Update Changelogs",
+      "instructions": "Review release notes for breaking changes, PHP version requirements, and known conflicts with the active theme/builder.",
+      "deep_link": "update-core.php",
+      "type": "manual"
+    },
+    {
+      "id": "update_staging",
+      "title": "Update Staging First",
+      "instructions": "Apply updates on staging in order: plugins → theme → core (or follow your agency's preferred order).",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "smoke_test_staging",
+      "title": "Smoke Test Critical Paths",
+      "instructions": "Test homepage, main navigation, contact form, login, checkout (if WooCommerce), and one admin task flow.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "update_production",
+      "title": "Deploy to Production",
+      "instructions": "Apply the same update sequence on production during the agreed maintenance window. Enable maintenance mode if needed.",
+      "deep_link": "update-core.php",
+      "type": "manual"
+    },
+    {
+      "id": "purge_caches",
+      "title": "Purge All Caches",
+      "instructions": "Clear page cache, CDN cache, and opcode cache after production updates. Verify CSS/JS load without stale bundles.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "post_update_monitor",
+      "title": "Monitor for 24 Hours",
+      "instructions": "Watch error logs, uptime alerts, and form submissions for 24 hours after production updates. Roll back if regressions appear.",
+      "deep_link": "",
+      "type": "manual"
+    }
+  ]
+}

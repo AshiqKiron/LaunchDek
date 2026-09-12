@@ -1,6 +1,6 @@
 <?php
 /**
- * Workflow run persistence layer.
+ * Checklist run persistence layer.
  *
  * @package LaunchDek
  */
@@ -133,23 +133,23 @@ class LAUNCHDEK_Run_Repository {
 	/**
 	 * Create a new run with step records.
 	 *
-	 * @param int $workflow_id Workflow ID.
+	 * @param int $checklist_id Checklist ID.
 	 * @param int $site_id     Site ID.
 	 * @return int|false
 	 */
-	public static function create( $workflow_id, $site_id ) {
+	public static function create( $checklist_id, $site_id ) {
 		global $wpdb;
 
-		$workflow = LAUNCHDEK_Workflow_Repository::find( $workflow_id );
+		$checklist = LAUNCHDEK_Checklist_Repository::find( $checklist_id );
 
-		if ( ! $workflow ) {
+		if ( ! $checklist ) {
 			return false;
 		}
 
 		$result = $wpdb->insert(
 			self::table(),
 			array(
-				'workflow_id' => absint( $workflow_id ),
+				'checklist_id' => absint( $checklist_id ),
 				'site_id'     => absint( $site_id ),
 				'status'      => 'running',
 				'started_by'  => get_current_user_id(),
@@ -164,7 +164,7 @@ class LAUNCHDEK_Run_Repository {
 
 		$run_id = (int) $wpdb->insert_id;
 
-		foreach ( $workflow['steps'] as $index => $step ) {
+		foreach ( $checklist['steps'] as $index => $step ) {
 			$wpdb->insert(
 				self::steps_table(),
 				array(
@@ -182,18 +182,21 @@ class LAUNCHDEK_Run_Repository {
 		LAUNCHDEK_Audit_Log::log(
 			'run_started',
 			array(
-				'workflow_id' => $workflow_id,
-				'workflow'    => $workflow['title'],
+				'checklist_id' => $checklist_id,
+				'checklist'    => $checklist['title'],
 			),
 			$site_id,
 			$run_id
 		);
 
-		LAUNCHDEK_Webhook_Dispatcher::dispatch( 'run_started', array(
-			'run_id'      => $run_id,
-			'workflow'    => $workflow['title'],
-			'site_id'     => $site_id,
-		) );
+		LAUNCHDEK_Webhook_Dispatcher::dispatch(
+			'run_started',
+			array(
+				'run_id'    => $run_id,
+				'checklist' => $checklist['title'],
+				'site_id'   => $site_id,
+			)
+		);
 
 		return $run_id;
 	}
@@ -331,14 +334,14 @@ class LAUNCHDEK_Run_Repository {
 	 * @return array
 	 */
 	public static function format( $row ) {
-		$workflow = LAUNCHDEK_Workflow_Repository::find( (int) $row['workflow_id'] );
-		$site     = LAUNCHDEK_Site_Repository::find( (int) $row['site_id'] );
-		$user     = get_userdata( (int) $row['started_by'] );
+		$checklist = LAUNCHDEK_Checklist_Repository::find( (int) $row['checklist_id'] );
+		$site      = LAUNCHDEK_Site_Repository::find( (int) $row['site_id'] );
+		$user      = get_userdata( (int) $row['started_by'] );
 
 		return array(
-			'id'            => (int) $row['id'],
-			'workflow_id'   => (int) $row['workflow_id'],
-			'workflow_title' => $workflow ? $workflow['title'] : '',
+			'id'              => (int) $row['id'],
+			'checklist_id'    => (int) $row['checklist_id'],
+			'checklist_title' => $checklist ? $checklist['title'] : '',
 			'site_id'       => (int) $row['site_id'],
 			'site_name'     => $site ? $site['name'] : '',
 			'site_url'      => $site ? $site['url'] : '',

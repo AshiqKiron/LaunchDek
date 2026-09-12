@@ -1,41 +1,56 @@
 {
   "title": "SEO Setup",
   "description": "Standard SEO configuration for launch-ready WordPress sites.",
-  "version": "1.0.0",
+  "category": "seo",
+  "version": "1.1.0",
   "is_template": true,
   "steps": [
     {
       "id": "seo_permalinks",
       "title": "Set Post Name Permalinks",
-      "instructions": "Change permalink structure to Post name (/%postname%/).",
+      "instructions": "Change permalink structure to Post name (/%postname%/) unless a custom structure is required for the content model.",
       "deep_link": "options-permalink.php",
       "type": "manual"
     },
     {
       "id": "seo_discourage_search",
       "title": "Enable Search Indexing",
-      "instructions": "Uncheck 'Discourage search engines' in Settings → Reading.",
+      "instructions": "On production, uncheck 'Discourage search engines' in Settings → Reading. Keep it checked on staging.",
       "deep_link": "options-reading.php",
       "type": "manual"
     },
     {
-      "id": "seo_sitemap",
-      "title": "Configure XML Sitemap",
-      "instructions": "Enable and submit XML sitemap to Google Search Console.",
-      "deep_link": "",
+      "id": "seo_meta_plugin",
+      "title": "Install & Configure SEO Plugin",
+      "instructions": "Install Yoast, Rank Math, or SEOPress. Set site name, separator, default social image, and noindex rules for thin pages.",
+      "deep_link": "plugin-install.php",
       "type": "manual"
     },
     {
-      "id": "seo_meta_plugin",
-      "title": "Install SEO Plugin",
-      "instructions": "Install Yoast, Rank Math, or similar and configure site title templates.",
-      "deep_link": "plugin-install.php",
+      "id": "seo_sitemap",
+      "title": "Enable XML Sitemap",
+      "instructions": "Enable the SEO plugin sitemap or core sitemap. Exclude admin, cart, and internal search result URLs.",
+      "deep_link": "",
       "type": "manual"
     },
     {
       "id": "seo_schema",
       "title": "Add Organization Schema",
-      "instructions": "Configure Organization/LocalBusiness schema with logo and contact info.",
+      "instructions": "Configure Organization or LocalBusiness schema with logo, name, URL, and contact details in the SEO plugin or theme settings.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "seo_canonical_redirects",
+      "title": "Fix Duplicate URLs",
+      "instructions": "Redirect www/non-www and HTTP to HTTPS consistently. Resolve trailing-slash and pagination canonical issues.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "seo_search_console",
+      "title": "Verify Search Console Property",
+      "instructions": "Add and verify the domain in Google Search Console. Submit the XML sitemap and check for coverage errors.",
       "deep_link": "",
       "type": "manual"
     }

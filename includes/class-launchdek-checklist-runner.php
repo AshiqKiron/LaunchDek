@@ -1,6 +1,6 @@
 <?php
 /**
- * Workflow execution orchestrator.
+ * Checklist execution orchestrator.
  *
  * @package LaunchDek
  */
@@ -10,56 +10,56 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Workflow runner.
+ * Checklist runner.
  */
-class LAUNCHDEK_Workflow_Runner {
+class LAUNCHDEK_Checklist_Runner {
 
 	/**
-	 * Start a workflow run on a remote site.
+	 * Start a checklist run on a remote site.
 	 *
-	 * @param int $workflow_id Workflow ID.
+	 * @param int $checklist_id Checklist ID.
 	 * @param int $site_id     Site ID.
 	 * @return array|WP_Error
 	 */
-	public static function start( $workflow_id, $site_id ) {
+	public static function start( $checklist_id, $site_id ) {
 		$site = LAUNCHDEK_Site_Repository::find( $site_id );
 
 		if ( ! $site ) {
 			return new WP_Error( 'launchdek_site_not_found', __( 'Site not found.', LAUNCHDEK_TEXT_DOMAIN ) );
 		}
 
-		$workflow = LAUNCHDEK_Workflow_Repository::find( $workflow_id );
+		$checklist = LAUNCHDEK_Checklist_Repository::find( $checklist_id );
 
-		if ( ! $workflow ) {
-			return new WP_Error( 'launchdek_workflow_not_found', __( 'Workflow not found.', LAUNCHDEK_TEXT_DOMAIN ) );
+		if ( ! $checklist ) {
+			return new WP_Error( 'launchdek_checklist_not_found', __( 'Checklist not found.', LAUNCHDEK_TEXT_DOMAIN ) );
 		}
 
-		$run_id = LAUNCHDEK_Run_Repository::create( $workflow_id, $site_id );
+		$run_id = LAUNCHDEK_Run_Repository::create( $checklist_id, $site_id );
 
 		if ( ! $run_id ) {
 			return new WP_Error( 'launchdek_run_failed', __( 'Failed to create run.', LAUNCHDEK_TEXT_DOMAIN ) );
 		}
 
 		return array(
-			'run_id'   => $run_id,
-			'run'      => LAUNCHDEK_Run_Repository::find( $run_id ),
-			'workflow' => $workflow,
+			'run_id'    => $run_id,
+			'run'       => LAUNCHDEK_Run_Repository::find( $run_id ),
+			'checklist' => $checklist,
 		);
 	}
 
 	/**
-	 * Start workflow runs for multiple sites.
+	 * Start checklist runs for multiple sites.
 	 *
-	 * @param int   $workflow_id Workflow ID.
+	 * @param int   $checklist_id Checklist ID.
 	 * @param int[] $site_ids    Site IDs.
 	 * @return array
 	 */
-	public static function start_batch( $workflow_id, $site_ids ) {
+	public static function start_batch( $checklist_id, $site_ids ) {
 		$runs   = array();
 		$errors = array();
 
 		foreach ( $site_ids as $site_id ) {
-			$result = self::start( $workflow_id, $site_id );
+			$result = self::start( $checklist_id, $site_id );
 
 			if ( is_wp_error( $result ) ) {
 				$errors[] = array(
@@ -91,15 +91,15 @@ class LAUNCHDEK_Workflow_Runner {
 			return new WP_Error( 'launchdek_run_not_found', __( 'Run not found.', LAUNCHDEK_TEXT_DOMAIN ) );
 		}
 
-		$workflow = LAUNCHDEK_Workflow_Repository::find( $run['workflow_id'] );
+		$checklist = LAUNCHDEK_Checklist_Repository::find( $run['checklist_id'] );
 
-		if ( ! $workflow ) {
-			return new WP_Error( 'launchdek_workflow_not_found', __( 'Workflow not found.', LAUNCHDEK_TEXT_DOMAIN ) );
+		if ( ! $checklist ) {
+			return new WP_Error( 'launchdek_checklist_not_found', __( 'Checklist not found.', LAUNCHDEK_TEXT_DOMAIN ) );
 		}
 
 		foreach ( $run['steps'] as $step ) {
 			if ( in_array( $step['status'], array( 'pending', 'running' ), true ) ) {
-				$step_def = $workflow['steps'][ $step['step_index'] ] ?? array();
+				$step_def = $checklist['steps'][ $step['step_index'] ] ?? array();
 				$result   = LAUNCHDEK_Step_Executor::execute( $run_id, $step['step_index'], $step_def, $run['site_id'] );
 
 				self::maybe_complete_run( $run_id );
@@ -145,12 +145,12 @@ class LAUNCHDEK_Workflow_Runner {
 				break;
 			}
 
-			$workflow   = LAUNCHDEK_Workflow_Repository::find( $run['workflow_id'] );
+			$checklist  = LAUNCHDEK_Checklist_Repository::find( $run['checklist_id'] );
 			$next_index = null;
 
 			foreach ( $run['steps'] as $step ) {
 				if ( 'pending' === $step['status'] ) {
-					$step_def = $workflow['steps'][ $step['step_index'] ] ?? array();
+					$step_def = $checklist['steps'][ $step['step_index'] ] ?? array();
 					if ( ( $step_def['type'] ?? 'manual' ) === 'api' ) {
 						$next_index = $step['step_index'];
 						break;
@@ -163,7 +163,7 @@ class LAUNCHDEK_Workflow_Runner {
 				break;
 			}
 
-			$step_def = $workflow['steps'][ $next_index ];
+			$step_def = $checklist['steps'][ $next_index ];
 			$result   = LAUNCHDEK_Step_Executor::execute( $run_id, $next_index, $step_def, $run['site_id'] );
 			$results[] = $result;
 

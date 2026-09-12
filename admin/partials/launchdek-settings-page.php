@@ -18,8 +18,8 @@ $wp_roles      = wp_roles() ? wp_roles()->get_names() : array();
 $cap_labels    = LAUNCHDEK_Capabilities::get_capability_labels();
 $guard_caps    = array(
 	LAUNCHDEK_Capabilities::MANAGE_SITES,
-	LAUNCHDEK_Capabilities::EDIT_WORKFLOWS,
-	LAUNCHDEK_Capabilities::EXECUTE_WORKFLOWS,
+	LAUNCHDEK_Capabilities::EDIT_CHECKLISTS,
+	LAUNCHDEK_Capabilities::EXECUTE_CHECKLISTS,
 	LAUNCHDEK_Capabilities::VIEW_AUDIT,
 );
 $channels      = array(

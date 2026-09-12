@@ -19,7 +19,7 @@ class LAUNCHDEK_Installer {
 	 *
 	 * @var string
 	 */
-	const DB_VERSION = '1.0.0';
+	const DB_VERSION = '1.1.0';
 
 	/**
 	 * Option key storing installed DB version.
@@ -40,8 +40,54 @@ class LAUNCHDEK_Installer {
 			return;
 		}
 
+		self::migrate_from_previous( (string) $installed );
 		self::install();
 		update_option( self::DB_VERSION_OPTION, self::DB_VERSION, false );
+	}
+
+	/**
+	 * Upgrade schema and settings from older DB versions.
+	 *
+	 * @param string $installed Previously installed DB version.
+	 * @return void
+	 */
+	protected static function migrate_from_previous( $installed ) {
+		if ( '' === $installed || version_compare( $installed, '1.1.0', '<' ) ) {
+			self::migrate_workflows_to_checklists();
+		}
+	}
+
+	/**
+	 * Rename workflow tables/columns and migrate capability keys.
+	 *
+	 * @return void
+	 */
+	protected static function migrate_workflows_to_checklists() {
+		global $wpdb;
+
+		$old_table  = $wpdb->prefix . 'launchdek_workflows';
+		$new_table  = $wpdb->prefix . 'launchdek_checklists';
+		$runs_table = $wpdb->prefix . 'launchdek_runs';
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$old_exists = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $old_table ) );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$new_exists = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $new_table ) );
+
+		if ( $old_exists === $old_table && $new_exists !== $new_table ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.NotPrepared
+			$wpdb->query( "RENAME TABLE `{$old_table}` TO `{$new_table}`" );
+		}
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$column = $wpdb->get_results( "SHOW COLUMNS FROM `{$runs_table}` LIKE 'workflow_id'" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+
+		if ( ! empty( $column ) ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.NotPrepared
+			$wpdb->query( "ALTER TABLE `{$runs_table}` CHANGE `workflow_id` `checklist_id` bigint(20) unsigned NOT NULL" );
+		}
+
+		LAUNCHDEK_Capabilities::migrate_workflow_caps();
 	}
 
 	/**
@@ -57,7 +103,7 @@ class LAUNCHDEK_Installer {
 		$charset_collate = $wpdb->get_charset_collate();
 		$sites           = $wpdb->prefix . 'launchdek_sites';
 		$tags            = $wpdb->prefix . 'launchdek_site_tags';
-		$workflows       = $wpdb->prefix . 'launchdek_workflows';
+		$checklists      = $wpdb->prefix . 'launchdek_checklists';
 		$runs            = $wpdb->prefix . 'launchdek_runs';
 		$run_steps       = $wpdb->prefix . 'launchdek_run_steps';
 		$audit           = $wpdb->prefix . 'launchdek_audit_log';
@@ -92,7 +138,7 @@ class LAUNCHDEK_Installer {
 			KEY tag (tag)
 		) {$charset_collate};
 
-		CREATE TABLE {$workflows} (
+		CREATE TABLE {$checklists} (
 			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
 			title varchar(255) NOT NULL DEFAULT '',
 			description text,
@@ -112,7 +158,7 @@ class LAUNCHDEK_Installer {
 
 		CREATE TABLE {$runs} (
 			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-			workflow_id bigint(20) unsigned NOT NULL,
+			checklist_id bigint(20) unsigned NOT NULL,
 			site_id bigint(20) unsigned NOT NULL,
 			status varchar(32) NOT NULL DEFAULT 'pending',
 			started_by bigint(20) unsigned NOT NULL DEFAULT 0,
@@ -120,7 +166,7 @@ class LAUNCHDEK_Installer {
 			completed_at datetime DEFAULT NULL,
 			notes text,
 			PRIMARY KEY  (id),
-			KEY workflow_id (workflow_id),
+			KEY checklist_id (checklist_id),
 			KEY site_id (site_id),
 			KEY status (status),
 			KEY started_at (started_at)
@@ -187,7 +233,7 @@ class LAUNCHDEK_Installer {
 		$tables = array(
 			'launchdek_sites',
 			'launchdek_site_tags',
-			'launchdek_workflows',
+			'launchdek_checklists',
 			'launchdek_runs',
 			'launchdek_run_steps',
 			'launchdek_audit_log',

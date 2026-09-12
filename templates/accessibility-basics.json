@@ -1,0 +1,58 @@
+{
+  "title": "Accessibility Basics",
+  "description": "WCAG-oriented checklist for keyboard navigation, contrast, and assistive technology compatibility.",
+  "category": "compliance",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "keyboard_navigation",
+      "title": "Test Keyboard Navigation",
+      "instructions": "Tab through homepage, menu, modals, and forms without a mouse. Ensure focus order is logical and focus rings are visible.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "color_contrast",
+      "title": "Check Color Contrast",
+      "instructions": "Verify body text, buttons, and links meet WCAG AA contrast ratios (4.5:1 for normal text). Fix low-contrast hero overlays.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "alt_text_images",
+      "title": "Audit Image Alt Text",
+      "instructions": "Review media library and key pages. Decorative images should have empty alt; informative images need descriptive alt text.",
+      "deep_link": "upload.php",
+      "type": "manual"
+    },
+    {
+      "id": "form_labels",
+      "title": "Verify Form Labels",
+      "instructions": "Every input must have a visible label or aria-label. Error messages should be announced and associated with fields.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "heading_structure",
+      "title": "Fix Heading Hierarchy",
+      "instructions": "Ensure one H1 per page and headings do not skip levels (H2 → H4). Page builders often need manual cleanup.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "skip_link",
+      "title": "Add Skip to Content Link",
+      "instructions": "Confirm the theme provides a skip link to main content. If missing, add one visible on keyboard focus.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "automated_scan",
+      "title": "Run Automated A11y Scan",
+      "instructions": "Scan with axe DevTools, WAVE, or Lighthouse accessibility audit. Triage critical issues before client handoff.",
+      "deep_link": "",
+      "type": "manual"
+    }
+  ]
+}

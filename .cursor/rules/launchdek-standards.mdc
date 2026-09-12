@@ -40,7 +40,7 @@ Cross-cutting quality standards. See also: `launchdek-project.mdc` (architecture
 
 - Load code only where needed.
 - Avoid expensive queries on every request; repositories should use indexed columns.
-- Remote API calls only on user action, workflow execution, connection tests, or scheduled drift cron — never on every admin page load except dashboard ticker/feed fetches.
+- Remote API calls only on user action, checklist execution, connection tests, or scheduled drift cron — never on every admin page load except dashboard ticker/feed fetches.
 - Avoid autoloading large options.
 
 ## Privacy & External Communication
@@ -54,7 +54,7 @@ Cross-cutting quality standards. See also: `launchdek-project.mdc` (architecture
 
 ## Uninstall & Lifecycle
 
-- **Activate**: seed settings, install DB tables, register caps, schedule drift cron, redirect to dashboard.
+- **Activate**: seed settings, install DB tables, register caps, schedule drift cron, redirect to dashboard onboarding (`?onboarding=1`).
 - **Deactivate**: clear activation redirect transient, unschedule drift cron.
 - **Delete**: `uninstall.php` drops all tables, removes options (`launchdek_settings`, `launchdek_version`, `launchdek_db_version`, `launchdek_templates_seeded`), unregisters capabilities.
 - If adding new options or tables, update `uninstall.php` and `LAUNCHDEK_Installer::uninstall()`.
@@ -63,4 +63,5 @@ Cross-cutting quality standards. See also: `launchdek-project.mdc` (architecture
 
 - Include `readme.txt` with changelog.
 - Include license headers and `LAUNCHDEK_VERSION` in plugin header.
-- Bump `LAUNCHDEK_Installer::DB_VERSION` when schema changes.
+- Bump `LAUNCHDEK_Installer::DB_VERSION` when schema changes; add a `migrate_from_previous()` step for upgrades.
+- New built-in template JSON files need no migration — `LAUNCHDEK_Templates::sync_builtin()` inserts missing slugs on init.

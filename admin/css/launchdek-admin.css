@@ -254,7 +254,220 @@
 	flex-wrap: wrap;
 }
 
-/* Workflow builder */
+.launchdek-onboarding-modal {
+	max-width: 920px;
+	width: 94%;
+}
+
+.launchdek-onboarding-header {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 12px;
+	margin-bottom: 8px;
+}
+
+.launchdek-onboarding-header h2 {
+	margin: 0;
+}
+
+.launchdek-onboarding-close {
+	font-size: 24px;
+	line-height: 1;
+	padding: 0 4px;
+	min-height: 0;
+	color: #787c82;
+}
+
+.launchdek-onboarding-close:hover {
+	color: #1d2327;
+}
+
+.launchdek-onboarding-progress {
+	margin: 0 0 16px;
+}
+
+.launchdek-onboarding-progress-track {
+	height: 6px;
+	background: #dcdcde;
+	border-radius: 999px;
+	overflow: hidden;
+}
+
+.launchdek-onboarding-progress-fill {
+	height: 100%;
+	width: 50%;
+	background: #2271b1;
+	border-radius: 999px;
+	transition: width 0.25s ease;
+}
+
+.launchdek-onboarding-intro {
+	margin: 0 0 16px;
+	color: #50575e;
+}
+
+.launchdek-onboarding-columns {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 16px;
+	margin-bottom: 16px;
+}
+
+@media (max-width: 782px) {
+	.launchdek-onboarding-columns {
+		grid-template-columns: 1fr;
+	}
+}
+
+.launchdek-onboarding-pane-label {
+	margin: 0 0 8px;
+	font-weight: 600;
+}
+
+.launchdek-onboarding-textarea {
+	width: 100%;
+	min-height: 220px;
+	font-family: inherit;
+	line-height: 1.5;
+	resize: vertical;
+}
+
+.launchdek-onboarding-preview {
+	min-height: 220px;
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+	background: #f6f7f7;
+	padding: 12px 14px;
+	overflow-y: auto;
+}
+
+.launchdek-onboarding-preview-title {
+	margin: 0 0 12px;
+	font-size: 1.05em;
+	font-weight: 600;
+}
+
+.launchdek-onboarding-preview-list {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.launchdek-onboarding-preview-item {
+	display: flex;
+	align-items: flex-start;
+	gap: 8px;
+	margin-bottom: 8px;
+}
+
+.launchdek-onboarding-preview-item input[type="checkbox"] {
+	margin-top: 3px;
+}
+
+.launchdek-onboarding-optional {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px 12px;
+	margin-bottom: 12px;
+	padding-top: 12px;
+	border-top: 1px solid #dcdcde;
+}
+
+.launchdek-onboarding-optional label {
+	font-weight: 600;
+	margin: 0;
+}
+
+.launchdek-onboarding-optional .launchdek-select {
+	min-width: 220px;
+}
+
+.launchdek-onboarding-footer {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	flex-wrap: wrap;
+	margin-top: 16px;
+	padding-top: 16px;
+	border-top: 1px solid #dcdcde;
+}
+
+.launchdek-onboarding-footer-actions {
+	display: flex;
+	gap: 8px;
+	flex-wrap: wrap;
+}
+
+.launchdek-onboarding-connect-panel {
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+	background: #fff;
+	padding: 16px;
+	margin-bottom: 16px;
+}
+
+.launchdek-onboarding-field-row {
+	display: grid;
+	grid-template-columns: 180px 1fr;
+	gap: 12px;
+	align-items: center;
+	margin-bottom: 12px;
+}
+
+.launchdek-onboarding-field-row label {
+	margin: 0;
+	font-weight: 600;
+}
+
+.launchdek-onboarding-field-row input {
+	width: 100%;
+	max-width: none;
+}
+
+.launchdek-onboarding-test-row {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 12px;
+	margin-top: 4px;
+	padding-top: 12px;
+	border-top: 1px solid #f0f0f1;
+}
+
+.launchdek-onboarding-test-status.success {
+	color: #008a20;
+	font-weight: 600;
+}
+
+.launchdek-onboarding-test-status.error {
+	color: #d63638;
+	font-weight: 600;
+}
+
+.launchdek-onboarding-outro {
+	margin: 0 0 12px;
+	color: #50575e;
+}
+
+.launchdek-onboarding-existing-site {
+	margin: 0 0 16px;
+	padding: 12px;
+	background: #f0f6fc;
+	border: 1px solid #c3d9ed;
+	border-radius: 4px;
+}
+
+@media (max-width: 600px) {
+	.launchdek-onboarding-field-row {
+		grid-template-columns: 1fr;
+		gap: 4px;
+	}
+}
+
+/* Checklist builder */
 .launchdek-builder-workspace {
 	display: grid;
 	grid-template-columns: 1fr 320px;
@@ -289,7 +502,7 @@
 	font-size: 1em;
 }
 
-.launchdek-workflow-canvas {
+.launchdek-checklist-canvas {
 	overflow-x: auto;
 	padding: 8px 4px 16px;
 }
@@ -420,7 +633,7 @@
 	margin-right: 6px;
 }
 
-.launchdek-wf-meta {
+.launchdek-cl-meta {
 	margin-bottom: 4px;
 }
 
@@ -500,13 +713,37 @@
 }
 
 .launchdek-target-form {
-	align-items: flex-start;
-	flex-wrap: wrap;
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	margin: 8px 0;
+}
+
+.launchdek-target-form-controls {
+	margin: 0;
+}
+
+.launchdek-target-sites {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	max-width: 480px;
+}
+
+.launchdek-target-sites label {
+	font-weight: 600;
+}
+
+.launchdek-field-hint {
+	margin: 0;
+	font-size: 12px;
+	font-style: normal;
 }
 
 .launchdek-select-multi {
 	min-width: 220px;
-	max-width: 320px;
+	max-width: 100%;
+	width: 100%;
 }
 
 .launchdek-target-actions {
@@ -661,51 +898,36 @@
 	border-radius: 3px;
 }
 
-/* Templates stack list */
-.launchdek-stack-list {
+/* Template category tabs */
+.launchdek-category-tabs {
 	display: flex;
 	flex-wrap: wrap;
-	align-items: center;
-	gap: 4px 8px;
-	margin: 8px 0 0;
+	gap: 8px;
+	margin: 12px 0 16px;
 }
 
-.launchdek-stack-chip {
-	background: none;
-	border: none;
-	padding: 4px 0;
+.launchdek-category-tab {
+	background: #f6f7f7;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+	padding: 6px 12px;
 	font-size: 13px;
-	font-weight: 600;
-	color: #2271b1;
-	cursor: pointer;
-	text-decoration: underline;
-}
-
-.launchdek-stack-chip:hover,
-.launchdek-stack-chip:focus {
-	color: #135e96;
-}
-
-.launchdek-stack-chip.active {
+	font-weight: 500;
 	color: #1d2327;
-	text-decoration: none;
+	cursor: pointer;
+}
+
+.launchdek-category-tab:hover,
+.launchdek-category-tab:focus {
+	border-color: #2271b1;
+	color: #2271b1;
+}
+
+.launchdek-category-tab.active {
+	background: #2271b1;
+	border-color: #2271b1;
+	color: #fff;
 	cursor: default;
-}
-
-.launchdek-stack-sep {
-	color: #c3c4c7;
-	user-select: none;
-	font-size: 13px;
-}
-
-.launchdek-template-detail {
-	margin-top: 16px;
-	padding-top: 16px;
-	border-top: 1px solid #dcdcde;
-}
-
-.launchdek-template-detail p {
-	margin: 0 0 12px;
 }
 
 /* Templates & integrations grid */
@@ -717,10 +939,32 @@
 }
 
 .launchdek-template-card {
+	position: relative;
 	border: 1px solid #c3c4c7;
 	border-radius: 4px;
 	padding: 16px;
 	background: #fafafa;
+	overflow: visible;
+}
+
+.launchdek-template-card:hover,
+.launchdek-template-card.is-steps-open {
+	border-color: #2271b1;
+	box-shadow: 0 2px 8px rgba(34, 113, 177, 0.12);
+}
+
+.launchdek-template-card.is-steps-open .launchdek-template-card-content {
+	min-height: 180px;
+}
+
+.launchdek-template-card-content {
+	position: relative;
+	min-height: 100px;
+}
+
+.launchdek-template-card-main {
+	position: relative;
+	z-index: 1;
 }
 
 .launchdek-template-card h3 {
@@ -734,8 +978,76 @@
 	color: #646970;
 }
 
+.launchdek-template-step-count {
+	margin-bottom: 4px !important;
+}
+
+.launchdek-template-preview-hint {
+	margin: 0 0 12px !important;
+	color: #787c82 !important;
+	font-style: italic;
+}
+
 .launchdek-template-card .launchdek-badge {
 	margin-bottom: 8px;
+}
+
+.launchdek-template-card-actions {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px 12px;
+	margin-top: 12px;
+}
+
+.launchdek-template-steps-toggle {
+	padding: 0 !important;
+	min-height: auto;
+	line-height: 1.4;
+}
+
+.launchdek-template-steps-preview {
+	position: absolute;
+	inset: 0;
+	z-index: 2;
+	background: #fff;
+	border-radius: 4px;
+	padding: 16px;
+	overflow-y: auto;
+	opacity: 0;
+	visibility: hidden;
+	transition: opacity 0.15s ease, visibility 0.15s ease;
+	pointer-events: none;
+}
+
+.launchdek-template-card-content:hover .launchdek-template-steps-preview,
+.launchdek-template-card.is-steps-open .launchdek-template-steps-preview {
+	opacity: 1;
+	visibility: visible;
+	pointer-events: auto;
+}
+
+.launchdek-template-steps-heading {
+	margin: 0 0 10px;
+	font-size: 13px;
+	font-weight: 600;
+	color: #1d2327;
+}
+
+.launchdek-template-steps-list {
+	margin: 0;
+	padding-left: 20px;
+	font-size: 12px;
+	line-height: 1.5;
+	color: #50575e;
+}
+
+.launchdek-template-steps-list li {
+	margin-bottom: 6px;
+}
+
+.launchdek-template-steps-list li:last-child {
+	margin-bottom: 0;
 }
 
 .launchdek-integration-card.available {

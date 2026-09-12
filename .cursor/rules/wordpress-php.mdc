@@ -47,11 +47,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 - Bootstrap requires all classes; instantiate only via `launchdek_run_plugin()`.
 - `LAUNCHDEK_Plugin` constructor: `LAUNCHDEK_Admin` only.
-- Data layer: `LAUNCHDEK_{Site,Workflow,Run}_Repository` — no direct `$wpdb` in REST handlers or admin.
+- Data layer: `LAUNCHDEK_{Site,Checklist,Run}_Repository` — no direct `$wpdb` in REST handlers or admin.
 - Remote: `LAUNCHDEK_Remote_Client::from_site( $id )` for authenticated requests (returns `null` if credentials missing).
 - Credentials: `LAUNCHDEK_Credential_Vault::encrypt()` / `::decrypt()` on save/read.
 - Audit: `LAUNCHDEK_Audit_Log::log()` for privileged actions.
-- Activation: `LAUNCHDEK_Activator`; deactivation: `LAUNCHDEK_Deactivator` (clears drift cron).
+- Activation: `LAUNCHDEK_Activator` (sets redirect transient); `LAUNCHDEK_Admin::maybe_activation_redirect()` sends new installs to dashboard with `?onboarding=1`. Deactivation: `LAUNCHDEK_Deactivator` (clears drift cron).
 
 ## Settings Option Shape
 
@@ -60,6 +60,7 @@ array(
 	'enabled'                    => true,
 	'encrypt_credentials'        => true,
 	'drift_verification_enabled'  => true,
+	'onboarding_dismissed'       => false, // set via POST /onboarding/dismiss or Settings checkbox
 	'slack_webhook'              => '',
 	'discord_webhook'            => '',
 	'teams_webhook'              => '',
@@ -69,9 +70,9 @@ array(
 )
 ```
 
-## Workflow Step Types
+## Checklist Step Types
 
-Steps live in `workflow.steps[]` (JSON in DB or template files).
+Steps live in `checklist.steps[]` (JSON in DB or template files).
 
 **`manual`** — fields: `id`, `title`, `instructions`, `target_roles` (optional array of WP role slugs — UI metadata for agency assignment), `deep_link` (optional admin path), `type: manual`. Executor sets status `awaiting_manual` and resolves `deep_link` via `LAUNCHDEK_Remote_Client::admin_link()`. User completes via `/runs/{id}/steps/{step}/complete`.
 
@@ -89,7 +90,28 @@ array(
 )
 ```
 
-Validate dry-runs with `LAUNCHDEK_Payload_Mapper::validate()` (used by `/workflows/{id}/validate-step`).
+Validate dry-runs with `LAUNCHDEK_Payload_Mapper::validate()` (used by `/checklists/{id}/validate-step`).
+
+## Built-in Template JSON
+
+Files in `templates/{slug}.json`. Required fields:
+
+```php
+array(
+	'title'       => 'Template title',
+	'description' => 'Short summary',
+	'category'    => 'security', // slug from LAUNCHDEK_Templates::get_categories()
+	'version'     => '1.0.0',
+	'is_template' => true,
+	'steps'       => array( /* manual|api step objects */ ),
+)
+```
+
+Unknown categories fall back to `maintenance`. New JSON files are picked up by `sync_builtin()` without re-seeding.
+
+## DB Upgrades
+
+`LAUNCHDEK_Installer::DB_VERSION` is `1.1.0`. `maybe_install()` calls `migrate_from_previous()` before `install()`. Do not reference `launchdek_workflows` or `workflow_id` in new code — use `launchdek_checklists` and `checklist_id`. Audit log and webhooks accept legacy `workflow_*` action keys and `details.workflow` for pre-migration entries.
 
 ## Partials
 
@@ -99,7 +121,7 @@ All non-settings pages use `render_page()` which passes `$settings`, `$page`, an
 |---------|---------------|
 | `launchdek-admin-page.php` | `dashboard` |
 | `launchdek-sites-page.php` | `sites` |
-| `launchdek-workflows-page.php` | `workflows` |
+| `launchdek-checklists-page.php` | `checklists` |
 | `launchdek-automation-page.php` | `automation` |
 | `launchdek-templates-page.php` | `templates` |
 | `launchdek-integrations-page.php` | `integrations` |

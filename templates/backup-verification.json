@@ -1,0 +1,51 @@
+{
+  "title": "Backup Verification",
+  "description": "Validate that backups are complete, restorable, and stored off-site.",
+  "category": "maintenance",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "confirm_backup_schedule",
+      "title": "Confirm Backup Schedule",
+      "instructions": "Verify daily database and weekly full-file backups are scheduled. Align frequency with client SLA and change velocity.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "verify_offsite_storage",
+      "title": "Verify Off-Site Storage",
+      "instructions": "Confirm backups copy to S3, Google Drive, or another region separate from the web server. Check encryption at rest.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "test_partial_restore",
+      "title": "Test Database Restore",
+      "instructions": "Restore the latest database backup to staging. Confirm posts, options, and users match production counts.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "test_file_restore",
+      "title": "Test Media / Uploads Restore",
+      "instructions": "Restore uploads or a sample of media files. Open pages that rely on large images or PDF downloads.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "document_rto_rpo",
+      "title": "Document RTO & RPO",
+      "instructions": "Record recovery time objective and recovery point objective for the client. Note who approves emergency restores.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "exclude_cache_from_backup",
+      "title": "Exclude Cache & Log Bloat",
+      "instructions": "Ensure backup jobs skip cache folders and oversized log files to keep backup size manageable and restores fast.",
+      "deep_link": "",
+      "type": "manual"
+    }
+  ]
+}
