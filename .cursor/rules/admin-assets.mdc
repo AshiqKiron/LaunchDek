@@ -32,7 +32,14 @@ Each init no-ops if `[data-launchdek-page="{page}"]` is absent.
 
 - `parsePastedChecklist( text )` — parses headings, bullets, and numbered lines into `{ title, steps[] }`.
 - `buildChecklistPayload( parsed )` — converts parsed steps to manual checklist REST payload.
-- `initOnboarding()` — 2-step modal flow: paste/preview → connect site (`/sites/test`, `/sites`) → save checklist (`POST /checklists`) → optional run (`POST /runs`) → dismiss (`POST /onboarding/dismiss`). Shows when `launchdekAdmin.onboarding.show` is true or URL has `?onboarding=1`.
+- `getPasteText()` — returns trimmed textarea value, falling back to placeholder when empty (used for step validation).
+- `getPreviewSourceText()` — returns `{ text, isSample }`; when textarea is empty, renders placeholder as a dimmed sample preview (`.is-sample`, disabled checkboxes).
+- `updateOnboardingProgress( step )` — toggles `.is-active` / `.is-complete` on `#launchdek-onboarding-progress` segment nodes (`data-step="1|2"`).
+- `updateStep2SiteState()` — syncs `#launchdek-onboarding-site` selection with connect panel visibility and connection status.
+- `initOnboarding()` — 2-step modal flow:
+  - **Step 1** (`#launchdek-onboarding-step-1`): paste SOP text (`#launchdek-onboarding-paste`) → live preview (`#launchdek-onboarding-preview`); placeholder shows sample preview until user types.
+  - **Step 2** (`#launchdek-onboarding-step-2`): optional existing-site select (`#launchdek-onboarding-site`) or new-site connect panel (`#launchdek-onboarding-connect-panel`, `/sites/test`, `/sites`) → save checklist (`POST /checklists`) → optional run (`POST /runs`) → dismiss (`POST /onboarding/dismiss`).
+  - Shows when `launchdekAdmin.onboarding.show` is true or URL has `?onboarding=1`.
 
 ### `launchdekAdmin` shape
 
@@ -55,7 +62,12 @@ Each init no-ops if `[data-launchdek-page="{page}"]` is absent.
 		cloneToChecklist, templateCloned, savedToVault, noVaultTemplates, noCategoryTemplates,
 		stepsCount, viewSteps, hideSteps, checklistSteps, stepsPreviewHint,
 		connected, notDetected, setup,
-		onboardingTitle, onboardingIntro, onboardingNeedSteps, onboardingNeedConnection,
+		onboardingTitle, onboardingProgressLabel, onboardingStep1, onboardingStep1Hint,
+		onboardingStep2, onboardingStep2Hint, onboardingIntro, onboardingPasteLabel,
+		onboardingPreviewLabel, onboardingPreviewEmpty, onboardingTestSite, onboardingSelectSite,
+		onboardingUseTemplate, onboardingSkip, onboardingNextConnect, onboardingConnectIntro,
+		onboardingBack, onboardingLaunch, onboardingOutro, onboardingTestConnection,
+		onboardingNeedSteps, onboardingNeedConnection, onboardingExistingSiteReady,
 		onboardingStatusConnected, onboardingStatusFailed, onboardingStatusPending, onboardingStatusTesting
 	}
 }
@@ -76,7 +88,8 @@ Prefix all selectors with `.launchdek-`.
 | `.launchdek-log-feed`, `.launchdek-log-item` | Activity feed (`#launchdek-log-feed`) |
 | `.launchdek-badge`, `.launchdek-tag` | Site health / tags |
 | `.launchdek-modal`, `.launchdek-modal-backdrop`, `.launchdek-modal-content`, `.launchdek-modal-actions` | Modals (`[hidden]` when closed) |
-| `.launchdek-onboarding-modal`, `.launchdek-onboarding-columns`, `.launchdek-onboarding-preview`, `.launchdek-onboarding-connect-panel`, `.launchdek-onboarding-test-status` | Dashboard onboarding modal (`#launchdek-onboarding-modal`) |
+| `.launchdek-onboarding-modal`, `.launchdek-onboarding-progress`, `.launchdek-onboarding-progress-segments`, `.launchdek-onboarding-progress-segment`, `.launchdek-onboarding-progress-segment-bar`, `.launchdek-onboarding-progress-segment-text`, `.launchdek-onboarding-progress-segment-label`, `.launchdek-onboarding-progress-segment-hint` | Segmented 2-step progress (`#launchdek-onboarding-progress`); modifiers `.is-active`, `.is-complete` on segments |
+| `.launchdek-onboarding-columns`, `.launchdek-onboarding-preview`, `.launchdek-onboarding-preview.is-sample`, `.launchdek-onboarding-connect-panel`, `.launchdek-onboarding-test-status`, `.launchdek-onboarding-optional`, `.launchdek-onboarding-existing-site` | Dashboard onboarding modal (`#launchdek-onboarding-modal`) |
 | `.launchdek-list` | Selectable lists |
 | `.launchdek-builder-layout`, `.launchdek-builder-workspace` | Checklist builder layout |
 | `.launchdek-canvas-card`, `.launchdek-checklist-canvas`, `.launchdek-canvas-flow` | Drag-and-drop checklist canvas |

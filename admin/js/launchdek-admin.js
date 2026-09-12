@@ -139,7 +139,6 @@
 		var onboarding = launchdekAdmin.onboarding || {};
 		var params = new URLSearchParams(window.location.search);
 		var shouldShow = onboarding.show || params.get('onboarding') === '1';
-		if (!shouldShow) return;
 
 		var step1 = document.getElementById('launchdek-onboarding-step-1');
 		var step2 = document.getElementById('launchdek-onboarding-step-2');
@@ -165,17 +164,72 @@
 			modal.hidden = true;
 		}
 
+		function resetOnboardingModal() {
+			step1.hidden = false;
+			step2.hidden = true;
+			step1Notice.innerHTML = '';
+			step2Notice.innerHTML = '';
+			pasteInput.value = '';
+			siteSelect.value = '';
+			document.getElementById('launchdek-onboarding-site-url').value = '';
+			document.getElementById('launchdek-onboarding-site-username').value = '';
+			document.getElementById('launchdek-onboarding-site-password').value = '';
+			connectPanel.hidden = false;
+			existingSiteNotice.hidden = true;
+			existingSiteNotice.textContent = '';
+			savedChecklistId = null;
+			selectedSiteId = '';
+			connectionVerified = false;
+			setTestStatus('', '');
+			updateOnboardingProgress(1);
+			renderPreview();
+		}
+
+		function openOnboardingModal() {
+			resetOnboardingModal();
+			modal.hidden = false;
+		}
+
+		window.launchdekOpenOnboarding = openOnboardingModal;
+
+		function getPasteText() {
+			return pasteInput.value.trim() || pasteInput.placeholder || '';
+		}
+
+		function getPreviewSourceText() {
+			if (pasteInput.value.trim()) {
+				return { text: pasteInput.value, isSample: false };
+			}
+
+			if (pasteInput.placeholder) {
+				return { text: pasteInput.placeholder, isSample: true };
+			}
+
+			return { text: '', isSample: false };
+		}
+
 		function renderPreview() {
-			parsedChecklist = parsePastedChecklist(pasteInput.value);
+			var source = getPreviewSourceText();
+			parsedChecklist = parsePastedChecklist(source.text);
 			if (!parsedChecklist.steps.length && !parsedChecklist.title) {
+				preview.classList.remove('is-sample');
 				preview.innerHTML = '<p class="launchdek-muted">' + escHtml(strings.onboardingPreviewEmpty || 'Start typing to see your checklist preview.') + '</p>';
 				return;
 			}
 
+			preview.classList.toggle('is-sample', source.isSample);
 			var html = '<p class="launchdek-onboarding-preview-title"><strong>' + escHtml(parsedChecklist.title) + '</strong></p>';
 			if (parsedChecklist.steps.length) {
 				html += '<ul class="launchdek-onboarding-preview-list">';
 				parsedChecklist.steps.forEach(function (step, index) {
+					if (source.isSample) {
+						html += '<li class="launchdek-onboarding-preview-item">' +
+							'<input type="checkbox" id="launchdek-onboarding-preview-step-' + index + '" disabled />' +
+							'<label for="launchdek-onboarding-preview-step-' + index + '">' + escHtml(step.title) + '</label>' +
+							'</li>';
+						return;
+					}
+
 					html += '<li class="launchdek-onboarding-preview-item">' +
 						'<input type="checkbox" id="launchdek-onboarding-preview-step-' + index + '" data-preview-index="' + index + '"' + (step.checked ? ' checked' : '') + ' />' +
 						'<label for="launchdek-onboarding-preview-step-' + index + '">' + escHtml(step.title) + '</label>' +
@@ -184,6 +238,10 @@
 				html += '</ul>';
 			}
 			preview.innerHTML = html;
+
+			if (source.isSample) {
+				return;
+			}
 
 			preview.querySelectorAll('input[type="checkbox"][data-preview-index]').forEach(function (checkbox) {
 				checkbox.addEventListener('change', function () {
@@ -222,24 +280,24 @@
 
 		function updateOnboardingProgress(step) {
 			var progress = document.getElementById('launchdek-onboarding-progress');
-			var fill = document.getElementById('launchdek-onboarding-progress-fill');
-			if (!progress || !fill) {
+			if (!progress) {
 				return;
 			}
 
-			var total = 2;
 			progress.setAttribute('aria-valuenow', String(step));
-			fill.style.width = ((step / total) * 100) + '%';
+			progress.querySelectorAll('.launchdek-onboarding-progress-segment').forEach(function (segment) {
+				var segmentStep = parseInt(segment.getAttribute('data-step'), 10);
+				segment.classList.remove('is-active', 'is-complete');
+				if (segmentStep < step) {
+					segment.classList.add('is-complete');
+				} else if (segmentStep === step) {
+					segment.classList.add('is-active');
+				}
+			});
 		}
 
-		function showStep2() {
+		function updateStep2SiteState() {
 			selectedSiteId = siteSelect.value;
-			step1.hidden = true;
-			step2.hidden = false;
-			updateOnboardingProgress(2);
-			step2Notice.innerHTML = '';
-			connectionVerified = false;
-
 			var hasExistingSite = !!selectedSiteId;
 			connectPanel.hidden = hasExistingSite;
 			existingSiteNotice.hidden = !hasExistingSite;
@@ -249,9 +307,19 @@
 				existingSiteNotice.textContent = (strings.onboardingExistingSiteReady || 'Using selected site:') + ' ' + (option ? option.textContent : '');
 				connectionVerified = true;
 				setTestStatus('success', strings.onboardingStatusConnected || 'Status: Connected & Verified (OK)');
-			} else {
-				setTestStatus('', strings.onboardingStatusPending || 'Status: Not tested yet');
+				return;
 			}
+
+			connectionVerified = false;
+			setTestStatus('', strings.onboardingStatusPending || 'Status: Not tested yet');
+		}
+
+		function showStep2() {
+			step1.hidden = true;
+			step2.hidden = false;
+			updateOnboardingProgress(2);
+			step2Notice.innerHTML = '';
+			updateStep2SiteState();
 		}
 
 		function showStep1() {
@@ -284,9 +352,13 @@
 		}).catch(function () {});
 
 		pasteInput.addEventListener('input', renderPreview);
+		siteSelect.addEventListener('change', updateStep2SiteState);
 		renderPreview();
 		updateOnboardingProgress(1);
-		modal.hidden = false;
+
+		if (shouldShow) {
+			openOnboardingModal();
+		}
 
 		modal.querySelectorAll('.launchdek-onboarding-close, .launchdek-modal-backdrop').forEach(function (node) {
 			node.addEventListener('click', function () {
@@ -310,7 +382,7 @@
 
 		document.getElementById('launchdek-onboarding-next').addEventListener('click', function () {
 			step1Notice.innerHTML = '';
-			parsedChecklist = parsePastedChecklist(pasteInput.value);
+			parsedChecklist = parsePastedChecklist(getPasteText());
 			if (!parsedChecklist.steps.length) {
 				notice(step1Notice, strings.onboardingNeedSteps || 'Add at least one checklist step before continuing.', 'error');
 				return;
@@ -479,7 +551,25 @@
 				.catch(function (err) { notice(result, err.message, 'error'); });
 		});
 
-		initOnboarding();
+	}
+
+	// ─── Settings ────────────────────────────────────────────
+	function initSettings() {
+		var page = document.querySelector('[data-launchdek-page="settings"]');
+		if (!page) return;
+
+		var showBtn = document.getElementById('launchdek-show-onboarding');
+		if (!showBtn) return;
+
+		showBtn.addEventListener('click', function () {
+			showBtn.disabled = true;
+			post('/onboarding/reset', {}).catch(function () {}).finally(function () {
+				showBtn.disabled = false;
+				if (typeof window.launchdekOpenOnboarding === 'function') {
+					window.launchdekOpenOnboarding();
+				}
+			});
+		});
 	}
 
 	// ─── Sites ───────────────────────────────────────────────
@@ -1745,11 +1835,13 @@
 		var root = document.querySelector('.launchdek-admin');
 		if (root) root.setAttribute('data-launchdek-ready', 'true');
 
+		initOnboarding();
 		initDashboard();
 		initSites();
 		initChecklists();
 		initAutomation();
 		initTemplates();
 		initIntegrations();
+		initSettings();
 	});
 })();

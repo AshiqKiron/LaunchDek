@@ -287,19 +287,64 @@
 	margin: 0 0 16px;
 }
 
-.launchdek-onboarding-progress-track {
+.launchdek-onboarding-progress-segments {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 12px;
+}
+
+.launchdek-onboarding-progress-segment-bar {
 	height: 6px;
 	background: #dcdcde;
 	border-radius: 999px;
-	overflow: hidden;
+	transition: background-color 0.25s ease;
 }
 
-.launchdek-onboarding-progress-fill {
-	height: 100%;
-	width: 50%;
+.launchdek-onboarding-progress-segment.is-active .launchdek-onboarding-progress-segment-bar,
+.launchdek-onboarding-progress-segment.is-complete .launchdek-onboarding-progress-segment-bar {
 	background: #2271b1;
-	border-radius: 999px;
-	transition: width 0.25s ease;
+}
+
+.launchdek-onboarding-progress-segment-text {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	gap: 0 6px;
+	margin-top: 6px;
+	font-size: 12px;
+	line-height: 1.4;
+}
+
+.launchdek-onboarding-progress-segment-label {
+	flex-shrink: 0;
+	color: #646970;
+}
+
+.launchdek-onboarding-progress-segment-hint {
+	color: #787c82;
+}
+
+.launchdek-onboarding-progress-segment-hint::before {
+	content: '—';
+	margin-right: 6px;
+	color: #c3c4c7;
+}
+
+.launchdek-onboarding-progress-segment.is-active .launchdek-onboarding-progress-segment-label {
+	color: #1d2327;
+	font-weight: 600;
+}
+
+.launchdek-onboarding-progress-segment.is-active .launchdek-onboarding-progress-segment-hint {
+	color: #50575e;
+}
+
+.launchdek-onboarding-progress-segment.is-complete .launchdek-onboarding-progress-segment-label {
+	color: #2271b1;
+}
+
+.launchdek-onboarding-progress-segment.is-complete .launchdek-onboarding-progress-segment-hint {
+	color: #646970;
 }
 
 .launchdek-onboarding-intro {
@@ -331,6 +376,10 @@
 	font-family: inherit;
 	line-height: 1.5;
 	resize: vertical;
+}
+
+.launchdek-onboarding-preview.is-sample {
+	opacity: 0.72;
 }
 
 .launchdek-onboarding-preview {
