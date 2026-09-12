@@ -46,4 +46,5 @@ if ( ! defined( 'ABSPATH' ) ) {
 	</div>
 
 	<?php require LAUNCHDEK_PLUGIN_DIR . 'admin/partials/launchdek-onboarding-modal.php'; ?>
+	<?php require LAUNCHDEK_PLUGIN_DIR . 'admin/partials/launchdek-template-picker-modal.php'; ?>
 </div>

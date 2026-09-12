@@ -13,22 +13,41 @@ alwaysApply: false
 - DOM helpers: `el( tag, attrs, children )`, `fillSelect( select, items, valueKey, labelKey, placeholder )`; notices via `notice( container, message, type )`.
 - Scope queries to `.launchdek-admin` or `[data-launchdek-page]`.
 - No jQuery unless WordPress already loads it.
-- On `DOMContentLoaded`: set `data-launchdek-ready="true"`, then call all page inits.
+- On `DOMContentLoaded`: set `data-launchdek-ready="true"`, then call global modal inits (`initTemplatePicker`, `initOnboarding`) before page inits; `initSettings()` runs last.
+
+### Global modal inits (any screen with modal markup)
+
+| Function | Modal | Notes |
+|----------|-------|-------|
+| `initTemplatePicker()` | `#launchdek-template-picker-modal` | Runs when modal partial is present; exposes `window.launchdekOpenTemplatePicker(callbacks)` |
+| `initOnboarding()` | `#launchdek-onboarding-modal` | Runs when modal partial is present; exposes `window.launchdekOpenOnboarding()` |
 
 ### Page init functions
 
 | Function | Page attr | Key elements |
 |----------|-----------|--------------|
-| `initDashboard()` | `dashboard` | `#launchdek-stats`, `#launchdek-ticker`, `#launchdek-log-feed`, quick launch (`#launchdek-quick-site`, `#launchdek-quick-checklist`, `#launchdek-quick-launch`, `#launchdek-quick-result`); calls `initOnboarding()` for `#launchdek-onboarding-modal` |
+| `initDashboard()` | `dashboard` | `#launchdek-stats`, `#launchdek-ticker`, `#launchdek-log-feed`, quick launch (`#launchdek-quick-site`, `#launchdek-quick-checklist`, `#launchdek-quick-launch`, `#launchdek-quick-result`) |
+| `initSettings()` | `settings` | `#launchdek-show-onboarding` → `POST /onboarding/reset` then `launchdekOpenOnboarding()` |
 | `initSites()` | `sites` | toolbar (`#launchdek-add-site`, `#launchdek-connection-tester`), tag/group filters, `#launchdek-sites-table`, site modal (`#launchdek-site-modal`), standalone connection tester modal |
-| `initChecklists()` | `checklists` | `#launchdek-checklist-list`, editor (`#launchdek-checklist-editor`), canvas (`#launchdek-checklist-canvas`, `#launchdek-canvas-steps`), step config (`#launchdek-step-config`), save/export/delete/import controls |
+| `initChecklists()` | `checklists` | `#launchdek-new-checklist` opens template picker (clone → editor) or blank; `#launchdek-checklist-list`, editor (`#launchdek-checklist-editor`), canvas (`#launchdek-checklist-canvas`, `#launchdek-canvas-steps`), step config (`#launchdek-step-config`), save/export/delete/import controls |
 | `initAutomation()` | `automation` | batch queue (`#launchdek-batch-table`, `#launchdek-run-checklist`), run controls (`#launchdek-run-steps`, `#launchdek-run-auto`, `#launchdek-run-next`), audit filters/table (`#launchdek-audit-*`), drift panel (`#launchdek-drift-status`, `#launchdek-verify-drift`) |
 | `initTemplates()` | `templates` | category tabs (`#launchdek-category-tabs`, `#launchdek-category-description`), built-in grid (`#launchdek-builtin-templates`), custom checklists (`#launchdek-custom-checklists`), vault save (`#launchdek-vault-checklist`, `#launchdek-save-vault`), vault list (`#launchdek-vault-list`) |
 | `initIntegrations()` | `integrations` | Platform Connectors Hub (`#launchdek-connectors-list`, `#launchdek-connector-modal`), telemetry rules (`#launchdek-telemetry-rules-table`, `#launchdek-save-telemetry-rules`) |
 
-Each init no-ops if `[data-launchdek-page="{page}"]` is absent.
+Each page init no-ops if `[data-launchdek-page="{page}"]` is absent. Modal inits no-op if their modal element is absent.
 
-### Onboarding helpers (dashboard)
+### Template picker helpers
+
+Key elements: `#launchdek-template-picker-filters`, `#launchdek-template-picker-list`, `#launchdek-template-picker-steps`, `#launchdek-template-picker-steps-list`, `#launchdek-template-picker-notice`, `#launchdek-template-picker-blank`, `#launchdek-template-picker-cancel`, `#launchdek-template-picker-import`.
+
+- `loadPickerTemplates()` — caches `GET /templates` (`builtin`, `categories`).
+- `openTemplatePicker(callbacks)` — opens modal; callbacks: `{ importMode?, onImport, onBlank }`. Default `importMode` is `clone` (`POST /templates/{slug}/clone`); `populate` passes template object to `onImport` (onboarding paste flow). Exposed as `window.launchdekOpenTemplatePicker`.
+- `closeTemplatePicker()`, `importSelectedTemplate()` — close on backdrop/close/cancel; import on **Import Template** (`#launchdek-template-picker-import`, disabled until a template is selected).
+- `renderPickerFilters()`, `renderPickerList()`, `renderPickerStepsPreview()` — category capsule tabs, selectable list items (`.launchdek-template-picker-item.is-selected`), steps aside.
+- `templateToPasteText( template )` — converts template title + step titles to plain-text SOP format for onboarding paste field.
+- `updatePickerImportButton()` — enables/disables import button based on `pickerSelectedSlug`.
+
+### Onboarding helpers
 
 - `parsePastedChecklist( text )` — parses headings, bullets, and numbered lines into `{ title, steps[] }`.
 - `buildChecklistPayload( parsed )` — converts parsed steps to manual checklist REST payload.
@@ -36,10 +55,14 @@ Each init no-ops if `[data-launchdek-page="{page}"]` is absent.
 - `getPreviewSourceText()` — returns `{ text, isSample }`; when textarea is empty, renders placeholder as a dimmed sample preview (`.is-sample`, disabled checkboxes).
 - `updateOnboardingProgress( step )` — toggles `.is-active` / `.is-complete` on `#launchdek-onboarding-progress` segment nodes (`data-step="1|2"`).
 - `updateStep2SiteState()` — syncs `#launchdek-onboarding-site` selection with connect panel visibility and connection status.
+- `closeOnboarding()` — sets `modal.hidden = true` immediately (no network wait).
+- `dismissOnboarding()` — `POST /onboarding/dismiss` (fire-and-forget).
+- `dismissAndCloseOnboarding()` — close icon, backdrop, and Skip buttons; closes UI first, then persists dismiss in background.
+- `openOnboardingModal()` / `resetOnboardingModal()` — exposed as `window.launchdekOpenOnboarding`; resets form state before each open.
 - `initOnboarding()` — 2-step modal flow:
-  - **Step 1** (`#launchdek-onboarding-step-1`): paste SOP text (`#launchdek-onboarding-paste`) → live preview (`#launchdek-onboarding-preview`); placeholder shows sample preview until user types.
+  - **Step 1** (`#launchdek-onboarding-step-1`): paste SOP text (`#launchdek-onboarding-paste`) → live preview (`#launchdek-onboarding-preview`); placeholder shows sample preview until user types; **Start from a template** (`#launchdek-onboarding-use-template`) opens template picker with `importMode: populate`.
   - **Step 2** (`#launchdek-onboarding-step-2`): optional existing-site select (`#launchdek-onboarding-site`) or new-site connect panel (`#launchdek-onboarding-connect-panel`, `/sites/test`, `/sites`) → save checklist (`POST /checklists`) → optional run (`POST /runs`) → dismiss (`POST /onboarding/dismiss`).
-  - Shows when `launchdekAdmin.onboarding.show` is true or URL has `?onboarding=1`.
+  - Shows when `launchdekAdmin.onboarding.show` is true or URL has `?onboarding=1`; Settings **Show onboarding wizard** resets via `POST /onboarding/reset` then calls `launchdekOpenOnboarding()`.
 
 ### `launchdekAdmin` shape
 
@@ -59,7 +82,11 @@ Each init no-ops if `[data-launchdek-page="{page}"]` is absent.
 	strings: {
 		confirmDelete, confirmDeleteSite, saved, error, loading,
 		healthOk, healthFail, healthUnknown, connectionOk, connectionFail,
-		cloneToChecklist, templateCloned, savedToVault, noVaultTemplates, noCategoryTemplates,
+		cloneToChecklist, templateCloned, checklistTitleRequired, noCustomChecklists, noCustomTemplates,
+		editChecklist, customChecklistBadge, checklistCloned, confirmDeleteChecklist,
+		savedToVault, noVaultTemplates, noCategoryTemplates,
+		chooseTemplate, startBlankInstead, importTemplate, cancel, allCategories,
+		templateImported, selectTemplateFirst, templateStepsHeading, templateStepsEmpty, templateStepsNone,
 		stepsCount, viewSteps, hideSteps, checklistSteps, stepsPreviewHint,
 		connected, notDetected, setup,
 		onboardingTitle, onboardingProgressLabel, onboardingStep1, onboardingStep1Hint,
@@ -88,8 +115,9 @@ Prefix all selectors with `.launchdek-`.
 | `.launchdek-log-feed`, `.launchdek-log-item` | Activity feed (`#launchdek-log-feed`) |
 | `.launchdek-badge`, `.launchdek-tag` | Site health / tags |
 | `.launchdek-modal`, `.launchdek-modal-backdrop`, `.launchdek-modal-content`, `.launchdek-modal-actions` | Modals (`[hidden]` when closed) |
-| `.launchdek-onboarding-modal`, `.launchdek-onboarding-progress`, `.launchdek-onboarding-progress-segments`, `.launchdek-onboarding-progress-segment`, `.launchdek-onboarding-progress-segment-bar`, `.launchdek-onboarding-progress-segment-text`, `.launchdek-onboarding-progress-segment-label`, `.launchdek-onboarding-progress-segment-hint` | Segmented 2-step progress (`#launchdek-onboarding-progress`); modifiers `.is-active`, `.is-complete` on segments |
-| `.launchdek-onboarding-columns`, `.launchdek-onboarding-preview`, `.launchdek-onboarding-preview.is-sample`, `.launchdek-onboarding-connect-panel`, `.launchdek-onboarding-test-status`, `.launchdek-onboarding-optional`, `.launchdek-onboarding-existing-site` | Dashboard onboarding modal (`#launchdek-onboarding-modal`) |
+| `.launchdek-template-picker-modal`, `.launchdek-template-picker-content`, `.launchdek-template-picker-header`, `.launchdek-template-picker-close`, `.launchdek-template-picker-filters`, `.launchdek-template-picker-filter`, `.launchdek-template-picker-body`, `.launchdek-template-picker-list`, `.launchdek-template-picker-item`, `.launchdek-template-picker-item-body`, `.launchdek-template-picker-item-title`, `.launchdek-template-picker-item-desc`, `.launchdek-template-picker-item-meta`, `.launchdek-template-picker-steps`, `.launchdek-template-picker-steps-list`, `.launchdek-template-picker-steps-heading`, `.launchdek-template-picker-steps-empty`, `.launchdek-template-picker-footer`, `.launchdek-template-picker-footer-actions`, `.launchdek-template-picker-loading`, `.launchdek-template-picker-empty` | Template picker modal (`#launchdek-template-picker-modal`); filter/item modifiers `.is-active`, `.is-selected` |
+| `.launchdek-onboarding-modal`, `.launchdek-onboarding-header`, `.launchdek-onboarding-title-line`, `.launchdek-onboarding-title-main`, `.launchdek-onboarding-title-sep`, `.launchdek-onboarding-title-tagline`, `.launchdek-onboarding-close`, `.launchdek-onboarding-progress`, `.launchdek-onboarding-progress-segments`, `.launchdek-onboarding-progress-segment`, `.launchdek-onboarding-progress-segment-bar`, `.launchdek-onboarding-progress-segment-text`, `.launchdek-onboarding-progress-segment-label`, `.launchdek-onboarding-progress-segment-hint` | Onboarding modal (`#launchdek-onboarding-modal`); segment modifiers `.is-active`, `.is-complete` |
+| `.launchdek-onboarding-intro`, `.launchdek-onboarding-outro`, `.launchdek-onboarding-columns`, `.launchdek-onboarding-pane-label`, `.launchdek-onboarding-textarea`, `.launchdek-onboarding-preview`, `.launchdek-onboarding-preview.is-sample`, `.launchdek-onboarding-preview-title`, `.launchdek-onboarding-preview-list`, `.launchdek-onboarding-preview-item`, `.launchdek-onboarding-footer`, `.launchdek-onboarding-footer-actions`, `.launchdek-onboarding-connect-panel`, `.launchdek-onboarding-field-row`, `.launchdek-onboarding-test-row`, `.launchdek-onboarding-test-status`, `.launchdek-onboarding-optional`, `.launchdek-onboarding-existing-site` | Onboarding step layout, preview, and connect panel |
 | `.launchdek-list` | Selectable lists |
 | `.launchdek-builder-layout`, `.launchdek-builder-workspace` | Checklist builder layout |
 | `.launchdek-canvas-card`, `.launchdek-checklist-canvas`, `.launchdek-canvas-flow` | Drag-and-drop checklist canvas |
@@ -115,7 +143,16 @@ Status modifiers: `.healthy`, `.unhealthy`, `.unknown`, `.active`, `.success`, `
 
 ## Partials (`admin/partials/`)
 
-Thin shells only — no business logic. Each sets `data-launchdek-page` on `.launchdek-admin` root (including `settings`). Settings page uses Settings API form, not REST-driven CRUD.
+Thin shells only — no business logic. Each page partial sets `data-launchdek-page` on `.launchdek-admin` root (including `settings`). Settings page uses Settings API form, not REST-driven CRUD.
+
+Shared modal partials (require at end of page partial, do not duplicate markup):
+
+| Partial | Included on |
+|---------|-------------|
+| `launchdek-onboarding-modal.php` | dashboard, settings |
+| `launchdek-template-picker-modal.php` | dashboard, checklists, settings |
+
+Dashboard and settings include both modals (onboarding opens the picker from step 1). Checklists includes only the template picker.
 
 ## Enqueuing
 

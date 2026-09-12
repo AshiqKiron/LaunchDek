@@ -56,6 +56,12 @@ class LAUNCHDEK_REST_API {
 			'permission_callback' => array( __CLASS__, 'can_view_dashboard' ),
 		) );
 
+		register_rest_route( self::NAMESPACE, '/onboarding/reset', array(
+			'methods'             => 'POST',
+			'callback'            => array( __CLASS__, 'reset_onboarding' ),
+			'permission_callback' => array( __CLASS__, 'can_manage_settings' ),
+		) );
+
 		// Sites.
 		register_rest_route( self::NAMESPACE, '/sites', array(
 			array(
@@ -373,11 +379,24 @@ class LAUNCHDEK_REST_API {
 	 * @return WP_REST_Response
 	 */
 	public static function dismiss_onboarding() {
-		$settings                           = LAUNCHDEK_Settings::get();
-		$settings['onboarding_dismissed']     = true;
+		$settings                         = LAUNCHDEK_Settings::get();
+		$settings['onboarding_dismissed'] = true;
 		update_option( LAUNCHDEK_Settings::OPTION_NAME, $settings );
 
 		return rest_ensure_response( array( 'dismissed' => true ) );
+	}
+
+	/**
+	 * Clear onboarding dismissal so the wizard can be shown again.
+	 *
+	 * @return WP_REST_Response
+	 */
+	public static function reset_onboarding() {
+		$settings                         = LAUNCHDEK_Settings::get();
+		$settings['onboarding_dismissed'] = false;
+		update_option( LAUNCHDEK_Settings::OPTION_NAME, $settings );
+
+		return rest_ensure_response( array( 'dismissed' => false ) );
 	}
 
 	// Sites handlers.

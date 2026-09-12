@@ -75,4 +75,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 			<button type="button" class="button" id="launchdek-import-checklist"><?php esc_html_e( 'Import', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
 		</div>
 	</div>
+
+	<?php require LAUNCHDEK_PLUGIN_DIR . 'admin/partials/launchdek-template-picker-modal.php'; ?>
 </div>

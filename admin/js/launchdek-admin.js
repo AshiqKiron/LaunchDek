@@ -22,7 +22,18 @@
 			opts.body = JSON.stringify(body);
 		}
 		return fetch(API + path, opts).then(function (res) {
-			return res.json().then(function (data) {
+			return res.text().then(function (text) {
+				var data = null;
+				if (text) {
+					try {
+						data = JSON.parse(text);
+					} catch (e) {
+						if (res.status === 404) {
+							throw new Error(strings.restUnavailable || 'REST API is unavailable. On the hub site, go to Settings → Permalinks, choose Post name, and save.');
+						}
+						throw new Error(strings.error || 'Something went wrong.');
+					}
+				}
 				if (!res.ok) {
 					var msg = (data && data.message) ? data.message : strings.error;
 					throw new Error(msg);
@@ -132,6 +143,316 @@
 		};
 	}
 
+	function templateToPasteText(template) {
+		var lines = [template.title || 'Untitled Checklist'];
+		(template.steps || []).forEach(function (step) {
+			lines.push('- ' + (step.title || 'Step'));
+		});
+		return lines.join('\n');
+	}
+
+	// ─── Template picker ─────────────────────────────────────
+	var pickerTemplates = [];
+	var pickerCategories = {};
+	var pickerSelectedSlug = null;
+	var pickerActiveCategory = 'all';
+	var pickerLoaded = false;
+	var pickerLoadingPromise = null;
+	var pickerCallbacks = null;
+
+	function loadPickerTemplates() {
+		if (pickerLoaded) {
+			return Promise.resolve();
+		}
+		if (pickerLoadingPromise) {
+			return pickerLoadingPromise;
+		}
+
+		pickerLoadingPromise = get('/templates').then(function (data) {
+			pickerTemplates = data.builtin || [];
+			pickerCategories = data.categories || {};
+			pickerLoaded = true;
+		}).catch(function (err) {
+			pickerLoadingPromise = null;
+			throw err;
+		});
+
+		return pickerLoadingPromise;
+	}
+
+	function getPickerFilteredTemplates() {
+		if (pickerActiveCategory === 'all') {
+			return pickerTemplates.slice();
+		}
+		return pickerTemplates.filter(function (tpl) {
+			return tpl.category === pickerActiveCategory;
+		});
+	}
+
+	function getPickerTemplateBySlug(slug) {
+		for (var i = 0; i < pickerTemplates.length; i++) {
+			if (pickerTemplates[i].template_slug === slug) {
+				return pickerTemplates[i];
+			}
+		}
+		return null;
+	}
+
+	function renderPickerStepsPreview() {
+		var stepsPanel = document.getElementById('launchdek-template-picker-steps');
+		var emptyEl = stepsPanel ? stepsPanel.querySelector('.launchdek-template-picker-steps-empty') : null;
+		var listEl = document.getElementById('launchdek-template-picker-steps-list');
+		if (!stepsPanel || !emptyEl || !listEl) {
+			return;
+		}
+
+		if (!pickerSelectedSlug) {
+			emptyEl.hidden = false;
+			emptyEl.textContent = strings.templateStepsEmpty || 'Select a template to preview its steps.';
+			listEl.hidden = true;
+			listEl.innerHTML = '';
+			return;
+		}
+
+		var template = getPickerTemplateBySlug(pickerSelectedSlug);
+		var steps = template ? (template.steps || []) : [];
+
+		if (!steps.length) {
+			emptyEl.hidden = false;
+			emptyEl.textContent = strings.templateStepsNone || 'This template has no steps yet.';
+			listEl.hidden = true;
+			listEl.innerHTML = '';
+			return;
+		}
+
+		emptyEl.hidden = true;
+		listEl.hidden = false;
+		listEl.innerHTML = '';
+		steps.forEach(function (step) {
+			listEl.appendChild(el('li', { text: step.title || 'Step' }));
+		});
+	}
+
+	function updatePickerImportButton() {
+		var importBtn = document.getElementById('launchdek-template-picker-import');
+		if (importBtn) {
+			importBtn.disabled = !pickerSelectedSlug;
+		}
+	}
+
+	function renderPickerFilters() {
+		var filtersEl = document.getElementById('launchdek-template-picker-filters');
+		if (!filtersEl) return;
+
+		filtersEl.innerHTML = '';
+
+		var allBtn = el('button', {
+			type: 'button',
+			className: 'launchdek-template-picker-filter' + (pickerActiveCategory === 'all' ? ' is-active' : ''),
+			text: strings.allCategories || 'All',
+			'data-category': 'all',
+			role: 'tab',
+			'aria-selected': pickerActiveCategory === 'all' ? 'true' : 'false'
+		});
+		allBtn.onclick = function () {
+			pickerActiveCategory = 'all';
+			pickerSelectedSlug = null;
+			renderPickerFilters();
+			renderPickerList();
+			renderPickerStepsPreview();
+			updatePickerImportButton();
+		};
+		filtersEl.appendChild(allBtn);
+
+		Object.keys(pickerCategories).forEach(function (slug) {
+			var count = pickerTemplates.filter(function (tpl) {
+				return tpl.category === slug;
+			}).length;
+			if (!count) {
+				return;
+			}
+
+			var meta = pickerCategories[slug];
+			var isActive = pickerActiveCategory === slug;
+			var filterBtn = el('button', {
+				type: 'button',
+				className: 'launchdek-template-picker-filter' + (isActive ? ' is-active' : ''),
+				text: meta.label || slug,
+				'data-category': slug,
+				role: 'tab',
+				'aria-selected': isActive ? 'true' : 'false'
+			});
+			filterBtn.onclick = function () {
+				pickerActiveCategory = slug;
+				pickerSelectedSlug = null;
+				renderPickerFilters();
+				renderPickerList();
+				renderPickerStepsPreview();
+				updatePickerImportButton();
+			};
+			filtersEl.appendChild(filterBtn);
+		});
+	}
+
+	function renderPickerList() {
+		var listEl = document.getElementById('launchdek-template-picker-list');
+		if (!listEl) return;
+
+		var items = getPickerFilteredTemplates();
+		listEl.innerHTML = '';
+
+		if (!items.length) {
+			listEl.innerHTML = '<p class="launchdek-muted launchdek-template-picker-empty">' + escHtml(strings.noCategoryTemplates || 'No templates in this category yet.') + '</p>';
+			renderPickerStepsPreview();
+			return;
+		}
+
+		items.forEach(function (tpl) {
+			var slug = tpl.template_slug || '';
+			var steps = tpl.steps || [];
+			var isSelected = pickerSelectedSlug === slug;
+			var item = el('button', {
+				type: 'button',
+				className: 'launchdek-template-picker-item' + (isSelected ? ' is-selected' : ''),
+				role: 'option',
+				'aria-selected': isSelected ? 'true' : 'false',
+				'data-slug': slug
+			});
+
+			var body = el('div', { className: 'launchdek-template-picker-item-body' });
+			body.appendChild(el('p', { className: 'launchdek-template-picker-item-title', text: tpl.title || slug }));
+			body.appendChild(el('p', { className: 'launchdek-template-picker-item-desc', text: tpl.description || '' }));
+
+			var meta = el('span', {
+				className: 'launchdek-template-picker-item-meta',
+				text: formatStepsCount(steps.length)
+			});
+
+			item.appendChild(body);
+			item.appendChild(meta);
+
+			item.onclick = function () {
+				pickerSelectedSlug = slug;
+				renderPickerList();
+				renderPickerStepsPreview();
+				updatePickerImportButton();
+			};
+
+			listEl.appendChild(item);
+		});
+
+		renderPickerStepsPreview();
+	}
+
+	function closeTemplatePicker() {
+		var modal = document.getElementById('launchdek-template-picker-modal');
+		if (modal) {
+			modal.hidden = true;
+		}
+		var noticeEl = document.getElementById('launchdek-template-picker-notice');
+		if (noticeEl) {
+			noticeEl.innerHTML = '';
+		}
+		pickerCallbacks = null;
+	}
+
+	function openTemplatePicker(callbacks) {
+		var modal = document.getElementById('launchdek-template-picker-modal');
+		if (!modal) return;
+
+		pickerCallbacks = callbacks || null;
+		pickerSelectedSlug = null;
+		pickerActiveCategory = 'all';
+		renderPickerStepsPreview();
+
+		var listEl = document.getElementById('launchdek-template-picker-list');
+		if (listEl) {
+			listEl.innerHTML = '<p class="launchdek-muted launchdek-template-picker-loading">' + escHtml(strings.loading || 'Loading…') + '</p>';
+		}
+
+		modal.hidden = false;
+		updatePickerImportButton();
+
+		loadPickerTemplates().then(function () {
+			renderPickerFilters();
+			renderPickerList();
+			updatePickerImportButton();
+		}).catch(function (err) {
+			if (listEl) {
+				listEl.innerHTML = '<p class="launchdek-muted launchdek-template-picker-empty">' + escHtml(err.message) + '</p>';
+			}
+		});
+	}
+
+	function importSelectedTemplate() {
+		var noticeEl = document.getElementById('launchdek-template-picker-notice');
+		var importBtn = document.getElementById('launchdek-template-picker-import');
+
+		if (!pickerSelectedSlug) {
+			notice(noticeEl, strings.selectTemplateFirst || 'Select a template to import.', 'error');
+			return;
+		}
+
+		var callbacks = pickerCallbacks;
+		var importMode = (callbacks && callbacks.importMode) || 'clone';
+
+		if (importMode === 'populate') {
+			var template = getPickerTemplateBySlug(pickerSelectedSlug);
+			if (!template) {
+				notice(noticeEl, strings.error || 'Something went wrong.', 'error');
+				return;
+			}
+			closeTemplatePicker();
+			if (callbacks && typeof callbacks.onImport === 'function') {
+				callbacks.onImport(template);
+			}
+			return;
+		}
+
+		if (importBtn) {
+			importBtn.disabled = true;
+		}
+		notice(noticeEl, '', '');
+
+		post('/templates/' + pickerSelectedSlug + '/clone', {}).then(function (checklist) {
+			var activeCallbacks = pickerCallbacks;
+			closeTemplatePicker();
+			if (activeCallbacks && typeof activeCallbacks.onImport === 'function') {
+				activeCallbacks.onImport(checklist);
+			}
+		}).catch(function (err) {
+			notice(noticeEl, err.message, 'error');
+			updatePickerImportButton();
+		}).finally(function () {
+			if (importBtn) {
+				importBtn.disabled = !pickerSelectedSlug;
+			}
+		});
+	}
+
+	function initTemplatePicker() {
+		var modal = document.getElementById('launchdek-template-picker-modal');
+		if (!modal) return;
+
+		window.launchdekOpenTemplatePicker = openTemplatePicker;
+
+		modal.querySelectorAll('.launchdek-template-picker-close, .launchdek-modal-backdrop').forEach(function (node) {
+			node.addEventListener('click', closeTemplatePicker);
+		});
+
+		document.getElementById('launchdek-template-picker-cancel').addEventListener('click', closeTemplatePicker);
+
+		document.getElementById('launchdek-template-picker-blank').addEventListener('click', function () {
+			var callbacks = pickerCallbacks;
+			closeTemplatePicker();
+			if (callbacks && typeof callbacks.onBlank === 'function') {
+				callbacks.onBlank();
+			}
+		});
+
+		document.getElementById('launchdek-template-picker-import').addEventListener('click', importSelectedTemplate);
+	}
+
 	function initOnboarding() {
 		var modal = document.getElementById('launchdek-onboarding-modal');
 		if (!modal) return;
@@ -162,6 +483,11 @@
 
 		function closeOnboarding() {
 			modal.hidden = true;
+		}
+
+		function dismissAndCloseOnboarding() {
+			closeOnboarding();
+			dismissOnboarding();
 		}
 
 		function resetOnboardingModal() {
@@ -361,22 +687,22 @@
 		}
 
 		modal.querySelectorAll('.launchdek-onboarding-close, .launchdek-modal-backdrop').forEach(function (node) {
-			node.addEventListener('click', function () {
-				dismissOnboarding().finally(closeOnboarding);
-			});
+			node.addEventListener('click', dismissAndCloseOnboarding);
 		});
 
-		document.getElementById('launchdek-onboarding-skip').addEventListener('click', function () {
-			dismissOnboarding().finally(closeOnboarding);
-		});
+		document.getElementById('launchdek-onboarding-skip').addEventListener('click', dismissAndCloseOnboarding);
 
 		document.getElementById('launchdek-onboarding-use-template').addEventListener('click', function () {
-			dismissOnboarding().finally(function () {
-				if (onboarding.templatesUrl) {
-					window.location.href = onboarding.templatesUrl;
-				} else {
-					closeOnboarding();
-				}
+			openTemplatePicker({
+				importMode: 'populate',
+				onImport: function (template) {
+					pasteInput.value = templateToPasteText(template);
+					parsedChecklist = parsePastedChecklist(pasteInput.value);
+					savedChecklistId = null;
+					renderPreview();
+					step1Notice.innerHTML = '';
+				},
+				onBlank: function () {}
 			});
 		});
 
@@ -403,9 +729,7 @@
 
 		document.getElementById('launchdek-onboarding-back').addEventListener('click', showStep1);
 
-		document.getElementById('launchdek-onboarding-skip-step2').addEventListener('click', function () {
-			dismissOnboarding().finally(closeOnboarding);
-		});
+		document.getElementById('launchdek-onboarding-skip-step2').addEventListener('click', dismissAndCloseOnboarding);
 
 		document.getElementById('launchdek-onboarding-test').addEventListener('click', function () {
 			var creds = getConnectCredentials();
@@ -584,32 +908,46 @@
 	function loadSites() {
 		var tag = document.getElementById('launchdek-filter-tag');
 		var group = document.getElementById('launchdek-filter-group');
+		var tbody = document.querySelector('#launchdek-sites-table tbody');
+		if (!tbody) {
+			return;
+		}
+
 		var qs = '?';
 		if (tag && tag.value) qs += 'tag=' + encodeURIComponent(tag.value) + '&';
 		if (group && group.value) qs += 'group_type=' + encodeURIComponent(group.value) + '&';
 
+		tbody.innerHTML = '<tr><td colspan="6" class="launchdek-muted">' + escHtml(strings.loading || 'Loading…') + '</td></tr>';
+
 		get('/sites' + qs).then(function (sites) {
-			var tbody = document.querySelector('#launchdek-sites-table tbody');
 			tbody.innerHTML = '';
-			if (!sites.length) {
-				tbody.innerHTML = '<tr><td colspan="6" class="launchdek-muted">No sites registered yet.</td></tr>';
+			if (!sites || !sites.length) {
+				var emptyMsg = strings.noSites || 'No sites registered yet.';
+				if (group && group.value) {
+					emptyMsg = strings.noSitesFiltered || 'No sites match the current filters. Try clearing tag or group filters.';
+				} else if (tag && tag.value) {
+					emptyMsg = strings.noSitesFiltered || 'No sites match the current filters. Try clearing tag or group filters.';
+				}
+				tbody.innerHTML = '<tr><td colspan="6" class="launchdek-muted">' + escHtml(emptyMsg) + '</td></tr>';
 				return;
 			}
 			sites.forEach(function (site) {
 				var tr = el('tr');
 				tr.innerHTML =
-					'<td>' + site.name + '</td>' +
-					'<td><a href="' + site.url + '" target="_blank" rel="noopener">' + site.url + '</a></td>' +
-					'<td>' + (site.wp_version || '—') + '</td>' +
-					'<td>' + (site.php_version || '—') + '</td>' +
-					'<td><span class="launchdek-badge ' + site.health_status + '">' + healthLabel(site.health_status) + '</span></td>' +
+					'<td>' + escHtml(site.name) + '</td>' +
+					'<td><a href="' + escAttr(site.url) + '" target="_blank" rel="noopener">' + escHtml(site.url) + '</a></td>' +
+					'<td>' + escHtml(site.wp_version || '—') + '</td>' +
+					'<td>' + escHtml(site.php_version || '—') + '</td>' +
+					'<td><span class="launchdek-badge ' + escAttr(site.health_status) + '">' + escHtml(healthLabel(site.health_status)) + '</span></td>' +
 					'<td class="launchdek-actions">' +
-					'<button type="button" class="button button-small launchdek-edit-site" data-id="' + site.id + '">Edit</button> ' +
-					'<button type="button" class="button button-small launchdek-test-site" data-id="' + site.id + '">Test</button>' +
+					'<button type="button" class="button button-small launchdek-edit-site" data-id="' + escAttr(site.id) + '">Edit</button> ' +
+					'<button type="button" class="button button-small launchdek-test-site" data-id="' + escAttr(site.id) + '">Test</button>' +
 					'</td>';
 				tbody.appendChild(tr);
 			});
 			bindSiteActions();
+		}).catch(function (err) {
+			tbody.innerHTML = '<tr><td colspan="6"><div class="notice-inline error">' + escHtml(err.message || strings.error || 'Could not load sites.') + '</div></td></tr>';
 		});
 	}
 
@@ -981,7 +1319,14 @@
 			loadChecklistEditor(openId);
 		}
 
-		document.getElementById('launchdek-new-checklist').onclick = newChecklist;
+		document.getElementById('launchdek-new-checklist').onclick = function () {
+			openTemplatePicker({
+				onImport: function (checklist) {
+					loadChecklistEditor(checklist.id);
+				},
+				onBlank: newChecklist
+			});
+		};
 		document.getElementById('launchdek-add-step').onclick = function () {
 			currentSteps.push({
 				id: 'step_' + (currentSteps.length + 1),
@@ -1835,6 +2180,7 @@
 		var root = document.querySelector('.launchdek-admin');
 		if (root) root.setAttribute('data-launchdek-ready', 'true');
 
+		initTemplatePicker();
 		initOnboarding();
 		initDashboard();
 		initSites();

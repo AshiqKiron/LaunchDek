@@ -60,7 +60,7 @@ array(
 	'enabled'                    => true,
 	'encrypt_credentials'        => true,
 	'drift_verification_enabled'  => true,
-	'onboarding_dismissed'       => false, // set via POST /onboarding/dismiss or Settings checkbox
+	'onboarding_dismissed'       => false, // set via POST /onboarding/dismiss; cleared via POST /onboarding/reset
 	'slack_webhook'              => '',
 	'discord_webhook'            => '',
 	'teams_webhook'              => '',
@@ -127,7 +127,14 @@ All non-settings pages use `render_page()` which passes `$settings`, `$page`, an
 | `launchdek-integrations-page.php` | `integrations` |
 | `launchdek-settings-page.php` | `settings` (Settings API form) |
 
-Document `@var` annotations at the top of partials.
+Shared modal partials (included via `require`, not `$page`-routed):
+
+| Partial | Included on |
+|---------|-------------|
+| `launchdek-onboarding-modal.php` | dashboard, settings |
+| `launchdek-template-picker-modal.php` | dashboard, checklists, settings |
+
+Document `@var` annotations at the top of page partials.
 
 ## Settings Page Sections
 
@@ -135,8 +142,13 @@ Settings partial (`launchdek-settings-page.php`) uses Settings API form with car
 - **Platform** — `enabled`, `encrypt_credentials`, `drift_verification_enabled`
 - **Notification Channels** — Slack/Teams/Discord webhooks + event checkboxes (`LAUNCHDEK_Settings::get_notification_events()`)
 - **Agency Role Guardrails** — preset cards (`get_agency_role_presets()`) + role-permission matrix (`role_permissions`)
+- **Onboarding** — `#launchdek-show-onboarding` button; requires shared onboarding + template-picker modal partials below the form
 
 Telemetry sync rules are managed on the Integrations page (REST), not the Settings form.
+
+Onboarding REST handlers in `LAUNCHDEK_REST_API`:
+- `POST /onboarding/dismiss` → `dismiss_onboarding()` (`can_view_dashboard`) — sets `onboarding_dismissed` to `true`
+- `POST /onboarding/reset` → `reset_onboarding()` (`can_manage_settings`) — sets `onboarding_dismissed` to `false` for Settings preview
 
 ## New Integration Checklist
 

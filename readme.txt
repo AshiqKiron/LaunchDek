@@ -43,6 +43,11 @@ Yes, when enabled in Settings, application passwords are encrypted using your Wo
 
 == Changelog ==
 
+= 1.0.4 =
+* Template picker modal with capsule category filters — "Start from a template" and New Checklist open an in-page chooser instead of redirecting to the Templates page
+* Template picker shows a steps preview panel before import; onboarding loads template steps into the paste field and live preview
+* Select a built-in checklist template and import it directly into the builder or onboarding paste/preview
+
 = 1.0.3 =
 * Dashboard onboarding modal: paste plain-text SOPs for a live checklist preview, connect a remote site with inline connection test, and Finish & Launch your first run
 * Onboarding step 2 aligned to wireframe: App Password fields, Test Connection status, and Skip / Finish & Launch actions

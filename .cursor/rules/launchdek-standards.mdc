@@ -34,7 +34,9 @@ Cross-cutting quality standards. See also: `launchdek-project.mdc` (architecture
 - Add notices sparingly; use `.launchdek-notice-area` + `.notice-inline` for inline feedback.
 - Load plugin-screen assets only via `is_plugin_screen()`.
 - Features must respect the global `enabled` kill switch.
-- Settings page uses WordPress Settings API (platform toggles, webhooks, role-permission matrix); all other pages use REST-driven JS UI.
+- Settings page uses WordPress Settings API (platform toggles, webhooks, role-permission matrix, onboarding preview button); all other pages use REST-driven JS UI.
+- Shared modals (`launchdek-onboarding-modal.php`, `launchdek-template-picker-modal.php`) are thin partials included via `require` — do not duplicate markup across pages.
+- Modal close/dismiss: hide with `[hidden]` immediately; persist onboarding dismissal via REST in the background (do not block UI on network).
 
 ## Performance
 

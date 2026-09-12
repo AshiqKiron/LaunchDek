@@ -133,54 +133,67 @@ $channels      = array(
 				<h3><?php esc_html_e( 'Assign WordPress Roles', LAUNCHDEK_TEXT_DOMAIN ); ?></h3>
 				<p class="launchdek-muted"><?php esc_html_e( 'Map each WordPress role to LaunchDek capabilities. Administrators always retain full access.', LAUNCHDEK_TEXT_DOMAIN ); ?></p>
 
-				<table class="launchdek-settings-perm-table widefat">
-					<thead>
-						<tr>
-							<th scope="col"><?php esc_html_e( 'Capability', LAUNCHDEK_TEXT_DOMAIN ); ?></th>
-							<?php foreach ( $wp_roles as $role_slug => $role_name ) : ?>
-								<?php if ( 'administrator' === $role_slug ) : ?>
-									<?php continue; ?>
-								<?php endif; ?>
-								<th scope="col"><?php echo esc_html( translate_user_role( $role_name ) ); ?></th>
-							<?php endforeach; ?>
-						</tr>
-					</thead>
-					<tbody>
-						<?php foreach ( $guard_caps as $cap ) : ?>
+				<div class="launchdek-settings-perm-scroll" tabindex="0" role="region" aria-label="<?php esc_attr_e( 'WordPress role permission matrix', LAUNCHDEK_TEXT_DOMAIN ); ?>">
+					<table class="launchdek-settings-perm-table widefat">
+						<thead>
 							<tr>
-								<th scope="row"><?php echo esc_html( $cap_labels[ $cap ] ?? $cap ); ?></th>
+								<th scope="col"><?php esc_html_e( 'Capability', LAUNCHDEK_TEXT_DOMAIN ); ?></th>
 								<?php foreach ( $wp_roles as $role_slug => $role_name ) : ?>
 									<?php if ( 'administrator' === $role_slug ) : ?>
 										<?php continue; ?>
 									<?php endif; ?>
-									<td>
-										<label class="launchdek-settings-perm-check">
-											<span class="screen-reader-text">
-												<?php
-												printf(
-													/* translators: 1: capability label, 2: role name */
-													esc_html__( 'Allow %1$s for %2$s', LAUNCHDEK_TEXT_DOMAIN ),
-													$cap_labels[ $cap ] ?? $cap,
-													translate_user_role( $role_name )
-												);
-												?>
-											</span>
-											<input
-												type="checkbox"
-												name="<?php echo esc_attr( $option_name ); ?>[role_permissions][<?php echo esc_attr( $cap ); ?>][]"
-												value="<?php echo esc_attr( $role_slug ); ?>"
-												<?php checked( ! empty( $role_perms[ $cap ] ) && in_array( $role_slug, $role_perms[ $cap ], true ) ); ?>
-											/>
-										</label>
-									</td>
+									<th scope="col"><?php echo esc_html( translate_user_role( $role_name ) ); ?></th>
 								<?php endforeach; ?>
 							</tr>
-						<?php endforeach; ?>
-					</tbody>
-				</table>
+						</thead>
+						<tbody>
+							<?php foreach ( $guard_caps as $cap ) : ?>
+								<tr>
+									<th scope="row"><?php echo esc_html( $cap_labels[ $cap ] ?? $cap ); ?></th>
+									<?php foreach ( $wp_roles as $role_slug => $role_name ) : ?>
+										<?php if ( 'administrator' === $role_slug ) : ?>
+											<?php continue; ?>
+										<?php endif; ?>
+										<td>
+											<label class="launchdek-settings-perm-check">
+												<span class="screen-reader-text">
+													<?php
+													printf(
+														/* translators: 1: capability label, 2: role name */
+														esc_html__( 'Allow %1$s for %2$s', LAUNCHDEK_TEXT_DOMAIN ),
+														$cap_labels[ $cap ] ?? $cap,
+														translate_user_role( $role_name )
+													);
+													?>
+												</span>
+												<input
+													type="checkbox"
+													name="<?php echo esc_attr( $option_name ); ?>[role_permissions][<?php echo esc_attr( $cap ); ?>][]"
+													value="<?php echo esc_attr( $role_slug ); ?>"
+													<?php checked( ! empty( $role_perms[ $cap ] ) && in_array( $role_slug, $role_perms[ $cap ], true ) ); ?>
+												/>
+											</label>
+										</td>
+									<?php endforeach; ?>
+								</tr>
+							<?php endforeach; ?>
+						</tbody>
+					</table>
+				</div>
 			</div>
+		</div>
+
+		<div class="launchdek-card launchdek-settings-card">
+			<h2><?php esc_html_e( 'Onboarding', LAUNCHDEK_TEXT_DOMAIN ); ?></h2>
+			<p class="launchdek-settings-lead"><?php esc_html_e( 'Preview the first-run onboarding wizard without leaving Settings.', LAUNCHDEK_TEXT_DOMAIN ); ?></p>
+			<button type="button" class="button button-secondary" id="launchdek-show-onboarding">
+				<?php esc_html_e( 'Show onboarding wizard', LAUNCHDEK_TEXT_DOMAIN ); ?>
+			</button>
 		</div>
 
 		<?php submit_button(); ?>
 	</form>
+
+	<?php require LAUNCHDEK_PLUGIN_DIR . 'admin/partials/launchdek-onboarding-modal.php'; ?>
+	<?php require LAUNCHDEK_PLUGIN_DIR . 'admin/partials/launchdek-template-picker-modal.php'; ?>
 </div>
