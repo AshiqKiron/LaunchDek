@@ -151,7 +151,8 @@ class LAUNCHDEK_Audit_Log {
 
 		return array_map(
 			function ( $entry ) {
-				$entry['message'] = self::format_feed_message( $entry );
+				$entry['show_site_label'] = self::feed_entry_show_site_label( $entry );
+				$entry['message']         = self::format_feed_message( $entry, ! $entry['show_site_label'] );
 				return $entry;
 			},
 			$entries
@@ -159,18 +160,60 @@ class LAUNCHDEK_Audit_Log {
 	}
 
 	/**
-	 * Build a human-readable message for the dashboard log feed.
+	 * Whether a dashboard feed entry should render a separate site name label.
 	 *
 	 * @param array $entry Formatted audit entry.
+	 * @return bool
+	 */
+	public static function feed_entry_show_site_label( $entry ) {
+		if ( empty( $entry['site_name'] ) ) {
+			return false;
+		}
+
+		$site_scoped_actions = array(
+			'run_started',
+			'run_status_changed',
+			'site_created',
+			'site_updated',
+			'site_deleted',
+			'connection_test',
+			'client_step_completed',
+			'client_step_note_added',
+			'client_run_pushed',
+			'drift_verified',
+			'manual_step_completed',
+			'api_step_executed',
+		);
+
+		if ( in_array( $entry['action'], $site_scoped_actions, true ) ) {
+			return true;
+		}
+
+		return ! empty( $entry['site_id'] ) || ! empty( $entry['run_id'] );
+	}
+
+	/**
+	 * Build a human-readable message for the dashboard log feed.
+	 *
+	 * @param array $entry     Formatted audit entry.
+	 * @param bool  $embed_site Include the site name in the message text.
 	 * @return string
 	 */
-	public static function format_feed_message( $entry ) {
+	public static function format_feed_message( $entry, $embed_site = true ) {
 		$details = is_array( $entry['details'] ) ? $entry['details'] : array();
 		$site    = self::resolve_site_name( (int) $entry['site_id'], $entry['run_id'], $details );
 
 		switch ( $entry['action'] ) {
 			case 'run_started':
 				$checklist_title = $details['checklist'] ?? $details['workflow'] ?? __( 'Checklist', LAUNCHDEK_TEXT_DOMAIN );
+
+				if ( ! $embed_site ) {
+					return sprintf(
+						/* translators: %s: checklist title */
+						__( "Checklist '%s' started", LAUNCHDEK_TEXT_DOMAIN ),
+						$checklist_title
+					);
+				}
 
 				return sprintf(
 					/* translators: 1: checklist title, 2: site name */
@@ -184,20 +227,48 @@ class LAUNCHDEK_Audit_Log {
 				$run    = $entry['run_id'] ? LAUNCHDEK_Run_Repository::find( (int) $entry['run_id'] ) : null;
 
 				if ( $run && 'completed' === $status ) {
+					$title = $run['checklist_title'] ?: __( 'Checklist', LAUNCHDEK_TEXT_DOMAIN );
+
+					if ( ! $embed_site ) {
+						return sprintf(
+							/* translators: %s: checklist title */
+							__( "Checklist '%s' completed", LAUNCHDEK_TEXT_DOMAIN ),
+							$title
+						);
+					}
+
 					return sprintf(
 						/* translators: 1: workflow title, 2: site name */
 						__( "Checklist '%1\$s' completed on %2\$s", LAUNCHDEK_TEXT_DOMAIN ),
-						$run['checklist_title'] ?: __( 'Checklist', LAUNCHDEK_TEXT_DOMAIN ),
+						$title,
 						$run['site_name'] ?: $site
 					);
 				}
 
 				if ( $run && 'failed' === $status ) {
+					$title = $run['checklist_title'] ?: __( 'Checklist', LAUNCHDEK_TEXT_DOMAIN );
+
+					if ( ! $embed_site ) {
+						return sprintf(
+							/* translators: %s: checklist title */
+							__( "Checklist '%s' failed", LAUNCHDEK_TEXT_DOMAIN ),
+							$title
+						);
+					}
+
 					return sprintf(
 						/* translators: 1: workflow title, 2: site name */
 						__( "Checklist '%1\$s' failed on %2\$s", LAUNCHDEK_TEXT_DOMAIN ),
-						$run['checklist_title'] ?: __( 'Checklist', LAUNCHDEK_TEXT_DOMAIN ),
+						$title,
 						$run['site_name'] ?: $site
+					);
+				}
+
+				if ( ! $embed_site ) {
+					return sprintf(
+						/* translators: %s: status */
+						__( 'Run status changed to %s', LAUNCHDEK_TEXT_DOMAIN ),
+						$status
 					);
 				}
 
@@ -209,6 +280,10 @@ class LAUNCHDEK_Audit_Log {
 				);
 
 			case 'site_created':
+				if ( ! $embed_site ) {
+					return __( 'Site registered', LAUNCHDEK_TEXT_DOMAIN );
+				}
+
 				return sprintf(
 					/* translators: %s: site name */
 					__( 'Site %s registered', LAUNCHDEK_TEXT_DOMAIN ),
@@ -216,6 +291,10 @@ class LAUNCHDEK_Audit_Log {
 				);
 
 			case 'site_updated':
+				if ( ! $embed_site ) {
+					return __( 'Site updated', LAUNCHDEK_TEXT_DOMAIN );
+				}
+
 				return sprintf(
 					/* translators: %s: site name */
 					__( 'Site %s updated', LAUNCHDEK_TEXT_DOMAIN ),
@@ -223,6 +302,10 @@ class LAUNCHDEK_Audit_Log {
 				);
 
 			case 'site_deleted':
+				if ( ! $embed_site ) {
+					return __( 'Site removed', LAUNCHDEK_TEXT_DOMAIN );
+				}
+
 				return sprintf(
 					/* translators: %s: site name */
 					__( 'Site %s removed', LAUNCHDEK_TEXT_DOMAIN ),
@@ -238,48 +321,102 @@ class LAUNCHDEK_Audit_Log {
 				);
 
 			case 'connection_test':
+				$result_message = $details['message'] ?? __( 'Completed', LAUNCHDEK_TEXT_DOMAIN );
+
+				if ( ! $embed_site ) {
+					return sprintf(
+						/* translators: %s: result message */
+						__( 'Connection test: %s', LAUNCHDEK_TEXT_DOMAIN ),
+						$result_message
+					);
+				}
+
 				return sprintf(
 					/* translators: 1: site name, 2: result message */
 					__( 'Connection test on %1$s: %2$s', LAUNCHDEK_TEXT_DOMAIN ),
 					$site,
-					$details['message'] ?? __( 'Completed', LAUNCHDEK_TEXT_DOMAIN )
+					$result_message
 				);
 
 			case 'client_step_completed':
+				$client_user = $details['client_user'] ?? __( 'Client user', LAUNCHDEK_TEXT_DOMAIN );
+				$step_title  = $details['step_title'] ?? __( 'step', LAUNCHDEK_TEXT_DOMAIN );
+
+				if ( ! $embed_site ) {
+					return sprintf(
+						/* translators: 1: client user, 2: step title */
+						__( '%1$s completed "%2$s"', LAUNCHDEK_TEXT_DOMAIN ),
+						$client_user,
+						$step_title
+					);
+				}
+
 				return sprintf(
 					/* translators: 1: client user, 2: step title, 3: site name */
 					__( '%1$s completed "%2$s" on %3$s', LAUNCHDEK_TEXT_DOMAIN ),
-					$details['client_user'] ?? __( 'Client user', LAUNCHDEK_TEXT_DOMAIN ),
-					$details['step_title'] ?? __( 'step', LAUNCHDEK_TEXT_DOMAIN ),
+					$client_user,
+					$step_title,
 					$site
 				);
 
 			case 'client_step_note_added':
-				$preview = $details['note_preview'] ?? '';
+				$preview     = $details['note_preview'] ?? '';
+				$client_user = $details['client_user'] ?? __( 'Client user', LAUNCHDEK_TEXT_DOMAIN );
+				$step_title  = $details['step_title'] ?? __( 'step', LAUNCHDEK_TEXT_DOMAIN );
+
 				if ( $preview ) {
+					if ( ! $embed_site ) {
+						return sprintf(
+							/* translators: 1: client user, 2: step title, 3: note preview */
+							__( '%1$s added a note on "%2$s": %3$s', LAUNCHDEK_TEXT_DOMAIN ),
+							$client_user,
+							$step_title,
+							$preview
+						);
+					}
+
 					return sprintf(
 						/* translators: 1: client user, 2: step title, 3: site name, 4: note preview */
 						__( '%1$s added a note on "%2$s" (%3$s): %4$s', LAUNCHDEK_TEXT_DOMAIN ),
-						$details['client_user'] ?? __( 'Client user', LAUNCHDEK_TEXT_DOMAIN ),
-						$details['step_title'] ?? __( 'step', LAUNCHDEK_TEXT_DOMAIN ),
+						$client_user,
+						$step_title,
 						$site,
 						$preview
+					);
+				}
+
+				if ( ! $embed_site ) {
+					return sprintf(
+						/* translators: 1: client user, 2: step title */
+						__( '%1$s added a note on "%2$s"', LAUNCHDEK_TEXT_DOMAIN ),
+						$client_user,
+						$step_title
 					);
 				}
 
 				return sprintf(
 					/* translators: 1: client user, 2: step title, 3: site name */
 					__( '%1$s added a note on "%2$s" (%3$s)', LAUNCHDEK_TEXT_DOMAIN ),
-					$details['client_user'] ?? __( 'Client user', LAUNCHDEK_TEXT_DOMAIN ),
-					$details['step_title'] ?? __( 'step', LAUNCHDEK_TEXT_DOMAIN ),
+					$client_user,
+					$step_title,
 					$site
 				);
 
 			case 'client_run_pushed':
+				$checklist_title = $details['checklist'] ?? __( 'Checklist', LAUNCHDEK_TEXT_DOMAIN );
+
+				if ( ! $embed_site ) {
+					return sprintf(
+						/* translators: %s: checklist title */
+						__( "Checklist '%s' pushed to client panel", LAUNCHDEK_TEXT_DOMAIN ),
+						$checklist_title
+					);
+				}
+
 				return sprintf(
 					/* translators: 1: checklist title, 2: site name */
 					__( "Checklist '%1\$s' pushed to %2\$s", LAUNCHDEK_TEXT_DOMAIN ),
-					$details['checklist'] ?? __( 'Checklist', LAUNCHDEK_TEXT_DOMAIN ),
+					$checklist_title,
 					$site
 				);
 
@@ -287,12 +424,24 @@ class LAUNCHDEK_Audit_Log {
 				$count = (int) ( $details['count'] ?? 0 );
 
 				if ( $count > 0 ) {
+					if ( ! $embed_site ) {
+						return sprintf(
+							/* translators: %d: drift count */
+							__( '%d drift issue(s) detected', LAUNCHDEK_TEXT_DOMAIN ),
+							$count
+						);
+					}
+
 					return sprintf(
 						/* translators: 1: drift count, 2: site name */
 						__( '%1$d drift issue(s) detected on %2$s', LAUNCHDEK_TEXT_DOMAIN ),
 						$count,
 						$site
 					);
+				}
+
+				if ( ! $embed_site ) {
+					return __( 'Drift check passed', LAUNCHDEK_TEXT_DOMAIN );
 				}
 
 				return sprintf(
@@ -302,6 +451,10 @@ class LAUNCHDEK_Audit_Log {
 				);
 
 			case 'manual_step_completed':
+				if ( ! $embed_site ) {
+					return __( 'Manual step completed', LAUNCHDEK_TEXT_DOMAIN );
+				}
+
 				return sprintf(
 					/* translators: %s: site name */
 					__( 'Manual step completed on %s', LAUNCHDEK_TEXT_DOMAIN ),
@@ -309,11 +462,23 @@ class LAUNCHDEK_Audit_Log {
 				);
 
 			case 'api_step_executed':
+				$method = $details['method'] ?? 'GET';
+				$route  = $details['route'] ?? '';
+
+				if ( ! $embed_site ) {
+					return sprintf(
+						/* translators: 1: HTTP method, 2: route */
+						__( '%1$s %2$s executed', LAUNCHDEK_TEXT_DOMAIN ),
+						$method,
+						$route
+					);
+				}
+
 				return sprintf(
 					/* translators: 1: HTTP method, 2: route, 3: site name */
 					__( '%1$s %2$s executed on %3$s', LAUNCHDEK_TEXT_DOMAIN ),
-					$details['method'] ?? 'GET',
-					$details['route'] ?? '',
+					$method,
+					$route,
 					$site
 				);
 
@@ -495,6 +660,7 @@ class LAUNCHDEK_Audit_Log {
 			'run_started'            => __( 'Run started', LAUNCHDEK_TEXT_DOMAIN ),
 			'run_status_changed'     => __( 'Run status changed', LAUNCHDEK_TEXT_DOMAIN ),
 			'manual_step_completed'  => __( 'Manual step completed', LAUNCHDEK_TEXT_DOMAIN ),
+			'manual_step_uncompleted' => __( 'Manual step uncompleted', LAUNCHDEK_TEXT_DOMAIN ),
 			'site_created'           => __( 'Site registered', LAUNCHDEK_TEXT_DOMAIN ),
 			'site_updated'           => __( 'Site updated', LAUNCHDEK_TEXT_DOMAIN ),
 			'site_deleted'           => __( 'Site removed', LAUNCHDEK_TEXT_DOMAIN ),
@@ -509,6 +675,7 @@ class LAUNCHDEK_Audit_Log {
 			'integration_push'       => __( 'Integration push', LAUNCHDEK_TEXT_DOMAIN ),
 			'client_run_pushed'      => __( 'Checklist pushed to client', LAUNCHDEK_TEXT_DOMAIN ),
 			'client_step_completed'  => __( 'Client step completed', LAUNCHDEK_TEXT_DOMAIN ),
+			'client_step_uncompleted' => __( 'Client step uncompleted', LAUNCHDEK_TEXT_DOMAIN ),
 			'client_step_note_added' => __( 'Client step note added', LAUNCHDEK_TEXT_DOMAIN ),
 		);
 

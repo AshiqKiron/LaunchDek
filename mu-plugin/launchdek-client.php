@@ -9,7 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'LAUNCHDEK_CLIENT_PANEL_VERSION', '1.0.0' );
+define( 'LAUNCHDEK_CLIENT_PANEL_VERSION', '1.0.4' );
 define( 'LAUNCHDEK_CLIENT_PANEL_DIR', __DIR__ . '/launchdek-client/' );
 define( 'LAUNCHDEK_CLIENT_PANEL_URL', content_url( 'mu-plugins/launchdek-client/' ) );
 define( 'LAUNCHDEK_CLIENT_TEXT_DOMAIN', 'launchdek' );

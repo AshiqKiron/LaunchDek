@@ -42,7 +42,8 @@ Cross-cutting quality standards. See also: `launchdek-project.mdc` (architecture
 
 - Load code only where needed.
 - Avoid expensive queries on every request; repositories should use indexed columns.
-- Remote API calls only on user action, checklist execution, connection tests, scheduled drift cron, client panel sync after run advances, or auto-capture sessions — never on every admin page load except Sites page background stale-connection refresh (30-minute threshold).
+- Remote API calls only on user action, checklist execution, connection tests, scheduled drift cron, client panel snapshot sync after hub-side run advances (`sync_run()` → `push_run( $id, false, false )`, no bundle reinstall), initial push / manual **Refresh Client Panel** (`push_run` with `$sync_bundle = true`), site save/test bundle deploy, or auto-capture sessions — never on every admin page load except Sites page background stale-connection refresh (30-minute threshold) and on-demand site run history (`GET /sites/{id}/runs` when a site row is expanded). Client step toggles do not trigger hub→client re-sync; hub returns `snapshot` for local apply.
+- Client panel assets (`wp_enqueue_media()`, panel JS/CSS) load only on remote wp-admin when an active run snapshot exists — not on every admin request.
 - Dashboard stats, connection ticker, and live log feed use `LAUNCHDEK_Dashboard_Cache` (`launchdek_dashboard_cache`, non-autoload); preloaded in PHP/`launchdekAdmin.dashboard` on dashboard load; cache invalidated on underlying data changes. Activity Logs page fetches via REST only when opened/filtered.
 - Avoid autoloading large options.
 

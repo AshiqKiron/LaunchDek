@@ -1,0 +1,65 @@
+{
+  "title": "Search Not Working",
+  "description": "Fix WordPress search returning no results, wrong results, or search plugins conflicting with default search behavior.",
+  "category": "troubleshooting",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "srch_identify_scope",
+      "title": "Identify Search Failure Scope",
+      "instructions": "Test default ?s= query, theme search form, and any search plugin (SearchWP, Relevanssi). Note if all post types fail or only custom types.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "srch_permalinks",
+      "title": "Flush Permalinks",
+      "instructions": "Broken rewrite rules can break search URLs. Save Settings → Permalinks without changes.",
+      "deep_link": "options-permalink.php",
+      "type": "manual"
+    },
+    {
+      "id": "srch_exclude_plugins",
+      "title": "Check Search Exclusion Plugins",
+      "instructions": "SEO plugins, members-only plugins, and Search Exclude may hide posts from search. Review exclusion settings per post type.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "srch_custom_post_types",
+      "title": "Include Custom Post Types in Search",
+      "instructions": "Default WordPress search only queries posts. Add CPTs via search plugin, theme functions, or pre_get_posts filter. Verify CPT posts are published.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "srch_index_plugin",
+      "title": "Rebuild Search Index (If Using Search Plugin)",
+      "instructions": "SearchWP, Relevanssi, and ElasticPress need index rebuilds after imports. Run full reindex from plugin settings.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "srch_cache",
+      "title": "Exclude Search from Page Cache",
+      "instructions": "Cached search result pages serve stale or empty results. Exclude ?s= and /search/ URLs from full-page cache rules.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "srch_theme_template",
+      "title": "Verify Theme search.php Template",
+      "instructions": "A broken or missing search.php template may show blank results even when posts match. Test with a default theme on staging.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "srch_verify",
+      "title": "Test Search with Known Content",
+      "instructions": "Search for unique words in published posts, pages, and products. Confirm results appear and pagination works.",
+      "deep_link": "",
+      "type": "manual"
+    }
+  ]
+}

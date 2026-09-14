@@ -169,6 +169,81 @@
 	vertical-align: middle;
 }
 
+.launchdek-site-history-toggle {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 24px;
+	height: 24px;
+	margin: 0 2px 0 0;
+	padding: 0;
+	vertical-align: middle;
+	color: #50575e;
+	text-decoration: none;
+}
+
+.launchdek-site-history-toggle:hover,
+.launchdek-site-history-toggle:focus {
+	color: #2271b1;
+}
+
+.launchdek-site-history-icon {
+	font-size: 16px;
+	width: 16px;
+	height: 16px;
+	transition: transform 0.15s ease;
+}
+
+.launchdek-site-row.is-history-open .launchdek-site-history-icon {
+	transform: rotate(90deg);
+}
+
+.launchdek-site-runs-row td {
+	padding: 0 12px 12px 36px;
+	background: #f6f7f7;
+	border-top: 0;
+}
+
+.launchdek-site-runs-panel {
+	padding: 12px 14px;
+	background: #fff;
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+}
+
+.launchdek-site-runs-heading {
+	margin: 0 0 10px;
+	font-size: 13px;
+	font-weight: 600;
+}
+
+.launchdek-site-runs-table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 13px;
+}
+
+.launchdek-site-runs-table th,
+.launchdek-site-runs-table td {
+	padding: 8px 10px;
+	text-align: left;
+	border-bottom: 1px solid #dcdcde;
+	vertical-align: middle;
+}
+
+.launchdek-site-runs-table th {
+	font-weight: 600;
+	color: #50575e;
+}
+
+.launchdek-site-runs-table tbody tr:last-child td {
+	border-bottom: 0;
+}
+
+.launchdek-site-runs-empty {
+	margin: 0;
+}
+
 .launchdek-panel-setup {
 	margin: 12px 0 0;
 	padding: 12px 14px;
@@ -344,6 +419,9 @@
 .launchdek-badge.warning { background: #fcf9e8; color: #996800; }
 .launchdek-badge.success { background: #edfaef; color: #007017; }
 .launchdek-badge.failed { background: #fcf0f1; color: #8a2424; }
+.launchdek-badge.completed { background: #edfaef; color: #007017; }
+.launchdek-badge.running { background: #f0f6fc; color: #2271b1; }
+.launchdek-badge.cancelled { background: #f6f7f7; color: #50575e; }
 .launchdek-badge.unknown { background: #f0f0f1; color: #646970; }
 
 .launchdek-tag {
@@ -1488,6 +1566,14 @@
 	background: #f6f7f7;
 	border: 1px solid #dcdcde;
 	border-radius: 4px;
+}
+
+.launchdek-run-step-note-meta {
+	display: block;
+	font-size: 11px;
+	font-weight: 600;
+	color: #50575e;
+	margin-bottom: 4px;
 }
 
 .launchdek-run-step-note-user {

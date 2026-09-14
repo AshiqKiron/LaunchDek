@@ -98,7 +98,7 @@ class LAUNCHDEK_Dashboard_Cache {
 			&& is_array( $cache['feed']['entries'] )
 			&& (int) ( $cache['feed']['limit'] ?? 0 ) === $limit
 		) {
-			return $cache['feed']['entries'];
+			return self::normalize_feed_entries( $cache['feed']['entries'] );
 		}
 
 		return self::refresh_feed( $limit );
@@ -122,6 +122,32 @@ class LAUNCHDEK_Dashboard_Cache {
 		self::save_cache( $cache );
 
 		return $entries;
+	}
+
+	/**
+	 * Ensure cached feed entries include site labels and compact messages.
+	 *
+	 * @param array $entries Cached feed entries.
+	 * @return array
+	 */
+	private static function normalize_feed_entries( $entries ) {
+		return array_map(
+			static function ( $entry ) {
+				if ( ! is_array( $entry ) ) {
+					return $entry;
+				}
+
+				if ( array_key_exists( 'show_site_label', $entry ) ) {
+					return $entry;
+				}
+
+				$entry['show_site_label'] = LAUNCHDEK_Audit_Log::feed_entry_show_site_label( $entry );
+				$entry['message']         = LAUNCHDEK_Audit_Log::format_feed_message( $entry, ! $entry['show_site_label'] );
+
+				return $entry;
+			},
+			$entries
+		);
 	}
 
 	/**

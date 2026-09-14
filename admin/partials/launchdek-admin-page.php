@@ -77,7 +77,11 @@ $log_feed          = isset( $log_feed ) && is_array( $log_feed ) ? $log_feed : L
 					?>
 					<div class="<?php echo esc_attr( $item_class ); ?>">
 						<time>[<?php echo esc_html( $log['created_at'] ?? '' ); ?>]</time>
-						<?php if ( ( ! empty( $log['site_id'] ) || ! empty( $log['run_id'] ) ) && ! empty( $log['site_name'] ) ) : ?>
+						<?php
+						$show_site_label = ! empty( $log['show_site_label'] )
+							|| ( ( ! empty( $log['site_id'] ) || ! empty( $log['run_id'] ) ) && ! empty( $log['site_name'] ) );
+						?>
+						<?php if ( $show_site_label ) : ?>
 							<span class="launchdek-log-site" title="<?php echo esc_attr( $log['site_name'] ); ?>"><?php echo esc_html( $log['site_name'] ); ?></span>
 						<?php endif; ?>
 						<span class="launchdek-log-message"><?php echo esc_html( $log['message'] ?? $log['action'] ?? '' ); ?></span>

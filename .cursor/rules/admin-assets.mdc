@@ -1,6 +1,6 @@
 ---
 description: Admin JS and CSS conventions for LaunchDek
-globs: "admin/**/*.{js,css}"
+globs: "{admin,mu-plugin}/**/*.{js,css}"
 alwaysApply: false
 ---
 
@@ -26,16 +26,24 @@ alwaysApply: false
 
 | Function | Page attr | Key elements |
 |----------|-----------|--------------|
-| `initDashboard()` | `dashboard` | `#launchdek-stats`, `#launchdek-ticker`, `#launchdek-log-feed` (preloaded via `launchdekAdmin.dashboard` or PHP partial; `data-launchdek-preloaded="1"` skips initial fetch), quick launch (`#launchdek-quick-site`, `#launchdek-quick-checklist`, `#launchdek-quick-launch`, `#launchdek-quick-result`) |
+| `initDashboard()` | `dashboard` | `#launchdek-stats`, `#launchdek-ticker`, `#launchdek-log-feed` (preloaded via `launchdekAdmin.dashboard` or PHP partial; `data-launchdek-preloaded="1"` skips initial fetch; entries use `show_site_label` for separate site badge vs embedded site name in message), quick launch (`#launchdek-quick-site`, `#launchdek-quick-checklist`, `#launchdek-quick-launch`, `#launchdek-quick-result`) |
 | `initSettings()` | `settings` | `#launchdek-show-onboarding` → `POST /onboarding/reset` then `launchdekOpenOnboarding()` |
-| `initSites()` | `sites` | toolbar (`#launchdek-add-site`, `#launchdek-connection-tester`, `#launchdek-activity-logs` → Activity Logs page), tag/group filters, `#launchdek-sites-table` (connection dot + warning icon, health badge, **Client panel** badge when `client_agent`), site modal (`#launchdek-site-modal`, panel install/retry via `GET /panel/bootstrap` download + auto-deploy), push checklist modal (`#launchdek-push-checklist-modal`, `#launchdek-push-checklist-select`, `#launchdek-push-to-client`, `POST /runs` with `push_to_client`), standalone connection tester modal; `refreshStaleSiteConnectionsInBackground()` re-tests sites older than 30 minutes |
+| `initSites()` | `sites` | toolbar (`#launchdek-add-site`, `#launchdek-connection-tester`, `#launchdek-activity-logs` → Activity Logs page), tag/group filters, `#launchdek-sites-table` (`.launchdek-site-row` + expandable `.launchdek-site-runs-row` with `.launchdek-site-history-toggle` → `GET /sites/{id}/runs`; **View run** links to `?page={slug}-automation&run_id={id}`; connection dot + warning icon, health badge, **Client panel** badge when `client_agent`), site modal (`#launchdek-site-modal`, panel install/retry via `GET /panel/bootstrap` download + `retryPanelInstall()` → `POST /sites/{id}/panel/install`), push checklist modal (`#launchdek-push-checklist-modal`, `#launchdek-push-checklist-select`, `#launchdek-push-to-client`, `POST /runs` with `push_to_client`), standalone connection tester modal; `refreshStaleSiteConnectionsInBackground()` re-tests sites older than 30 minutes |
 | `initActivityLogs()` | `activity-logs` | filters (`#launchdek-activity-logs-site`, `#launchdek-activity-logs-status`, `#launchdek-activity-logs-date-from`, `#launchdek-activity-logs-date-to`, `#launchdek-activity-logs-search`, `#launchdek-activity-logs-filter`), table `#launchdek-activity-logs-table`; loads `GET /logs/feed?detailed=1` (limit 200); honors `?site_id=` query param |
 | `initChecklists()` | `checklists` | page tabs (`.launchdek-page-tab`, `[data-launchdek-tab-panel]`); `#launchdek-new-checklist` (hidden on Templates tab) opens template picker (clone → editor) or blank; `#launchdek-auto-capture` opens auto-capture modal; builder panel: `#launchdek-checklist-list`, editor (`#launchdek-checklist-editor`), canvas (`#launchdek-checklist-canvas`, `#launchdek-canvas-steps`, `.launchdek-canvas-node-chevron` toggles step config), step config (`#launchdek-step-config`, `#ld-step-show-note` for manual `show_note_field`), save/export/delete/import controls |
-| `initAutomation()` | `automation` | batch queue (`#launchdek-batch-table`, `#launchdek-run-checklist`), run controls (`#launchdek-run-steps`, `#launchdek-run-auto`, `#launchdek-run-next`), audit filters/table (`#launchdek-audit-*`), drift panel (`#launchdek-drift-status`, `#launchdek-verify-drift`) |
+| `initAutomation()` | `automation` | batch queue (`#launchdek-batch-table`, `#launchdek-run-checklist`), run controls (`#launchdek-run-steps`, `#launchdek-run-auto`, `#launchdek-run-next`, `#launchdek-run-push-client` — hidden until a run is active; posts `POST /runs/{id}/push-client` for snapshot re-push + bundle sync), run tracker renders step notes (`.launchdek-run-step-notes`, author · timestamp meta, optional `.launchdek-run-step-note-attachment` thumbnails) and hub-side **Mark Complete** / **Mark Not Complete** (`.launchdek-complete-step` / `.launchdek-uncomplete-step` → `/complete` / `/uncomplete`); honors `?run_id=` deep link on load; audit filters/table (`#launchdek-audit-*`), drift panel (`#launchdek-drift-status`, `#launchdek-verify-drift`) |
 | `initTemplates()` | checklists (Templates tab) | no-ops unless `#launchdek-builtin-templates` exists; category tabs (`#launchdek-category-tabs`, `#launchdek-category-description`), built-in grid, custom checklists (`#launchdek-custom-checklists`), vault save (`#launchdek-vault-checklist`, `#launchdek-save-vault`), vault list (`#launchdek-vault-list`) |
 | `initIntegrations()` | `integrations` | Platform Connectors Hub (`#launchdek-connectors-list`, `#launchdek-connector-modal`), telemetry rules (`#launchdek-telemetry-rules-table`, `#launchdek-save-telemetry-rules`) |
 
 Each page init no-ops if `[data-launchdek-page="{page}"]` is absent (except `initTemplates()`, which keys off `#launchdek-builtin-templates`). Modal inits no-op if their modal element is absent.
+
+### Sites page run history
+
+Key elements: `.launchdek-site-history-toggle`, `.launchdek-site-runs-row`, `.launchdek-site-runs-panel`, `.launchdek-site-runs-table`.
+
+- `toggleSiteRuns( siteId )` / `setSiteHistoryOpen()` — expand/collapse nested runs row; toggles `.is-history-open` on parent `.launchdek-site-row`.
+- `loadSiteRuns( siteId, panel )` — fetches `GET /sites/{id}/runs`, caches in `siteRunsCache`; `invalidateSiteRunsCache()` refreshes when open after a push.
+- `renderSiteRunsPanel()` — checklist title, status badge, started/completed timestamps, started-by, **View run** link to Automation `?run_id=`.
 
 ### Checklists page tabs
 
@@ -113,6 +121,9 @@ Key elements: `#launchdek-template-picker-filters`, `#launchdek-template-picker-
 		connected, notDetected, setup,
 		pushChecklist, pushChecklistSelect, pushChecklistNeed, pushChecklistStarted, pushChecklistBlocked,
 		clientPanelBadge, clientPushOk, clientPushSkipped, clientPushFailed,
+		siteChecklistHistory, siteChecklistHistoryShow, siteChecklistHistoryHide, siteNoChecklistRuns,
+		runChecklist, runStatus, runStatusCompleted, runStatusRunning, runStatusFailed, runStatusCancelled,
+		runStartedAt, runCompletedAt, runStartedBy, viewRun,
 		captureDefaultTitle, captureImported, captureIdle, captureRecording, captureReady, captureNeedPanel, captureSelectSite, captureImportOne, captureImportMany,
 		onboardingTitle, onboardingProgressLabel, onboardingStep1, onboardingStep1Hint,
 		onboardingStep2, onboardingStep2Hint, onboardingIntro, onboardingPasteLabel,
@@ -137,6 +148,7 @@ Prefix all selectors with `.launchdek-`.
 | `.launchdek-quick-launch`, `.launchdek-inline-form` | Quick launch bar and inline forms |
 | `.launchdek-sites-toolbar`, `.launchdek-sites-toolbar-actions`, `.launchdek-sites-toolbar-filters` | Sites page toolbar and filters |
 | `.launchdek-site-connection`, `.launchdek-connection-dot`, `.launchdek-connection-warning` | Per-site connection status in sites table (modifiers `.healthy`, `.unhealthy`, `.unknown`, `.checking`) |
+| `.launchdek-site-history-toggle`, `.launchdek-site-history-icon`, `.launchdek-site-runs-row`, `.launchdek-site-runs-panel`, `.launchdek-site-runs-heading`, `.launchdek-site-runs-table`, `.launchdek-site-runs-empty` | Expandable per-site checklist run history (modifier `.is-history-open` on `.launchdek-site-row`) |
 | `.launchdek-site-health-badge`, `.launchdek-client-agent-badge` | Sites table health badge and client panel indicator |
 | `.launchdek-push-checklist` | Sites table **Push Checklist** action button |
 | `.launchdek-ticker-inline`, `.launchdek-ticker-chip`, `.launchdek-ticker-sep`, `.launchdek-ticker-dot` | Connection ticker (`#launchdek-ticker`) |
@@ -153,7 +165,7 @@ Prefix all selectors with `.launchdek-`.
 | `.launchdek-canvas-node`, `.launchdek-canvas-node-chevron`, `.launchdek-canvas-node-roles`, `.launchdek-canvas-connector` | Canvas step nodes + chevron (opens step config) + role badges + flow arrows |
 | `.launchdek-step-config-sidebar`, `.launchdek-role-mapping`, `.launchdek-role-option`, `.launchdek-step-note-field-option` | Step config panel + role target mapping + manual-step note field toggle |
 | `.launchdek-target-selector`, `.launchdek-batch-queue`, `.launchdek-automation-layout` | Automation run/batch UI |
-| `.launchdek-run-steps`, `.launchdek-run-step` | Run step tracker |
+| `.launchdek-run-steps`, `.launchdek-run-step`, `.launchdek-run-step-notes`, `.launchdek-run-step-note`, `.launchdek-run-step-note-meta`, `.launchdek-run-step-note-attachment` | Run step tracker and per-step notes (author · timestamp meta) |
 | `.launchdek-audit-filters`, `.launchdek-audit-diff` | Audit log filters + drift diff display |
 | `.launchdek-drift-sites`, `.launchdek-drift-site-row` | Drift status panel |
 | `.launchdek-page-tabs`, `.launchdek-page-tab`, `.launchdek-tab-panel` | Checklists page section tabs (My Checklists / Templates); modifier `.is-active` on tab |
@@ -184,6 +196,19 @@ Shared modal partials (require at end of page partial, do not duplicate markup):
 | `launchdek-template-picker-modal.php` | dashboard, checklists, settings |
 
 Dashboard and settings include both modals (onboarding opens the picker from step 1). Checklists includes the template picker and auto-capture modal inline. Sites page includes push checklist and connection tester modals inline (not shared partials).
+
+## Client panel assets (`mu-plugin/launchdek-client/`)
+
+Bundled mu-plugin admin UI — not loaded by hub `launchdek-admin` handle. Enqueued on remote wp-admin only when `LAUNCHDEK_Client_Run_Store::get()` returns an active snapshot.
+
+| File | Role |
+|------|------|
+| `css/launchdek-client-admin.css` | Panel styles — prefix `.launchdek-client-*` |
+| `js/launchdek-client-admin.js` | Panel UI — IIFE, `launchdekClient` global (`restUrl`, `nonce`, `run`, `currentUser`, `strings`); uses `wp.media` for optional screenshot attachments; note collapse prefs in `localStorage` |
+
+Key helpers: `applyOptimisticStepUpdate()` / `updateStepStatus()` — optimistic complete/uncomplete with rollback on error; hub callbacks return updated `run` (no redundant hub→client re-sync). Step complete/uncomplete posts `POST /client/run/steps/{step}/complete|uncomplete` → hub token route → applies returned snapshot via `save()` / `patch_from_hub_run()`. `minimizeAllNotes()` / `expandAllNotes()` bulk-toggle note sections; per-step `.launchdek-client-step-notes-toggle` collapses individual note lists.
+
+Key panel classes: `.launchdek-client-panel-root`, `.launchdek-client-panel`, `.launchdek-client-panel-tab`, `.launchdek-client-panel-toggle`, `.launchdek-client-step`, `.launchdek-client-step-notes`, `.launchdek-client-step-notes-toggle`, `.launchdek-client-note-attachment`, `.launchdek-client-run-complete-summary`, `.launchdek-client-dismiss-run`. Modifiers: `.is-collapsed` on panel root/panel/step notes; `.is-completed` on steps. Completed runs show summary + **Dismiss** (`POST /client/run/dismiss`).
 
 ## Enqueuing
 

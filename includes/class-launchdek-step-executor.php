@@ -131,4 +131,60 @@ class LAUNCHDEK_Step_Executor {
 
 		return $result;
 	}
+
+	/**
+	 * Revert a manually completed step back to awaiting action.
+	 *
+	 * @param int $run_id     Run ID.
+	 * @param int $step_index Step index.
+	 * @return bool
+	 */
+	public static function mark_manual_incomplete( $run_id, $step_index ) {
+		$run = LAUNCHDEK_Run_Repository::find( $run_id );
+
+		if ( ! $run ) {
+			return false;
+		}
+
+		$step = null;
+		foreach ( $run['steps'] as $row ) {
+			if ( (int) $row['step_index'] === (int) $step_index ) {
+				$step = $row;
+				break;
+			}
+		}
+
+		if ( ! $step || 'manual' !== ( $step['step_type'] ?? '' ) || 'completed' !== ( $step['status'] ?? '' ) ) {
+			return false;
+		}
+
+		if ( empty( $step['manual_checked'] ) ) {
+			return false;
+		}
+
+		$response = is_array( $step['response'] ) ? $step['response'] : array();
+		unset( $response['completed_by'] );
+
+		$result = LAUNCHDEK_Run_Repository::update_step(
+			$run_id,
+			$step_index,
+			array(
+				'status'         => 'awaiting_manual',
+				'manual_checked' => false,
+				'completed_at'   => '',
+				'response'       => $response,
+			)
+		);
+
+		if ( $result ) {
+			LAUNCHDEK_Audit_Log::log(
+				'manual_step_uncompleted',
+				array( 'step_index' => $step_index ),
+				0,
+				$run_id
+			);
+		}
+
+		return $result;
+	}
 }

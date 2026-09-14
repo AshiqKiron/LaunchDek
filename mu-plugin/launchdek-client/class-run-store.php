@@ -40,41 +40,39 @@ class LAUNCHDEK_Client_Run_Store {
 
 		$status = sanitize_key( $snapshot['run_status'] ?? '' );
 
-		if ( in_array( $status, array( 'completed', 'failed', 'cancelled' ), true ) ) {
+		if ( in_array( $status, array( 'failed', 'cancelled' ), true ) ) {
 			self::clear();
 			return null;
 		}
 
-		$steps = array();
+		$existing = self::get();
+		$steps    = array();
 		foreach ( (array) ( $snapshot['steps'] ?? array() ) as $step ) {
 			if ( ! is_array( $step ) ) {
 				continue;
 			}
 
-			$notes = array();
-			foreach ( (array) ( $step['notes'] ?? array() ) as $note ) {
-				if ( ! is_array( $note ) ) {
-					continue;
-				}
-				$sanitized = array(
-					'user'       => sanitize_text_field( $note['user'] ?? '' ),
-					'text'       => sanitize_textarea_field( $note['text'] ?? '' ),
-					'created_at' => sanitize_text_field( $note['created_at'] ?? '' ),
-				);
-				$attachment_id = absint( $note['attachment_id'] ?? 0 );
-				if ( $attachment_id > 0 ) {
-					$sanitized['attachment_id'] = $attachment_id;
-				}
-				if ( ! empty( $note['attachment_url'] ) ) {
-					$sanitized['attachment_url'] = esc_url_raw( $note['attachment_url'] );
-				}
-				$notes[] = $sanitized;
-			}
+			$local_notes = self::get_step_notes_from_run( $existing, $step['step_index'] ?? -1 );
+
+			$notes = self::filter_step_notes( (array) ( $step['notes'] ?? array() ) );
+
+			$notes = self::merge_step_notes( $local_notes, $notes );
 
 			$step_type       = sanitize_key( $step['type'] ?? 'manual' );
 			$show_note_field = array_key_exists( 'show_note_field', $step )
 				? ! empty( $step['show_note_field'] )
 				: ( 'manual' === $step_type );
+
+			$completed_by = null;
+			if ( ! empty( $step['completed_by'] ) && is_array( $step['completed_by'] ) ) {
+				$completed_by = array(
+					'name'  => sanitize_text_field( $step['completed_by']['name'] ?? '' ),
+					'email' => sanitize_email( $step['completed_by']['email'] ?? '' ),
+				);
+				if ( '' === $completed_by['name'] && '' === $completed_by['email'] ) {
+					$completed_by = null;
+				}
+			}
 
 			$steps[] = array(
 				'step_index'      => absint( $step['step_index'] ?? 0 ),
@@ -85,7 +83,10 @@ class LAUNCHDEK_Client_Run_Store {
 				'target_roles'    => array_values( array_map( 'sanitize_key', (array) ( $step['target_roles'] ?? array() ) ) ),
 				'deep_link'       => ! empty( $step['deep_link'] ) ? esc_url_raw( $step['deep_link'] ) : '',
 				'show_note_field' => $show_note_field,
+				'manual_checked'  => ! empty( $step['manual_checked'] ),
 				'notes'           => $notes,
+				'completed_at'    => sanitize_text_field( $step['completed_at'] ?? '' ),
+				'completed_by'    => $completed_by,
 			);
 		}
 
@@ -93,15 +94,44 @@ class LAUNCHDEK_Client_Run_Store {
 			'run_id'          => absint( $snapshot['run_id'] ?? 0 ),
 			'checklist_title' => sanitize_text_field( $snapshot['checklist_title'] ?? '' ),
 			'run_status'      => $status,
+			'started_at'      => sanitize_text_field( $snapshot['started_at'] ?? ( $existing['started_at'] ?? $snapshot['pushed_at'] ?? '' ) ),
+			'completed_at'    => sanitize_text_field( $snapshot['completed_at'] ?? ( $existing['completed_at'] ?? '' ) ),
 			'hub_url'         => esc_url_raw( untrailingslashit( $snapshot['hub_url'] ?? '' ) ),
+			'hub_rest_url'    => esc_url_raw( untrailingslashit( $snapshot['hub_rest_url'] ?? '' ) ),
 			'client_token'    => sanitize_text_field( $snapshot['client_token'] ?? '' ),
 			'steps'           => $steps,
 			'pushed_at'       => sanitize_text_field( $snapshot['pushed_at'] ?? '' ),
 		);
 
+		if ( 'completed' === $status && '' === $sanitized['completed_at'] ) {
+			$sanitized['completed_at'] = current_time( 'mysql', true );
+		}
+
 		update_option( self::OPTION_KEY, $sanitized, false );
 
 		return $sanitized;
+	}
+
+	/**
+	 * Whether every step in the snapshot is completed.
+	 *
+	 * @param array|null $run Run snapshot.
+	 * @return bool
+	 */
+	public static function all_steps_completed( $run = null ) {
+		$run = is_array( $run ) ? $run : self::get();
+
+		if ( ! $run || empty( $run['steps'] ) || ! is_array( $run['steps'] ) ) {
+			return false;
+		}
+
+		foreach ( $run['steps'] as $step ) {
+			if ( ! is_array( $step ) || 'completed' !== ( $step['status'] ?? '' ) ) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	/**
@@ -134,7 +164,7 @@ class LAUNCHDEK_Client_Run_Store {
 		$roles = array_filter( (array) ( $step['target_roles'] ?? array() ) );
 
 		if ( empty( $roles ) ) {
-			return user_can( $user, 'manage_options' );
+			return is_user_logged_in();
 		}
 
 		foreach ( $roles as $role ) {
@@ -169,6 +199,253 @@ class LAUNCHDEK_Client_Run_Store {
 	}
 
 	/**
+	 * Append a note to a step in the local run snapshot.
+	 *
+	 * @param int   $step_index Step index.
+	 * @param array $note       Note payload.
+	 * @return array|null Updated run snapshot.
+	 */
+	public static function add_step_note( $step_index, $note ) {
+		$run = self::get();
+
+		if ( ! $run ) {
+			return null;
+		}
+
+		$entry = self::sanitize_step_note( $note );
+
+		if ( null === $entry ) {
+			return null;
+		}
+
+		foreach ( (array) ( $run['steps'] ?? array() ) as $index => $step ) {
+			if ( (int) ( $step['step_index'] ?? -1 ) !== (int) $step_index ) {
+				continue;
+			}
+
+			$notes = self::filter_step_notes( $step['notes'] ?? null );
+
+			foreach ( $notes as $existing ) {
+				if ( self::step_notes_match( $existing, $entry ) ) {
+					return $run;
+				}
+			}
+
+			$notes[]                         = $entry;
+			$run['steps'][ $index ]['notes'] = $notes;
+			update_option( self::OPTION_KEY, $run, false );
+
+			return $run;
+		}
+
+		return null;
+	}
+
+	/**
+	 * Merge hub run step statuses into the local snapshot when a full snapshot is unavailable.
+	 *
+	 * @param array $hub_run Hub run payload from a callback response.
+	 * @return array|null Updated local snapshot.
+	 */
+	public static function patch_from_hub_run( $hub_run ) {
+		$local = self::get();
+
+		if ( ! $local || ! is_array( $hub_run ) || empty( $hub_run['steps'] ) || ! is_array( $hub_run['steps'] ) ) {
+			return $local;
+		}
+
+		$hub_steps = array();
+		foreach ( $hub_run['steps'] as $hub_step ) {
+			if ( ! is_array( $hub_step ) ) {
+				continue;
+			}
+			$hub_steps[ (int) ( $hub_step['step_index'] ?? -1 ) ] = $hub_step;
+		}
+
+		foreach ( $local['steps'] as $index => $local_step ) {
+			$key = (int) ( $local_step['step_index'] ?? -1 );
+			if ( ! isset( $hub_steps[ $key ] ) ) {
+				continue;
+			}
+
+			$hub_step = $hub_steps[ $key ];
+			$local['steps'][ $index ]['status'] = sanitize_key( $hub_step['status'] ?? $local_step['status'] );
+			$local['steps'][ $index ]['manual_checked'] = ! empty( $hub_step['manual_checked'] );
+
+			if ( ! empty( $hub_step['completed_at'] ) ) {
+				$local['steps'][ $index ]['completed_at'] = sanitize_text_field( $hub_step['completed_at'] );
+			} else {
+				$local['steps'][ $index ]['completed_at'] = '';
+			}
+
+			$response = is_array( $hub_step['response'] ?? null ) ? $hub_step['response'] : array();
+			if ( ! empty( $response['completed_by'] ) && is_array( $response['completed_by'] ) ) {
+				$local['steps'][ $index ]['completed_by'] = array(
+					'name'  => sanitize_text_field( $response['completed_by']['name'] ?? '' ),
+					'email' => sanitize_email( $response['completed_by']['email'] ?? '' ),
+				);
+			} elseif ( 'completed' !== ( $local['steps'][ $index ]['status'] ?? '' ) ) {
+				unset( $local['steps'][ $index ]['completed_by'] );
+			}
+
+			if ( is_array( $hub_step['notes'] ?? null ) ) {
+				$local_notes = is_array( $local_step['notes'] ?? null ) ? $local_step['notes'] : array();
+				$local['steps'][ $index ]['notes'] = self::merge_step_notes( $local_notes, $hub_step['notes'] );
+			}
+		}
+
+		if ( ! empty( $hub_run['status'] ) ) {
+			$local['run_status'] = sanitize_key( $hub_run['status'] );
+		}
+
+		if ( ! empty( $hub_run['started_at'] ) ) {
+			$local['started_at'] = sanitize_text_field( $hub_run['started_at'] );
+		}
+
+		if ( ! empty( $hub_run['completed_at'] ) ) {
+			$local['completed_at'] = sanitize_text_field( $hub_run['completed_at'] );
+		} elseif ( 'completed' === ( $local['run_status'] ?? '' ) && empty( $local['completed_at'] ) ) {
+			$local['completed_at'] = current_time( 'mysql', true );
+		}
+
+		update_option( self::OPTION_KEY, $local, false );
+
+		return $local;
+	}
+
+	/**
+	 * Read notes for a step from a run snapshot.
+	 *
+	 * @param array|null $run        Run snapshot.
+	 * @param int        $step_index Step index.
+	 * @return array
+	 */
+	protected static function get_step_notes_from_run( $run, $step_index ) {
+		if ( ! is_array( $run ) ) {
+			return array();
+		}
+
+		foreach ( (array) ( $run['steps'] ?? array() ) as $step ) {
+			if ( (int) ( $step['step_index'] ?? -1 ) === (int) $step_index ) {
+				return is_array( $step['notes'] ?? null ) ? $step['notes'] : array();
+			}
+		}
+
+		return array();
+	}
+
+	/**
+	 * Merge local and incoming step notes without dropping client-only entries.
+	 *
+	 * @param array $local_notes    Existing notes on the client snapshot.
+	 * @param array $incoming_notes Notes from the hub snapshot.
+	 * @return array
+	 */
+	protected static function merge_step_notes( $local_notes, $incoming_notes ) {
+		return self::filter_step_notes(
+			array_merge(
+				self::filter_step_notes( $incoming_notes ),
+				self::filter_step_notes( $local_notes )
+			)
+		);
+	}
+
+	/**
+	 * Sanitize a user-authored note entry.
+	 *
+	 * @param mixed $note Raw note payload.
+	 * @return array|null
+	 */
+	protected static function sanitize_step_note( $note ) {
+		if ( ! is_array( $note ) ) {
+			return null;
+		}
+
+		$text = trim( sanitize_textarea_field( $note['text'] ?? '' ) );
+
+		if ( '' === $text ) {
+			return null;
+		}
+
+		$sanitized = array(
+			'user'       => sanitize_text_field( $note['user'] ?? '' ),
+			'text'       => $text,
+			'created_at' => sanitize_text_field( $note['created_at'] ?? current_time( 'mysql', true ) ),
+		);
+
+		$attachment_id = absint( $note['attachment_id'] ?? 0 );
+		if ( $attachment_id > 0 ) {
+			$sanitized['attachment_id'] = $attachment_id;
+		}
+
+		if ( ! empty( $note['attachment_url'] ) ) {
+			$sanitized['attachment_url'] = esc_url_raw( $note['attachment_url'] );
+		}
+
+		return $sanitized;
+	}
+
+	/**
+	 * Keep only valid, de-duplicated notes.
+	 *
+	 * @param mixed $notes Raw notes array.
+	 * @return array
+	 */
+	protected static function filter_step_notes( $notes ) {
+		if ( ! is_array( $notes ) ) {
+			return array();
+		}
+
+		$filtered = array();
+
+		foreach ( $notes as $note ) {
+			$sanitized = self::sanitize_step_note( $note );
+			if ( null === $sanitized ) {
+				continue;
+			}
+
+			foreach ( $filtered as $existing ) {
+				if ( self::step_notes_match( $existing, $sanitized ) ) {
+					continue 2;
+				}
+			}
+
+			$filtered[] = $sanitized;
+		}
+
+		return $filtered;
+	}
+
+	/**
+	 * Compare notes by author/content rather than sync timestamps.
+	 *
+	 * @param array $left  First note.
+	 * @param array $right Second note.
+	 * @return bool
+	 */
+	protected static function step_notes_match( $left, $right ) {
+		return self::note_fingerprint( $left ) === self::note_fingerprint( $right );
+	}
+
+	/**
+	 * Build a stable fingerprint for deduplicating step notes.
+	 *
+	 * @param array $note Note payload.
+	 * @return string
+	 */
+	protected static function note_fingerprint( $note ) {
+		if ( ! is_array( $note ) ) {
+			return '';
+		}
+
+		return md5(
+			strtolower( trim( (string) ( $note['user'] ?? '' ) ) ) . '|' .
+			trim( (string) ( $note['text'] ?? '' ) ) . '|' .
+			(string) absint( $note['attachment_id'] ?? 0 )
+		);
+	}
+
+	/**
 	 * Prepare a run snapshot for API/UI output.
 	 *
 	 * @param array|null $run Run snapshot.
@@ -189,6 +466,7 @@ class LAUNCHDEK_Client_Run_Store {
 		if ( ! empty( $formatted['steps'] ) && is_array( $formatted['steps'] ) ) {
 			foreach ( $formatted['steps'] as $index => $step ) {
 				$formatted['steps'][ $index ]['can_complete'] = self::user_can_complete_step( $step );
+				$formatted['steps'][ $index ]['notes']         = self::filter_step_notes( $step['notes'] ?? null );
 			}
 		}
 

@@ -13,13 +13,19 @@
 	var strings = launchdekClient.strings || {};
 	var run = launchdekClient.run;
 	var collapsed = false;
-	var showAllSteps = false;
 	var expandedSteps = {};
 	var pendingAttachment = null;
-	var STORAGE_KEY = 'launchdek_client_runner_prefs';
+	var noteDrafts = {};
+	var openNoteComposers = {};
+	var collapsedNoteSections = {};
+	var notesGloballyMinimized = false;
+	var STORAGE_KEY = 'launchdek_client_runner_prefs_v2';
 
 	function escHtml(value) {
-		return String(value || '')
+		if (value === null || value === undefined) {
+			value = '';
+		}
+		return String(value)
 			.replace(/&/g, '&amp;')
 			.replace(/</g, '&lt;')
 			.replace(/>/g, '&gt;')
@@ -33,11 +39,11 @@
 				return;
 			}
 			var prefs = JSON.parse(raw);
-			if (prefs && typeof prefs.showAllSteps === 'boolean') {
-				showAllSteps = prefs.showAllSteps;
-			}
 			if (prefs && prefs.expandedSteps && typeof prefs.expandedSteps === 'object') {
 				expandedSteps = prefs.expandedSteps;
+			}
+			if (prefs && prefs.collapsedNoteSections && typeof prefs.collapsedNoteSections === 'object') {
+				collapsedNoteSections = prefs.collapsedNoteSections;
 			}
 		} catch (e) {
 			// Ignore invalid localStorage.
@@ -47,8 +53,8 @@
 	function savePrefs() {
 		try {
 			localStorage.setItem(STORAGE_KEY, JSON.stringify({
-				showAllSteps: showAllSteps,
-				expandedSteps: expandedSteps
+				expandedSteps: expandedSteps,
+				collapsedNoteSections: collapsedNoteSections
 			}));
 		} catch (e) {
 			// Ignore quota errors.
@@ -59,21 +65,306 @@
 		return String(step.step_index);
 	}
 
+	function sameStepIndex(left, right) {
+		return parseInt(left, 10) === parseInt(right, 10);
+	}
+
+	function getAttachmentPreviewUrl(attachment) {
+		if (!attachment) {
+			return '';
+		}
+
+		if (attachment.url) {
+			return attachment.url;
+		}
+
+		var sizes = attachment.sizes || {};
+		if (sizes.medium && sizes.medium.url) {
+			return sizes.medium.url;
+		}
+		if (sizes.full && sizes.full.url) {
+			return sizes.full.url;
+		}
+		if (sizes.thumbnail && sizes.thumbnail.url) {
+			return sizes.thumbnail.url;
+		}
+
+		return '';
+	}
+
+	function captureNoteDrafts() {
+		if (!root) {
+			return;
+		}
+
+		root.querySelectorAll('.launchdek-client-note-input').forEach(function (textarea) {
+			var match = String(textarea.id || '').match(/^launchdek-client-note-(\d+)$/);
+			if (!match) {
+				return;
+			}
+
+			var stepIndex = parseInt(match[1], 10);
+			var value = String(textarea.value || '');
+			if (value.trim()) {
+				noteDrafts[stepIndex] = value;
+				return;
+			}
+			delete noteDrafts[stepIndex];
+		});
+	}
+
+	function restoreNoteDrafts() {
+		if (!root) {
+			return;
+		}
+
+		root.querySelectorAll('.launchdek-client-note-input').forEach(function (textarea) {
+			var match = String(textarea.id || '').match(/^launchdek-client-note-(\d+)$/);
+			if (!match) {
+				return;
+			}
+
+			var stepIndex = parseInt(match[1], 10);
+			if (noteDrafts.hasOwnProperty(stepIndex)) {
+				textarea.value = noteDrafts[stepIndex];
+			}
+		});
+	}
+
+	function noteComposerOpen(stepIndex) {
+		if (openNoteComposers[stepIndex]) {
+			return true;
+		}
+		if (notesGloballyMinimized) {
+			return false;
+		}
+		if (noteDrafts[stepIndex] && String(noteDrafts[stepIndex]).trim()) {
+			return true;
+		}
+		if (pendingAttachment && sameStepIndex(pendingAttachment.stepIndex, stepIndex)) {
+			return true;
+		}
+		return false;
+	}
+
+	function setNoteComposerOpen(stepIndex, open) {
+		openNoteComposers[stepIndex] = !!open;
+	}
+
+	function isNoteSectionCollapsed(stepIndex) {
+		return !!collapsedNoteSections[String(stepIndex)];
+	}
+
+	function setNoteSectionCollapsed(stepIndex, collapsed) {
+		if (collapsed) {
+			collapsedNoteSections[String(stepIndex)] = true;
+		} else {
+			delete collapsedNoteSections[String(stepIndex)];
+		}
+		savePrefs();
+	}
+
+	function stepHasSavedNotes(step) {
+		return (step.notes || []).some(isValidNote);
+	}
+
+	function hasOpenComposerState() {
+		if (notesGloballyMinimized) {
+			return false;
+		}
+
+		var steps = run.steps || [];
+		var i;
+
+		for (i = 0; i < steps.length; i++) {
+			if (noteComposerOpen(parseInt(steps[i].step_index, 10))) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	function hasAnyNotesOrOpenComposers() {
+		var steps = run.steps || [];
+		var i;
+		var stepIndex;
+
+		for (i = 0; i < steps.length; i++) {
+			if (stepHasSavedNotes(steps[i])) {
+				return true;
+			}
+			stepIndex = parseInt(steps[i].step_index, 10);
+			if (noteDrafts[stepIndex] && String(noteDrafts[stepIndex]).trim()) {
+				return true;
+			}
+		}
+
+		if (pendingAttachment) {
+			return true;
+		}
+
+		return hasOpenComposerState();
+	}
+
+	function allNotesMinimized() {
+		if (!hasAnyNotesOrOpenComposers()) {
+			return true;
+		}
+
+		var steps = run.steps || [];
+		var i;
+		var stepIndex;
+
+		for (i = 0; i < steps.length; i++) {
+			stepIndex = parseInt(steps[i].step_index, 10);
+			if (stepHasSavedNotes(steps[i]) && !isNoteSectionCollapsed(stepIndex)) {
+				return false;
+			}
+		}
+
+		return notesGloballyMinimized;
+	}
+
+	function minimizeAllNotes() {
+		var steps = run.steps || [];
+
+		captureNoteDrafts();
+		notesGloballyMinimized = true;
+		steps.forEach(function (step) {
+			var stepIndex = parseInt(step.step_index, 10);
+			if (stepHasSavedNotes(step)) {
+				collapsedNoteSections[String(stepIndex)] = true;
+			}
+			setNoteComposerOpen(stepIndex, false);
+		});
+		savePrefs();
+		render();
+	}
+
+	function expandAllNotes() {
+		notesGloballyMinimized = false;
+		collapsedNoteSections = {};
+		savePrefs();
+		render();
+	}
+
+	function toggleAllNotes() {
+		if (allNotesMinimized()) {
+			expandAllNotes();
+			return;
+		}
+		minimizeAllNotes();
+	}
+
+	function getNoteForm(stepIndex) {
+		if (!root) {
+			return null;
+		}
+		return root.querySelector('.launchdek-client-note-form[data-step="' + stepIndex + '"]');
+	}
+
+	function updateNoteActionButton(stepIndex) {
+		var form = getNoteForm(stepIndex);
+		if (!form) {
+			return;
+		}
+
+		var btn = form.querySelector('.launchdek-client-note-action');
+		var textarea = form.querySelector('.launchdek-client-note-input');
+		if (!btn || !textarea) {
+			return;
+		}
+
+		var hasText = String(textarea.value || '').trim().length > 0;
+		var addLabel = strings.addNotes || strings.addNote || 'Add notes';
+		var saveLabel = strings.submitNote || 'Save note';
+		var label = hasText ? saveLabel : addLabel;
+
+		btn.classList.toggle('is-save-action', hasText);
+		btn.classList.toggle('is-note-action', !hasText);
+		btn.innerHTML = hasText ? renderSaveIcon() : renderNoteIcon();
+		btn.setAttribute('data-tooltip', label);
+		btn.setAttribute('aria-label', label);
+	}
+
+	function syncNoteComposerUi(stepIndex, open) {
+		var form = getNoteForm(stepIndex);
+		if (!form) {
+			return;
+		}
+
+		var composer = form.querySelector('.launchdek-client-note-composer');
+		var attachBtn = form.querySelector('.launchdek-client-attach-screenshot');
+		if (composer) {
+			composer.classList.toggle('is-open', open);
+		}
+		if (attachBtn) {
+			attachBtn.hidden = !open;
+		}
+	}
+
+	function resetNoteComposer(stepIndex) {
+		delete noteDrafts[stepIndex];
+		delete openNoteComposers[stepIndex];
+
+		var textarea = document.getElementById('launchdek-client-note-' + stepIndex);
+		if (textarea) {
+			textarea.value = '';
+		}
+
+		syncNoteComposerUi(stepIndex, false);
+		updateNoteActionButton(stepIndex);
+	}
+
 	function isStepExpanded(step, index, activeIndex) {
 		var key = stepExpandedKey(step);
-		if (expandedSteps.hasOwnProperty(key)) {
+		if (Object.prototype.hasOwnProperty.call(expandedSteps, key)) {
 			return !!expandedSteps[key];
 		}
-		return index === activeIndex || step.status === 'awaiting_manual';
+		var steps = run.steps || [];
+		var allDone = steps.length > 0 && completedCount(steps) === steps.length;
+		if (allDone || run.run_status === 'completed') {
+			return true;
+		}
+		// Default: expand only the current step; explicit prefs (including collapse) always win.
+		return index === activeIndex;
+	}
+
+	function setStepExpanded(stepIndex, expanded) {
+		expandedSteps[String(stepIndex)] = !!expanded;
+		savePrefs();
+	}
+
+	function getStepContext(stepIndex) {
+		var steps = run.steps || [];
+		var activeIndex = activeStepIndex(steps);
+		var step = null;
+		var index = -1;
+
+		for (var i = 0; i < steps.length; i++) {
+			if (parseInt(steps[i].step_index, 10) === parseInt(stepIndex, 10)) {
+				step = steps[i];
+				index = i;
+				break;
+			}
+		}
+
+		return {
+			step: step,
+			index: index,
+			activeIndex: activeIndex
+		};
 	}
 
 	function toggleStepExpanded(stepIndex) {
-		var key = String(stepIndex);
-		var current = expandedSteps.hasOwnProperty(key)
-			? !!expandedSteps[key]
-			: true;
-		expandedSteps[key] = !current;
-		savePrefs();
+		var context = getStepContext(stepIndex);
+
+		if (!context.step) {
+			return;
+		}
+
+		setStepExpanded(stepIndex, !isStepExpanded(context.step, context.index, context.activeIndex));
 		render();
 	}
 
@@ -81,12 +372,34 @@
 		return step.show_note_field !== false;
 	}
 
+	function isManualStep(step) {
+		return step.type === 'manual' || !step.type;
+	}
+
+	function isStepUpcoming(step, index, activeIndex) {
+		if (step.status === 'completed' || step.status === 'failed') {
+			return false;
+		}
+		return index > activeIndex;
+	}
+
+	function stepCanComplete(step, index, activeIndex) {
+		if (index !== activeIndex) {
+			return false;
+		}
+		if (!isManualStep(step) || !step.can_complete) {
+			return false;
+		}
+		return step.status === 'pending' || step.status === 'awaiting_manual' || step.status === 'running';
+	}
+
+	function stepCanUndo(step) {
+		return isManualStep(step) && step.can_complete && step.status === 'completed' && step.manual_checked;
+	}
+
 	function statusLabel(status) {
 		if (status === 'completed') {
-			return strings.completed || 'Completed';
-		}
-		if (status === 'awaiting_manual') {
-			return strings.complete || 'Ready';
+			return '';
 		}
 		if (status === 'failed') {
 			return strings.error || 'Failed';
@@ -94,7 +407,7 @@
 		if (status === 'running') {
 			return strings.waiting || 'Waiting on agency';
 		}
-		return strings.pending || 'Pending';
+		return '';
 	}
 
 	function completedCount(steps) {
@@ -122,15 +435,220 @@
 		return template.replace('%1$s', current).replace('%2$s', total);
 	}
 
-	function renderNotes(notes) {
-		if (!notes || !notes.length) {
+	function formatRunTimestamp(value) {
+		return formatCompletedAt(value);
+	}
+
+	function latestStepCompletedAt(steps) {
+		var latest = '';
+
+		steps.forEach(function (step) {
+			if (step.status !== 'completed' || !step.completed_at) {
+				return;
+			}
+
+			if (!latest || String(step.completed_at) > String(latest)) {
+				latest = step.completed_at;
+			}
+		});
+
+		return latest;
+	}
+
+	function renderRunCompleteSummary(steps) {
+		var started = formatRunTimestamp(run.started_at || run.pushed_at);
+		var completed = formatRunTimestamp(run.completed_at || latestStepCompletedAt(steps));
+		var meta = '';
+
+		if (started) {
+			meta += '<p class="launchdek-client-run-complete-meta">' +
+				'<span class="launchdek-client-run-complete-label">' + escHtml(strings.startedLabel || 'Started:') + '</span> ' +
+				escHtml(started) +
+			'</p>';
+		}
+
+		if (completed) {
+			meta += '<p class="launchdek-client-run-complete-meta">' +
+				'<span class="launchdek-client-run-complete-label">' + escHtml(strings.completedLabel || 'Completed:') + '</span> ' +
+				escHtml(completed) +
+			'</p>';
+		}
+
+		return '<div class="launchdek-client-run-complete-summary">' +
+			'<p class="launchdek-client-run-complete-title">' + escHtml(strings.runComplete || 'Checklist complete!') + '</p>' +
+			meta +
+			'<button type="button" class="button button-secondary launchdek-client-dismiss-run" id="launchdek-client-dismiss-run">' +
+				escHtml(strings.dismiss || 'Dismiss') +
+			'</button>' +
+		'</div>';
+	}
+
+	function formatCompletedAt(value) {
+		if (!value) {
 			return '';
 		}
 
-		var items = notes.map(function (note) {
+		var normalized = String(value).trim().replace(' ', 'T');
+		if (!/Z$/i.test(normalized) && !/[+-]\d{2}:\d{2}$/.test(normalized)) {
+			normalized += 'Z';
+		}
+
+		var date = new Date(normalized);
+		if (isNaN(date.getTime())) {
+			return String(value);
+		}
+
+		return date.toLocaleString();
+	}
+
+	function formatCompletedBy(step) {
+		var completedBy = step.completed_by || {};
+		var name = completedBy.name ? String(completedBy.name) : '';
+		var email = completedBy.email ? String(completedBy.email) : '';
+
+		if (name && email) {
+			return name + ' (' + email + ')';
+		}
+
+		return name || email || '';
+	}
+
+	function renderCompletionMeta(step) {
+		if (step.status !== 'completed') {
+			return '';
+		}
+
+		var who = formatCompletedBy(step);
+		var when = formatCompletedAt(step.completed_at);
+
+		if (!who && !when) {
+			return '';
+		}
+
+		if (!who) {
+			who = strings.unknownUser || 'Unknown user';
+		}
+
+		var template = strings.completedBy || 'Completed by %1$s on %2$s';
+		var text = when
+			? template.replace('%1$s', who).replace('%2$s', when)
+			: who;
+
+		return '<p class="launchdek-client-step-completed-meta">' + escHtml(text) + '</p>';
+	}
+
+	function renderChevron(expanded) {
+		var path = expanded ? 'M2 6.5 5 3.5 8 6.5z' : 'M2 3.5 5 6.5 8 3.5z';
+		return '<svg class="launchdek-client-step-chevron" width="10" height="10" viewBox="0 0 10 10" aria-hidden="true" focusable="false"><path fill="currentColor" d="' + path + '"/></svg>';
+	}
+
+	function renderIconButton(className, label, iconMarkup, stepIndex, tooltipPosition) {
+		var tooltipClass = '';
+
+		if (tooltipPosition === 'left') {
+			tooltipClass = ' launchdek-client-tooltip-left';
+		} else if (tooltipPosition === 'right') {
+			tooltipClass = ' launchdek-client-tooltip-right';
+		}
+
+		return '<button type="button" class="launchdek-client-icon-btn launchdek-client-has-tooltip' + tooltipClass + ' ' + className + '" data-step="' + escHtml(stepIndex) + '" data-tooltip="' + escHtml(label) + '" aria-label="' + escHtml(label) + '">' + iconMarkup + '</button>';
+	}
+
+	function renderTickIcon() {
+		return '<svg class="launchdek-client-icon" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+	}
+
+	function renderNoteIcon() {
+		return '<svg class="launchdek-client-icon" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>';
+	}
+
+	function renderSaveIcon() {
+		return '<svg class="launchdek-client-icon" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>';
+	}
+
+	function renderAttachIcon() {
+		return '<svg class="launchdek-client-icon" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>';
+	}
+
+	function renderUndoIcon() {
+		return '<svg class="launchdek-client-icon" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="currentColor" d="M12.5 8c-2.65 0-5.05 1.04-6.9 2.9L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.31 0 6 2.69 6 6s-2.69 6-6 6c-1.66 0-3.14-.69-4.24-1.76L5.52 18.5C7.05 20.36 9.62 21.5 12.5 21.5c4.69 0 8.5-3.81 8.5-8.5S17.19 8 12.5 8z"/></svg>';
+	}
+
+	function renderCompletedIndicator(step) {
+		var tick = '<span class="launchdek-client-step-done-icon" aria-hidden="true">' + renderTickIcon() + '</span>';
+
+		if (!stepCanUndo(step)) {
+			return '<span class="launchdek-client-step-complete-state is-readonly" aria-label="' + escHtml(strings.completed || 'Completed') + '">' + tick + '</span>';
+		}
+
+		return '<div class="launchdek-client-step-complete-state">' +
+			tick +
+			renderIconButton(
+				'launchdek-client-uncomplete-step is-undo-action',
+				strings.undoComplete || 'Mark not complete',
+				renderUndoIcon(),
+				step.step_index,
+				'left'
+			) +
+		'</div>';
+	}
+
+	function renderCompleteButton(step, index, activeIndex) {
+		if (stepCanComplete(step, index, activeIndex)) {
+			return renderIconButton(
+				'launchdek-client-complete-step is-complete-action',
+				strings.markComplete || 'Mark complete',
+				renderTickIcon(),
+				step.step_index,
+				'left'
+			);
+		}
+
+		if (step.status === 'completed') {
+			return renderCompletedIndicator(step);
+		}
+
+		return '';
+	}
+
+	function isValidNote(note) {
+		return !!(note && String(note.text || '').trim());
+	}
+
+	function formatNoteMeta(note) {
+		var user = note.user ? String(note.user) : '';
+		var when = formatCompletedAt(note.created_at);
+		var template = strings.noteMeta || '%1$s · %2$s';
+
+		if (user && when) {
+			return template.replace('%1$s', user).replace('%2$s', when);
+		}
+
+		return user || when || '';
+	}
+
+	function renderNotes(notes, stepIndex) {
+		var validNotes = (notes || []).filter(isValidNote).sort(function (left, right) {
+			var leftTime = Date.parse(String(left.created_at || '').replace(' ', 'T') + 'Z');
+			var rightTime = Date.parse(String(right.created_at || '').replace(' ', 'T') + 'Z');
+
+			if (isNaN(leftTime) || isNaN(rightTime)) {
+				return 0;
+			}
+
+			return leftTime - rightTime;
+		});
+
+		if (!validNotes.length) {
+			return '';
+		}
+
+		var items = validNotes.map(function (note) {
+			var meta = formatNoteMeta(note);
 			var html = '<li class="launchdek-client-note">';
-			if (note.user) {
-				html += '<span class="launchdek-client-note-user">' + escHtml(note.user) + '</span>';
+
+			if (meta) {
+				html += '<span class="launchdek-client-note-meta">' + escHtml(meta) + '</span>';
 			}
 			if (note.text) {
 				html += '<p class="launchdek-client-note-text">' + escHtml(note.text) + '</p>';
@@ -144,119 +662,122 @@
 			return html;
 		}).join('');
 
-		return '<div class="launchdek-client-step-notes">' +
-			'<h4 class="launchdek-client-step-notes-title">' + escHtml(strings.notesHeading || 'Notes') + '</h4>' +
+		var collapsed = isNoteSectionCollapsed(stepIndex);
+		var title = strings.notesHeading || 'Notes';
+		var countLabel = strings.notesCount || '%1$s (%2$s)';
+
+		return '<div class="launchdek-client-step-notes' + (collapsed ? ' is-collapsed' : '') + '">' +
+			'<button type="button" class="launchdek-client-step-notes-toggle" data-step="' + escHtml(stepIndex) + '" aria-expanded="' + (collapsed ? 'false' : 'true') + '">' +
+				renderChevron(!collapsed) +
+				'<span class="launchdek-client-step-notes-title">' + escHtml(countLabel.replace('%1$s', title).replace('%2$s', String(validNotes.length))) + '</span>' +
+			'</button>' +
 			'<ul class="launchdek-client-note-list">' + items + '</ul>' +
 		'</div>';
 	}
 
-	function renderNoteForm(step) {
-		if (!stepShowsNoteField(step) || step.status !== 'awaiting_manual' || !step.can_complete) {
+	function renderNoteForm(step, index, activeIndex) {
+		if (!stepShowsNoteField(step) || !stepCanComplete(step, index, activeIndex)) {
 			return '';
 		}
 
+		var stepIndex = parseInt(step.step_index, 10);
+		var isOpen = noteComposerOpen(stepIndex);
+		var draftText = noteDrafts.hasOwnProperty(stepIndex) ? String(noteDrafts[stepIndex] || '') : '';
+		var hasText = draftText.trim().length > 0;
+		var addLabel = strings.addNotes || strings.addNote || 'Add notes';
+		var saveLabel = strings.submitNote || 'Save note';
+		var actionLabel = hasText ? saveLabel : addLabel;
+		var actionClass = hasText ? 'is-save-action' : 'is-note-action';
+		var actionIcon = hasText ? renderSaveIcon() : renderNoteIcon();
 		var attachmentPreview = '';
-		if (pendingAttachment && pendingAttachment.stepIndex === step.step_index) {
+
+		if (pendingAttachment && sameStepIndex(pendingAttachment.stepIndex, stepIndex)) {
 			attachmentPreview = '<div class="launchdek-client-note-attachment-preview">' +
 				'<img src="' + escHtml(pendingAttachment.url) + '" alt="" />' +
-				'<button type="button" class="button-link launchdek-client-remove-attachment" data-step="' + escHtml(step.step_index) + '">&times;</button>' +
+				'<button type="button" class="button-link launchdek-client-remove-attachment" data-step="' + escHtml(stepIndex) + '" title="' + escHtml(strings.removeAttachment || 'Remove screenshot') + '" aria-label="' + escHtml(strings.removeAttachment || 'Remove screenshot') + '">&times;</button>' +
 			'</div>';
 		}
 
-		return '<div class="launchdek-client-note-form" data-step="' + escHtml(step.step_index) + '">' +
-			'<label class="screen-reader-text" for="launchdek-client-note-' + escHtml(step.step_index) + '">' + escHtml(strings.addNote || 'Add note') + '</label>' +
-			'<textarea id="launchdek-client-note-' + escHtml(step.step_index) + '" class="launchdek-client-note-input" rows="2" placeholder="' + escHtml(strings.notePlaceholder || 'Add a note about this step…') + '"></textarea>' +
-			attachmentPreview +
+		return '<div class="launchdek-client-note-form" data-step="' + escHtml(stepIndex) + '">' +
 			'<div class="launchdek-client-note-form-actions">' +
-				'<button type="button" class="button button-small launchdek-client-attach-screenshot" data-step="' + escHtml(step.step_index) + '">' + escHtml(strings.attachScreenshot || 'Attach screenshot') + '</button>' +
-				'<button type="button" class="button button-primary button-small launchdek-client-save-note" data-step="' + escHtml(step.step_index) + '">' + escHtml(strings.submitNote || 'Save note') + '</button>' +
+				'<button type="button" class="launchdek-client-icon-btn launchdek-client-has-tooltip launchdek-client-note-action ' + actionClass + '" data-step="' + escHtml(stepIndex) + '" data-tooltip="' + escHtml(actionLabel) + '" aria-label="' + escHtml(actionLabel) + '">' + actionIcon + '</button>' +
+				renderIconButton('launchdek-client-attach-screenshot is-attach-action', strings.attachScreenshot || 'Attach screenshot', renderAttachIcon(), stepIndex, 'right') +
+			'</div>' +
+			'<div class="launchdek-client-note-composer' + (isOpen ? ' is-open' : '') + '">' +
+				'<div class="launchdek-client-note-composer-inner">' +
+					'<label class="screen-reader-text" for="launchdek-client-note-' + escHtml(stepIndex) + '">' + escHtml(strings.addNote || 'Add note') + '</label>' +
+					'<textarea id="launchdek-client-note-' + escHtml(stepIndex) + '" class="launchdek-client-note-input" rows="2" placeholder="' + escHtml(strings.notePlaceholder || 'Add a note about this step…') + '"></textarea>' +
+					attachmentPreview +
+				'</div>' +
 			'</div>' +
 		'</div>';
 	}
 
-	function shouldShowStep(step, index, steps, activeIndex) {
-		if (showAllSteps) {
-			return true;
+	function renderStepBody(step, index, activeIndex) {
+		var body = '';
+
+		if (step.instructions) {
+			body += '<p class="launchdek-client-step-instructions">' + escHtml(step.instructions) + '</p>';
 		}
-		if (step.status === 'awaiting_manual') {
-			return true;
+		if (step.deep_link) {
+			body += '<p class="launchdek-client-step-settings-link-wrap">' +
+				'<a class="launchdek-client-step-settings-link" href="' + escHtml(step.deep_link) + '" target="_blank" rel="noopener">' + escHtml(strings.goToSettings || 'Go to settings') + '</a>' +
+			'</p>';
 		}
-		if (index === activeIndex && step.status !== 'completed') {
-			return true;
-		}
-		return false;
+		body += renderCompletionMeta(step);
+		body += renderNotes(step.notes, parseInt(step.step_index, 10));
+		body += renderNoteForm(step, index, activeIndex);
+
+		return body;
 	}
 
-	function renderCollapsedStep(step, index, activeIndex) {
+	function renderStep(step, isActive, index, activeIndex) {
 		var expanded = isStepExpanded(step, index, activeIndex);
-		var chevronClass = expanded ? 'dashicons-arrow-up-alt2' : 'dashicons-arrow-down-alt2';
-
-		if (!expanded) {
-			return '<li class="launchdek-client-step is-collapsed-summary is-completed" data-step-index="' + escHtml(step.step_index) + '">' +
-				'<button type="button" class="launchdek-client-step-toggle" data-step="' + escHtml(step.step_index) + '" aria-expanded="false" aria-label="' + escHtml(strings.toggleStep || 'Toggle step details') + '">' +
-					'<span class="dashicons ' + chevronClass + '" aria-hidden="true"></span>' +
-				'</button>' +
-				'<span class="launchdek-client-step-summary-title">' + escHtml(step.title) + '</span>' +
-				'<span class="launchdek-client-step-badge completed">' + escHtml(statusLabel('completed')) + '</span>' +
-			'</li>';
-		}
-
-		return renderStep(step, false, index, activeIndex, true);
-	}
-
-	function renderStep(step, isActive, index, activeIndex, forceExpanded) {
+		var upcoming = isStepUpcoming(step, index, activeIndex);
 		var classes = ['launchdek-client-step'];
-		var expanded = forceExpanded || isStepExpanded(step, index, activeIndex);
-		var chevronClass = expanded ? 'dashicons-arrow-up-alt2' : 'dashicons-arrow-down-alt2';
 
 		if (step.status === 'completed') {
 			classes.push('is-completed');
 		}
-		if (step.status === 'awaiting_manual') {
+		if (step.status === 'awaiting_manual' && !upcoming) {
 			classes.push('is-active');
 		}
 		if (isActive) {
 			classes.push('is-current');
 		}
+		if (upcoming) {
+			classes.push('is-upcoming');
+		}
 		if (!expanded) {
 			classes.push('is-collapsed');
 		}
 
-		var actions = '';
-		if (step.status === 'awaiting_manual' && step.can_complete) {
-			actions += '<button type="button" class="button button-small launchdek-client-complete-step" data-step="' + escHtml(step.step_index) + '">' + escHtml(strings.complete || 'Mark complete') + '</button>';
-		}
+		var body = expanded ? renderStepBody(step, index, activeIndex) : '';
+		var completeButton = renderCompleteButton(step, index, activeIndex);
+		var badgeLabel = statusLabel(step.status);
+		var badgeStatus = step.status === 'pending' ? 'awaiting_manual' : step.status;
+		var badgeHtml = badgeLabel
+			? '<span class="launchdek-client-step-badge ' + escHtml(badgeStatus) + '">' + escHtml(badgeLabel) + '</span>'
+			: '';
 
-		var body = '';
-		if (expanded) {
-			if (step.instructions) {
-				body += '<p class="launchdek-client-step-instructions">' + escHtml(step.instructions) + '</p>';
-			}
-			if (step.deep_link) {
-				body += '<p class="launchdek-client-step-settings-link-wrap">' +
-					'<a class="launchdek-client-step-settings-link" href="' + escHtml(step.deep_link) + '" target="_blank" rel="noopener">' + escHtml(strings.goToSettings || 'Go to settings') + '</a>' +
-				'</p>';
-			}
-			body += renderNotes(step.notes);
-			body += renderNoteForm(step);
-			if (actions) {
-				body += '<div class="launchdek-client-step-actions">' + actions + '</div>';
-			}
-		}
-
-		return '<li class="' + classes.join(' ') + '" data-step-index="' + escHtml(step.step_index) + '">' +
+		return '<li class="' + classes.join(' ') + '" data-step-index="' + escHtml(step.step_index) + '"' + (upcoming ? ' aria-disabled="true"' : '') + '>' +
 			'<div class="launchdek-client-step-head">' +
 				'<button type="button" class="launchdek-client-step-toggle" data-step="' + escHtml(step.step_index) + '" aria-expanded="' + (expanded ? 'true' : 'false') + '" aria-label="' + escHtml(strings.toggleStep || 'Toggle step details') + '">' +
-					'<span class="dashicons ' + chevronClass + '" aria-hidden="true"></span>' +
+					renderChevron(expanded) +
 				'</button>' +
 				'<h3 class="launchdek-client-step-title">' + escHtml(step.title) + '</h3>' +
-				'<span class="launchdek-client-step-badge ' + escHtml(step.status) + '">' + escHtml(statusLabel(step.status)) + '</span>' +
+				'<div class="launchdek-client-step-head-actions">' +
+					badgeHtml +
+					completeButton +
+				'</div>' +
 			'</div>' +
 			(body ? '<div class="launchdek-client-step-body">' + body + '</div>' : '') +
 		'</li>';
 	}
 
 	function render() {
+		captureNoteDrafts();
+
 		var steps = run.steps || [];
 		var done = completedCount(steps);
 		var total = steps.length;
@@ -281,37 +802,44 @@
 				'<div class="launchdek-client-panel-progress-wrap">' +
 					'<div class="launchdek-client-panel-progress-meta">' +
 						'<span class="launchdek-client-panel-progress-label">' + escHtml(formatStepOf(currentDisplay, total)) + ' · ' + percent + '%</span>' +
-						(!allDone ? '<button type="button" class="button-link launchdek-client-toggle-steps" id="launchdek-client-toggle-steps">' +
-							escHtml(showAllSteps ? (strings.showFocused || 'Focus current step') : (strings.showAll || 'Show all steps')) +
-						'</button>' : '') +
 					'</div>' +
 					'<div class="launchdek-client-progress-bar" role="progressbar" aria-valuenow="' + percent + '" aria-valuemin="0" aria-valuemax="100">' +
 						'<span class="launchdek-client-progress-fill" style="width:' + percent + '%"></span>' +
 					'</div>' +
 				'</div>' +
 				'<div class="launchdek-client-panel-body">' +
-					(allDone
-						? '<div class="launchdek-client-panel-notice success">' + escHtml(strings.runComplete || 'Checklist complete — great work!') + '</div>'
-						: '<ol class="launchdek-client-step-list">' + steps.map(function (step, index) {
-							if (!showAllSteps && step.status === 'completed') {
-								return renderCollapsedStep(step, index, activeIndex);
-							}
-							if (!shouldShowStep(step, index, steps, activeIndex)) {
-								return '';
-							}
-							return renderStep(step, index === activeIndex, index, activeIndex, false);
-						}).join('') + '</ol>') +
-					'<div id="launchdek-client-panel-notice"></div>' +
+					(allDone ? renderRunCompleteSummary(steps) : '') +
+					(hasAnyNotesOrOpenComposers()
+						? '<div class="launchdek-client-panel-notes-toolbar">' +
+							'<button type="button" class="button-link launchdek-client-toggle-all-notes" id="launchdek-client-toggle-all-notes">' +
+								escHtml(allNotesMinimized()
+									? (strings.expandAllNotes || 'Show all notes')
+									: (strings.minimizeAllNotes || 'Minimize all notes')) +
+							'</button>' +
+						'</div>'
+						: '') +
+					'<ol class="launchdek-client-step-list">' + steps.map(function (step, index) {
+						return renderStep(step, index === activeIndex, index, activeIndex);
+					}).join('') + '</ol>' +
+					'<div id="launchdek-client-panel-notice" class="launchdek-client-panel-notice" hidden></div>' +
 				'</div>' +
 			'</aside>';
 
 		bindActions();
+		restoreNoteDrafts();
+		root.querySelectorAll('.launchdek-client-note-form').forEach(function (form) {
+			var stepIndex = parseInt(form.getAttribute('data-step'), 10);
+			if (isNaN(stepIndex)) {
+				return;
+			}
+			syncNoteComposerUi(stepIndex, noteComposerOpen(stepIndex));
+			updateNoteActionButton(stepIndex);
+		});
 	}
 
 	function bindActions() {
 		var collapseBtn = document.getElementById('launchdek-client-panel-collapse');
 		var expandBtn = document.getElementById('launchdek-client-panel-expand');
-		var toggleStepsBtn = document.getElementById('launchdek-client-toggle-steps');
 
 		if (collapseBtn) {
 			collapseBtn.addEventListener('click', function () {
@@ -327,19 +855,30 @@
 			});
 		}
 
-		if (toggleStepsBtn) {
-			toggleStepsBtn.addEventListener('click', function () {
-				showAllSteps = !showAllSteps;
-				savePrefs();
-				render();
-			});
-		}
-
 		root.querySelectorAll('.launchdek-client-step-toggle').forEach(function (btn) {
 			btn.addEventListener('click', function () {
 				toggleStepExpanded(parseInt(btn.getAttribute('data-step'), 10));
 			});
 		});
+
+		root.querySelectorAll('.launchdek-client-step-notes-toggle').forEach(function (btn) {
+			btn.addEventListener('click', function () {
+				var stepIndex = parseInt(btn.getAttribute('data-step'), 10);
+				var collapsed = !isNoteSectionCollapsed(stepIndex);
+				setNoteSectionCollapsed(stepIndex, collapsed);
+				if (!collapsed) {
+					notesGloballyMinimized = false;
+				}
+				render();
+			});
+		});
+
+		var toggleAllNotesBtn = document.getElementById('launchdek-client-toggle-all-notes');
+		if (toggleAllNotesBtn) {
+			toggleAllNotesBtn.addEventListener('click', function () {
+				toggleAllNotes();
+			});
+		}
 
 		root.querySelectorAll('.launchdek-client-complete-step').forEach(function (btn) {
 			btn.addEventListener('click', function () {
@@ -347,9 +886,28 @@
 			});
 		});
 
-		root.querySelectorAll('.launchdek-client-save-note').forEach(function (btn) {
+		root.querySelectorAll('.launchdek-client-uncomplete-step').forEach(function (btn) {
 			btn.addEventListener('click', function () {
-				saveNote(parseInt(btn.getAttribute('data-step'), 10), btn);
+				uncompleteStep(parseInt(btn.getAttribute('data-step'), 10), btn);
+			});
+		});
+
+		root.querySelectorAll('.launchdek-client-note-action').forEach(function (btn) {
+			btn.addEventListener('click', function () {
+				handleNoteAction(parseInt(btn.getAttribute('data-step'), 10), btn);
+			});
+		});
+
+		root.querySelectorAll('.launchdek-client-note-input').forEach(function (textarea) {
+			textarea.addEventListener('input', function () {
+				var match = String(textarea.id || '').match(/^launchdek-client-note-(\d+)$/);
+				if (!match) {
+					return;
+				}
+
+				var stepIndex = parseInt(match[1], 10);
+				noteDrafts[stepIndex] = textarea.value;
+				updateNoteActionButton(stepIndex);
 			});
 		});
 
@@ -365,6 +923,13 @@
 				render();
 			});
 		});
+
+		var dismissBtn = document.getElementById('launchdek-client-dismiss-run');
+		if (dismissBtn) {
+			dismissBtn.addEventListener('click', function () {
+				dismissRun(dismissBtn);
+			});
+		}
 	}
 
 	function notice(message, type) {
@@ -372,13 +937,49 @@
 		if (!el) {
 			return;
 		}
+		if (!message) {
+			el.className = 'launchdek-client-panel-notice';
+			el.textContent = '';
+			el.hidden = true;
+			return;
+		}
+		el.hidden = false;
 		el.className = 'launchdek-client-panel-notice ' + (type || 'error');
-		el.textContent = message || '';
+		el.textContent = message;
+	}
+
+	function handleNoteAction(stepIndex, button) {
+		var form = getNoteForm(stepIndex);
+		var composer = form ? form.querySelector('.launchdek-client-note-composer') : null;
+		var textarea = form ? form.querySelector('.launchdek-client-note-input') : null;
+		var isOpen = composer && composer.classList.contains('is-open');
+		var hasText = textarea && String(textarea.value || '').trim().length > 0;
+
+		if (!isOpen) {
+			notesGloballyMinimized = false;
+			setNoteComposerOpen(stepIndex, true);
+			syncNoteComposerUi(stepIndex, true);
+			if (textarea) {
+				window.requestAnimationFrame(function () {
+					textarea.focus();
+				});
+			}
+			return;
+		}
+
+		if (hasText) {
+			saveNote(stepIndex, button);
+			return;
+		}
+
+		if (textarea) {
+			textarea.focus();
+		}
 	}
 
 	function openMediaPicker(stepIndex) {
 		if (typeof wp === 'undefined' || !wp.media) {
-			notice(strings.error || 'Could not open media library.', 'error');
+			notice(strings.mediaError || 'Could not open media library.', 'error');
 			return;
 		}
 
@@ -390,12 +991,29 @@
 		});
 
 		frame.on('select', function () {
-			var attachment = frame.state().get('selection').first().toJSON();
+			var selection = frame.state().get('selection');
+			var model = selection && selection.first ? selection.first() : null;
+
+			if (!model) {
+				notice(strings.mediaError || 'Could not open media library.', 'error');
+				return;
+			}
+
+			var attachment = model.toJSON();
+			var previewUrl = getAttachmentPreviewUrl(attachment);
+
+			if (!attachment.id || !previewUrl) {
+				notice(strings.mediaError || 'Could not open media library.', 'error');
+				return;
+			}
+
 			pendingAttachment = {
-				stepIndex: stepIndex,
+				stepIndex: parseInt(stepIndex, 10),
 				id: attachment.id,
-				url: attachment.url
+				url: previewUrl
 			};
+			setNoteComposerOpen(stepIndex, true);
+			setStepExpanded(stepIndex, true);
 			render();
 		});
 
@@ -405,10 +1023,11 @@
 	function saveNote(stepIndex, button) {
 		var textarea = document.getElementById('launchdek-client-note-' + stepIndex);
 		var text = textarea ? textarea.value.trim() : '';
-		var attachmentId = pendingAttachment && pendingAttachment.stepIndex === stepIndex ? pendingAttachment.id : 0;
+		var attachmentId = pendingAttachment && sameStepIndex(pendingAttachment.stepIndex, stepIndex) ? pendingAttachment.id : 0;
+		var createdAt = new Date().toISOString().slice(0, 19).replace('T', ' ');
 
-		if (!text && !attachmentId) {
-			notice(strings.notePlaceholder || 'Add a note about this step…', 'error');
+		if (!text) {
+			notice(strings.noteRequired || 'Type a note before saving.', 'error');
 			return;
 		}
 
@@ -424,7 +1043,8 @@
 			credentials: 'same-origin',
 			body: JSON.stringify({
 				text: text,
-				attachment_id: attachmentId || 0
+				attachment_id: attachmentId || 0,
+				created_at: createdAt
 			})
 		}).then(function (response) {
 			return response.json().then(function (body) {
@@ -435,9 +1055,13 @@
 			});
 		}).then(function (response) {
 			pendingAttachment = null;
+			resetNoteComposer(stepIndex);
 			run = response.run || run;
 			launchdekClient.run = run;
-			notice(strings.noteSaved || 'Note saved.', 'success');
+			var message = response.hub_synced
+				? (strings.noteSaved || 'Note saved.')
+				: (strings.noteSavedLocal || 'Note saved on this site. Hub sync will retry on the next checklist update.');
+			notice(message, 'success');
 			render();
 		}).catch(function (error) {
 			button.disabled = false;
@@ -445,21 +1069,78 @@
 		});
 	}
 
-	function completeStep(stepIndex, button) {
-		if (!stepIndex && stepIndex !== 0) {
+	function cloneRun(source) {
+		return JSON.parse(JSON.stringify(source || {}));
+	}
+
+	function applyOptimisticStepUpdate(stepIndex, action) {
+		var steps = run.steps || [];
+		var user = launchdekClient.currentUser || {};
+		var now = new Date().toISOString().slice(0, 19).replace('T', ' ');
+
+		steps.forEach(function (step) {
+			if (parseInt(step.step_index, 10) !== parseInt(stepIndex, 10)) {
+				return;
+			}
+
+			if (action === 'complete') {
+				step.status = 'completed';
+				step.manual_checked = true;
+				step.completed_at = now;
+				step.completed_by = {
+					name: user.name || '',
+					email: user.email || ''
+				};
+				return;
+			}
+
+			step.status = 'awaiting_manual';
+			step.manual_checked = false;
+			step.completed_at = '';
+			step.completed_by = null;
+		});
+
+		run.steps = steps;
+
+		if (steps.length > 0 && completedCount(steps) === steps.length) {
+			run.run_status = 'completed';
+			if (!run.completed_at) {
+				run.completed_at = now;
+			}
+		} else if (action === 'uncomplete') {
+			run.run_status = 'running';
+			run.completed_at = '';
+		}
+	}
+
+	function updateStepStatus(stepIndex, button, action) {
+		if (stepIndex === null || stepIndex === undefined || isNaN(stepIndex)) {
 			return;
 		}
 
+		var rollbackRun = cloneRun(run);
+
+		applyOptimisticStepUpdate(stepIndex, action);
+
+		if (action === 'complete') {
+			setStepExpanded(stepIndex, false);
+		} else {
+			setStepExpanded(stepIndex, true);
+		}
+
 		button.disabled = true;
+		notice('', '');
+		render();
 
 		var base = String(launchdekClient.restUrl || '').replace(/\/$/, '');
-		fetch(base + '/client/run/steps/' + stepIndex + '/complete', {
+		fetch(base + '/client/run/steps/' + stepIndex + '/' + action, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
 				'X-WP-Nonce': launchdekClient.nonce
 			},
-			credentials: 'same-origin'
+			credentials: 'same-origin',
+			body: JSON.stringify({})
 		}).then(function (response) {
 			return response.json().then(function (body) {
 				if (!response.ok) {
@@ -476,8 +1157,48 @@
 			launchdekClient.run = run;
 			render();
 		}).catch(function (error) {
+			run = rollbackRun;
+			launchdekClient.run = run;
 			button.disabled = false;
+			render();
 			notice(error.message || strings.error || 'Could not update this step.', 'error');
+		});
+	}
+
+	function completeStep(stepIndex, button) {
+		updateStepStatus(stepIndex, button, 'complete');
+	}
+
+	function uncompleteStep(stepIndex, button) {
+		updateStepStatus(stepIndex, button, 'uncomplete');
+	}
+
+	function dismissRun(button) {
+		button.disabled = true;
+
+		var base = String(launchdekClient.restUrl || '').replace(/\/$/, '');
+		fetch(base + '/client/run/dismiss', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				'X-WP-Nonce': launchdekClient.nonce
+			},
+			credentials: 'same-origin',
+			body: JSON.stringify({})
+		}).then(function (response) {
+			return response.json().then(function (body) {
+				if (!response.ok) {
+					throw new Error((body && body.message) || strings.dismissError || 'Could not dismiss this checklist.');
+				}
+				return body;
+			});
+		}).then(function () {
+			run = null;
+			launchdekClient.run = null;
+			root.innerHTML = '';
+		}).catch(function (error) {
+			button.disabled = false;
+			notice(error.message || strings.dismissError || 'Could not dismiss this checklist.', 'error');
 		});
 	}
 

@@ -1,0 +1,65 @@
+{
+  "title": "Backup Restore Failed",
+  "description": "Recover when a backup restore fails — partial imports, database errors, timeout issues, and mismatched file/database restores.",
+  "category": "troubleshooting",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "bkp_document_failure",
+      "title": "Document Restore Failure Point",
+      "instructions": "Note where restore stopped: database import, file extraction, search-replace, or timeout. Identify backup tool used and backup age.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "bkp_verify_backup_integrity",
+      "title": "Verify Backup Archive Integrity",
+      "instructions": "Confirm backup zip is not corrupted (re-download, check file size). Test extracting on local machine. Try an older backup if recent one is damaged.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "bkp_increase_limits",
+      "title": "Raise PHP and Server Limits for Restore",
+      "instructions": "Increase max_execution_time, memory_limit, and upload_max_filesize. Large restores should use WP-CLI, SSH, or host restore tool instead of browser.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "bkp_restore_db_first",
+      "title": "Restore Database and Files Separately",
+      "instructions": "If combined restore fails, import SQL via phpMyAdmin or WP-CLI first, then upload files via SFTP. Match backup date for both halves.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "bkp_search_replace",
+      "title": "Run URL Search-Replace After Restore",
+      "instructions": "Restoring to different domain requires serialization-safe search-replace. Use Better Search Replace or wp search-replace --dry-run first.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "bkp_permissions",
+      "title": "Fix File Permissions After Restore",
+      "instructions": "Restored files may have wrong ownership. Set directories 755, files 644. Ensure wp-config.php is readable but not world-writable.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "bkp_alternative_method",
+      "title": "Try Alternative Restore Method",
+      "instructions": "If plugin restore fails, try host snapshot restore, WP-CLI import, or manual SQL + SFTP. All-in-One WP Migration may need unlimited extension for large sites.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "bkp_verify",
+      "title": "Verify Restored Site Completely",
+      "instructions": "Test homepage, admin login, media, forms, and checkout. Compare post count and media count to pre-disaster baseline if available.",
+      "deep_link": "",
+      "type": "manual"
+    }
+  ]
+}

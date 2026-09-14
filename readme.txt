@@ -17,8 +17,8 @@ LaunchDek is a master-site plugin for WordPress agencies to manage remote client
 **Features:**
 
 * **Dashboard** — Live stats, API connection ticker, activity log feed, quick launch bar
-* **Sites** — Register remote sites, connection tester, tagging and grouping
-* **Checklists** — Drag-and-drop builder, step configuration, API payload mapper, import/export, plus 66 built-in templates and agency vault
+* **Sites** — Register remote sites, connection tester, tagging and grouping, per-site checklist run history
+* **Checklists** — Drag-and-drop builder, step configuration, API payload mapper, import/export, plus 86 built-in templates and agency vault
 * **Automation & Audit** — Run control, live step tracker, immutable audit logs, drift verifier
 * **Integrations** — MainWP, ManageWP, WP Umbrella, WP Engine, WPvibe adapters
 * **Settings** — Encrypted credential vault, Slack/Discord/Teams webhooks, role guardrails
@@ -63,8 +63,30 @@ Yes, when enabled in Settings, application passwords are encrypted using your Wo
 
 == Changelog ==
 
+= 1.0.17 =
+* Client checklist panel: minimize all notes with one click; each step's saved notes can also be collapsed individually
+
+= 1.0.16 =
+* Client checklist panel: Mark complete and Mark not complete feel instant — optimistic UI updates plus faster hub callbacks (no redundant panel re-sync or bundle reinstall on every step toggle)
+
+= 1.0.15 =
+* Sites page: expand each site row to view checklist run history (completed, running, and failed runs) with links to open the run on Automation
+
+= 1.0.14 =
+* Client checklist panel: completed checklists show a summary with Started/Completed timestamps and a Dismiss button to close the panel
+* Client checklist panel: completed checklists stay visible with all steps and completion details instead of disappearing from wp-admin
+* Client checklist panel: step notes now save only when you type text and click Add note; empty or duplicate sync entries are filtered out
+* Client checklist panel: saved notes display the author name and timestamp
+* Client checklist panel: fix step notes being wiped when the hub re-syncs a run snapshot; notes now save locally first and merge with hub updates
+* Client checklist panel: fix Mark complete for all logged-in wp-admin users; ensure legacy runs get callback tokens
+* Client checklist panel: all steps collapsed by default (title + status only); chevron expands to show actions and notes
+* Client checklist panel: collapsed tab label renamed to Expand
+* Client checklist panel: completed steps show who completed them (name and email) and when
+* Client panel bundle now syncs automatically when pushing a checklist to a connected site
+* Automation page: Refresh Client Panel button re-pushes the active run snapshot without re-running steps
+
 = 1.0.13 =
-* Added 28 built-in troubleshooting checklists — common WordPress errors plus plugin-specific guides (Elementor, ACF, Loco Translate, WP Super Cache, OptinMonster, WooCommerce, Ninja Forms, block editor)
+* Added 48 built-in troubleshooting checklists — common WordPress errors, plugin-specific guides, security incidents, performance, migration, and deployment issues
 * New Troubleshooting template category on Checklists → Templates
 
 = 1.0.12 =

@@ -73,10 +73,30 @@ class LAUNCHDEK_Client_REST_API {
 
 		register_rest_route(
 			LAUNCHDEK_CLIENT_REST_NAMESPACE,
+			'/client/run/dismiss',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( __CLASS__, 'dismiss_run' ),
+				'permission_callback' => array( __CLASS__, 'can_view_panel' ),
+			)
+		);
+
+		register_rest_route(
+			LAUNCHDEK_CLIENT_REST_NAMESPACE,
 			'/client/run/steps/(?P<step>\d+)/complete',
 			array(
 				'methods'             => 'POST',
 				'callback'            => array( __CLASS__, 'complete_step' ),
+				'permission_callback' => array( __CLASS__, 'can_view_panel' ),
+			)
+		);
+
+		register_rest_route(
+			LAUNCHDEK_CLIENT_REST_NAMESPACE,
+			'/client/run/steps/(?P<step>\d+)/uncomplete',
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( __CLASS__, 'uncomplete_step' ),
 				'permission_callback' => array( __CLASS__, 'can_view_panel' ),
 			)
 		);
@@ -285,6 +305,39 @@ class LAUNCHDEK_Client_REST_API {
 	}
 
 	/**
+	 * Dismiss a completed checklist from the client admin panel.
+	 *
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public static function dismiss_run() {
+		$run = LAUNCHDEK_Client_Run_Store::get();
+
+		if ( ! $run ) {
+			return new WP_Error(
+				'launchdek_client_no_run',
+				__( 'No active checklist is assigned to this site.', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+				array( 'status' => 404 )
+			);
+		}
+
+		if ( 'completed' !== ( $run['run_status'] ?? '' ) && ! LAUNCHDEK_Client_Run_Store::all_steps_completed( $run ) ) {
+			return new WP_Error(
+				'launchdek_client_not_completed',
+				__( 'Only completed checklists can be dismissed.', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+				array( 'status' => 409 )
+			);
+		}
+
+		LAUNCHDEK_Client_Run_Store::clear();
+
+		return rest_ensure_response(
+			array(
+				'success' => true,
+			)
+		);
+	}
+
+	/**
 	 * Complete a manual step from the client admin panel.
 	 *
 	 * @param WP_REST_Request $request Request object.
@@ -328,10 +381,10 @@ class LAUNCHDEK_Client_REST_API {
 			);
 		}
 
-		if ( 'awaiting_manual' !== ( $step['status'] ?? '' ) ) {
+		if ( ! in_array( $step['status'] ?? '', array( 'pending', 'awaiting_manual', 'running' ), true ) ) {
 			return new WP_Error(
 				'launchdek_client_not_ready',
-				__( 'This step is not ready to be completed yet.', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+				__( 'This step cannot be marked complete.', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
 				array( 'status' => 409 )
 			);
 		}
@@ -343,16 +396,103 @@ class LAUNCHDEK_Client_REST_API {
 			return $result;
 		}
 
+		$saved_run = null;
+
 		if ( ! empty( $result['snapshot'] ) && is_array( $result['snapshot'] ) ) {
-			LAUNCHDEK_Client_Run_Store::save( $result['snapshot'] );
-		} elseif ( ! empty( $result['run']['status'] ) && in_array( $result['run']['status'], array( 'completed', 'failed', 'cancelled' ), true ) ) {
-			LAUNCHDEK_Client_Run_Store::clear();
+			$saved_run = LAUNCHDEK_Client_Run_Store::save( $result['snapshot'] );
+		} elseif ( ! empty( $result['run'] ) && is_array( $result['run'] ) ) {
+			$run_status = sanitize_key( $result['run']['status'] ?? '' );
+
+			if ( in_array( $run_status, array( 'failed', 'cancelled' ), true ) ) {
+				LAUNCHDEK_Client_Run_Store::clear();
+			} else {
+				$saved_run = LAUNCHDEK_Client_Run_Store::patch_from_hub_run( $result['run'] );
+			}
+		} else {
+			$saved_run = LAUNCHDEK_Client_Run_Store::get();
 		}
 
 		return rest_ensure_response(
 			array(
 				'success' => true,
-				'run'     => LAUNCHDEK_Client_Run_Store::format_for_api( LAUNCHDEK_Client_Run_Store::get() ),
+				'run'     => LAUNCHDEK_Client_Run_Store::format_for_api( $saved_run ),
+			)
+		);
+	}
+
+	/**
+	 * Revert a completed manual step from the client admin panel.
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public static function uncomplete_step( $request ) {
+		$run        = LAUNCHDEK_Client_Run_Store::get();
+		$step_index = absint( $request['step'] );
+
+		if ( ! $run ) {
+			return new WP_Error(
+				'launchdek_client_no_run',
+				__( 'No active checklist is assigned to this site.', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+				array( 'status' => 404 )
+			);
+		}
+
+		$step = LAUNCHDEK_Client_Run_Store::get_step( $step_index );
+
+		if ( ! $step ) {
+			return new WP_Error(
+				'launchdek_client_step_not_found',
+				__( 'Checklist step not found.', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+				array( 'status' => 404 )
+			);
+		}
+
+		if ( ! LAUNCHDEK_Client_Run_Store::user_can_complete_step( $step ) ) {
+			return new WP_Error(
+				'launchdek_client_forbidden',
+				__( 'You do not have permission to update this step.', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+				array( 'status' => 403 )
+			);
+		}
+
+		if ( 'manual' !== ( $step['type'] ?? 'manual' ) ) {
+			return new WP_Error(
+				'launchdek_client_not_manual',
+				__( 'Only manual steps can be updated here.', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+				array( 'status' => 400 )
+			);
+		}
+
+		if ( 'completed' !== ( $step['status'] ?? '' ) ) {
+			return new WP_Error(
+				'launchdek_client_not_completed',
+				__( 'This step is not marked complete.', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+				array( 'status' => 409 )
+			);
+		}
+
+		$user   = wp_get_current_user();
+		$result = LAUNCHDEK_Client_Hub_Client::uncomplete_step( $run, $step_index, $user );
+
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+
+		$saved_run = null;
+
+		if ( ! empty( $result['snapshot'] ) && is_array( $result['snapshot'] ) ) {
+			$saved_run = LAUNCHDEK_Client_Run_Store::save( $result['snapshot'] );
+		} elseif ( ! empty( $result['run'] ) && is_array( $result['run'] ) ) {
+			$saved_run = LAUNCHDEK_Client_Run_Store::patch_from_hub_run( $result['run'] );
+		} else {
+			$saved_run = LAUNCHDEK_Client_Run_Store::get();
+		}
+
+		return rest_ensure_response(
+			array(
+				'success' => true,
+				'run'     => LAUNCHDEK_Client_Run_Store::format_for_api( $saved_run ),
 			)
 		);
 	}
@@ -385,15 +525,31 @@ class LAUNCHDEK_Client_REST_API {
 			);
 		}
 
+		if ( ! LAUNCHDEK_Client_Run_Store::user_can_complete_step( $step ) ) {
+			return new WP_Error(
+				'launchdek_client_forbidden',
+				__( 'You do not have permission to add notes to this step.', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+				array( 'status' => 403 )
+			);
+		}
+
+		if ( ! in_array( $step['status'] ?? '', array( 'pending', 'awaiting_manual', 'running' ), true ) ) {
+			return new WP_Error(
+				'launchdek_client_not_ready',
+				__( 'Notes can only be added to steps that are not yet complete.', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+				array( 'status' => 409 )
+			);
+		}
+
 		$data          = $request->get_json_params();
 		$payload       = is_array( $data ) ? $data : array();
-		$text          = sanitize_textarea_field( $payload['text'] ?? '' );
+		$text          = trim( sanitize_textarea_field( $payload['text'] ?? '' ) );
 		$attachment_id = absint( $payload['attachment_id'] ?? 0 );
 
-		if ( '' === $text && ! $attachment_id ) {
+		if ( '' === $text ) {
 			return new WP_Error(
 				'launchdek_client_note_empty',
-				__( 'A note must include text or a screenshot.', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+				__( 'Type a note before saving.', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
 				array( 'status' => 400 )
 			);
 		}
@@ -410,21 +566,48 @@ class LAUNCHDEK_Client_REST_API {
 			$payload['attachment_url'] = wp_get_attachment_url( $attachment_id );
 		}
 
-		$user   = wp_get_current_user();
-		$result = LAUNCHDEK_Client_Hub_Client::add_step_note( $run, $step_index, $user, $payload );
-
-		if ( is_wp_error( $result ) ) {
-			return $result;
+		$user       = wp_get_current_user();
+		$created_at = sanitize_text_field( $payload['created_at'] ?? '' );
+		if ( '' === $created_at ) {
+			$created_at = current_time( 'mysql', true );
 		}
 
-		if ( ! empty( $result['snapshot'] ) && is_array( $result['snapshot'] ) ) {
-			LAUNCHDEK_Client_Run_Store::save( $result['snapshot'] );
+		$payload['text']       = $text;
+		$payload['created_at'] = $created_at;
+
+		$note = array(
+			'user'           => sanitize_text_field( $user->display_name ),
+			'text'           => $text,
+			'attachment_id'  => $attachment_id,
+			'attachment_url' => ! empty( $payload['attachment_url'] ) ? esc_url_raw( $payload['attachment_url'] ) : '',
+			'created_at'     => $created_at,
+		);
+
+		$local_run = LAUNCHDEK_Client_Run_Store::add_step_note( $step_index, $note );
+
+		if ( ! $local_run ) {
+			return new WP_Error(
+				'launchdek_client_note_save_failed',
+				__( 'Failed to save note locally.', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+				array( 'status' => 500 )
+			);
+		}
+
+		$result = LAUNCHDEK_Client_Hub_Client::add_step_note( $run, $step_index, $user, $payload );
+
+		if ( ! is_wp_error( $result ) ) {
+			if ( ! empty( $result['snapshot'] ) && is_array( $result['snapshot'] ) ) {
+				LAUNCHDEK_Client_Run_Store::save( $result['snapshot'] );
+			} elseif ( ! empty( $result['run'] ) && is_array( $result['run'] ) ) {
+				LAUNCHDEK_Client_Run_Store::patch_from_hub_run( $result['run'] );
+			}
 		}
 
 		return rest_ensure_response(
 			array(
 				'success' => true,
 				'run'     => LAUNCHDEK_Client_Run_Store::format_for_api( LAUNCHDEK_Client_Run_Store::get() ),
+				'hub_synced' => ! is_wp_error( $result ),
 			)
 		);
 	}

@@ -35,7 +35,7 @@ class LAUNCHDEK_Client_Panel {
 		wp_enqueue_style(
 			'launchdek-client-admin',
 			LAUNCHDEK_CLIENT_PANEL_URL . 'css/launchdek-client-admin.css',
-			array( 'dashicons' ),
+			array(),
 			file_exists( $css_path ) ? (string) filemtime( $css_path ) : LAUNCHDEK_CLIENT_PANEL_VERSION
 		);
 
@@ -44,7 +44,7 @@ class LAUNCHDEK_Client_Panel {
 		wp_enqueue_script(
 			'launchdek-client-admin',
 			LAUNCHDEK_CLIENT_PANEL_URL . 'js/launchdek-client-admin.js',
-			array( 'media-views' ),
+			array( 'jquery', 'media-editor', 'media-views' ),
 			file_exists( $js_path ) ? (string) filemtime( $js_path ) : LAUNCHDEK_CLIENT_PANEL_VERSION,
 			true
 		);
@@ -56,29 +56,48 @@ class LAUNCHDEK_Client_Panel {
 				'restUrl' => esc_url_raw( rest_url( LAUNCHDEK_CLIENT_REST_NAMESPACE ) ),
 				'nonce'   => wp_create_nonce( 'wp_rest' ),
 				'run'     => LAUNCHDEK_Client_Run_Store::format_for_api( $run ),
+				'currentUser' => array(
+					'name'  => sanitize_text_field( wp_get_current_user()->display_name ),
+					'email' => sanitize_email( wp_get_current_user()->user_email ),
+				),
 				'strings' => array(
 					'panelTitle'  => __( 'Agency Checklist', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
 					'collapse'    => __( 'Collapse', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
 					'expand'      => __( 'Expand', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
-					'complete'    => __( 'Mark complete', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+					'markComplete' => __( 'Mark complete', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+					'undoComplete' => __( 'Mark not complete', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+					'completedBy' => __( 'Completed by %1$s on %2$s', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+					'unknownUser' => __( 'Unknown user', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
 					'completed'   => __( 'Completed', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
 					'waiting'     => __( 'Waiting on agency', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
-					'pending'     => __( 'Pending', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
 					'openStep'    => __( 'Open step', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
 					'goToSettings' => __( 'Go to settings', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
 					'toggleStep'  => __( 'Toggle step details', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
 					'error'       => __( 'Could not update this step.', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
-					'runComplete' => __( 'Checklist complete — great work!', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+					'runComplete' => __( 'Checklist complete!', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+					'startedLabel' => __( 'Started:', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+					'completedLabel' => __( 'Completed:', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+					'dismiss'     => __( 'Dismiss', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+					'dismissError' => __( 'Could not dismiss this checklist.', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
 					'progress'    => __( 'Progress', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
 					'stepOf'      => __( 'Step %1$s of %2$s', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
 					'showAll'     => __( 'Show all steps', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
 					'showFocused' => __( 'Focus current step', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
 					'addNote'     => __( 'Add note', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+					'addNotes'    => __( 'Add notes', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
 					'notePlaceholder' => __( 'Add a note about this step…', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+					'noteRequired' => __( 'Type a note before saving.', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+					'noteMeta' => __( '%1$s · %2$s', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
 					'attachScreenshot' => __( 'Attach screenshot', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
 					'submitNote'  => __( 'Save note', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
 					'noteSaved'   => __( 'Note saved.', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+					'noteSavedLocal' => __( 'Note saved on this site. Hub sync will retry on the next checklist update.', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
 					'notesHeading' => __( 'Notes', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+					'notesCount' => __( '%1$s (%2$s)', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+					'minimizeAllNotes' => __( 'Minimize all notes', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+					'expandAllNotes' => __( 'Show all notes', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+					'removeAttachment' => __( 'Remove screenshot', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+					'mediaError'  => __( 'Could not open media library.', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
 				),
 			)
 		);

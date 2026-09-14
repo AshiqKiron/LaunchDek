@@ -124,40 +124,53 @@
 	margin: 0;
 	padding: 0;
 	display: grid;
-	gap: 10px;
+	gap: 6px;
 }
 
 .launchdek-client-step {
-	border: 1px solid #dcdcde;
-	border-radius: 4px;
-	padding: 10px;
+	border: 1px solid #e2e8f0;
+	border-radius: 6px;
+	padding: 10px 12px;
 	background: #fff;
 }
 
+.launchdek-client-step.is-collapsed {
+	padding: 10px 12px;
+}
+
 .launchdek-client-step.is-completed {
-	background: #f0f6f1;
-	border-color: #b8ddb9;
+	background: #fff;
+	border-color: #e2e8f0;
+}
+
+.launchdek-client-step.is-completed .launchdek-client-step-title,
+.launchdek-client-step.is-completed .launchdek-client-step-instructions,
+.launchdek-client-step.is-completed .launchdek-client-step-completed-meta,
+.launchdek-client-step.is-completed .launchdek-client-step-toggle {
+	color: #a7aaad;
+}
+
+.launchdek-client-step.is-upcoming {
+	background: #f6f7f7;
+	border-color: #e2e8f0;
+	opacity: 0.82;
+}
+
+.launchdek-client-step.is-upcoming .launchdek-client-step-title,
+.launchdek-client-step.is-upcoming .launchdek-client-step-instructions,
+.launchdek-client-step.is-upcoming .launchdek-client-step-settings-link,
+.launchdek-client-step.is-upcoming .launchdek-client-step-toggle {
+	color: #a7aaad;
 }
 
 .launchdek-client-step.is-active,
 .launchdek-client-step.is-current {
-	border-color: #2271b1;
-	box-shadow: inset 0 0 0 1px #2271b1;
+	border-color: #e2e8f0;
+	box-shadow: none;
 }
 
 .launchdek-client-step.is-current {
-	background: #f0f6fc;
-}
-
-.launchdek-client-step.is-collapsed-summary {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	gap: 8px;
-	padding: 6px 10px;
-	background: #f6f7f7;
-	border-color: #e0e0e0;
-	opacity: 0.85;
+	background: #f0f7ff;
 }
 
 .launchdek-client-step.is-collapsed .launchdek-client-step-body {
@@ -169,26 +182,26 @@
 	align-items: center;
 	justify-content: center;
 	flex-shrink: 0;
-	width: 24px;
-	height: 24px;
+	width: 20px;
+	height: 20px;
 	padding: 0;
 	border: 0;
 	background: transparent;
-	color: #50575e;
+	color: #1a202c;
 	cursor: pointer;
 	border-radius: 2px;
 }
 
 .launchdek-client-step-toggle:hover,
 .launchdek-client-step-toggle:focus {
-	color: #2271b1;
-	background: #f0f6fc;
+	color: #1a202c;
+	background: transparent;
+	opacity: 0.7;
 }
 
-.launchdek-client-step-toggle .dashicons {
-	width: 18px;
-	height: 18px;
-	font-size: 18px;
+.launchdek-client-step-chevron {
+	display: block;
+	flex-shrink: 0;
 }
 
 .launchdek-client-step-settings-link-wrap {
@@ -218,21 +231,31 @@
 
 .launchdek-client-step-head {
 	display: flex;
-	align-items: flex-start;
-	justify-content: space-between;
-	gap: 8px;
+	align-items: center;
+	gap: 10px;
+	min-height: 24px;
+}
+
+.launchdek-client-step-head-actions {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	flex-shrink: 0;
+	margin-left: auto;
 }
 
 .launchdek-client-step-title {
 	flex: 1;
 	margin: 0;
 	font-size: 13px;
-	font-weight: 600;
-	color: #1d2327;
+	font-weight: 700;
+	color: #1a202c;
+	line-height: 1.35;
 }
 
 .launchdek-client-step-badge {
-	display: inline-block;
+	display: none;
+	flex-shrink: 0;
 	padding: 2px 6px;
 	border-radius: 999px;
 	font-size: 11px;
@@ -240,6 +263,11 @@
 	background: #f0f0f1;
 	color: #50575e;
 	white-space: nowrap;
+}
+
+.launchdek-client-step-badge.running {
+	background: #f0f0f1;
+	color: #50575e;
 }
 
 .launchdek-client-step-badge.completed {
@@ -253,6 +281,7 @@
 }
 
 .launchdek-client-step-badge.failed {
+	display: inline-block;
 	background: #fcebea;
 	color: #8a2424;
 }
@@ -263,16 +292,205 @@
 	font-size: 12px;
 }
 
-.launchdek-client-step-actions {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 6px;
-	margin-top: 10px;
+.launchdek-client-icon-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 28px;
+	height: 28px;
+	padding: 0;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+	background: #fff;
+	color: #50575e;
+	cursor: pointer;
 }
 
-.launchdek-client-step-actions .button {
-	min-height: 28px;
-	line-height: 26px;
+.launchdek-client-has-tooltip {
+	position: relative;
+}
+
+.launchdek-client-has-tooltip::after {
+	content: attr(data-tooltip);
+	position: absolute;
+	bottom: calc(100% + 6px);
+	left: 50%;
+	z-index: 1;
+	padding: 4px 8px;
+	border-radius: 3px;
+	background: #1d2327;
+	color: #fff;
+	font-size: 11px;
+	font-weight: 500;
+	line-height: 1.3;
+	white-space: nowrap;
+	pointer-events: none;
+	opacity: 0;
+	visibility: hidden;
+	transform: translateX(-50%) translateY(2px);
+	transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s ease;
+}
+
+.launchdek-client-has-tooltip:hover::after,
+.launchdek-client-has-tooltip:focus-visible::after {
+	opacity: 1;
+	visibility: visible;
+	transform: translateX(-50%) translateY(0);
+}
+
+.launchdek-client-tooltip-left::after {
+	bottom: auto;
+	left: auto;
+	right: calc(100% + 6px);
+	top: 50%;
+	transform: translateY(-50%) translateX(2px);
+}
+
+.launchdek-client-tooltip-left:hover::after,
+.launchdek-client-tooltip-left:focus-visible::after {
+	transform: translateY(-50%) translateX(0);
+}
+
+.launchdek-client-tooltip-right::after {
+	bottom: auto;
+	left: calc(100% + 6px);
+	top: 50%;
+	transform: translateY(-50%) translateX(-2px);
+}
+
+.launchdek-client-tooltip-right:hover::after,
+.launchdek-client-tooltip-right:focus-visible::after {
+	transform: translateY(-50%) translateX(0);
+}
+
+.launchdek-client-icon-btn:hover,
+.launchdek-client-icon-btn:focus {
+	border-color: #2271b1;
+	color: #2271b1;
+	background: #f0f6fc;
+}
+
+.launchdek-client-icon-btn.is-complete-action {
+	border: none;
+	background: transparent;
+	color: #1a202c;
+	width: 20px;
+	height: 20px;
+}
+
+.launchdek-client-icon-btn.is-complete-action:hover,
+.launchdek-client-icon-btn.is-complete-action:focus {
+	border: none;
+	background: transparent;
+	color: #1a202c;
+	opacity: 0.65;
+}
+
+.launchdek-client-icon-btn.is-undo-action {
+	border-color: #c3c4c7;
+	background: #fff;
+	color: #50575e;
+}
+
+.launchdek-client-icon-btn.is-undo-action:hover,
+.launchdek-client-icon-btn.is-undo-action:focus {
+	border-color: #8c8f94;
+	background: #f6f7f7;
+	color: #1d2327;
+}
+
+.launchdek-client-step-complete-state {
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 20px;
+	height: 20px;
+	flex-shrink: 0;
+}
+
+.launchdek-client-step-done-icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 20px;
+	height: 20px;
+	border: none;
+	background: transparent;
+	color: #1a202c;
+	transition: opacity 0.15s ease;
+}
+
+.launchdek-client-step-complete-state:not(.is-readonly) .launchdek-client-step-done-icon {
+	position: absolute;
+	inset: 0;
+}
+
+.launchdek-client-step-complete-state:not(.is-readonly) .launchdek-client-uncomplete-step {
+	position: absolute;
+	inset: 0;
+	opacity: 0;
+	pointer-events: none;
+	transition: opacity 0.15s ease;
+}
+
+.launchdek-client-step-complete-state:not(.is-readonly):hover .launchdek-client-step-done-icon,
+.launchdek-client-step-complete-state:not(.is-readonly):focus-within .launchdek-client-step-done-icon {
+	opacity: 0;
+}
+
+.launchdek-client-step-complete-state:not(.is-readonly):hover .launchdek-client-uncomplete-step,
+.launchdek-client-step-complete-state:not(.is-readonly):focus-within .launchdek-client-uncomplete-step {
+	opacity: 1;
+	pointer-events: auto;
+}
+
+.launchdek-client-icon-btn.is-attach-action {
+	border: none;
+	background: transparent;
+	color: #50575e;
+	width: 20px;
+	height: 20px;
+}
+
+.launchdek-client-icon-btn.is-attach-action:hover,
+.launchdek-client-icon-btn.is-attach-action:focus {
+	border: none;
+	background: transparent;
+	color: #2271b1;
+}
+
+.launchdek-client-icon-btn.is-note-action,
+.launchdek-client-icon-btn.is-save-action {
+	border: none;
+	background: transparent;
+	color: #50575e;
+	width: 20px;
+	height: 20px;
+}
+
+.launchdek-client-icon-btn.is-note-action:hover,
+.launchdek-client-icon-btn.is-note-action:focus,
+.launchdek-client-icon-btn.is-save-action:hover,
+.launchdek-client-icon-btn.is-save-action:focus {
+	border: none;
+	background: transparent;
+	color: #1a202c;
+}
+
+.launchdek-client-icon-btn:disabled {
+	opacity: 0.55;
+	cursor: not-allowed;
+}
+
+.launchdek-client-icon {
+	display: block;
+}
+
+.launchdek-client-step-completed-meta {
+	margin: 8px 0 0;
+	font-size: 11px;
+	color: #646970;
 }
 
 .launchdek-client-panel-notice {
@@ -280,6 +498,13 @@
 	padding: 8px 10px;
 	border-radius: 4px;
 	font-size: 12px;
+}
+
+.launchdek-client-panel-notice:empty,
+.launchdek-client-panel-notice[hidden] {
+	display: none;
+	margin-top: 0;
+	padding: 0;
 }
 
 .launchdek-client-panel-notice.success {
@@ -290,6 +515,42 @@
 .launchdek-client-panel-notice.error {
 	background: #fcebea;
 	color: #8a2424;
+}
+
+.launchdek-client-run-complete-summary {
+	margin-bottom: 12px;
+	padding: 12px;
+	border: 1px solid #b8e6bf;
+	border-radius: 4px;
+	background: #edfaef;
+}
+
+.launchdek-client-run-complete-title {
+	margin: 0 0 8px;
+	font-size: 13px;
+	font-weight: 600;
+	color: #135e23;
+}
+
+.launchdek-client-run-complete-meta {
+	margin: 0 0 4px;
+	font-size: 12px;
+	color: #1d2327;
+}
+
+.launchdek-client-run-complete-meta:last-of-type {
+	margin-bottom: 10px;
+}
+
+.launchdek-client-run-complete-label {
+	font-weight: 600;
+	color: #135e23;
+}
+
+.launchdek-client-dismiss-run {
+	width: 100%;
+	justify-content: center;
+	text-align: center;
 }
 
 .launchdek-client-panel-tab {
@@ -320,17 +581,52 @@
 	display: none;
 }
 
+.launchdek-client-panel-notes-toolbar {
+	display: flex;
+	justify-content: flex-end;
+	margin-bottom: 8px;
+}
+
+.launchdek-client-toggle-all-notes {
+	font-size: 12px;
+	padding: 0;
+}
+
 .launchdek-client-step-notes {
 	margin-top: 10px;
 }
 
-.launchdek-client-step-notes-title {
+.launchdek-client-step-notes-toggle {
+	display: flex;
+	align-items: center;
+	gap: 4px;
 	margin: 0 0 6px;
+	padding: 0;
+	border: 0;
+	background: none;
 	font-size: 11px;
 	font-weight: 600;
 	text-transform: uppercase;
 	letter-spacing: 0.02em;
 	color: #646970;
+	cursor: pointer;
+}
+
+.launchdek-client-step-notes-toggle:hover,
+.launchdek-client-step-notes-toggle:focus {
+	color: #1d2327;
+}
+
+.launchdek-client-step-notes-toggle .launchdek-client-step-chevron {
+	flex-shrink: 0;
+}
+
+.launchdek-client-step-notes-title {
+	margin: 0;
+}
+
+.launchdek-client-step-notes.is-collapsed .launchdek-client-note-list {
+	display: none;
 }
 
 .launchdek-client-note-list {
@@ -346,6 +642,14 @@
 	border-radius: 4px;
 	background: #f6f7f7;
 	border: 1px solid #dcdcde;
+}
+
+.launchdek-client-note-meta {
+	display: block;
+	font-size: 11px;
+	font-weight: 600;
+	color: #50575e;
+	margin-bottom: 4px;
 }
 
 .launchdek-client-note-user {
@@ -374,6 +678,34 @@
 
 .launchdek-client-note-form {
 	margin-top: 10px;
+}
+
+.launchdek-client-note-form-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	align-items: center;
+}
+
+.launchdek-client-note-form-actions .launchdek-client-attach-screenshot[hidden] {
+	display: none;
+}
+
+.launchdek-client-note-composer {
+	max-height: 0;
+	opacity: 0;
+	overflow: hidden;
+	transition: max-height 0.28s ease, opacity 0.22s ease, margin-top 0.28s ease;
+	margin-top: 0;
+}
+
+.launchdek-client-note-composer.is-open {
+	max-height: 280px;
+	opacity: 1;
+	margin-top: 8px;
+}
+
+.launchdek-client-note-composer-inner {
 	display: grid;
 	gap: 6px;
 }
@@ -382,13 +714,6 @@
 	width: 100%;
 	font-size: 12px;
 	resize: vertical;
-}
-
-.launchdek-client-note-form-actions {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 6px;
-	align-items: center;
 }
 
 .launchdek-client-note-attachment-preview {

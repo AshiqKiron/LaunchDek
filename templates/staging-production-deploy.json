@@ -1,0 +1,65 @@
+{
+  "title": "Staging to Production Deploy Issues",
+  "description": "Fix problems pushing staging changes to production — database sync, URL mismatches, cache, and lost content conflicts.",
+  "category": "troubleshooting",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "deploy_define_scope",
+      "title": "Define Deploy Scope and Rollback Plan",
+      "instructions": "Document what is being deployed: code only, database only, or both. Take full production backup before any push. Define rollback steps and time window.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "deploy_code_first",
+      "title": "Deploy Code Changes First",
+      "instructions": "Push theme, plugin, and mu-plugin file changes via git, SFTP, or host deploy tool. Do not overwrite production wp-config.php or uploads without intent.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "deploy_selective_db",
+      "title": "Use Selective Database Sync",
+      "instructions": "Never blindly import full staging DB to production — it overwrites live orders, users, and content. Sync only specific tables or use migration tools with exclude rules.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "deploy_url_replace",
+      "title": "Run Production URL Search-Replace",
+      "instructions": "If staging URLs exist in deployed data, run serialization-safe replace from staging.domain to production.domain on production after import.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "deploy_exclude_sensitive",
+      "title": "Exclude Sensitive Options from Sync",
+      "instructions": "Do not overwrite siteurl, home, SMTP credentials, API keys, or analytics IDs. Maintain a list of options to exclude per client environment.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "deploy_flush_cache",
+      "title": "Flush All Caches After Deploy",
+      "instructions": "Purge page cache, object cache, CDN, and opcode cache. Regenerate Elementor/CSS caches if applicable. Test in incognito.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "deploy_verify_integrations",
+      "title": "Verify Production Integrations",
+      "instructions": "Confirm live payment gateways, SMTP, analytics, and CRM connections still use production credentials — not staging test keys.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "deploy_smoke_test",
+      "title": "Run Production Smoke Test",
+      "instructions": "Test homepage, checkout, forms, login, and key client workflows. Monitor error logs for 24 hours post-deploy. Document deploy in client changelog.",
+      "deep_link": "",
+      "type": "manual"
+    }
+  ]
+}

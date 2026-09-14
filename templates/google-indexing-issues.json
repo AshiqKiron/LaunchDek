@@ -1,0 +1,65 @@
+{
+  "title": "Google Indexing & SEO Visibility Issues",
+  "description": "Fix pages not appearing in Google, accidental noindex, sitemap errors, and Search Console coverage problems.",
+  "category": "troubleshooting",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "gidx_identify_scope",
+      "title": "Identify Indexing Problem Scope",
+      "instructions": "Check if whole site, specific pages, or new content is affected. Review Google Search Console Coverage report for errors and excluded pages.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "gidx_noindex_audit",
+      "title": "Audit noindex and Discourage Search Engines",
+      "instructions": "Uncheck 'Discourage search engines' under Settings → Reading on production. Check SEO plugin noindex settings per post, CPT, and archive.",
+      "deep_link": "options-reading.php",
+      "type": "manual"
+    },
+    {
+      "id": "gidx_robots_txt",
+      "title": "Review robots.txt",
+      "instructions": "Ensure robots.txt does not block important paths. WordPress virtual robots.txt should allow crawling. SEO plugins may add disallow rules — audit carefully.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "gidx_sitemap",
+      "title": "Fix XML Sitemap",
+      "instructions": "Verify sitemap at /wp-sitemap.xml or SEO plugin sitemap URL. Submit in Search Console. Fix 404s, redirect chains, and excluded post types in sitemap settings.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "gidx_canonical",
+      "title": "Check Canonical URLs and Redirects",
+      "instructions": "Duplicate content, wrong canonical tags, or redirect loops prevent indexing. Audit with SEO plugin and Screaming Frog or similar crawler.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "gidx_staging_leak",
+      "title": "Ensure Staging Is Not Indexed",
+      "instructions": "If staging was indexed, noindex it and password-protect. Request removal in Search Console. Verify production URLs are canonical.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "gidx_request_indexing",
+      "title": "Request Indexing for Key Pages",
+      "instructions": "Use Search Console URL Inspection to request indexing for homepage and priority pages after fixes. Allow 1–2 weeks for recrawl.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "gidx_verify",
+      "title": "Monitor Search Console for 30 Days",
+      "instructions": "Watch Coverage and Performance reports. Confirm indexed page count increases and critical errors resolve.",
+      "deep_link": "",
+      "type": "manual"
+    }
+  ]
+}

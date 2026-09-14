@@ -1,0 +1,65 @@
+{
+  "title": "Broken Navigation Menus",
+  "description": "Fix missing menus, wrong items showing, mobile menu failures, and menus breaking after theme switch or migration.",
+  "category": "troubleshooting",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "menu_identify_issue",
+      "title": "Identify Menu Failure Type",
+      "instructions": "Note if menu is completely missing, shows wrong items, dropdowns broken, mobile toggle not working, or only on certain pages.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "menu_assign_location",
+      "title": "Re-assign Menu to Theme Location",
+      "instructions": "Go to Appearance → Menus and assign the menu to the correct theme location (Primary, Footer, etc.). Theme switches reset location assignments.",
+      "deep_link": "nav-menus.php",
+      "type": "manual"
+    },
+    {
+      "id": "menu_check_items",
+      "title": "Verify Menu Items and Links",
+      "instructions": "Check for broken custom links, trashed pages still in menu, or draft pages assigned. Remove orphaned items and update URLs after migration.",
+      "deep_link": "nav-menus.php",
+      "type": "manual"
+    },
+    {
+      "id": "menu_theme_builder",
+      "title": "Check Theme Builder Override (Elementor/Divi)",
+      "instructions": "Page builders may replace theme menus with builder headers. Verify header template display conditions and menu widget configuration.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "menu_js_conflicts",
+      "title": "Debug Mobile Menu JavaScript",
+      "instructions": "Mobile toggle often fails from jQuery conflicts or deferred scripts. Check console errors and exclude menu scripts from delay-JS optimization.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "menu_cache",
+      "title": "Purge Cache After Menu Changes",
+      "instructions": "Full-page cache may serve HTML with old menu. Purge all caches after menu updates. Some caches need manual purge per menu change.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "menu_mega_menu",
+      "title": "Fix Mega Menu Plugin Issues",
+      "instructions": "Max Mega Menu and similar plugins need reconfiguration after theme change. Re-enable plugin, reassign theme location, and regenerate CSS.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "menu_verify",
+      "title": "Verify Desktop and Mobile Navigation",
+      "instructions": "Test all menu levels, dropdowns, and mobile hamburger on real devices. Check logged-in vs logged-out if menu differs by role.",
+      "deep_link": "",
+      "type": "manual"
+    }
+  ]
+}

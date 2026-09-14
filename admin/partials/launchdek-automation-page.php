@@ -62,6 +62,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 			<div class="launchdek-run-controls launchdek-inline-form">
 				<button type="button" class="button" id="launchdek-run-auto"><?php esc_html_e( 'Run Auto Steps', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
 				<button type="button" class="button" id="launchdek-run-next"><?php esc_html_e( 'Execute Next Step', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
+				<button type="button" class="button" id="launchdek-run-push-client" hidden><?php esc_html_e( 'Refresh Client Panel', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
 			</div>
 			<div id="launchdek-run-notice" class="launchdek-notice-area" aria-live="polite"></div>
 		</div>

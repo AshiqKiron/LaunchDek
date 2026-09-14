@@ -1,0 +1,65 @@
+{
+  "title": "REST API Blocked or Broken",
+  "description": "Fix /wp-json/ errors breaking the block editor, headless setups, Application Passwords, and third-party integrations.",
+  "category": "troubleshooting",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "rest_test_endpoint",
+      "title": "Test REST API Endpoint",
+      "instructions": "Visit https://yoursite.com/wp-json/ in browser or curl. Note HTTP status (404, 403, 500) and error message. Test /wp-json/wp/v2/posts as well.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "rest_permalinks",
+      "title": "Flush Permalinks and Rewrite Rules",
+      "instructions": "Broken rewrites cause REST 404s. Save Settings → Permalinks. Verify .htaccess or nginx config passes requests to index.php.",
+      "deep_link": "options-permalink.php",
+      "type": "manual"
+    },
+    {
+      "id": "rest_security_plugins",
+      "title": "Check Security Plugin REST Restrictions",
+      "instructions": "Wordfence, iThemes, and Disable REST API plugins can block endpoints. Whitelist REST for authenticated users or disable overly aggressive rules.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "rest_server_rules",
+      "title": "Review Server and CDN Rules",
+      "instructions": "WAF, mod_security, or Cloudflare may block /wp-json/ requests. Add allow rule for REST paths. Check for rate limiting on API routes.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "rest_ssl_redirect",
+      "title": "Fix SSL and Redirect Issues on REST",
+      "instructions": "REST calls over http on an https-only site may redirect-loop or fail. Ensure siteurl uses https and REST URL matches.",
+      "deep_link": "options-general.php",
+      "type": "manual"
+    },
+    {
+      "id": "rest_plugin_conflict",
+      "title": "Isolate Plugin Filtering rest_authentication_errors",
+      "instructions": "Plugins hooking rest_authentication_errors or rest_pre_dispatch can break all API access. Disable suspects and retest.",
+      "deep_link": "plugins.php",
+      "type": "manual"
+    },
+    {
+      "id": "rest_cors",
+      "title": "Configure CORS for Headless (If Applicable)",
+      "instructions": "Headless front ends need correct CORS headers. Add allowed origins via plugin or server config. Test preflight OPTIONS requests.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "rest_verify",
+      "title": "Verify Block Editor and Integrations",
+      "instructions": "Confirm block editor loads, Application Password auth works, and any headless/mobile integrations connect. Check Site Health REST test passes.",
+      "deep_link": "site-health.php",
+      "type": "manual"
+    }
+  ]
+}

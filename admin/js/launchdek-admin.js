@@ -863,7 +863,8 @@
 			var children = [
 				el('time', { text: '[' + (log.created_at || '') + ']' })
 			];
-			if ((log.site_id || log.run_id) && log.site_name) {
+			var showSiteLabel = log.show_site_label || ((log.site_id || log.run_id) && log.site_name);
+			if (showSiteLabel && log.site_name) {
 				children.push(el('span', {
 					className: 'launchdek-log-site',
 					text: log.site_name,
@@ -952,6 +953,7 @@
 	var currentSiteId = null;
 	var pushChecklistSiteId = null;
 	var pushChecklistCache = null;
+	var siteRunsCache = {};
 	var siteTableColspan = 7;
 	var siteConnectionStaleMs = 30 * 60 * 1000;
 
@@ -1024,7 +1026,175 @@
 	}
 
 	function getSiteRow(siteId) {
-		return document.querySelector('#launchdek-sites-table tr[data-site-id="' + siteId + '"]');
+		return document.querySelector('#launchdek-sites-table tr.launchdek-site-row[data-site-id="' + siteId + '"]');
+	}
+
+	function getSiteRunsRow(siteId) {
+		return document.querySelector('#launchdek-sites-table tr.launchdek-site-runs-row[data-site-id="' + siteId + '"]');
+	}
+
+	function siteHistoryToggleHtml(siteId) {
+		var label = strings.siteChecklistHistoryShow || 'Show checklist history';
+		return '<button type="button" class="button-link launchdek-site-history-toggle" data-site-id="' + escAttr(siteId) + '" aria-expanded="false" title="' + escAttr(label) + '">' +
+			'<span class="dashicons dashicons-arrow-right-alt2 launchdek-site-history-icon" aria-hidden="true"></span>' +
+			'<span class="screen-reader-text">' + escHtml(label) + '</span>' +
+			'</button> ';
+	}
+
+	function runStatusLabel(status) {
+		if (status === 'completed') return strings.runStatusCompleted || 'Completed';
+		if (status === 'running') return strings.runStatusRunning || 'Running';
+		if (status === 'failed') return strings.runStatusFailed || 'Failed';
+		if (status === 'cancelled') return strings.runStatusCancelled || 'Cancelled';
+		return status || '—';
+	}
+
+	function formatRunTimestamp(value) {
+		if (!value) {
+			return '—';
+		}
+		var parsed = Date.parse(String(value).replace(' ', 'T') + 'Z');
+		if (isNaN(parsed)) {
+			return escHtml(String(value));
+		}
+		return escHtml(new Date(parsed).toLocaleString());
+	}
+
+	function automationRunUrl(runId) {
+		return launchdekAdmin.adminUrl + '?page=' + launchdekAdmin.pageSlug + '-automation&run_id=' + encodeURIComponent(String(runId));
+	}
+
+	function renderSiteRunsPanel(panel, runs) {
+		if (!panel) {
+			return;
+		}
+
+		if (!runs || !runs.length) {
+			panel.innerHTML = '<p class="launchdek-muted launchdek-site-runs-empty">' + escHtml(strings.siteNoChecklistRuns || 'No checklist runs recorded for this site yet.') + '</p>';
+			return;
+		}
+
+		var html = '<div class="launchdek-site-runs-heading">' + escHtml(strings.siteChecklistHistory || 'Checklist history') + '</div>';
+		html += '<table class="launchdek-site-runs-table"><thead><tr>';
+		html += '<th scope="col">' + escHtml(strings.runChecklist || 'Checklist') + '</th>';
+		html += '<th scope="col">' + escHtml(strings.runStatus || 'Status') + '</th>';
+		html += '<th scope="col">' + escHtml(strings.runStartedAt || 'Started') + '</th>';
+		html += '<th scope="col">' + escHtml(strings.runCompletedAt || 'Completed') + '</th>';
+		html += '<th scope="col">' + escHtml(strings.runStartedBy || 'By') + '</th>';
+		html += '<th scope="col"><span class="screen-reader-text">' + escHtml(strings.viewRun || 'View run') + '</span></th>';
+		html += '</tr></thead><tbody>';
+
+		runs.forEach(function (run) {
+			html += '<tr>' +
+				'<td>' + escHtml(run.checklist_title || ('#' + run.checklist_id)) + '</td>' +
+				'<td><span class="launchdek-badge ' + escAttr(run.status || 'unknown') + '">' + escHtml(runStatusLabel(run.status)) + '</span></td>' +
+				'<td>' + formatRunTimestamp(run.started_at) + '</td>' +
+				'<td>' + formatRunTimestamp(run.completed_at) + '</td>' +
+				'<td>' + escHtml(run.started_by_name || '—') + '</td>' +
+				'<td class="launchdek-actions"><a class="button button-small" href="' + escAttr(automationRunUrl(run.id)) + '">' + escHtml(strings.viewRun || 'View run') + '</a></td>' +
+				'</tr>';
+		});
+
+		html += '</tbody></table>';
+		panel.innerHTML = html;
+	}
+
+	function loadSiteRuns(siteId, panel) {
+		if (!panel) {
+			panel = document.querySelector('.launchdek-site-runs-panel[data-site-id="' + siteId + '"]');
+		}
+		if (!panel) {
+			return Promise.resolve([]);
+		}
+
+		panel.innerHTML = '<p class="launchdek-muted">' + escHtml(strings.loading || 'Loading…') + '</p>';
+
+		return get('/sites/' + siteId + '/runs').then(function (runs) {
+			siteRunsCache[siteId] = runs || [];
+			renderSiteRunsPanel(panel, siteRunsCache[siteId]);
+			return siteRunsCache[siteId];
+		}).catch(function (err) {
+			panel.innerHTML = '<div class="notice-inline error">' + escHtml(err.message || strings.error || 'Something went wrong.') + '</div>';
+			throw err;
+		});
+	}
+
+	function setSiteHistoryOpen(siteId, open) {
+		var row = getSiteRow(siteId);
+		var runsRow = getSiteRunsRow(siteId);
+		var toggle = row ? row.querySelector('.launchdek-site-history-toggle') : null;
+
+		if (runsRow) {
+			if (open) {
+				runsRow.removeAttribute('hidden');
+			} else {
+				runsRow.setAttribute('hidden', 'hidden');
+			}
+		}
+
+		if (row) {
+			row.classList.toggle('is-history-open', open);
+		}
+
+		if (toggle) {
+			toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+			toggle.title = open ? (strings.siteChecklistHistoryHide || 'Hide checklist history') : (strings.siteChecklistHistoryShow || 'Show checklist history');
+			var sr = toggle.querySelector('.screen-reader-text');
+			if (sr) {
+				sr.textContent = open ? (strings.siteChecklistHistoryHide || 'Hide checklist history') : (strings.siteChecklistHistoryShow || 'Show checklist history');
+			}
+		}
+	}
+
+	function toggleSiteRuns(siteId) {
+		var runsRow = getSiteRunsRow(siteId);
+		if (!runsRow) {
+			return;
+		}
+
+		var open = runsRow.hasAttribute('hidden');
+		setSiteHistoryOpen(siteId, open);
+
+		if (open) {
+			var panel = runsRow.querySelector('.launchdek-site-runs-panel');
+			if (siteRunsCache[siteId]) {
+				renderSiteRunsPanel(panel, siteRunsCache[siteId]);
+			} else {
+				loadSiteRuns(siteId, panel);
+			}
+		}
+	}
+
+	function invalidateSiteRunsCache(siteId) {
+		delete siteRunsCache[siteId];
+		var runsRow = getSiteRunsRow(siteId);
+		if (runsRow && !runsRow.hasAttribute('hidden')) {
+			loadSiteRuns(siteId, runsRow.querySelector('.launchdek-site-runs-panel'));
+		}
+	}
+
+	function appendSiteRowPair(tbody, site) {
+		var siteId = String(site.id);
+		var connectionBlocked = site.health_status === 'unhealthy';
+		var tr = el('tr', { className: 'launchdek-site-row', 'data-site-id': siteId });
+		tr.innerHTML =
+			'<td>' + siteHistoryToggleHtml(siteId) + escHtml(site.name) + (site.client_agent ? ' <span class="launchdek-badge healthy launchdek-client-agent-badge">' + escHtml(strings.clientPanelBadge || 'Client panel') + '</span>' : '') + '</td>' +
+			'<td><a href="' + escAttr(site.url) + '" target="_blank" rel="noopener">' + escHtml(site.url) + '</a></td>' +
+			'<td class="launchdek-site-connection-cell">' + connectionStatusHtml(site) + '</td>' +
+			'<td class="launchdek-site-wp-version">' + escHtml(site.wp_version || '—') + '</td>' +
+			'<td class="launchdek-site-php-version">' + escHtml(site.php_version || '—') + '</td>' +
+			'<td><span class="launchdek-badge launchdek-site-health-badge ' + escAttr(site.health_status) + '">' + escHtml(healthLabel(site.health_status)) + '</span></td>' +
+			'<td class="launchdek-actions">' +
+			'<div class="launchdek-actions-wrap">' +
+			'<button type="button" class="button button-small launchdek-push-checklist" data-id="' + escAttr(site.id) + '" data-name="' + escAttr(site.name) + '"' + (connectionBlocked ? ' disabled' : '') + '>' + escHtml(strings.pushChecklist || 'Push Checklist') + '</button>' +
+			'<button type="button" class="button button-small launchdek-edit-site" data-id="' + escAttr(site.id) + '">Edit</button>' +
+			'<button type="button" class="button button-small launchdek-test-site" data-id="' + escAttr(site.id) + '">Test</button>' +
+			'</div></td>';
+		tbody.appendChild(tr);
+
+		var runsRow = el('tr', { className: 'launchdek-site-runs-row', 'data-site-id': siteId, hidden: 'hidden' });
+		runsRow.innerHTML = '<td colspan="' + siteTableColspan + '"><div class="launchdek-site-runs-panel" data-site-id="' + escAttr(siteId) + '"></div></td>';
+		tbody.appendChild(runsRow);
 	}
 
 	function updateSiteRowConnection(siteId, status, details) {
@@ -1131,6 +1301,7 @@
 			return;
 		}
 
+		siteRunsCache = {};
 		tbody.innerHTML = '';
 		if (!sites || !sites.length) {
 			var emptyMsg = strings.noSites || 'No sites registered yet.';
@@ -1142,22 +1313,7 @@
 		}
 
 		sites.forEach(function (site) {
-			var tr = el('tr', { 'data-site-id': String(site.id) });
-			var connectionBlocked = site.health_status === 'unhealthy';
-			tr.innerHTML =
-				'<td>' + escHtml(site.name) + (site.client_agent ? ' <span class="launchdek-badge healthy launchdek-client-agent-badge">' + escHtml(strings.clientPanelBadge || 'Client panel') + '</span>' : '') + '</td>' +
-				'<td><a href="' + escAttr(site.url) + '" target="_blank" rel="noopener">' + escHtml(site.url) + '</a></td>' +
-				'<td class="launchdek-site-connection-cell">' + connectionStatusHtml(site) + '</td>' +
-				'<td class="launchdek-site-wp-version">' + escHtml(site.wp_version || '—') + '</td>' +
-				'<td class="launchdek-site-php-version">' + escHtml(site.php_version || '—') + '</td>' +
-				'<td><span class="launchdek-badge launchdek-site-health-badge ' + escAttr(site.health_status) + '">' + escHtml(healthLabel(site.health_status)) + '</span></td>' +
-				'<td class="launchdek-actions">' +
-				'<div class="launchdek-actions-wrap">' +
-				'<button type="button" class="button button-small launchdek-push-checklist" data-id="' + escAttr(site.id) + '" data-name="' + escAttr(site.name) + '"' + (connectionBlocked ? ' disabled' : '') + '>' + escHtml(strings.pushChecklist || 'Push Checklist') + '</button>' +
-				'<button type="button" class="button button-small launchdek-edit-site" data-id="' + escAttr(site.id) + '">Edit</button>' +
-				'<button type="button" class="button button-small launchdek-test-site" data-id="' + escAttr(site.id) + '">Test</button>' +
-				'</div></td>';
-			tbody.appendChild(tr);
+			appendSiteRowPair(tbody, site);
 		});
 		bindSiteActions();
 		if (!options.skipStaleRefresh) {
@@ -1203,6 +1359,12 @@
 	}
 
 	function bindSiteActions() {
+		document.querySelectorAll('.launchdek-site-history-toggle').forEach(function (btn) {
+			btn.onclick = function (e) {
+				e.preventDefault();
+				toggleSiteRuns(parseInt(btn.dataset.siteId, 10));
+			};
+		});
 		document.querySelectorAll('.launchdek-edit-site').forEach(function (btn) {
 			btn.onclick = function () { openSiteModal(parseInt(btn.dataset.id, 10)); };
 		});
@@ -1451,6 +1613,7 @@
 						}
 					}
 					notice(result, message + ' <a href="' + automationUrl + '">' + (strings.openRunner || 'Open runner →') + '</a>', 'success');
+					invalidateSiteRunsCache(pushChecklistSiteId);
 				})
 				.catch(function (err) {
 					notice(result, err.message, 'error');
@@ -2318,6 +2481,10 @@
 	function renderRun(run) {
 		if (!run) return;
 		activeRunId = run.id;
+		var pushClientBtn = document.getElementById('launchdek-run-push-client');
+		if (pushClientBtn) {
+			pushClientBtn.hidden = false;
+		}
 		document.getElementById('launchdek-run-info').innerHTML =
 			'<strong>Run #' + run.id + '</strong><br>' +
 			escHtml(run.checklist_title) + ' on ' + escHtml(run.site_name) +
@@ -2328,7 +2495,10 @@
 		(run.steps || []).forEach(function (step) {
 			var li = el('li', { className: 'launchdek-run-step status-' + step.status });
 			var html = '<strong>' + (step.step_index + 1) + '. ' + escHtml(step.title) + '</strong>';
-			html += '<div class="launchdek-run-step-meta">' + escHtml(step.step_type) + ' — ' + escHtml(step.status);
+			html += '<div class="launchdek-run-step-meta">' + escHtml(step.step_type);
+			if (step.status && step.status !== 'pending') {
+				html += ' — ' + escHtml(step.status);
+			}
 			if (step.manual_checked) html += ' ✓';
 			html += '</div>';
 
@@ -2349,13 +2519,21 @@
 			if (step.notes && step.notes.length) {
 				html += '<div class="launchdek-run-step-notes"><strong>Notes</strong><ul>';
 				step.notes.forEach(function (note) {
-					html += '<li class="launchdek-run-step-note">';
+					if (!note || !String(note.text || '').trim()) {
+						return;
+					}
+					var metaParts = [];
 					if (note.user) {
-						html += '<span class="launchdek-run-step-note-user">' + escHtml(note.user) + '</span>';
+						metaParts.push(note.user);
 					}
-					if (note.text) {
-						html += '<p>' + escHtml(note.text) + '</p>';
+					if (note.created_at) {
+						metaParts.push(note.created_at);
 					}
+					html += '<li class="launchdek-run-step-note">';
+					if (metaParts.length) {
+						html += '<span class="launchdek-run-step-note-meta">' + escHtml(metaParts.join(' · ')) + '</span>';
+					}
+					html += '<p>' + escHtml(note.text) + '</p>';
 					if (note.attachment_url) {
 						html += '<a href="' + escAttr(note.attachment_url) + '" target="_blank" rel="noopener" class="launchdek-run-step-note-attachment">' +
 							'<img src="' + escAttr(note.attachment_url) + '" alt="" loading="lazy" />' +
@@ -2366,8 +2544,11 @@
 				html += '</ul></div>';
 			}
 
-			if (step.status === 'awaiting_manual') {
+			if (step.step_type === 'manual' && step.status !== 'completed' && step.status !== 'failed') {
 				html += '<button type="button" class="button button-small launchdek-complete-step" data-index="' + step.step_index + '">Mark Complete</button>';
+			}
+			if (step.step_type === 'manual' && step.status === 'completed' && step.manual_checked) {
+				html += '<button type="button" class="button button-small launchdek-uncomplete-step" data-index="' + step.step_index + '">Mark Not Complete</button>';
 			}
 
 			li.innerHTML = html;
@@ -2377,6 +2558,15 @@
 		document.querySelectorAll('.launchdek-complete-step').forEach(function (btn) {
 			btn.onclick = function () {
 				post('/runs/' + activeRunId + '/steps/' + btn.dataset.index + '/complete', {}).then(function (r) {
+					renderRun(r.run);
+					loadAudit();
+				});
+			};
+		});
+
+		document.querySelectorAll('.launchdek-uncomplete-step').forEach(function (btn) {
+			btn.onclick = function () {
+				post('/runs/' + activeRunId + '/steps/' + btn.dataset.index + '/uncomplete', {}).then(function (r) {
 					renderRun(r.run);
 					loadAudit();
 				});
@@ -2564,6 +2754,18 @@
 		loadAuditMeta().then(loadAudit);
 		loadDriftStatus();
 
+		var runIdParam = parseInt(new URLSearchParams(window.location.search).get('run_id') || '0', 10);
+		if (runIdParam) {
+			get('/runs/' + runIdParam).then(function (run) {
+				renderRun(run);
+			}).catch(function (err) {
+				var noticeEl = document.getElementById('launchdek-run-notice');
+				if (noticeEl) {
+					notice(noticeEl, err.message, 'error');
+				}
+			});
+		}
+
 		document.getElementById('launchdek-queue-add').onclick = addToBatchQueue;
 		document.getElementById('launchdek-queue-clear').onclick = function () {
 			batchQueue = [];
@@ -2599,6 +2801,22 @@
 		document.getElementById('launchdek-run-auto').onclick = function () {
 			if (!activeRunId) return alert('Start a run first.');
 			post('/runs/' + activeRunId + '/auto', {}).then(function (r) { renderRun(r.run); loadAudit(); });
+		};
+
+		document.getElementById('launchdek-run-push-client').onclick = function () {
+			if (!activeRunId) return alert('Start a run first.');
+			var noticeEl = document.getElementById('launchdek-run-notice');
+			post('/runs/' + activeRunId + '/push-client', {})
+				.then(function (data) {
+					if (data.run) {
+						renderRun(data.run);
+					}
+					loadAudit();
+					notice(noticeEl, data.message || (strings.clientPushOk || 'Checklist pushed to client admin panel.'), 'success');
+				})
+				.catch(function (e) {
+					notice(noticeEl, e.message, 'error');
+				});
 		};
 
 		document.getElementById('launchdek-verify-drift').onclick = function () {

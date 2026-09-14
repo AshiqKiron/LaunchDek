@@ -1,0 +1,65 @@
+{
+  "title": "Custom Post Type 404 Errors",
+  "description": "Fix custom post types and taxonomies returning 404 — rewrite rules, flush conflicts, and registration order issues.",
+  "category": "troubleshooting",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "cpt_identify_scope",
+      "title": "Identify Which CPT/Taxonomy 404s",
+      "instructions": "Note if single posts, archives, or both return 404. List the post type slug and whether it is registered by theme, plugin, or ACF/CPT UI.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "cpt_flush_permalinks",
+      "title": "Flush Permalink Rewrite Rules",
+      "instructions": "Visit Settings → Permalinks and save. CPTs registered after last flush will 404 until rules regenerate. Re-activate registering plugin if needed.",
+      "deep_link": "options-permalink.php",
+      "type": "manual"
+    },
+    {
+      "id": "cpt_rewrite_slug",
+      "title": "Check Rewrite Slug Conflicts",
+      "instructions": "CPT slug may conflict with a page slug, category, or another CPT. Change rewrite slug in registration args or rename conflicting page.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "cpt_has_archive",
+      "title": "Verify has_archive and publicly_queryable",
+      "instructions": "CPT registration needs 'has_archive' => true for archive pages and 'publicly_queryable' => true for front-end access. Check register_post_type() args.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "cpt_registration_order",
+      "title": "Fix Registration Hook Priority",
+      "instructions": "CPTs must register on init hook. Registering too late or on wrong hook means rewrite rules never include them. Check theme functions.php and plugin load order.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "cpt_acf_cptui",
+      "title": "Sync ACF or CPT UI Settings",
+      "instructions": "If using ACF Post Types or Custom Post Type UI, confirm settings saved and JSON synced. Re-save CPT settings and flush permalinks again.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "cpt_conflict_plugins",
+      "title": "Check for Rewrite Rule Conflicts",
+      "instructions": "SEO plugins, multilingual plugins, and custom permalink plugins may override CPT rules. Test with SEO plugin permalink settings disabled temporarily.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "cpt_verify",
+      "title": "Verify Single and Archive URLs",
+      "instructions": "Test single CPT post URL and archive URL. Confirm pagination on archive works. Document CPT slugs for client reference.",
+      "deep_link": "",
+      "type": "manual"
+    }
+  ]
+}

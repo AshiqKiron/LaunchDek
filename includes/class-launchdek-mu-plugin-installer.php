@@ -36,7 +36,11 @@ class LAUNCHDEK_Mu_Plugin_Installer {
 			);
 		}
 
+		$files = self::get_bundle_files();
+
 		if ( self::panel_available( $client ) ) {
+			$sync = self::sync_bundle( $client, $files );
+
 			LAUNCHDEK_Site_Repository::update(
 				$site_id,
 				array(
@@ -44,14 +48,22 @@ class LAUNCHDEK_Mu_Plugin_Installer {
 				)
 			);
 
+			if ( is_wp_error( $sync ) ) {
+				return array(
+					'success' => true,
+					'message' => __( 'Client checklist panel is installed, but the latest panel files could not be synced.', LAUNCHDEK_TEXT_DOMAIN ),
+					'method'  => 'existing',
+					'sync'    => $sync->get_error_message(),
+				);
+			}
+
 			return array(
 				'success' => true,
-				'message' => __( 'Client checklist panel is installed.', LAUNCHDEK_TEXT_DOMAIN ),
-				'method'  => 'existing',
+				'message' => __( 'Client checklist panel updated.', LAUNCHDEK_TEXT_DOMAIN ),
+				'method'  => 'sync',
+				'written' => $sync['written'] ?? array(),
 			);
 		}
-
-		$files = self::get_bundle_files();
 
 		if ( empty( $files ) ) {
 			return new WP_Error(
@@ -124,6 +136,30 @@ class LAUNCHDEK_Mu_Plugin_Installer {
 		$result = $client->rest( 'GET', self::INFO_ROUTE );
 
 		return ! is_wp_error( $result ) && ! empty( $result['body']['panel'] );
+	}
+
+	/**
+	 * Sync the bundled panel files to a site that already has the panel installed.
+	 *
+	 * @param LAUNCHDEK_Remote_Client $client Remote client.
+	 * @param array                   $files  Relative path => contents.
+	 * @return array|WP_Error
+	 */
+	protected static function sync_bundle( $client, $files ) {
+		if ( empty( $files ) ) {
+			return new WP_Error(
+				'launchdek_mu_bundle_missing',
+				__( 'Client panel bundle files are missing on the hub.', LAUNCHDEK_TEXT_DOMAIN )
+			);
+		}
+
+		$local = self::install_via_local_filesystem( $client, $files );
+
+		if ( ! is_wp_error( $local ) ) {
+			return $local;
+		}
+
+		return self::install_via_rest( $client, $files );
 	}
 
 	/**

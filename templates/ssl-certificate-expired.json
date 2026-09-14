@@ -1,0 +1,58 @@
+{
+  "title": "SSL Certificate Expired",
+  "description": "Restore HTTPS after an expired or misconfigured SSL certificate — renew, reinstall, and fix browser warnings.",
+  "category": "troubleshooting",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "ssl_confirm_expiry",
+      "title": "Confirm Certificate Status",
+      "instructions": "Check certificate expiry at SSL Labs or browser padlock details. Note if expired, wrong domain, or incomplete chain. Identify who manages certs (host, Cloudflare, Let's Encrypt).",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "ssl_renew_cert",
+      "title": "Renew or Reissue Certificate",
+      "instructions": "Renew via hosting panel (AutoSSL, Let's Encrypt) or upload new cert files. For Cloudflare, verify edge cert and origin cert are both valid.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "ssl_install_chain",
+      "title": "Install Full Certificate Chain",
+      "instructions": "Missing intermediate certificates cause 'not secure' warnings in some browsers. Install cert + intermediate + root bundle as provided by CA or host.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "ssl_force_https",
+      "title": "Re-enable HTTPS Redirects",
+      "instructions": "After renewal, confirm http redirects to https. Check .htaccess, nginx config, Cloudflare SSL mode, and Really Simple SSL settings.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "ssl_mixed_content",
+      "title": "Fix Mixed Content After SSL Restoration",
+      "instructions": "Search-replace remaining http:// asset URLs in database. Verify padlock on homepage, checkout, and login pages.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "ssl_auto_renewal",
+      "title": "Enable Auto-Renewal and Monitoring",
+      "instructions": "Configure Let's Encrypt auto-renewal or host AutoSSL. Set calendar alert 30 days before expiry. Document cert provider for client.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "ssl_verify",
+      "title": "Verify HTTPS Across Site",
+      "instructions": "Test padlock in Chrome, Firefox, and mobile. Run SSL Labs test for A rating. Confirm no certificate warnings on subdomains if applicable.",
+      "deep_link": "",
+      "type": "manual"
+    }
+  ]
+}

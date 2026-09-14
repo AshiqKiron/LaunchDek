@@ -1,0 +1,65 @@
+{
+  "title": "Slow WordPress Admin (wp-admin)",
+  "description": "Fix sluggish dashboard, slow post editor, and long-loading admin pages without affecting front-end performance.",
+  "category": "troubleshooting",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "wpa_identify_slow_pages",
+      "title": "Identify Which Admin Pages Are Slow",
+      "instructions": "Note if all wp-admin is slow or specific screens (plugins list, post editor, WooCommerce orders). Use browser Network tab to find slow XHR requests.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "wpa_disable_admin_bar_frontend",
+      "title": "Disable Admin Bar on Front End",
+      "instructions": "The admin bar loads WordPress on every front-end page for logged-in users. Disable for non-admins or entirely if not needed.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "wpa_heartbeat",
+      "title": "Tune or Disable Heartbeat API",
+      "instructions": "Frequent admin-ajax heartbeat calls slow the editor. Use Heartbeat Control plugin to limit frequency on dashboard and post edit screens.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "wpa_admin_plugins",
+      "title": "Audit Plugins Loading in Admin",
+      "instructions": "Query Monitor admin view shows per-plugin overhead. Deactivate plugins that add heavy dashboard widgets or admin notices not needed.",
+      "deep_link": "plugins.php",
+      "type": "manual"
+    },
+    {
+      "id": "wpa_remote_requests",
+      "title": "Block Slow External Admin Requests",
+      "instructions": "Plugins checking license servers or update feeds on every admin page load cause delays. Identify via Query Monitor HTTP API calls and disable or defer.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "wpa_object_cache",
+      "title": "Enable Object Caching for Admin",
+      "instructions": "Redis/Memcached speeds option and meta lookups in admin too. Verify object cache drop-in is active and not misconfigured.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "wpa_php_memory",
+      "title": "Raise PHP Memory for Admin",
+      "instructions": "Plugin-heavy admin pages need more memory. Set WP_MAX_MEMORY_LIMIT to 512M in wp-config for admin operations.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "wpa_verify",
+      "title": "Verify Admin Speed Improvement",
+      "instructions": "Time key admin tasks: login, open post editor, save post, load plugins page. Compare before/after and document changes.",
+      "deep_link": "",
+      "type": "manual"
+    }
+  ]
+}

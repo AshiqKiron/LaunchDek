@@ -66,6 +66,26 @@ function launchdek_sites_connection_status_html( $site ) {
 	return $html;
 }
 endif;
+
+/**
+ * Render checklist history toggle for a site row.
+ *
+ * @param int $site_id Site ID.
+ * @return string
+ */
+if ( ! function_exists( 'launchdek_sites_history_toggle_html' ) ) :
+function launchdek_sites_history_toggle_html( $site_id ) {
+	$site_id = absint( $site_id );
+	$label   = __( 'Show checklist history', LAUNCHDEK_TEXT_DOMAIN );
+
+	$html  = '<button type="button" class="button-link launchdek-site-history-toggle" data-site-id="' . esc_attr( (string) $site_id ) . '" aria-expanded="false" title="' . esc_attr( $label ) . '">';
+	$html .= '<span class="dashicons dashicons-arrow-right-alt2 launchdek-site-history-icon" aria-hidden="true"></span>';
+	$html .= '<span class="screen-reader-text">' . esc_html( $label ) . '</span>';
+	$html .= '</button> ';
+
+	return $html;
+}
+endif;
 ?>
 <div class="wrap launchdek-admin" data-launchdek-page="sites">
 	<h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
@@ -120,8 +140,9 @@ endif;
 						$health_status      = sanitize_key( $site['health_status'] ?? 'unknown' );
 						$connection_blocked = 'unhealthy' === $health_status;
 						?>
-						<tr data-site-id="<?php echo esc_attr( (string) ( $site['id'] ?? 0 ) ); ?>">
+						<tr class="launchdek-site-row" data-site-id="<?php echo esc_attr( (string) ( $site['id'] ?? 0 ) ); ?>">
 							<td>
+								<?php echo launchdek_sites_history_toggle_html( (int) ( $site['id'] ?? 0 ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 								<?php echo esc_html( $site['name'] ?? '' ); ?>
 								<?php if ( ! empty( $site['client_agent'] ) ) : ?>
 									<span class="launchdek-badge healthy launchdek-client-agent-badge"><?php esc_html_e( 'Client panel', LAUNCHDEK_TEXT_DOMAIN ); ?></span>
@@ -142,6 +163,11 @@ endif;
 									<button type="button" class="button button-small launchdek-edit-site" data-id="<?php echo esc_attr( (string) ( $site['id'] ?? 0 ) ); ?>"><?php esc_html_e( 'Edit', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
 									<button type="button" class="button button-small launchdek-test-site" data-id="<?php echo esc_attr( (string) ( $site['id'] ?? 0 ) ); ?>"><?php esc_html_e( 'Test', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
 								</div>
+							</td>
+						</tr>
+						<tr class="launchdek-site-runs-row" data-site-id="<?php echo esc_attr( (string) ( $site['id'] ?? 0 ) ); ?>" hidden>
+							<td colspan="7">
+								<div class="launchdek-site-runs-panel" data-site-id="<?php echo esc_attr( (string) ( $site['id'] ?? 0 ) ); ?>"></div>
 							</td>
 						</tr>
 					<?php endforeach; ?>

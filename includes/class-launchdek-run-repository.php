@@ -239,6 +239,34 @@ class LAUNCHDEK_Run_Repository {
 	}
 
 	/**
+	 * Reopen a finished run so steps can be updated again.
+	 *
+	 * @param int $id Run ID.
+	 * @return bool
+	 */
+	public static function reopen( $id ) {
+		global $wpdb;
+
+		$result = $wpdb->update(
+			self::table(),
+			array(
+				'status'       => 'running',
+				'completed_at' => null,
+			),
+			array( 'id' => absint( $id ) ),
+			array( '%s', '%s' ),
+			array( '%d' )
+		);
+
+		if ( false !== $result ) {
+			LAUNCHDEK_Audit_Log::log( 'run_status_changed', array( 'status' => 'running' ), 0, $id );
+			LAUNCHDEK_Dashboard_Cache::invalidate_stats();
+		}
+
+		return false !== $result;
+	}
+
+	/**
 	 * Get the client callback token for a run.
 	 *
 	 * @param int $run_id Run ID.
@@ -255,6 +283,34 @@ class LAUNCHDEK_Run_Repository {
 		);
 
 		return is_string( $token ) ? $token : '';
+	}
+
+	/**
+	 * Return an existing client callback token or create one for legacy runs.
+	 *
+	 * @param int $run_id Run ID.
+	 * @return string
+	 */
+	public static function ensure_client_token( $run_id ) {
+		$token = self::get_client_token( $run_id );
+
+		if ( '' !== $token ) {
+			return $token;
+		}
+
+		global $wpdb;
+
+		$token = wp_generate_password( 48, false, false );
+
+		$wpdb->update(
+			self::table(),
+			array( 'client_run_token' => $token ),
+			array( 'id' => absint( $run_id ) ),
+			array( '%s' ),
+			array( '%d' )
+		);
+
+		return $token;
 	}
 
 	/**
@@ -370,9 +426,21 @@ class LAUNCHDEK_Run_Repository {
 			return false;
 		}
 
-		$notes   = json_decode( (string) $row['notes_json'], true );
-		$notes   = is_array( $notes ) ? $notes : array();
-		$notes[] = self::sanitize_step_note( $note );
+		$note = self::sanitize_step_note( $note );
+
+		if ( null === $note ) {
+			return false;
+		}
+
+		$notes = self::filter_step_notes( json_decode( (string) $row['notes_json'], true ) );
+
+		foreach ( $notes as $existing ) {
+			if ( self::step_notes_match( $existing, $note ) ) {
+				return $notes;
+			}
+		}
+
+		$notes[] = $note;
 
 		$updated = self::update_step(
 			$run_id,
@@ -389,12 +457,22 @@ class LAUNCHDEK_Run_Repository {
 	 * Sanitize a single step note entry.
 	 *
 	 * @param array $note Raw note.
-	 * @return array
+	 * @return array|null Sanitized note or null when invalid.
 	 */
 	public static function sanitize_step_note( $note ) {
+		if ( ! is_array( $note ) ) {
+			return null;
+		}
+
+		$text = trim( sanitize_textarea_field( $note['text'] ?? '' ) );
+
+		if ( '' === $text ) {
+			return null;
+		}
+
 		$sanitized = array(
 			'user'       => sanitize_text_field( $note['user'] ?? '' ),
-			'text'       => sanitize_textarea_field( $note['text'] ?? '' ),
+			'text'       => $text,
 			'created_at' => sanitize_text_field( $note['created_at'] ?? current_time( 'mysql', true ) ),
 		);
 
@@ -408,6 +486,60 @@ class LAUNCHDEK_Run_Repository {
 		}
 
 		return $sanitized;
+	}
+
+	/**
+	 * Keep only user-authored notes with non-empty text.
+	 *
+	 * @param mixed $notes Raw notes array.
+	 * @return array
+	 */
+	public static function filter_step_notes( $notes ) {
+		if ( ! is_array( $notes ) ) {
+			return array();
+		}
+
+		$filtered = array();
+
+		foreach ( $notes as $note ) {
+			$sanitized = self::sanitize_step_note( $note );
+			if ( null === $sanitized ) {
+				continue;
+			}
+
+			foreach ( $filtered as $existing ) {
+				if ( self::step_notes_match( $existing, $sanitized ) ) {
+					continue 2;
+				}
+			}
+
+			$filtered[] = $sanitized;
+		}
+
+		return $filtered;
+	}
+
+	/**
+	 * Compare two notes by author/content rather than sync timestamps.
+	 *
+	 * @param array $left  First note.
+	 * @param array $right Second note.
+	 * @return bool
+	 */
+	public static function step_notes_match( $left, $right ) {
+		if ( ! is_array( $left ) || ! is_array( $right ) ) {
+			return false;
+		}
+
+		return md5(
+			strtolower( trim( (string) ( $left['user'] ?? '' ) ) ) . '|' .
+			trim( (string) ( $left['text'] ?? '' ) ) . '|' .
+			(string) absint( $left['attachment_id'] ?? 0 )
+		) === md5(
+			strtolower( trim( (string) ( $right['user'] ?? '' ) ) ) . '|' .
+			trim( (string) ( $right['text'] ?? '' ) ) . '|' .
+			(string) absint( $right['attachment_id'] ?? 0 )
+		);
 	}
 
 	/**
@@ -428,7 +560,7 @@ class LAUNCHDEK_Run_Repository {
 			'step_type'      => $row['step_type'],
 			'status'         => $row['status'],
 			'response'       => is_array( $response ) ? $response : null,
-			'notes'          => is_array( $notes ) ? $notes : array(),
+			'notes'          => self::filter_step_notes( $notes ),
 			'error_message'  => $row['error_message'],
 			'manual_checked' => (bool) $row['manual_checked'],
 			'started_at'     => $row['started_at'],

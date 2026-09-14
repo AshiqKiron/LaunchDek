@@ -1,0 +1,65 @@
+{
+  "title": ".htaccess & Rewrite Rule Issues",
+  "description": "Fix corrupted .htaccess breaking permalinks, causing 500 errors, or conflicting with plugin and server rewrite rules.",
+  "category": "troubleshooting",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "htacc_identify_symptom",
+      "title": "Identify .htaccess Symptom",
+      "instructions": "Note if issue is 500 error, all pages 404, only certain URLs broken, or redirects not working. Check if Apache site (nginx sites use different config).",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "htacc_backup_rename",
+      "title": "Backup and Rename .htaccess",
+      "instructions": "Rename .htaccess to .htaccess.bak via SFTP. If site loads (without permalinks), .htaccess rules are the cause.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "htacc_restore_default",
+      "title": "Restore Default WordPress Rewrite Block",
+      "instructions": "Save Settings → Permalinks to regenerate default rules. Default block starts with # BEGIN WordPress and mod_rewrite rules for index.php.",
+      "deep_link": "options-permalink.php",
+      "type": "manual"
+    },
+    {
+      "id": "htacc_plugin_rules",
+      "title": "Audit Plugin-Added .htaccess Rules",
+      "instructions": "Cache, security, and redirect plugins add blocks above/below WordPress rules. Remove duplicate HTTPS redirects or conflicting RewriteRules one block at a time.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "htacc_https_redirect",
+      "title": "Consolidate HTTPS Redirect Rules",
+      "instructions": "Multiple plugins and host may each add http→https redirects causing loops. Keep one canonical redirect layer (prefer server/host level).",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "htacc_allowoverride",
+      "title": "Verify AllowOverride on Server",
+      "instructions": "If permalinks save but URLs still 404, Apache may not allow .htaccess overrides. Contact host to enable AllowOverride All for the site directory.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "htacc_nginx_note",
+      "title": "Translate Rules for Nginx (If Applicable)",
+      "instructions": "Nginx ignores .htaccess. Permalink rules must be in nginx site config. Provide host support the standard WordPress try_files block if needed.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "htacc_verify",
+      "title": "Verify Permalinks and Redirects",
+      "instructions": "Test posts, pages, categories, and custom redirects. Confirm no 500 errors and single canonical redirect from http to https.",
+      "deep_link": "",
+      "type": "manual"
+    }
+  ]
+}

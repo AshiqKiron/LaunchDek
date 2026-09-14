@@ -207,9 +207,15 @@ class LAUNCHDEK_Checklist_Runner {
 		}
 
 		if ( $any_failed ) {
-			LAUNCHDEK_Run_Repository::update_status( $run_id, 'failed' );
+			if ( 'failed' !== ( $run['status'] ?? '' ) ) {
+				LAUNCHDEK_Run_Repository::update_status( $run_id, 'failed' );
+			}
 		} elseif ( $all_done ) {
-			LAUNCHDEK_Run_Repository::update_status( $run_id, 'completed' );
+			if ( 'completed' !== ( $run['status'] ?? '' ) ) {
+				LAUNCHDEK_Run_Repository::update_status( $run_id, 'completed' );
+			}
+		} elseif ( 'running' !== ( $run['status'] ?? '' ) ) {
+			LAUNCHDEK_Run_Repository::reopen( $run_id );
 		}
 	}
 }
