@@ -931,9 +931,35 @@
 	}
 
 	// ─── Settings ────────────────────────────────────────────
+	function initPanelLayoutPreview() {
+		var select = document.getElementById('launchdek-panel-layout');
+		var preview = document.getElementById('launchdek-panel-layout-preview');
+		var description = document.getElementById('launchdek-panel-layout-description');
+
+		if (!select || !preview) {
+			return;
+		}
+
+		function updatePreview() {
+			var option = select.options[select.selectedIndex];
+			var layout = select.value || 'sidebar';
+
+			preview.setAttribute('data-layout', layout);
+
+			if (description && option) {
+				description.textContent = option.getAttribute('data-description') || '';
+			}
+		}
+
+		select.addEventListener('change', updatePreview);
+		updatePreview();
+	}
+
 	function initSettings() {
 		var page = document.querySelector('[data-launchdek-page="settings"]');
 		if (!page) return;
+
+		initPanelLayoutPreview();
 
 		var showBtn = document.getElementById('launchdek-show-onboarding');
 		if (!showBtn) return;
@@ -1923,7 +1949,15 @@
 		document.getElementById('ld-validate-api').onclick = function () {
 			saveStepFromForm();
 			post('/checklists/0/validate-step', currentSteps[selectedStepIndex]).then(function (r) {
-				alert(r.valid ? 'API step is valid.' : r.errors.join('\n'));
+				if (!r.valid) {
+					alert(r.errors.join('\n'));
+					return;
+				}
+				var message = 'API step is valid.';
+				if (r.warnings && r.warnings.length) {
+					message += '\n\n' + r.warnings.join('\n');
+				}
+				alert(message);
 			}).catch(function (e) { alert(e.message); });
 		};
 	}

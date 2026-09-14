@@ -1898,6 +1898,236 @@
 	font-size: 13px;
 }
 
+.launchdek-settings-panel-layout-picker {
+	display: grid;
+	grid-template-columns: minmax(220px, 360px) minmax(280px, 420px);
+	grid-template-areas:
+		"controls-label preview"
+		"controls-select preview"
+		"controls-description preview";
+	gap: 10px 24px;
+	align-items: start;
+	max-width: 860px;
+}
+
+.launchdek-settings-panel-layout-controls {
+	display: contents;
+}
+
+.launchdek-settings-panel-layout-controls > label {
+	grid-area: controls-label;
+}
+
+.launchdek-settings-panel-layout-select {
+	grid-area: controls-select;
+}
+
+.launchdek-settings-panel-layout-controls > .launchdek-panel-layout-preview-description {
+	grid-area: controls-description;
+}
+
+.launchdek-panel-layout-preview {
+	grid-area: preview;
+}
+
+.launchdek-settings-panel-layout-controls > label {
+	font-weight: 600;
+	color: #1d2327;
+}
+
+.launchdek-settings-panel-layout-select {
+	width: 100%;
+}
+
+.launchdek-panel-layout-preview {
+	display: grid;
+	gap: 10px;
+}
+
+@media screen and (max-width: 782px) {
+	.launchdek-settings-panel-layout-picker {
+		grid-template-columns: 1fr;
+		grid-template-areas:
+			"controls-label"
+			"controls-select"
+			"preview"
+			"controls-description";
+		max-width: 420px;
+	}
+}
+
+.launchdek-panel-layout-preview-frame {
+	position: relative;
+	width: 100%;
+	max-width: 420px;
+	aspect-ratio: 16 / 10;
+	border: 1px solid #c3c4c7;
+	border-radius: 8px;
+	background: linear-gradient(180deg, #f6f7f7 0%, #fff 28%);
+	overflow: hidden;
+	box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.6);
+}
+
+.launchdek-panel-layout-preview-frame > span {
+	position: absolute;
+	display: none;
+	border-radius: 3px;
+}
+
+.launchdek-preview-adminbar {
+	display: block !important;
+	top: 0;
+	left: 0;
+	right: 0;
+	height: 12%;
+	background: #1d2327;
+	border-radius: 0;
+}
+
+.launchdek-preview-content {
+	display: block !important;
+	top: 14%;
+	left: 4%;
+	right: 4%;
+	bottom: 4%;
+	background: #fff;
+	border: 1px solid #dcdcde;
+}
+
+.launchdek-preview-panel {
+	background: #f0f6fc;
+	border: 1px solid #72aee6;
+	box-shadow: 0 0 0 1px rgba(34, 113, 177, 0.15);
+}
+
+.launchdek-preview-panel--right {
+	top: 14%;
+	right: 0;
+	width: 24%;
+	bottom: 0;
+	border-right: 0;
+	border-radius: 0;
+}
+
+.launchdek-preview-panel--left,
+.launchdek-preview-panel--split {
+	top: 14%;
+	left: 0;
+	bottom: 0;
+	border-left: 0;
+	border-radius: 0;
+}
+
+.launchdek-preview-panel--left {
+	width: 24%;
+}
+
+.launchdek-preview-panel--split {
+	width: 30%;
+}
+
+.launchdek-preview-bar {
+	left: 0;
+	right: 0;
+	height: 10%;
+	background: #2271b1;
+	opacity: 0.92;
+	border-radius: 0;
+}
+
+.launchdek-preview-bar--top {
+	top: 12%;
+}
+
+.launchdek-preview-bar--bottom {
+	bottom: 0;
+}
+
+.launchdek-preview-pill {
+	right: 6%;
+	bottom: 8%;
+	width: 14%;
+	height: 14%;
+	border-radius: 999px;
+	background: #2271b1;
+	box-shadow: 0 4px 12px rgba(34, 113, 177, 0.35);
+}
+
+.launchdek-preview-toast {
+	right: 6%;
+	bottom: 8%;
+	width: 42%;
+	height: 12%;
+	background: #fff;
+	border: 1px solid #72aee6;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.launchdek-preview-flyout {
+	top: 12%;
+	right: 8%;
+	width: 34%;
+	height: 46%;
+	background: #fff;
+	border: 1px solid #72aee6;
+	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.launchdek-preview-overlay {
+	inset: 12% 8% 8%;
+	background: rgba(29, 35, 39, 0.45);
+	border-radius: 6px;
+}
+
+.launchdek-preview-focus {
+	top: 28%;
+	left: 18%;
+	right: 18%;
+	height: 38%;
+	background: #fff;
+	border: 2px solid #72aee6;
+	box-shadow: 0 8px 24px rgba(34, 113, 177, 0.18);
+}
+
+.launchdek-preview-metabox {
+	top: 18%;
+	right: 4%;
+	width: 28%;
+	height: 34%;
+	background: #f0f6fc;
+	border: 1px solid #72aee6;
+}
+
+.launchdek-panel-layout-preview[data-layout="sidebar"] .launchdek-preview-panel--right,
+.launchdek-panel-layout-preview[data-layout="left_sidebar"] .launchdek-preview-panel--left,
+.launchdek-panel-layout-preview[data-layout="split_panel"] .launchdek-preview-panel--split,
+.launchdek-panel-layout-preview[data-layout="live_topbar"] .launchdek-preview-bar--top,
+.launchdek-panel-layout-preview[data-layout="bottom_dock"] .launchdek-preview-bar--bottom,
+.launchdek-panel-layout-preview[data-layout="floating_pill"] .launchdek-preview-pill,
+.launchdek-panel-layout-preview[data-layout="toast"] .launchdek-preview-toast,
+.launchdek-panel-layout-preview[data-layout="admin_menu"] .launchdek-preview-flyout,
+.launchdek-panel-layout-preview[data-layout="fullscreen"] .launchdek-preview-overlay,
+.launchdek-panel-layout-preview[data-layout="focus_mode"] .launchdek-preview-focus,
+.launchdek-panel-layout-preview[data-layout="inline_metabox"] .launchdek-preview-metabox {
+	display: block;
+}
+
+.launchdek-panel-layout-preview-description {
+	margin: 0;
+	font-size: 13px;
+	color: #50575e;
+}
+
+.launchdek-settings-exclude-options {
+	width: 100%;
+	max-width: 640px;
+	font-family: Consolas, Monaco, monospace;
+}
+
+.launchdek-settings-exclude-hints {
+	margin-top: 8px;
+}
+
 .launchdek-settings-toggles {
 	display: flex;
 	flex-wrap: wrap;

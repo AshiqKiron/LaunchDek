@@ -9,7 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'LAUNCHDEK_CLIENT_PANEL_VERSION', '1.0.4' );
+define( 'LAUNCHDEK_CLIENT_PANEL_VERSION', '1.0.6' );
 define( 'LAUNCHDEK_CLIENT_PANEL_DIR', __DIR__ . '/launchdek-client/' );
 define( 'LAUNCHDEK_CLIENT_PANEL_URL', content_url( 'mu-plugins/launchdek-client/' ) );
 define( 'LAUNCHDEK_CLIENT_TEXT_DOMAIN', 'launchdek' );
@@ -34,5 +34,6 @@ add_action(
 
 LAUNCHDEK_Client_Auto_Capture::register();
 LAUNCHDEK_Client_REST_API::register();
+LAUNCHDEK_Client_Panel::register();
 add_action( 'admin_enqueue_scripts', array( 'LAUNCHDEK_Client_Panel', 'enqueue_assets' ) );
 add_action( 'admin_footer', array( 'LAUNCHDEK_Client_Panel', 'render_panel' ) );

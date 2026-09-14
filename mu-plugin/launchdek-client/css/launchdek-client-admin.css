@@ -11,6 +11,100 @@
 	z-index: 99998;
 }
 
+.launchdek-client-panel-root.launchdek-client-layout-live_topbar {
+	position: fixed;
+	top: 32px;
+	left: 0;
+	right: 0;
+	z-index: 99998;
+}
+
+body.launchdek-client-layout-live_topbar #wpcontent {
+	padding-top: var(--launchdek-client-topbar-offset, 44px);
+}
+
+body.launchdek-client-layout-live_topbar #wpadminbar #wp-admin-bar-launchdek-client-checklist > a {
+	font-weight: 600;
+}
+
+.launchdek-client-topbar {
+	background: #fff;
+	border-bottom: 1px solid #c3c4c7;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.launchdek-client-topbar-inner {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 8px 16px;
+	min-height: 44px;
+	flex-wrap: wrap;
+}
+
+.launchdek-client-topbar-copy {
+	display: flex;
+	align-items: baseline;
+	gap: 8px;
+	flex-wrap: wrap;
+	min-width: 0;
+}
+
+.launchdek-client-topbar-kicker {
+	font-size: 11px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.02em;
+	color: #646970;
+}
+
+.launchdek-client-topbar-title {
+	font-size: 13px;
+	font-weight: 600;
+	color: #1d2327;
+}
+
+.launchdek-client-topbar-progress-label {
+	font-size: 12px;
+	font-weight: 600;
+	color: #2271b1;
+	white-space: nowrap;
+}
+
+.launchdek-client-topbar-progress {
+	flex: 1 1 140px;
+	min-width: 120px;
+	max-width: 280px;
+}
+
+.launchdek-client-topbar-current {
+	flex: 1 1 200px;
+	min-width: 0;
+	font-size: 12px;
+	color: #50575e;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.launchdek-client-topbar-drawer {
+	max-height: min(60vh, 520px);
+	overflow: auto;
+	border-top: 1px solid #dcdcde;
+	background: #fff;
+}
+
+.launchdek-client-topbar-drawer.is-collapsed {
+	display: none;
+}
+
+.launchdek-client-layout-live_topbar .launchdek-client-panel-body,
+.launchdek-client-layout-bottom_dock .launchdek-client-panel-body {
+	overflow: visible;
+	max-height: none;
+	padding: 12px 16px 16px;
+}
+
 .launchdek-client-panel {
 	position: fixed;
 	top: 32px;
@@ -31,6 +125,23 @@
 	.launchdek-client-panel {
 		top: 46px;
 		width: min(320px, calc(100vw - 16px));
+	}
+
+	.launchdek-client-panel-root.launchdek-client-layout-live_topbar,
+	.launchdek-client-panel-root.launchdek-client-layout-bottom_dock {
+		top: auto;
+	}
+
+	.launchdek-client-panel-root.launchdek-client-layout-live_topbar {
+		top: 46px;
+	}
+
+	.launchdek-client-topbar-inner {
+		padding-inline: 12px;
+	}
+
+	.launchdek-client-topbar-current {
+		display: none;
 	}
 }
 
@@ -128,6 +239,7 @@
 }
 
 .launchdek-client-step {
+	--launchdek-client-step-indent: 30px;
 	border: 1px solid #e2e8f0;
 	border-radius: 6px;
 	padding: 10px 12px;
@@ -204,22 +316,20 @@
 	flex-shrink: 0;
 }
 
-.launchdek-client-step-settings-link-wrap {
-	margin: 8px 0 0;
-}
-
 .launchdek-client-step-settings-link {
-	font-weight: 600;
 	text-decoration: none;
+	color: #50575e;
 }
 
 .launchdek-client-step-settings-link:hover,
 .launchdek-client-step-settings-link:focus {
-	text-decoration: underline;
+	color: #2271b1;
+	text-decoration: none;
 }
 
 .launchdek-client-step-body {
 	margin-top: 8px;
+	padding-left: var(--launchdek-client-step-indent);
 }
 
 .launchdek-client-step-summary-title {
@@ -233,7 +343,7 @@
 	display: flex;
 	align-items: center;
 	gap: 10px;
-	min-height: 24px;
+	min-height: 28px;
 }
 
 .launchdek-client-step-head-actions {
@@ -597,9 +707,9 @@
 }
 
 .launchdek-client-step-notes-toggle {
-	display: flex;
+	display: inline-flex;
 	align-items: center;
-	gap: 4px;
+	gap: 6px;
 	margin: 0 0 6px;
 	padding: 0;
 	border: 0;
@@ -739,4 +849,330 @@
 	height: 20px;
 	line-height: 18px;
 	text-align: center;
+}
+
+/* Left sidebar + split panel */
+.launchdek-client-panel.is-left {
+	left: 0;
+	right: auto;
+	border-left: 0;
+	border-right: 1px solid #c3c4c7;
+	box-shadow: 4px 0 16px rgba(0, 0, 0, 0.08);
+}
+
+.launchdek-client-panel.is-split {
+	width: 400px;
+	max-width: min(400px, calc(100vw - 32px));
+}
+
+.launchdek-client-panel-tab.is-left-tab {
+	left: 0;
+	right: auto;
+	border-left: 1px solid #c3c4c7;
+	border-right: 0;
+	border-radius: 0 4px 4px 0;
+	box-shadow: 2px 0 8px rgba(0, 0, 0, 0.08);
+}
+
+body.launchdek-client-rail-open #wpcontent {
+	padding-left: var(--launchdek-client-rail-offset, 320px);
+}
+
+/* Bottom dock */
+.launchdek-client-panel-root.launchdek-client-layout-bottom_dock {
+	position: fixed;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	top: auto;
+	z-index: 99998;
+}
+
+body.launchdek-client-layout-bottom_dock #wpcontent {
+	padding-bottom: var(--launchdek-client-dock-offset, 44px);
+}
+
+.launchdek-client-bottom-dock {
+	background: #fff;
+	border-top: 1px solid #c3c4c7;
+	box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.launchdek-client-bottom-dock-inner {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 8px 16px;
+	min-height: 44px;
+	flex-wrap: wrap;
+}
+
+.launchdek-client-bottom-dock-copy {
+	display: flex;
+	align-items: baseline;
+	gap: 8px;
+	flex-wrap: wrap;
+	min-width: 0;
+}
+
+.launchdek-client-bottom-dock-kicker {
+	font-size: 11px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.02em;
+	color: #646970;
+}
+
+.launchdek-client-bottom-dock-title {
+	font-size: 13px;
+	font-weight: 600;
+	color: #1d2327;
+}
+
+.launchdek-client-bottom-dock-progress-label {
+	font-size: 12px;
+	font-weight: 600;
+	color: #2271b1;
+	white-space: nowrap;
+}
+
+.launchdek-client-bottom-dock-progress {
+	flex: 1 1 140px;
+	min-width: 120px;
+	max-width: 280px;
+}
+
+.launchdek-client-bottom-dock-current {
+	flex: 1 1 200px;
+	min-width: 0;
+	font-size: 12px;
+	color: #50575e;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.launchdek-client-bottom-dock-drawer {
+	max-height: min(60vh, 520px);
+	overflow: auto;
+	border-bottom: 1px solid #dcdcde;
+	background: #fff;
+}
+
+.launchdek-client-bottom-dock-drawer.is-collapsed {
+	display: none;
+}
+
+/* Floating pill */
+.launchdek-client-panel-root.launchdek-client-layout-floating_pill {
+	position: fixed;
+	right: 20px;
+	bottom: 20px;
+	top: auto;
+	left: auto;
+	width: auto;
+	z-index: 99998;
+}
+
+.launchdek-client-pill-trigger {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 44px;
+	padding: 0 16px;
+	border: 0;
+	border-radius: 999px;
+	background: #2271b1;
+	color: #fff;
+	font-size: 12px;
+	font-weight: 600;
+	cursor: pointer;
+	box-shadow: 0 8px 24px rgba(34, 113, 177, 0.35);
+}
+
+.launchdek-client-floating-pill.is-expanded .launchdek-client-panel {
+	position: relative;
+	top: auto;
+	right: auto;
+	width: min(320px, calc(100vw - 40px));
+	max-height: min(70vh, 560px);
+	margin-bottom: 10px;
+	border-right: 1px solid #c3c4c7;
+	box-shadow: 0 12px 32px rgba(0, 0, 0, 0.16);
+}
+
+/* Toast */
+.launchdek-client-panel-root.launchdek-client-layout-toast {
+	position: fixed;
+	right: 20px;
+	bottom: 20px;
+	top: auto;
+	left: auto;
+	width: min(360px, calc(100vw - 40px));
+	z-index: 99998;
+}
+
+.launchdek-client-toast-trigger {
+	display: block;
+	width: 100%;
+	padding: 12px 14px;
+	border: 1px solid #72aee6;
+	border-radius: 8px;
+	background: #fff;
+	color: #1d2327;
+	font-size: 12px;
+	font-weight: 600;
+	text-align: left;
+	cursor: pointer;
+	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.launchdek-client-toast-panel {
+	border: 1px solid #c3c4c7;
+	border-radius: 8px;
+	background: #fff;
+	box-shadow: 0 12px 32px rgba(0, 0, 0, 0.16);
+	overflow: hidden;
+}
+
+.launchdek-client-toast-panel .launchdek-client-panel-header,
+.launchdek-client-toast-panel .launchdek-client-panel-progress-wrap,
+.launchdek-client-toast-panel .launchdek-client-panel-body {
+	padding-left: 14px;
+	padding-right: 14px;
+}
+
+.launchdek-client-toast-panel .launchdek-client-panel-body {
+	max-height: min(60vh, 480px);
+	overflow: auto;
+	padding-bottom: 14px;
+}
+
+/* Admin bar flyout */
+.launchdek-client-panel-root.launchdek-client-layout-admin_menu {
+	position: fixed;
+	top: 32px;
+	right: 16px;
+	left: auto;
+	width: min(360px, calc(100vw - 32px));
+	z-index: 99999;
+}
+
+.launchdek-client-panel-root.launchdek-client-layout-admin_menu.is-admin-hidden {
+	display: none;
+}
+
+.launchdek-client-admin-flyout {
+	border: 1px solid #c3c4c7;
+	border-radius: 6px;
+	background: #fff;
+	box-shadow: 0 12px 32px rgba(0, 0, 0, 0.16);
+	overflow: hidden;
+}
+
+.launchdek-client-admin-flyout .launchdek-client-panel-body {
+	max-height: min(70vh, 560px);
+	overflow: auto;
+}
+
+body.launchdek-client-layout-admin_menu #wpadminbar #wp-admin-bar-launchdek-client-checklist > a,
+body.launchdek-client-layout-fullscreen #wpadminbar #wp-admin-bar-launchdek-client-checklist > a,
+body.launchdek-client-layout-toast #wpadminbar #wp-admin-bar-launchdek-client-checklist > a,
+body.launchdek-client-layout-floating_pill #wpadminbar #wp-admin-bar-launchdek-client-checklist > a,
+body.launchdek-client-layout-bottom_dock #wpadminbar #wp-admin-bar-launchdek-client-checklist > a {
+	font-weight: 600;
+}
+
+/* Fullscreen overlay */
+.launchdek-client-panel-root.launchdek-client-layout-fullscreen {
+	position: fixed;
+	inset: 0;
+	z-index: 100000;
+}
+
+.launchdek-client-fullscreen-open {
+	position: fixed;
+	right: 20px;
+	bottom: 20px;
+	z-index: 99998;
+}
+
+.launchdek-client-fullscreen-backdrop {
+	position: fixed;
+	inset: 0;
+	border: 0;
+	padding: 0;
+	background: rgba(29, 35, 39, 0.55);
+	cursor: pointer;
+}
+
+.launchdek-client-fullscreen-dialog {
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	width: min(720px, calc(100vw - 32px));
+	max-height: min(85vh, 760px);
+	overflow: auto;
+	border: 1px solid #c3c4c7;
+	border-radius: 8px;
+	background: #fff;
+	box-shadow: 0 20px 48px rgba(0, 0, 0, 0.24);
+}
+
+body.launchdek-client-fullscreen-open {
+	overflow: hidden;
+}
+
+/* Focus mode */
+.launchdek-client-panel-root.launchdek-client-layout-focus_mode {
+	position: fixed;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 24px;
+	pointer-events: none;
+	z-index: 99997;
+}
+
+.launchdek-client-panel.is-focus {
+	position: relative;
+	top: auto;
+	right: auto;
+	width: min(560px, 100%);
+	max-height: min(80vh, 640px);
+	pointer-events: auto;
+	border: 1px solid #72aee6;
+	border-radius: 8px;
+	box-shadow: 0 16px 40px rgba(34, 113, 177, 0.18);
+}
+
+.launchdek-client-step-list-focus {
+	max-width: 100%;
+}
+
+/* Inline metabox */
+.launchdek-client-metabox-root .launchdek-client-panel-root,
+.launchdek-client-metabox-root.launchdek-client-panel-root {
+	position: static;
+	width: 100%;
+	z-index: auto;
+}
+
+.launchdek-client-panel.is-metabox,
+.launchdek-client-metabox-root .launchdek-client-panel {
+	position: static;
+	top: auto;
+	right: auto;
+	width: 100%;
+	max-height: none;
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+	box-shadow: none;
+}
+
+.launchdek-client-metabox-root .launchdek-client-panel-body {
+	max-height: 420px;
+	overflow: auto;
 }

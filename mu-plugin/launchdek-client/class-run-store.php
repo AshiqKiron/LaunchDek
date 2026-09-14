@@ -81,7 +81,7 @@ class LAUNCHDEK_Client_Run_Store {
 				'status'          => sanitize_key( $step['status'] ?? 'pending' ),
 				'instructions'    => sanitize_textarea_field( $step['instructions'] ?? '' ),
 				'target_roles'    => array_values( array_map( 'sanitize_key', (array) ( $step['target_roles'] ?? array() ) ) ),
-				'deep_link'       => ! empty( $step['deep_link'] ) ? esc_url_raw( $step['deep_link'] ) : '',
+				'deep_link'       => self::resolve_step_deep_link( $step['deep_link'] ?? '' ),
 				'show_note_field' => $show_note_field,
 				'manual_checked'  => ! empty( $step['manual_checked'] ),
 				'notes'           => $notes,
@@ -99,6 +99,7 @@ class LAUNCHDEK_Client_Run_Store {
 			'hub_url'         => esc_url_raw( untrailingslashit( $snapshot['hub_url'] ?? '' ) ),
 			'hub_rest_url'    => esc_url_raw( untrailingslashit( $snapshot['hub_rest_url'] ?? '' ) ),
 			'client_token'    => sanitize_text_field( $snapshot['client_token'] ?? '' ),
+			'panel_layout'    => self::sanitize_panel_layout( $snapshot['panel_layout'] ?? ( $existing['panel_layout'] ?? 'sidebar' ) ),
 			'steps'           => $steps,
 			'pushed_at'       => sanitize_text_field( $snapshot['pushed_at'] ?? '' ),
 		);
@@ -443,6 +444,69 @@ class LAUNCHDEK_Client_Run_Store {
 			trim( (string) ( $note['text'] ?? '' ) ) . '|' .
 			(string) absint( $note['attachment_id'] ?? 0 )
 		);
+	}
+
+	/**
+	 * Resolve a step deep link to a local wp-admin URL.
+	 *
+	 * @param string $link Admin path or full URL.
+	 * @return string
+	 */
+	public static function resolve_step_deep_link( $link ) {
+		$link = trim( (string) $link );
+
+		if ( '' === $link ) {
+			return '';
+		}
+
+		if ( filter_var( $link, FILTER_VALIDATE_URL ) ) {
+			return esc_url_raw( $link );
+		}
+
+		return esc_url_raw( admin_url( ltrim( $link, '/' ) ) );
+	}
+
+	/**
+	 * Sanitize a panel layout slug from the hub snapshot.
+	 *
+	 * @param mixed $layout Raw layout value.
+	 * @return string
+	 */
+	public static function sanitize_panel_layout( $layout ) {
+		$layout = sanitize_key( (string) $layout );
+		$valid  = array(
+			'sidebar',
+			'left_sidebar',
+			'split_panel',
+			'live_topbar',
+			'bottom_dock',
+			'floating_pill',
+			'toast',
+			'admin_menu',
+			'fullscreen',
+			'focus_mode',
+			'inline_metabox',
+		);
+
+		return in_array( $layout, $valid, true ) ? $layout : 'sidebar';
+	}
+
+	/**
+	 * Get the panel layout for a run snapshot.
+	 *
+	 * @param array|null $run Run snapshot.
+	 * @return string
+	 */
+	public static function get_panel_layout( $run = null ) {
+		if ( null === $run ) {
+			$run = self::get();
+		}
+
+		if ( ! is_array( $run ) ) {
+			return 'sidebar';
+		}
+
+		return self::sanitize_panel_layout( $run['panel_layout'] ?? 'sidebar' );
 	}
 
 	/**

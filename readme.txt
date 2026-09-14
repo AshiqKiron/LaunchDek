@@ -63,6 +63,12 @@ Yes, when enabled in Settings, application passwords are encrypted using your Wo
 
 == Changelog ==
 
+= 1.0.19 =
+* Client checklist panel: WordPress settings deep links are inferred from checklist steps when possible (manual paths and API settings routes) and shown as a compact icon aligned with step actions
+
+= 1.0.18 =
+* Settings: Exclude Options list — block sensitive WordPress settings fields (site URL, admin email, environment type, etc.) from being pushed to remote sites via API checklist steps
+
 = 1.0.17 =
 * Client checklist panel: minimize all notes with one click; each step's saved notes can also be collapsed individually
 
@@ -95,6 +101,11 @@ Yes, when enabled in Settings, application passwords are encrypted using your Wo
 
 = 1.0.11 =
 * Dashboard stat cards, API connection summary, and live log feed now load instantly from cache and refresh only when underlying data changes
+
+= 1.0.11 =
+* Client checklist panel: 11 display layouts selectable from Settings with a live wireframe preview
+* Layouts include right/left sidebar, split panel, live top bar, bottom dock, floating pill, toast, admin bar flyout, fullscreen overlay, focus mode, and inline metabox
+* Layout choice syncs to client sites on the next checklist push or client panel refresh
 
 = 1.0.10 =
 * Dashboard live log feed limited to the latest 15 entries (with site name labels) and a link to view all activity logs

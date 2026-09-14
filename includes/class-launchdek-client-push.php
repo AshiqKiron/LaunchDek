@@ -124,10 +124,11 @@ class LAUNCHDEK_Client_Push {
 
 		foreach ( $run['steps'] as $step ) {
 			$def       = is_array( $checklist['steps'] ?? null ) ? ( $checklist['steps'][ $step['step_index'] ] ?? array() ) : array();
-			$deep_link = '';
+			$deep_link  = '';
+			$admin_path = LAUNCHDEK_Admin_Deep_Links::resolve_path( $def );
 
-			if ( $remote && ! empty( $def['deep_link'] ) ) {
-				$deep_link = $remote->admin_link( $def['deep_link'] );
+			if ( $remote && $admin_path ) {
+				$deep_link = $remote->admin_link( $admin_path );
 			}
 
 			$show_note_field = array_key_exists( 'show_note_field', $def )
@@ -167,6 +168,7 @@ class LAUNCHDEK_Client_Push {
 			'hub_url'         => esc_url_raw( home_url( '/' ) ),
 			'hub_rest_url'    => esc_url_raw( rest_url( LAUNCHDEK_REST_NAMESPACE ) ),
 			'client_token'    => $token,
+			'panel_layout'    => LAUNCHDEK_Settings::get_client_panel_layout(),
 			'steps'           => $steps,
 			'pushed_at'       => current_time( 'mysql', true ),
 		);
