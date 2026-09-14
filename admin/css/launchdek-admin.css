@@ -1898,6 +1898,17 @@
 	font-size: 13px;
 }
 
+.launchdek-settings-exclude-options label {
+	display: block;
+	font-weight: 600;
+	margin-bottom: 8px;
+}
+
+.launchdek-settings-exclude-options textarea {
+	min-height: 8rem;
+	font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
 .launchdek-settings-toggles {
 	display: flex;
 	flex-wrap: wrap;

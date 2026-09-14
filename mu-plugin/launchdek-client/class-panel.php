@@ -94,8 +94,6 @@ class LAUNCHDEK_Client_Panel {
 					'noteSavedLocal' => __( 'Note saved on this site. Hub sync will retry on the next checklist update.', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
 					'notesHeading' => __( 'Notes', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
 					'notesCount' => __( '%1$s (%2$s)', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
-					'minimizeAllNotes' => __( 'Minimize all notes', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
-					'expandAllNotes' => __( 'Show all notes', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
 					'removeAttachment' => __( 'Remove screenshot', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
 					'mediaError'  => __( 'Could not open media library.', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
 				),

@@ -79,11 +79,12 @@ class LAUNCHDEK_Step_Executor {
 		}
 
 		// Manual steps require explicit checkmark.
-		$client = LAUNCHDEK_Remote_Client::from_site( $site_id );
-		$link   = '';
+		$client           = LAUNCHDEK_Remote_Client::from_site( $site_id );
+		$link             = '';
+		$deep_link_path   = LAUNCHDEK_Deep_Link_Resolver::resolve_for_step( $step_def );
 
-		if ( $client && ! empty( $step_def['deep_link'] ) ) {
-			$link = $client->admin_link( $step_def['deep_link'] );
+		if ( $client && $deep_link_path ) {
+			$link = $client->admin_link( $deep_link_path );
 		}
 
 		LAUNCHDEK_Run_Repository::update_step(

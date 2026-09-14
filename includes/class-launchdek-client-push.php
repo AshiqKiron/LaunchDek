@@ -123,11 +123,12 @@ class LAUNCHDEK_Client_Push {
 		$steps     = array();
 
 		foreach ( $run['steps'] as $step ) {
-			$def       = is_array( $checklist['steps'] ?? null ) ? ( $checklist['steps'][ $step['step_index'] ] ?? array() ) : array();
-			$deep_link = '';
+			$def            = is_array( $checklist['steps'] ?? null ) ? ( $checklist['steps'][ $step['step_index'] ] ?? array() ) : array();
+			$deep_link_path = LAUNCHDEK_Deep_Link_Resolver::resolve_for_step( $def );
+			$deep_link      = '';
 
-			if ( $remote && ! empty( $def['deep_link'] ) ) {
-				$deep_link = $remote->admin_link( $def['deep_link'] );
+			if ( $remote && $deep_link_path ) {
+				$deep_link = $remote->admin_link( $deep_link_path );
 			}
 
 			$show_note_field = array_key_exists( 'show_note_field', $def )

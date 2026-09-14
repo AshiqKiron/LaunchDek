@@ -168,95 +168,6 @@
 		return (step.notes || []).some(isValidNote);
 	}
 
-	function hasOpenComposerState() {
-		if (notesGloballyMinimized) {
-			return false;
-		}
-
-		var steps = run.steps || [];
-		var i;
-
-		for (i = 0; i < steps.length; i++) {
-			if (noteComposerOpen(parseInt(steps[i].step_index, 10))) {
-				return true;
-			}
-		}
-
-		return false;
-	}
-
-	function hasAnyNotesOrOpenComposers() {
-		var steps = run.steps || [];
-		var i;
-		var stepIndex;
-
-		for (i = 0; i < steps.length; i++) {
-			if (stepHasSavedNotes(steps[i])) {
-				return true;
-			}
-			stepIndex = parseInt(steps[i].step_index, 10);
-			if (noteDrafts[stepIndex] && String(noteDrafts[stepIndex]).trim()) {
-				return true;
-			}
-		}
-
-		if (pendingAttachment) {
-			return true;
-		}
-
-		return hasOpenComposerState();
-	}
-
-	function allNotesMinimized() {
-		if (!hasAnyNotesOrOpenComposers()) {
-			return true;
-		}
-
-		var steps = run.steps || [];
-		var i;
-		var stepIndex;
-
-		for (i = 0; i < steps.length; i++) {
-			stepIndex = parseInt(steps[i].step_index, 10);
-			if (stepHasSavedNotes(steps[i]) && !isNoteSectionCollapsed(stepIndex)) {
-				return false;
-			}
-		}
-
-		return notesGloballyMinimized;
-	}
-
-	function minimizeAllNotes() {
-		var steps = run.steps || [];
-
-		captureNoteDrafts();
-		notesGloballyMinimized = true;
-		steps.forEach(function (step) {
-			var stepIndex = parseInt(step.step_index, 10);
-			if (stepHasSavedNotes(step)) {
-				collapsedNoteSections[String(stepIndex)] = true;
-			}
-			setNoteComposerOpen(stepIndex, false);
-		});
-		savePrefs();
-		render();
-	}
-
-	function expandAllNotes() {
-		notesGloballyMinimized = false;
-		collapsedNoteSections = {};
-		savePrefs();
-		render();
-	}
-
-	function toggleAllNotes() {
-		if (allNotesMinimized()) {
-			expandAllNotes();
-			return;
-		}
-		minimizeAllNotes();
-	}
-
 	function getNoteForm(stepIndex) {
 		if (!root) {
 			return null;
@@ -558,6 +469,10 @@
 		return '<svg class="launchdek-client-icon" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
 	}
 
+	function renderDoubleTickIcon() {
+		return '<svg class="launchdek-client-icon" width="18" height="16" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 12 8 16 14 7"></polyline><polyline points="10 12 14 16 20 6"></polyline></svg>';
+	}
+
 	function renderNoteIcon() {
 		return '<svg class="launchdek-client-icon" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>';
 	}
@@ -575,13 +490,13 @@
 	}
 
 	function renderCompletedIndicator(step) {
-		var tick = '<span class="launchdek-client-step-done-icon" aria-hidden="true">' + renderTickIcon() + '</span>';
+		var tick = '<span class="launchdek-client-step-done-icon is-double" aria-hidden="true">' + renderDoubleTickIcon() + '</span>';
 
 		if (!stepCanUndo(step)) {
-			return '<span class="launchdek-client-step-complete-state is-readonly" aria-label="' + escHtml(strings.completed || 'Completed') + '">' + tick + '</span>';
+			return '<span class="launchdek-client-step-complete-state is-readonly is-double-tick" aria-label="' + escHtml(strings.completed || 'Completed') + '">' + tick + '</span>';
 		}
 
-		return '<div class="launchdek-client-step-complete-state">' +
+		return '<div class="launchdek-client-step-complete-state is-double-tick">' +
 			tick +
 			renderIconButton(
 				'launchdek-client-uncomplete-step is-undo-action',
@@ -668,8 +583,8 @@
 
 		return '<div class="launchdek-client-step-notes' + (collapsed ? ' is-collapsed' : '') + '">' +
 			'<button type="button" class="launchdek-client-step-notes-toggle" data-step="' + escHtml(stepIndex) + '" aria-expanded="' + (collapsed ? 'false' : 'true') + '">' +
-				renderChevron(!collapsed) +
 				'<span class="launchdek-client-step-notes-title">' + escHtml(countLabel.replace('%1$s', title).replace('%2$s', String(validNotes.length))) + '</span>' +
+				renderChevron(!collapsed) +
 			'</button>' +
 			'<ul class="launchdek-client-note-list">' + items + '</ul>' +
 		'</div>';
@@ -809,15 +724,6 @@
 				'</div>' +
 				'<div class="launchdek-client-panel-body">' +
 					(allDone ? renderRunCompleteSummary(steps) : '') +
-					(hasAnyNotesOrOpenComposers()
-						? '<div class="launchdek-client-panel-notes-toolbar">' +
-							'<button type="button" class="button-link launchdek-client-toggle-all-notes" id="launchdek-client-toggle-all-notes">' +
-								escHtml(allNotesMinimized()
-									? (strings.expandAllNotes || 'Show all notes')
-									: (strings.minimizeAllNotes || 'Minimize all notes')) +
-							'</button>' +
-						'</div>'
-						: '') +
 					'<ol class="launchdek-client-step-list">' + steps.map(function (step, index) {
 						return renderStep(step, index === activeIndex, index, activeIndex);
 					}).join('') + '</ol>' +
@@ -872,13 +778,6 @@
 				render();
 			});
 		});
-
-		var toggleAllNotesBtn = document.getElementById('launchdek-client-toggle-all-notes');
-		if (toggleAllNotesBtn) {
-			toggleAllNotesBtn.addEventListener('click', function () {
-				toggleAllNotes();
-			});
-		}
 
 		root.querySelectorAll('.launchdek-client-complete-step').forEach(function (btn) {
 			btn.addEventListener('click', function () {

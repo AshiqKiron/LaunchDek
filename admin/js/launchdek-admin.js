@@ -111,6 +111,62 @@
 		});
 	}
 
+	function matchesDeepLinkRule(text, rule) {
+		var needles;
+		var i;
+
+		if (rule.all && rule.all.length) {
+			for (i = 0; i < rule.all.length; i++) {
+				if (text.indexOf(rule.all[i]) === -1) {
+					return false;
+				}
+			}
+			return true;
+		}
+
+		if (rule.any && rule.any.length) {
+			for (i = 0; i < rule.any.length; i++) {
+				if (text.indexOf(rule.any[i]) !== -1) {
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
+
+	function inferDeepLink(title, instructions, existing) {
+		if (existing && String(existing).trim()) {
+			return String(existing).trim();
+		}
+
+		var text = String(title || '') + ' ' + String(instructions || '');
+		text = text.trim().toLowerCase();
+
+		if (!text) {
+			return '';
+		}
+
+		var rules = (launchdekAdmin && launchdekAdmin.deepLinkRules) || [];
+		for (var i = 0; i < rules.length; i++) {
+			if (matchesDeepLinkRule(text, rules[i])) {
+				return rules[i].path || '';
+			}
+		}
+
+		return '';
+	}
+
+	function applyDeepLinksToSteps(steps) {
+		return (steps || []).map(function (step) {
+			var copy = Object.assign({}, step);
+			if ((copy.type || 'manual') === 'manual') {
+				copy.deep_link = inferDeepLink(copy.title, copy.instructions, copy.deep_link);
+			}
+			return copy;
+		});
+	}
+
 	// ─── Onboarding ──────────────────────────────────────────
 	function parsePastedChecklist(text) {
 		var lines = text.split(/\r?\n/).map(function (line) { return line.trim(); }).filter(Boolean);
@@ -152,7 +208,7 @@
 		return {
 			title: parsed.title,
 			description: '',
-			steps: parsed.steps.map(function (step, index) {
+			steps: applyDeepLinksToSteps(parsed.steps.map(function (step, index) {
 				return {
 					id: 'step_' + (index + 1),
 					title: step.title,
@@ -161,7 +217,7 @@
 					target_roles: [],
 					deep_link: ''
 				};
-			})
+			}))
 		};
 	}
 
@@ -1742,7 +1798,7 @@
 			document.getElementById('launchdek-checklist-editor').hidden = false;
 			document.getElementById('launchdek-cl-title').value = wf.title;
 			document.getElementById('launchdek-cl-description').value = wf.description || '';
-			currentSteps = wf.steps || [];
+			currentSteps = applyDeepLinksToSteps(wf.steps || []);
 			selectedStepIndex = null;
 			notice(document.getElementById('launchdek-checklist-notice'), '', '');
 			renderSteps();
@@ -1923,7 +1979,17 @@
 		document.getElementById('ld-validate-api').onclick = function () {
 			saveStepFromForm();
 			post('/checklists/0/validate-step', currentSteps[selectedStepIndex]).then(function (r) {
-				alert(r.valid ? 'API step is valid.' : r.errors.join('\n'));
+				var messages = [];
+				if (r.warnings && r.warnings.length) {
+					messages.push(r.warnings.join('\n'));
+				}
+				if (r.errors && r.errors.length) {
+					messages.push(r.errors.join('\n'));
+				}
+				if (!messages.length) {
+					messages.push('API step is valid.');
+				}
+				alert(messages.join('\n\n'));
 			}).catch(function (e) { alert(e.message); });
 		};
 	}
@@ -1937,7 +2003,12 @@
 		var step = currentSteps[selectedStepIndex];
 		step.title = document.getElementById('ld-step-title').value;
 		step.instructions = document.getElementById('ld-step-instructions').value;
-		step.deep_link = document.getElementById('ld-step-deeplink').value;
+		var deeplinkInput = document.getElementById('ld-step-deeplink');
+		var existingDeepLink = deeplinkInput ? deeplinkInput.value : (step.deep_link || '');
+		step.deep_link = inferDeepLink(step.title, step.instructions, existingDeepLink);
+		if (deeplinkInput && !existingDeepLink.trim() && step.deep_link) {
+			deeplinkInput.value = step.deep_link;
+		}
 		step.type = document.getElementById('ld-step-type').value;
 		step.target_roles = [];
 		document.querySelectorAll('.ld-target-role:checked').forEach(function (input) {
@@ -2048,6 +2119,8 @@
 			var saveBtn = document.getElementById('launchdek-save-checklist');
 
 			if (selectedStepIndex !== null) saveStepFromForm();
+
+			currentSteps = applyDeepLinksToSteps(currentSteps);
 
 			var title = document.getElementById('launchdek-cl-title').value.trim();
 			if (!title) {
@@ -2308,14 +2381,14 @@
 				saveStepFromForm();
 			}
 
-			var importedSteps = capturedSteps.map(function (step, index) {
+			var importedSteps = applyDeepLinksToSteps(capturedSteps.map(function (step, index) {
 				var copy = Object.assign({}, step);
 				copy.id = 'step_' + (index + 1);
 				if (copy.api) {
 					copy.api = Object.assign({}, copy.api);
 				}
 				return copy;
-			});
+			}));
 
 			newChecklist();
 			currentSteps = importedSteps;

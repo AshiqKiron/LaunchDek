@@ -205,21 +205,24 @@
 }
 
 .launchdek-client-step-settings-link-wrap {
-	margin: 8px 0 0;
+	margin: 6px 0 0;
 }
 
 .launchdek-client-step-settings-link {
-	font-weight: 600;
+	color: #646970;
+	font-weight: 500;
 	text-decoration: none;
 }
 
 .launchdek-client-step-settings-link:hover,
 .launchdek-client-step-settings-link:focus {
+	color: #1a202c;
 	text-decoration: underline;
 }
 
 .launchdek-client-step-body {
 	margin-top: 8px;
+	padding-left: 30px;
 }
 
 .launchdek-client-step-summary-title {
@@ -231,14 +234,14 @@
 
 .launchdek-client-step-head {
 	display: flex;
-	align-items: center;
+	align-items: flex-start;
 	gap: 10px;
 	min-height: 24px;
 }
 
 .launchdek-client-step-head-actions {
 	display: inline-flex;
-	align-items: center;
+	align-items: flex-start;
 	gap: 4px;
 	flex-shrink: 0;
 	margin-left: auto;
@@ -409,6 +412,10 @@
 	flex-shrink: 0;
 }
 
+.launchdek-client-step-complete-state.is-double-tick {
+	width: 22px;
+}
+
 .launchdek-client-step-done-icon {
 	display: inline-flex;
 	align-items: center;
@@ -419,6 +426,10 @@
 	background: transparent;
 	color: #1a202c;
 	transition: opacity 0.15s ease;
+}
+
+.launchdek-client-step-done-icon.is-double {
+	width: 22px;
 }
 
 .launchdek-client-step-complete-state:not(.is-readonly) .launchdek-client-step-done-icon {
@@ -581,25 +592,14 @@
 	display: none;
 }
 
-.launchdek-client-panel-notes-toolbar {
-	display: flex;
-	justify-content: flex-end;
-	margin-bottom: 8px;
-}
-
-.launchdek-client-toggle-all-notes {
-	font-size: 12px;
-	padding: 0;
-}
-
 .launchdek-client-step-notes {
 	margin-top: 10px;
 }
 
 .launchdek-client-step-notes-toggle {
-	display: flex;
+	display: inline-flex;
 	align-items: center;
-	gap: 4px;
+	gap: 6px;
 	margin: 0 0 6px;
 	padding: 0;
 	border: 0;

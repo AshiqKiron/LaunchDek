@@ -147,6 +147,8 @@ class LAUNCHDEK_Admin {
 				'adminUrl'  => admin_url( 'admin.php' ),
 				'pageSlug'  => self::PAGE_SLUG,
 				'roles'     => $wp_roles,
+				'deepLinkRules'   => LAUNCHDEK_Deep_Link_Resolver::get_rules_for_js(),
+				'excludeOptions'  => LAUNCHDEK_Settings::get_exclude_options(),
 				'onboarding' => array(
 					'show'           => empty( LAUNCHDEK_Settings::get()['onboarding_dismissed'] ),
 					'templatesUrl'   => admin_url( 'admin.php?page=' . self::PAGE_SLUG . '-checklists&tab=templates' ),

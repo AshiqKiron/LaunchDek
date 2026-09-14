@@ -49,6 +49,7 @@ require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-dashboard-cache.ph
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-remote-client.php';
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-connection-tester.php';
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-payload-mapper.php';
+require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-deep-link-resolver.php';
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-step-executor.php';
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-checklist-runner.php';
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-client-push.php';

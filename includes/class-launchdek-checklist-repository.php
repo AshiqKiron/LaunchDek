@@ -270,11 +270,14 @@ class LAUNCHDEK_Checklist_Repository {
 				? ! empty( $step['show_note_field'] )
 				: ( 'manual' === $type );
 
+			$title        = sanitize_text_field( $step['title'] ?? sprintf( __( 'Step %d', LAUNCHDEK_TEXT_DOMAIN ), $index + 1 ) );
+			$instructions = sanitize_textarea_field( $step['instructions'] ?? '' );
+
 			$normalized[] = array(
 				'id'              => ! empty( $step['id'] ) ? sanitize_key( $step['id'] ) : 'step_' . ( $index + 1 ),
-				'title'           => sanitize_text_field( $step['title'] ?? sprintf( __( 'Step %d', LAUNCHDEK_TEXT_DOMAIN ), $index + 1 ) ),
-				'instructions'    => sanitize_textarea_field( $step['instructions'] ?? '' ),
-				'deep_link'       => esc_url_raw( $step['deep_link'] ?? '' ),
+				'title'           => $title,
+				'instructions'    => $instructions,
+				'deep_link'       => LAUNCHDEK_Deep_Link_Resolver::resolve( $title, $instructions, $step['deep_link'] ?? '' ),
 				'type'            => $type,
 				'target_roles'    => $target_roles,
 				'show_note_field' => $show_note_field,
@@ -307,11 +310,18 @@ class LAUNCHDEK_Checklist_Repository {
 			$payload = is_array( $decoded ) ? $decoded : array();
 		}
 
-		return array(
+		$normalized = array(
 			'method'  => $method,
 			'route'   => sanitize_text_field( $api['route'] ?? '' ),
 			'payload' => $payload,
 		);
+
+		if ( in_array( $method, array( 'POST', 'PUT', 'PATCH' ), true ) && LAUNCHDEK_Settings::is_settings_route( $normalized['route'] ) ) {
+			$filtered = LAUNCHDEK_Settings::filter_settings_payload( $normalized['payload'] );
+			$normalized['payload'] = $filtered['payload'];
+		}
+
+		return $normalized;
 	}
 
 	/**

@@ -11,8 +11,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-$option_name   = LAUNCHDEK_Settings::OPTION_NAME;
-$active_events = (array) ( $settings['notification_events'] ?? array() );
+$option_name      = LAUNCHDEK_Settings::OPTION_NAME;
+$active_events    = (array) ( $settings['notification_events'] ?? array() );
+$exclude_options  = LAUNCHDEK_Settings::get_exclude_options();
+$exclude_options_text = implode( "\n", $exclude_options );
 $role_perms    = (array) ( $settings['role_permissions'] ?? array() );
 $wp_roles      = wp_roles() ? wp_roles()->get_names() : array();
 $cap_labels    = LAUNCHDEK_Capabilities::get_capability_labels();
@@ -66,6 +68,28 @@ $channels      = array(
 			</label>
 			<p class="launchdek-muted launchdek-settings-note">
 				<?php esc_html_e( 'Credentials are encrypted with OpenSSL AES-256-CBC and a key derived from your site salts. Decryption happens only when a remote request is made.', LAUNCHDEK_TEXT_DOMAIN ); ?>
+			</p>
+		</div>
+
+		<div class="launchdek-card launchdek-settings-card">
+			<h2><?php esc_html_e( 'Exclude Options', LAUNCHDEK_TEXT_DOMAIN ); ?></h2>
+			<p class="launchdek-settings-lead">
+				<?php esc_html_e( 'Sensitive WordPress settings that should never be changed on client sites via API checklist steps or auto-capture.', LAUNCHDEK_TEXT_DOMAIN ); ?>
+			</p>
+			<div class="launchdek-settings-exclude-options">
+				<label for="launchdek-exclude-options">
+					<?php esc_html_e( 'Excluded setting keys', LAUNCHDEK_TEXT_DOMAIN ); ?>
+				</label>
+				<textarea
+					class="large-text code"
+					id="launchdek-exclude-options"
+					name="<?php echo esc_attr( $option_name ); ?>[exclude_options]"
+					rows="6"
+					placeholder="<?php esc_attr_e( "siteurl\nhome\nadmin_email", LAUNCHDEK_TEXT_DOMAIN ); ?>"
+				><?php echo esc_textarea( $exclude_options_text ); ?></textarea>
+			</div>
+			<p class="launchdek-muted launchdek-settings-note">
+				<?php esc_html_e( 'Enter one WordPress option or REST settings field per line. Matching aliases are blocked too (for example, admin_email also blocks email). Excluded keys are stripped from API step payloads before save, capture import, and remote execution.', LAUNCHDEK_TEXT_DOMAIN ); ?>
 			</p>
 		</div>
 

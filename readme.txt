@@ -63,6 +63,15 @@ Yes, when enabled in Settings, application passwords are encrypted using your Wo
 
 == Changelog ==
 
+= 1.0.20 =
+* Settings: Exclude Options — block sensitive WordPress settings (site URL, home URL, admin email by default) from API checklist steps, auto-capture import, and remote execution
+
+= 1.0.19 =
+* Checklists: auto-infer WordPress admin deep links from step titles and instructions (e.g. permalink steps link to Settings → Permalinks) when no explicit link is set — applied in the builder, onboarding paste, client panel push, and run execution
+
+= 1.0.18 =
+* Client checklist panel: removed bulk minimize/show all notes control; per-step note collapse remains
+
 = 1.0.17 =
 * Client checklist panel: minimize all notes with one click; each step's saved notes can also be collapsed individually
 

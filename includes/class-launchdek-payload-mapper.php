@@ -38,6 +38,23 @@ class LAUNCHDEK_Payload_Mapper {
 		$route   = $api['route'];
 		$payload = $api['payload'] ?? array();
 
+		if ( in_array( $method, array( 'POST', 'PUT', 'PATCH' ), true ) && LAUNCHDEK_Settings::is_settings_route( $route ) && is_array( $payload ) ) {
+			$filtered = LAUNCHDEK_Settings::filter_settings_payload( $payload );
+
+			if ( empty( $filtered['payload'] ) && ! empty( $filtered['stripped'] ) ) {
+				return new WP_Error(
+					'launchdek_excluded_settings',
+					sprintf(
+						/* translators: %s: comma-separated setting field names */
+						__( 'All requested settings are excluded by agency policy: %s', LAUNCHDEK_TEXT_DOMAIN ),
+						implode( ', ', $filtered['stripped'] )
+					)
+				);
+			}
+
+			$payload = $filtered['payload'];
+		}
+
 		$result = $client->rest( $method, $route, $payload );
 
 		if ( ! is_wp_error( $result ) ) {
@@ -79,9 +96,31 @@ class LAUNCHDEK_Payload_Mapper {
 			$errors[] = __( 'Invalid HTTP method.', LAUNCHDEK_TEXT_DOMAIN );
 		}
 
+		$warnings = array();
+		$route    = $api['route'] ?? '';
+		$payload  = $api['payload'] ?? array();
+		if ( in_array( $method, array( 'POST', 'PUT', 'PATCH' ), true ) && LAUNCHDEK_Settings::is_settings_route( $route ) && is_array( $payload ) ) {
+			$filtered = LAUNCHDEK_Settings::filter_settings_payload( $payload );
+
+			if ( empty( $filtered['payload'] ) && ! empty( $filtered['stripped'] ) ) {
+				$errors[] = sprintf(
+					/* translators: %s: comma-separated setting field names */
+					__( 'The API step payload only contains excluded settings: %s', LAUNCHDEK_TEXT_DOMAIN ),
+					implode( ', ', $filtered['stripped'] )
+				);
+			} elseif ( ! empty( $filtered['stripped'] ) ) {
+				$warnings[] = sprintf(
+					/* translators: %s: comma-separated setting field names */
+					__( 'These excluded settings will be stripped before execution: %s', LAUNCHDEK_TEXT_DOMAIN ),
+					implode( ', ', $filtered['stripped'] )
+				);
+			}
+		}
+
 		return array(
-			'valid'  => empty( $errors ),
-			'errors' => $errors,
+			'valid'    => empty( $errors ),
+			'errors'   => $errors,
+			'warnings' => $warnings,
 		);
 	}
 }

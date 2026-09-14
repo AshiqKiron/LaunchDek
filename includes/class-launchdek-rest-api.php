@@ -617,6 +617,10 @@ class LAUNCHDEK_REST_API {
 			return $result;
 		}
 
+		if ( is_array( $result ) && ! empty( $result['steps'] ) && is_array( $result['steps'] ) ) {
+			$result['steps'] = LAUNCHDEK_Settings::filter_checklist_steps( $result['steps'] );
+		}
+
 		return rest_ensure_response( $result );
 	}
 
@@ -649,6 +653,10 @@ class LAUNCHDEK_REST_API {
 
 		if ( is_wp_error( $result ) ) {
 			return $result;
+		}
+
+		if ( is_array( $result ) && ! empty( $result['steps'] ) && is_array( $result['steps'] ) ) {
+			$result['steps'] = LAUNCHDEK_Settings::filter_checklist_steps( $result['steps'] );
 		}
 
 		return rest_ensure_response( $result );
