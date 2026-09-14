@@ -1,0 +1,58 @@
+{
+  "title": "LiteSpeed Cache Setup",
+  "description": "Configure LiteSpeed Cache for production — page cache, exclusions, optimization, and CDN.",
+  "category": "performance",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "lscwp_server_compat",
+      "title": "Confirm LiteSpeed / QUIC.cloud Compatibility",
+      "instructions": "Verify the host runs LiteSpeed or OpenLiteSpeed, or plan QUIC.cloud CDN if on Apache/Nginx. Avoid stacking another full-page cache plugin.",
+      "deep_link": "admin.php?page=litespeed",
+      "type": "manual"
+    },
+    {
+      "id": "lscwp_cache_enable",
+      "title": "Enable Page Cache",
+      "instructions": "Turn on cache for desktop and mobile. Set TTL appropriate for content change frequency and purge on publish.",
+      "deep_link": "admin.php?page=litespeed-cache",
+      "type": "manual"
+    },
+    {
+      "id": "lscwp_exclude_uris",
+      "title": "Exclude Dynamic & Logged-In URIs",
+      "instructions": "Exclude wp-admin, cart, checkout, my-account, and logged-in users. Add WooCommerce/EDD REST and AJAX endpoints as needed.",
+      "deep_link": "admin.php?page=litespeed-cache",
+      "type": "manual"
+    },
+    {
+      "id": "lscwp_object_cache",
+      "title": "Configure Object Cache (If Available)",
+      "instructions": "Enable Redis/Memcached object cache when the host provides it. Confirm admin and cron still behave correctly.",
+      "deep_link": "admin.php?page=litespeed-cache",
+      "type": "manual"
+    },
+    {
+      "id": "lscwp_optimize_assets",
+      "title": "Enable CSS/JS Optimization",
+      "instructions": "Enable minify and combine cautiously. Test checkout, forms, and sliders after optimization; exclude problematic scripts.",
+      "deep_link": "admin.php?page=litespeed-page_optm",
+      "type": "manual"
+    },
+    {
+      "id": "lscwp_image_optimization",
+      "title": "Configure Image Optimization",
+      "instructions": "Enable WebP/AVIF generation and lazy load if appropriate. Verify hero images and logos still render crisply.",
+      "deep_link": "admin.php?page=litespeed-img_optm",
+      "type": "manual"
+    },
+    {
+      "id": "lscwp_cdn_quic",
+      "title": "Connect CDN or QUIC.cloud",
+      "instructions": "Link QUIC.cloud or custom CDN origin. Purge cache after deploy and confirm HTML and static assets serve correctly.",
+      "deep_link": "admin.php?page=litespeed-cdn",
+      "type": "manual"
+    }
+  ]
+}

@@ -1,0 +1,58 @@
+{
+  "title": "SSL & HTTPS Setup",
+  "description": "Move a WordPress site to HTTPS — certificate, URL updates, mixed content, and redirect rules.",
+  "category": "security",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "ssl_install_certificate",
+      "title": "Install SSL Certificate",
+      "instructions": "Enable SSL via your host panel (Let's Encrypt or commercial cert). Confirm https:// loads without browser warnings.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "ssl_update_urls",
+      "title": "Update WordPress & Site URLs",
+      "instructions": "Set WordPress Address and Site Address to https:// under Settings → General. Fix any hardcoded http:// in options if needed.",
+      "deep_link": "options-general.php",
+      "type": "manual"
+    },
+    {
+      "id": "ssl_force_redirect",
+      "title": "Force HTTP → HTTPS Redirect",
+      "instructions": "Add a server-level 301 redirect from HTTP to HTTPS. Avoid redirect loops with CDN or reverse-proxy configs.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "ssl_mixed_content",
+      "title": "Fix Mixed Content Warnings",
+      "instructions": "Scan key pages for insecure images, scripts, or embeds still loading over HTTP. Update media URLs and embed codes.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "ssl_force_admin",
+      "title": "Force SSL for wp-admin",
+      "instructions": "Add define('FORCE_SSL_ADMIN', true); to wp-config.php if admin is not already HTTPS-only.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "ssl_hsts",
+      "title": "Enable HSTS (Optional)",
+      "instructions": "Add Strict-Transport-Security header only after HTTPS is stable site-wide. Start with a short max-age during testing.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "ssl_search_console",
+      "title": "Update Search Console Property",
+      "instructions": "Add the HTTPS property in Google Search Console. Submit the sitemap and set preferred domain if applicable.",
+      "deep_link": "",
+      "type": "manual"
+    }
+  ]
+}

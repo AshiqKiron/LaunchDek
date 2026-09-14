@@ -52,13 +52,36 @@ class LAUNCHDEK_Webhook_Dispatcher {
 	 * @return string
 	 */
 	protected static function format_message( $event, $data ) {
-		/* translators: 1: event name */
-		$base = sprintf( __( 'LaunchDek: %s', LAUNCHDEK_TEXT_DOMAIN ), $event );
+		$event_labels = array(
+			'client_step_completed' => __( 'Client step completed', LAUNCHDEK_TEXT_DOMAIN ),
+			'client_note_added'     => __( 'Client note added', LAUNCHDEK_TEXT_DOMAIN ),
+		);
+
+		$label = $event_labels[ $event ] ?? $event;
+		/* translators: 1: event label */
+		$base = sprintf( __( 'LaunchDek: %s', LAUNCHDEK_TEXT_DOMAIN ), $label );
+
+		if ( ! empty( $data['site_name'] ) ) {
+			$base .= ' — ' . $data['site_name'];
+		}
 
 		if ( ! empty( $data['checklist'] ) ) {
-			$base .= ' — ' . $data['checklist'];
+			$base .= ' (' . $data['checklist'] . ')';
 		} elseif ( ! empty( $data['workflow'] ) ) {
-			$base .= ' — ' . $data['workflow'];
+			$base .= ' (' . $data['workflow'] . ')';
+		}
+
+		if ( ! empty( $data['step_title'] ) ) {
+			$base .= ' — ' . $data['step_title'];
+		}
+
+		if ( ! empty( $data['client_user'] ) ) {
+			/* translators: %s: client user display name */
+			$base .= ' — ' . sprintf( __( 'by %s', LAUNCHDEK_TEXT_DOMAIN ), $data['client_user'] );
+		}
+
+		if ( ! empty( $data['note'] ) ) {
+			$base .= ': ' . wp_trim_words( $data['note'], 20, '…' );
 		}
 
 		if ( ! empty( $data['error'] ) ) {

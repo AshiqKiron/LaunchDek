@@ -216,6 +216,11 @@ class LAUNCHDEK_Site_Repository {
 			$format[]             = '%s';
 		}
 
+		if ( isset( $data['client_agent'] ) ) {
+			$fields['client_agent'] = ! empty( $data['client_agent'] ) ? 1 : 0;
+			$format[]               = '%d';
+		}
+
 		$result = $wpdb->update( self::table(), $fields, array( 'id' => absint( $id ) ), $format, array( '%d' ) );
 
 		if ( isset( $data['tags'] ) && is_array( $data['tags'] ) ) {
@@ -362,6 +367,7 @@ class LAUNCHDEK_Site_Repository {
 			'health_status' => $row['health_status'],
 			'last_ping_at'  => $row['last_ping_at'],
 			'last_error'    => $row['last_error'],
+			'client_agent'  => ! empty( $row['client_agent'] ),
 			'tags'          => self::get_tags( (int) $row['id'] ),
 			'created_at'    => $row['created_at'],
 			'updated_at'    => $row['updated_at'],

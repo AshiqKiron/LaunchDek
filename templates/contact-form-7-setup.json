@@ -1,0 +1,58 @@
+{
+  "title": "Contact Form 7 Setup",
+  "description": "Configure Contact Form 7 forms with reliable delivery, spam protection, and GDPR-friendly notices.",
+  "category": "launch",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "cf7_create_forms",
+      "title": "Create & Label Forms",
+      "instructions": "Build forms for contact, quote, and support use cases. Use clear field labels, required markers, and accessible error messages.",
+      "deep_link": "admin.php?page=wpcf7",
+      "type": "manual"
+    },
+    {
+      "id": "cf7_mail_templates",
+      "title": "Configure Mail & Mail (2)",
+      "instructions": "Set recipient, subject, and body tokens. Enable autoresponder Mail (2) only when the client wants confirmation emails.",
+      "deep_link": "admin.php?page=wpcf7",
+      "type": "manual"
+    },
+    {
+      "id": "cf7_smtp_delivery",
+      "title": "Verify Email Delivery",
+      "instructions": "Route mail through SMTP or transactional provider if host mail is unreliable. Send test submissions from staging and production.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "cf7_spam_protection",
+      "title": "Add Spam Protection",
+      "instructions": "Enable reCAPTCHA v3, Turnstile, or Akismet integration. Confirm spam submissions are blocked without blocking real users.",
+      "deep_link": "admin.php?page=wpcf7-integration",
+      "type": "manual"
+    },
+    {
+      "id": "cf7_flamingo_storage",
+      "title": "Enable Message Storage (Optional)",
+      "instructions": "Install Flamingo or equivalent if the client needs an inbox of submissions. Restrict access to trusted admin roles.",
+      "deep_link": "plugin-install.php",
+      "type": "manual"
+    },
+    {
+      "id": "cf7_privacy_notice",
+      "title": "Add Privacy & Consent Copy",
+      "instructions": "Link to privacy policy near forms. Add consent checkbox if marketing follow-up or CRM sync is enabled.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "cf7_embed_pages",
+      "title": "Embed Forms & Test UX",
+      "instructions": "Place shortcodes or blocks on contact pages. Test validation, mobile layout, and success messages after submit.",
+      "deep_link": "",
+      "type": "manual"
+    }
+  ]
+}

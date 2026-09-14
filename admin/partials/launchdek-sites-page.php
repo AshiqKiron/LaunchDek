@@ -46,6 +46,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 				<tr>
 					<th scope="col"><?php esc_html_e( 'Site Name', LAUNCHDEK_TEXT_DOMAIN ); ?></th>
 					<th scope="col"><?php esc_html_e( 'URL', LAUNCHDEK_TEXT_DOMAIN ); ?></th>
+					<th scope="col"><?php esc_html_e( 'Connection', LAUNCHDEK_TEXT_DOMAIN ); ?></th>
 					<th scope="col"><?php esc_html_e( 'WP Ver', LAUNCHDEK_TEXT_DOMAIN ); ?></th>
 					<th scope="col"><?php esc_html_e( 'PHP Ver', LAUNCHDEK_TEXT_DOMAIN ); ?></th>
 					<th scope="col"><?php esc_html_e( 'Health', LAUNCHDEK_TEXT_DOMAIN ); ?></th>
@@ -76,6 +77,21 @@ if ( ! defined( 'ABSPATH' ) ) {
 					</select>
 				</label></p>
 				<div id="launchdek-site-test-result" class="launchdek-notice-area"></div>
+				<div id="launchdek-panel-setup" class="launchdek-panel-setup" hidden>
+					<h3 class="launchdek-panel-setup-title"><?php esc_html_e( 'Client checklist panel setup', LAUNCHDEK_TEXT_DOMAIN ); ?></h3>
+					<p class="launchdek-muted"><?php esc_html_e( 'Optional one-time setup so clients see the checklist in their wp-admin. Core automation works without this step.', LAUNCHDEK_TEXT_DOMAIN ); ?></p>
+					<ol class="launchdek-panel-setup-steps">
+						<li><?php esc_html_e( 'Download the bootstrap file below.', LAUNCHDEK_TEXT_DOMAIN ); ?></li>
+						<li><?php esc_html_e( 'Upload it to wp-content/mu-plugins/ on the client site (create the mu-plugins folder if needed).', LAUNCHDEK_TEXT_DOMAIN ); ?></li>
+						<li><?php esc_html_e( 'Click Retry panel install — LaunchDek will deploy the full panel and verify the connection.', LAUNCHDEK_TEXT_DOMAIN ); ?></li>
+					</ol>
+					<p class="launchdek-panel-setup-actions">
+						<button type="button" class="button" id="launchdek-download-panel-bootstrap"><?php esc_html_e( 'Download launchdek-client.php', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
+						<button type="button" class="button button-secondary" id="launchdek-retry-panel-install"><?php esc_html_e( 'Retry panel install', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
+					</p>
+					<p class="launchdek-muted launchdek-panel-setup-path"><code>wp-content/mu-plugins/launchdek-client.php</code></p>
+					<div id="launchdek-panel-setup-result" class="launchdek-notice-area"></div>
+				</div>
 				<p class="launchdek-modal-actions">
 					<button type="button" class="button" id="launchdek-site-test"><?php esc_html_e( 'Test Connection', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
 					<button type="submit" class="button button-primary"><?php esc_html_e( 'Save Site', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
@@ -83,6 +99,32 @@ if ( ! defined( 'ABSPATH' ) ) {
 					<button type="button" class="button launchdek-modal-close"><?php esc_html_e( 'Cancel', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
 				</p>
 			</form>
+		</div>
+	</div>
+
+	<div id="launchdek-push-checklist-modal" class="launchdek-modal" hidden>
+		<div class="launchdek-modal-backdrop"></div>
+		<div class="launchdek-modal-content launchdek-card">
+			<h2><?php esc_html_e( 'Push Checklist', LAUNCHDEK_TEXT_DOMAIN ); ?></h2>
+			<p class="launchdek-muted">
+				<?php esc_html_e( 'Start a checklist run on', LAUNCHDEK_TEXT_DOMAIN ); ?>
+				<strong id="launchdek-push-site-name"></strong>
+			</p>
+			<p>
+				<label for="launchdek-push-checklist-select"><?php esc_html_e( 'Checklist from master', LAUNCHDEK_TEXT_DOMAIN ); ?></label><br>
+				<select id="launchdek-push-checklist-select" class="launchdek-select"></select>
+			</p>
+			<p>
+				<label>
+					<input type="checkbox" id="launchdek-push-to-client" value="1" checked />
+					<?php esc_html_e( 'Show checklist on client admin panel (requires one-time panel setup on the client site)', LAUNCHDEK_TEXT_DOMAIN ); ?>
+				</label>
+			</p>
+			<div id="launchdek-push-checklist-result" class="launchdek-notice-area"></div>
+			<p class="launchdek-modal-actions">
+				<button type="button" class="button button-primary" id="launchdek-push-checklist-submit"><?php esc_html_e( 'Push & Start Run', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
+				<button type="button" class="button launchdek-modal-close"><?php esc_html_e( 'Cancel', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
+			</p>
 		</div>
 	</div>
 

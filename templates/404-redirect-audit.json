@@ -1,0 +1,58 @@
+{
+  "title": "404 & Redirect Audit",
+  "description": "Find broken URLs, fix 404 errors, and set up redirects after content changes or migrations.",
+  "category": "seo",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "404_crawl_errors",
+      "title": "Pull 404 Errors from Search Console",
+      "instructions": "Review Coverage and Pages reports in Google Search Console for soft 404s and not-found URLs worth fixing.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "404_broken_link_scan",
+      "title": "Run a Broken Link Scan",
+      "instructions": "Scan the homepage, top landing pages, and sitemap URLs with a broken-link checker or SEO plugin audit.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "404_fix_internal",
+      "title": "Fix Internal Broken Links",
+      "instructions": "Update menus, content links, and widgets pointing to deleted pages. Link to the correct replacement URL.",
+      "deep_link": "nav-menus.php",
+      "type": "manual"
+    },
+    {
+      "id": "404_create_redirects",
+      "title": "Add 301 Redirects for Moved URLs",
+      "instructions": "Redirect old URLs to their new locations using your SEO or redirect plugin. Avoid redirect chains longer than one hop.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "404_custom_page",
+      "title": "Improve the 404 Page",
+      "instructions": "Customize the 404 template with search, popular links, and a clear path back to the homepage.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "404_trailing_slash",
+      "title": "Normalize Trailing Slashes & WWW",
+      "instructions": "Pick www or non-www and trailing-slash policy. Redirect inconsistent variants to the canonical URL.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "404_retest",
+      "title": "Re-test Top URLs",
+      "instructions": "Verify former 404 URLs now return 200 or 301. Re-submit important URLs in Search Console if needed.",
+      "deep_link": "",
+      "type": "manual"
+    }
+  ]
+}

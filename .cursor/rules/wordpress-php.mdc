@@ -49,9 +49,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 - `LAUNCHDEK_Plugin` constructor: `LAUNCHDEK_Admin` only.
 - Data layer: `LAUNCHDEK_{Site,Checklist,Run}_Repository` — no direct `$wpdb` in REST handlers or admin.
 - Remote: `LAUNCHDEK_Remote_Client::from_site( $id )` for authenticated requests (returns `null` if credentials missing).
+- Client panel: `LAUNCHDEK_Mu_Plugin_Installer::ensure_installed( $site_id )` on site create/update/test; `LAUNCHDEK_Client_Push::push_run()` / `::sync_run()` / `::complete_client_step()` for hub↔client run flow; `LAUNCHDEK_Auto_Capture::{get_status,start,stop,clear}()` proxies capture sessions to remote panel.
 - Credentials: `LAUNCHDEK_Credential_Vault::encrypt()` / `::decrypt()` on save/read.
 - Audit: `LAUNCHDEK_Audit_Log::log()` for privileged actions.
 - Activation: `LAUNCHDEK_Activator` (sets redirect transient); `LAUNCHDEK_Admin::maybe_activation_redirect()` sends new installs to dashboard with `?onboarding=1`. Deactivation: `LAUNCHDEK_Deactivator` (clears drift cron).
+- Legacy redirect: `LAUNCHDEK_Admin::maybe_redirect_legacy_templates_page()` on `admin_init` — `?page={slug}-templates` → Checklists with `?tab=templates`.
 
 ## Settings Option Shape
 
@@ -111,7 +113,7 @@ Unknown categories fall back to `maintenance`. New JSON files are picked up by `
 
 ## DB Upgrades
 
-`LAUNCHDEK_Installer::DB_VERSION` is `1.1.0`. `maybe_install()` calls `migrate_from_previous()` before `install()`. Do not reference `launchdek_workflows` or `workflow_id` in new code — use `launchdek_checklists` and `checklist_id`. Audit log and webhooks accept legacy `workflow_*` action keys and `details.workflow` for pre-migration entries.
+`LAUNCHDEK_Installer::DB_VERSION` is `1.2.0`. `maybe_install()` calls `migrate_from_previous()` before `install()`. Do not reference `launchdek_workflows` or `workflow_id` in new code — use `launchdek_checklists` and `checklist_id`. Migration to 1.2.0 adds `launchdek_sites.client_agent` and `launchdek_runs.client_run_token`. Audit log and webhooks accept legacy `workflow_*` action keys and `details.workflow` for pre-migration entries. New client panel audit actions: `client_run_pushed`, `client_step_completed`.
 
 ## Partials
 
@@ -121,9 +123,8 @@ All non-settings pages use `render_page()` which passes `$settings`, `$page`, an
 |---------|---------------|
 | `launchdek-admin-page.php` | `dashboard` |
 | `launchdek-sites-page.php` | `sites` |
-| `launchdek-checklists-page.php` | `checklists` |
+| `launchdek-checklists-page.php` | `checklists` (builder + Templates tab panel) |
 | `launchdek-automation-page.php` | `automation` |
-| `launchdek-templates-page.php` | `templates` |
 | `launchdek-integrations-page.php` | `integrations` |
 | `launchdek-settings-page.php` | `settings` (Settings API form) |
 
@@ -149,6 +150,23 @@ Telemetry sync rules are managed on the Integrations page (REST), not the Settin
 Onboarding REST handlers in `LAUNCHDEK_REST_API`:
 - `POST /onboarding/dismiss` → `dismiss_onboarding()` (`can_view_dashboard`) — sets `onboarding_dismissed` to `true`
 - `POST /onboarding/reset` → `reset_onboarding()` (`can_manage_settings`) — sets `onboarding_dismissed` to `false` for Settings preview
+
+Client panel REST handlers in `LAUNCHDEK_REST_API`:
+- `GET /panel/bootstrap` → `get_panel_bootstrap()` (`can_manage_sites`) — returns mu-plugin loader file for manual download
+- `GET|POST|DELETE /sites/{id}/capture` → `get_site_capture()` / `update_site_capture()` / `clear_site_capture()` (`can_edit_checklists`) — proxies to `LAUNCHDEK_Auto_Capture`
+- `POST /runs` → optional `push_to_client` (bool, default `true`); when set, calls `LAUNCHDEK_Client_Push::push_run()` after start
+- `POST /runs/{id}/push-client` → `push_run_to_client()` (`can_execute`) — manual re-push
+- `POST /client-runs/{id}/steps/{step}/complete` → `client_complete_step()` (`can_client_token_access_run`) — validates `X-LaunchDek-Run-Token` or `client_token` param against `LAUNCHDEK_Run_Repository::get_client_token()`
+- Run advance handlers (`/next`, `/auto`, manual complete) call `LAUNCHDEK_Client_Push::sync_run()` when panel is available
+
+Remote mu-plugin REST (`mu-plugin/launchdek-client/class-rest-api.php`, namespace `launchdek/v1`):
+- `GET /client/info` — public panel probe
+- `POST /client/install` — hub pushes whitelisted bundle files (`can_hub_manage` via Application Password)
+- `GET|POST|DELETE /client/run` — active run snapshot CRUD
+- `POST /client/run/steps/{step}/complete` — client user completes step; callbacks to hub with run token
+- `GET|POST|DELETE /client/capture` — auto-capture session status, start/stop, clear captured steps
+
+When editing the client panel bundle, keep hub installer paths (`LAUNCHDEK_Mu_Plugin_Installer::BUNDLE_DIR`) and remote loader (`mu-plugin/launchdek-client.php`) in sync.
 
 ## New Integration Checklist
 

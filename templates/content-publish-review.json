@@ -1,0 +1,58 @@
+{
+  "title": "Content Publish Review",
+  "description": "Quality checklist before publishing a post or page — proofreading, links, images, SEO, and mobile preview.",
+  "category": "launch",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "cpr_proofread",
+      "title": "Proofread Copy & Headings",
+      "instructions": "Check spelling, grammar, and tone. Confirm one clear H1 and logical heading hierarchy (H2, H3).",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "cpr_links",
+      "title": "Test All Links",
+      "instructions": "Click every internal and external link. Open external links in a new tab only when appropriate; fix broken URLs.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "cpr_images",
+      "title": "Review Images & Alt Text",
+      "instructions": "Compress large images if needed. Add descriptive alt text for informative images; leave decorative images with empty alt.",
+      "deep_link": "upload.php",
+      "type": "manual"
+    },
+    {
+      "id": "cpr_featured_image",
+      "title": "Set Featured Image & Excerpt",
+      "instructions": "Choose a featured image that crops well in archives and social shares. Write a concise excerpt if the theme uses it.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "cpr_seo_meta",
+      "title": "Set SEO Title & Description",
+      "instructions": "Customize the meta title and description in your SEO plugin. Preview how the URL will appear in search results.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "cpr_categories_tags",
+      "title": "Assign Categories & Tags",
+      "instructions": "Pick the primary category and relevant tags. Avoid creating duplicate or overly granular categories.",
+      "deep_link": "edit-tags.php?taxonomy=category",
+      "type": "manual"
+    },
+    {
+      "id": "cpr_mobile_preview",
+      "title": "Preview on Mobile",
+      "instructions": "Use responsive preview or a phone to check line breaks, button sizes, and table overflow on small screens.",
+      "deep_link": "",
+      "type": "manual"
+    }
+  ]
+}

@@ -1,0 +1,58 @@
+{
+  "title": "Easy Digital Downloads Launch",
+  "description": "Pre-launch checklist for EDD stores — payments, downloads, taxes, emails, and test purchases.",
+  "category": "ecommerce",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "edd_general_settings",
+      "title": "Configure Store & Currency",
+      "instructions": "Set business name, currency, and base country under Downloads → Settings → General. Confirm decimal and thousand separators.",
+      "deep_link": "edit.php?post_type=download&page=edd-settings",
+      "type": "manual"
+    },
+    {
+      "id": "edd_payment_gateways",
+      "title": "Enable Payment Gateways",
+      "instructions": "Configure Stripe, PayPal, or other gateways in live mode. Complete account verification and test webhook endpoints.",
+      "deep_link": "edit.php?post_type=download&page=edd-settings&tab=gateways",
+      "type": "manual"
+    },
+    {
+      "id": "edd_download_files",
+      "title": "Verify Download Files & Limits",
+      "instructions": "Upload files to secure storage. Set download limits, expiry, and file access rules per product. Test file delivery links.",
+      "deep_link": "edit.php?post_type=download",
+      "type": "manual"
+    },
+    {
+      "id": "edd_taxes",
+      "title": "Configure Tax Settings",
+      "instructions": "Enable taxes if required for the client's jurisdiction. Set inclusive/exclusive pricing and validate rates on checkout.",
+      "deep_link": "edit.php?post_type=download&page=edd-settings&tab=taxes",
+      "type": "manual"
+    },
+    {
+      "id": "edd_emails",
+      "title": "Customize Purchase Emails",
+      "instructions": "Brand receipt and download emails. Send test purchase, renewal, and failed payment notifications to agency inboxes.",
+      "deep_link": "edit.php?post_type=download&page=edd-settings&tab=emails",
+      "type": "manual"
+    },
+    {
+      "id": "edd_checkout_pages",
+      "title": "Assign Checkout & Success Pages",
+      "instructions": "Confirm checkout, confirmation, failure, and account pages are assigned and styled. Guest checkout policy matches client requirements.",
+      "deep_link": "edit.php?post_type=download&page=edd-settings&tab=pages",
+      "type": "manual"
+    },
+    {
+      "id": "edd_test_purchase",
+      "title": "Complete Test Purchases",
+      "instructions": "Buy each product type with live and test modes as appropriate. Verify order records, download links, and admin notifications.",
+      "deep_link": "",
+      "type": "manual"
+    }
+  ]
+}

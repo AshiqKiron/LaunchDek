@@ -1,0 +1,58 @@
+{
+  "title": "Elementor Site Setup",
+  "description": "Launch checklist for Elementor-built sites — kit import, globals, performance, and forms.",
+  "category": "launch",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "elementor_install_pro",
+      "title": "Install Elementor & Pro (If Licensed)",
+      "instructions": "Install Elementor and Elementor Pro from client license. Activate only required widgets and disable unused experiments.",
+      "deep_link": "plugin-install.php",
+      "type": "manual"
+    },
+    {
+      "id": "elementor_site_settings",
+      "title": "Configure Site Settings & Kit",
+      "instructions": "Import or sync the site kit. Set global colors, typography, layout defaults, and favicon under Elementor → Site Settings.",
+      "deep_link": "admin.php?page=elementor",
+      "type": "manual"
+    },
+    {
+      "id": "elementor_theme_builder",
+      "title": "Assign Theme Builder Templates",
+      "instructions": "Create or assign header, footer, single, archive, and 404 templates. Confirm display conditions cover all key templates.",
+      "deep_link": "admin.php?page=elementor-app",
+      "type": "manual"
+    },
+    {
+      "id": "elementor_global_widgets",
+      "title": "Audit Global Widgets & Reusable Sections",
+      "instructions": "Replace duplicated sections with global widgets where appropriate. Document which globals client editors may change.",
+      "deep_link": "edit.php?post_type=elementor_library",
+      "type": "manual"
+    },
+    {
+      "id": "elementor_performance",
+      "title": "Optimize Elementor Performance",
+      "instructions": "Enable improved asset loading, disable unused icon sets, and limit custom fonts. Test key pages with caching enabled.",
+      "deep_link": "admin.php?page=elementor-settings",
+      "type": "manual"
+    },
+    {
+      "id": "elementor_forms",
+      "title": "Test Elementor Forms & Actions",
+      "instructions": "Submit test entries on contact and lead forms. Verify email delivery, webhooks, and CRM integrations fire correctly.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "elementor_responsive",
+      "title": "Responsive & Accessibility Pass",
+      "instructions": "Review mobile and tablet breakpoints on homepage and top landing pages. Fix contrast, focus order, and heading hierarchy.",
+      "deep_link": "",
+      "type": "manual"
+    }
+  ]
+}

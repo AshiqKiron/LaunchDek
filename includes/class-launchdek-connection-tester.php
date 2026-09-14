@@ -32,6 +32,19 @@ class LAUNCHDEK_Connection_Tester {
 
 		$result = $client->ping();
 
+		if ( ! empty( $result['success'] ) ) {
+			$panel = LAUNCHDEK_Mu_Plugin_Installer::ensure_installed( $site_id );
+			if ( is_wp_error( $panel ) ) {
+				$result['client_panel'] = array(
+					'success' => false,
+					'message' => $panel->get_error_message(),
+				);
+			} else {
+				$result['client_panel']  = $panel;
+				$result['client_agent']  = true;
+			}
+		}
+
 		LAUNCHDEK_Audit_Log::log(
 			'connection_test',
 			$result,

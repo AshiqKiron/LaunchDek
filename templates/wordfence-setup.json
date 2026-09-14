@@ -1,0 +1,58 @@
+{
+  "title": "Wordfence Security Setup",
+  "description": "Harden a client site with Wordfence — firewall, scan schedule, login security, and alerts.",
+  "category": "security",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "wordfence_install_license",
+      "title": "Activate Wordfence License",
+      "instructions": "Install Wordfence and connect a Premium license if the client has one. Confirm firewall and scan definitions update automatically.",
+      "deep_link": "admin.php?page=Wordfence",
+      "type": "manual"
+    },
+    {
+      "id": "wordfence_firewall",
+      "title": "Enable & Optimize Firewall",
+      "instructions": "Set firewall to Extended Protection if compatible with hosting. Whitelist agency IPs and critical API endpoints used by integrations.",
+      "deep_link": "admin.php?page=WordfenceWAF",
+      "type": "manual"
+    },
+    {
+      "id": "wordfence_scan_schedule",
+      "title": "Schedule Malware Scans",
+      "instructions": "Enable scheduled scans during low-traffic windows. Include core, plugins, themes, and suspicious options in scan scope.",
+      "deep_link": "admin.php?page=WordfenceScan",
+      "type": "manual"
+    },
+    {
+      "id": "wordfence_login_security",
+      "title": "Configure Login Security",
+      "instructions": "Enable brute-force protection, lockout thresholds, and 2FA for administrator roles. Block common username attacks.",
+      "deep_link": "admin.php?page=WordfenceLS",
+      "type": "manual"
+    },
+    {
+      "id": "wordfence_alerts",
+      "title": "Set Alert Recipients",
+      "instructions": "Route critical alerts to agency and client technical contacts. Avoid alert fatigue by limiting non-critical email noise.",
+      "deep_link": "admin.php?page=WordfenceOptions",
+      "type": "manual"
+    },
+    {
+      "id": "wordfence_block_countries",
+      "title": "Review Blocking & Rate Rules",
+      "instructions": "Add country or IP blocks only when justified. Confirm legitimate payment webhooks and REST callbacks are not blocked.",
+      "deep_link": "admin.php?page=WordfenceWAF",
+      "type": "manual"
+    },
+    {
+      "id": "wordfence_initial_scan",
+      "title": "Run Initial Full Scan",
+      "instructions": "Run a full scan before go-live. Resolve any critical findings, outdated abandoned plugins, and weak passwords.",
+      "deep_link": "admin.php?page=WordfenceScan",
+      "type": "manual"
+    }
+  ]
+}

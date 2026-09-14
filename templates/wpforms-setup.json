@@ -1,0 +1,58 @@
+{
+  "title": "WPForms Setup",
+  "description": "Configure WPForms for reliable lead capture — forms, notifications, spam protection, and integrations.",
+  "category": "launch",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "wpforms_license",
+      "title": "Activate WPForms License",
+      "instructions": "Install WPForms and activate the client's license tier. Enable only add-ons the project requires (CRM, payments, surveys).",
+      "deep_link": "admin.php?page=wpforms-settings",
+      "type": "manual"
+    },
+    {
+      "id": "wpforms_build_forms",
+      "title": "Build Core Forms",
+      "instructions": "Create contact, quote, and support forms with logical field order, placeholders, and required field validation.",
+      "deep_link": "admin.php?page=wpforms-overview",
+      "type": "manual"
+    },
+    {
+      "id": "wpforms_notifications",
+      "title": "Configure Notifications & Confirmations",
+      "instructions": "Set admin notification emails and user confirmation messages. Use smart tags for dynamic subject lines and routing.",
+      "deep_link": "admin.php?page=wpforms-overview",
+      "type": "manual"
+    },
+    {
+      "id": "wpforms_spam",
+      "title": "Enable Spam Protection",
+      "instructions": "Turn on hCaptcha, reCAPTCHA, or Akismet. Test that legitimate submissions pass and bot submissions are rejected.",
+      "deep_link": "admin.php?page=wpforms-settings",
+      "type": "manual"
+    },
+    {
+      "id": "wpforms_entries",
+      "title": "Verify Entry Storage",
+      "instructions": "Confirm entries save in WPForms if the plan includes it. Export a sample entry and restrict access to trusted roles.",
+      "deep_link": "admin.php?page=wpforms-entries",
+      "type": "manual"
+    },
+    {
+      "id": "wpforms_integrations",
+      "title": "Connect CRM or Email Integrations",
+      "instructions": "Map fields to Mailchimp, HubSpot, or other connectors. Run a test submission and confirm the contact appears in the external system.",
+      "deep_link": "admin.php?page=wpforms-settings",
+      "type": "manual"
+    },
+    {
+      "id": "wpforms_embed_test",
+      "title": "Embed Forms & Test UX",
+      "instructions": "Add forms via block or shortcode on target pages. Test mobile layout, multi-page flows, and file uploads if used.",
+      "deep_link": "",
+      "type": "manual"
+    }
+  ]
+}

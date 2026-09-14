@@ -72,6 +72,15 @@ class LAUNCHDEK_Remote_Client {
 	}
 
 	/**
+	 * Get the remote site URL.
+	 *
+	 * @return string
+	 */
+	public function get_url() {
+		return $this->url;
+	}
+
+	/**
 	 * Ping remote site and return environment info.
 	 *
 	 * @return array
@@ -123,13 +132,16 @@ class LAUNCHDEK_Remote_Client {
 			}
 		}
 
-		// Try to read versions from site info if available.
-		$about = $this->request( 'GET', '/launchdek/v1/info' );
+		// Try to read versions from client agent if available.
+		$about = $this->request( 'GET', '/launchdek/v1/client/info' );
+		$client_agent = false;
+
 		if ( ! is_wp_error( $about ) ) {
 			$about_body = json_decode( wp_remote_retrieve_body( $about ), true );
 			if ( is_array( $about_body ) ) {
-				$wp_version  = $about_body['wp_version'] ?? $wp_version;
-				$php_version = $about_body['php_version'] ?? $php_version;
+				$client_agent = ! empty( $about_body['panel'] );
+				$wp_version   = $about_body['wp_version'] ?? $wp_version;
+				$php_version  = $about_body['php_version'] ?? $php_version;
 			}
 		}
 
@@ -143,15 +155,17 @@ class LAUNCHDEK_Remote_Client {
 				'last_error'    => '',
 				'wp_version'    => $wp_version ?: ( is_array( $body ) ? ( $body['slug'] ?? '' ) : '' ),
 				'php_version'   => $php_version,
+				'client_agent'  => $client_agent ? 1 : 0,
 			)
 		);
 
 		return array(
-			'success'     => true,
-			'message'     => __( 'Connection verified.', LAUNCHDEK_TEXT_DOMAIN ),
-			'user'        => is_array( $body ) ? $body : array(),
-			'wp_version'  => $wp_version,
-			'php_version' => $php_version,
+			'success'      => true,
+			'message'      => __( 'Connection verified.', LAUNCHDEK_TEXT_DOMAIN ),
+			'user'         => is_array( $body ) ? $body : array(),
+			'wp_version'   => $wp_version,
+			'php_version'  => $php_version,
+			'client_agent' => $client_agent,
 		);
 	}
 

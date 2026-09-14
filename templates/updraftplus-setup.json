@@ -1,0 +1,58 @@
+{
+  "title": "UpdraftPlus Backup Setup",
+  "description": "Configure UpdraftPlus for automated off-site backups, retention, and restore readiness.",
+  "category": "maintenance",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "updraft_schedule",
+      "title": "Set Backup Schedule",
+      "instructions": "Schedule database backups daily and file backups weekly (or per client SLA). Avoid peak traffic windows on shared hosting.",
+      "deep_link": "admin.php?page=updraftplus",
+      "type": "manual"
+    },
+    {
+      "id": "updraft_remote_storage",
+      "title": "Connect Remote Storage",
+      "instructions": "Link S3, Google Drive, Dropbox, or another off-site destination. Test authentication and folder permissions.",
+      "deep_link": "admin.php?page=updraftplus",
+      "type": "manual"
+    },
+    {
+      "id": "updraft_retention",
+      "title": "Configure Retention Policy",
+      "instructions": "Set how many daily, weekly, and monthly backups to keep. Balance storage cost with recovery point objectives.",
+      "deep_link": "admin.php?page=updraftplus",
+      "type": "manual"
+    },
+    {
+      "id": "updraft_exclude_paths",
+      "title": "Exclude Cache & Large Logs",
+      "instructions": "Exclude cache directories, backup folders, and oversized logs from file backups to keep archives lean and fast to restore.",
+      "deep_link": "admin.php?page=updraftplus",
+      "type": "manual"
+    },
+    {
+      "id": "updraft_encryption",
+      "title": "Enable Backup Encryption (If Required)",
+      "instructions": "Turn on encryption for sensitive client data. Store the decryption passphrase in the agency password vault—not in email.",
+      "deep_link": "admin.php?page=updraftplus",
+      "type": "manual"
+    },
+    {
+      "id": "updraft_manual_backup",
+      "title": "Run Manual Backup Before Go-Live",
+      "instructions": "Take a full manual backup before launch or major changes. Confirm the archive appears in remote storage.",
+      "deep_link": "admin.php?page=updraftplus",
+      "type": "manual"
+    },
+    {
+      "id": "updraft_test_restore",
+      "title": "Test Restore on Staging",
+      "instructions": "Restore the latest backup to staging. Verify posts, uploads, plugins, and admin login work after restore.",
+      "deep_link": "",
+      "type": "manual"
+    }
+  ]
+}

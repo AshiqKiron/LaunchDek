@@ -19,7 +19,7 @@ class LAUNCHDEK_Installer {
 	 *
 	 * @var string
 	 */
-	const DB_VERSION = '1.1.0';
+	const DB_VERSION = '1.3.0';
 
 	/**
 	 * Option key storing installed DB version.
@@ -54,6 +54,58 @@ class LAUNCHDEK_Installer {
 	protected static function migrate_from_previous( $installed ) {
 		if ( '' === $installed || version_compare( $installed, '1.1.0', '<' ) ) {
 			self::migrate_workflows_to_checklists();
+		}
+
+		if ( '' === $installed || version_compare( $installed, '1.2.0', '<' ) ) {
+			self::migrate_client_agent_columns();
+		}
+
+		if ( '' === $installed || version_compare( $installed, '1.3.0', '<' ) ) {
+			self::migrate_step_notes_column();
+		}
+	}
+
+	/**
+	 * Add per-step notes column for client evidence.
+	 *
+	 * @return void
+	 */
+	protected static function migrate_step_notes_column() {
+		global $wpdb;
+
+		$steps_table = $wpdb->prefix . 'launchdek_run_steps';
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$notes_col = $wpdb->get_results( "SHOW COLUMNS FROM `{$steps_table}` LIKE 'notes_json'" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		if ( empty( $notes_col ) ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.NotPrepared
+			$wpdb->query( "ALTER TABLE `{$steps_table}` ADD `notes_json` longtext AFTER `response_json`" );
+		}
+	}
+
+	/**
+	 * Add client agent and run token columns.
+	 *
+	 * @return void
+	 */
+	protected static function migrate_client_agent_columns() {
+		global $wpdb;
+
+		$runs_table  = $wpdb->prefix . 'launchdek_runs';
+		$sites_table = $wpdb->prefix . 'launchdek_sites';
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$run_token = $wpdb->get_results( "SHOW COLUMNS FROM `{$runs_table}` LIKE 'client_run_token'" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		if ( empty( $run_token ) ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.NotPrepared
+			$wpdb->query( "ALTER TABLE `{$runs_table}` ADD `client_run_token` varchar(64) NOT NULL DEFAULT '' AFTER `notes`" );
+		}
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$client_agent = $wpdb->get_results( "SHOW COLUMNS FROM `{$sites_table}` LIKE 'client_agent'" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		if ( empty( $client_agent ) ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.NotPrepared
+			$wpdb->query( "ALTER TABLE `{$sites_table}` ADD `client_agent` tinyint(1) NOT NULL DEFAULT 0 AFTER `last_error`" );
 		}
 	}
 
@@ -120,6 +172,7 @@ class LAUNCHDEK_Installer {
 			health_status varchar(32) NOT NULL DEFAULT 'unknown',
 			last_ping_at datetime DEFAULT NULL,
 			last_error text,
+			client_agent tinyint(1) NOT NULL DEFAULT 0,
 			created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
 			updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
 			PRIMARY KEY  (id),
@@ -165,6 +218,7 @@ class LAUNCHDEK_Installer {
 			started_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
 			completed_at datetime DEFAULT NULL,
 			notes text,
+			client_run_token varchar(64) NOT NULL DEFAULT '',
 			PRIMARY KEY  (id),
 			KEY checklist_id (checklist_id),
 			KEY site_id (site_id),
@@ -181,6 +235,7 @@ class LAUNCHDEK_Installer {
 			step_type varchar(32) NOT NULL DEFAULT 'manual',
 			status varchar(32) NOT NULL DEFAULT 'pending',
 			response_json longtext,
+			notes_json longtext,
 			error_message text,
 			manual_checked tinyint(1) NOT NULL DEFAULT 0,
 			started_at datetime DEFAULT NULL,

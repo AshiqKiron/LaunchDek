@@ -1,0 +1,58 @@
+{
+  "title": "User Access Audit",
+  "description": "Review who can log in and what they can do — roles, inactive accounts, and two-factor authentication.",
+  "category": "security",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "uaa_list_users",
+      "title": "List All User Accounts",
+      "instructions": "Export or review every user in Users → All Users. Note role, last login if available, and business justification.",
+      "deep_link": "users.php",
+      "type": "manual"
+    },
+    {
+      "id": "uaa_remove_inactive",
+      "title": "Remove Inactive or Unknown Accounts",
+      "instructions": "Delete or downgrade accounts for former staff, contractors, and demo users no longer needed.",
+      "deep_link": "users.php",
+      "type": "manual"
+    },
+    {
+      "id": "uaa_limit_admins",
+      "title": "Limit Administrator Roles",
+      "instructions": "Reserve Administrator for owners and trusted leads. Give editors/authors the minimum role they need.",
+      "deep_link": "users.php",
+      "type": "manual"
+    },
+    {
+      "id": "uaa_strong_passwords",
+      "title": "Enforce Strong Passwords",
+      "instructions": "Require strong passwords for all accounts. Reset weak or shared passwords—especially on administrator accounts.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "uaa_enable_2fa",
+      "title": "Enable Two-Factor Authentication",
+      "instructions": "Install a 2FA plugin and require it for Administrator and Editor roles at minimum.",
+      "deep_link": "plugin-install.php",
+      "type": "manual"
+    },
+    {
+      "id": "uaa_app_passwords",
+      "title": "Audit Application Passwords",
+      "instructions": "Review Application Passwords under each user profile. Revoke tokens for retired integrations or old API connections.",
+      "deep_link": "profile.php",
+      "type": "manual"
+    },
+    {
+      "id": "uaa_document_access",
+      "title": "Document Who Has Access",
+      "instructions": "Maintain a simple access register: name, role, purpose, and review date. Share with the site owner.",
+      "deep_link": "",
+      "type": "manual"
+    }
+  ]
+}

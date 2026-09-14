@@ -235,6 +235,36 @@ class LAUNCHDEK_Audit_Log {
 					$details['message'] ?? __( 'Completed', LAUNCHDEK_TEXT_DOMAIN )
 				);
 
+			case 'client_step_completed':
+				return sprintf(
+					/* translators: 1: client user, 2: step title, 3: site name */
+					__( '%1$s completed "%2$s" on %3$s', LAUNCHDEK_TEXT_DOMAIN ),
+					$details['client_user'] ?? __( 'Client user', LAUNCHDEK_TEXT_DOMAIN ),
+					$details['step_title'] ?? __( 'step', LAUNCHDEK_TEXT_DOMAIN ),
+					$site
+				);
+
+			case 'client_step_note_added':
+				$preview = $details['note_preview'] ?? '';
+				if ( $preview ) {
+					return sprintf(
+						/* translators: 1: client user, 2: step title, 3: site name, 4: note preview */
+						__( '%1$s added a note on "%2$s" (%3$s): %4$s', LAUNCHDEK_TEXT_DOMAIN ),
+						$details['client_user'] ?? __( 'Client user', LAUNCHDEK_TEXT_DOMAIN ),
+						$details['step_title'] ?? __( 'step', LAUNCHDEK_TEXT_DOMAIN ),
+						$site,
+						$preview
+					);
+				}
+
+				return sprintf(
+					/* translators: 1: client user, 2: step title, 3: site name */
+					__( '%1$s added a note on "%2$s" (%3$s)', LAUNCHDEK_TEXT_DOMAIN ),
+					$details['client_user'] ?? __( 'Client user', LAUNCHDEK_TEXT_DOMAIN ),
+					$details['step_title'] ?? __( 'step', LAUNCHDEK_TEXT_DOMAIN ),
+					$site
+				);
+
 			default:
 				return str_replace( '_', ' ', $entry['action'] );
 		}
@@ -303,7 +333,7 @@ class LAUNCHDEK_Audit_Log {
 	private static function status_where_clause( $status ) {
 		switch ( sanitize_key( $status ) ) {
 			case 'success':
-				return "(action IN ('run_started', 'manual_step_completed', 'site_created', 'site_updated', 'checklist_created', 'checklist_updated', 'workflow_created', 'workflow_updated') OR (action = 'run_status_changed' AND details_json LIKE '%\"status\":\"completed\"%') OR (action = 'connection_test' AND details_json LIKE '%\"success\":true%') OR (action = 'drift_verified' AND details_json LIKE '%\"count\":0%'))";
+				return "(action IN ('run_started', 'manual_step_completed', 'client_step_completed', 'client_step_note_added', 'site_created', 'site_updated', 'checklist_created', 'checklist_updated', 'workflow_created', 'workflow_updated') OR (action = 'run_status_changed' AND details_json LIKE '%\"status\":\"completed\"%') OR (action = 'connection_test' AND details_json LIKE '%\"success\":true%') OR (action = 'drift_verified' AND details_json LIKE '%\"count\":0%'))";
 
 			case 'failed':
 				return "(action LIKE '%failed%' OR (action = 'run_status_changed' AND details_json LIKE '%\"status\":\"failed\"%') OR (action = 'connection_test' AND details_json LIKE '%\"success\":false%') OR (action = 'drift_verified' AND details_json LIKE '%\"status\":\"error\"%'))";
@@ -362,6 +392,21 @@ class LAUNCHDEK_Audit_Log {
 			case 'connection_test':
 				return $details['message'] ?? '';
 
+			case 'client_step_completed':
+				return sprintf(
+					'%s — %s',
+					$details['step_title'] ?? '',
+					$details['client_user'] ?? ''
+				);
+
+			case 'client_step_note_added':
+				$summary = $details['note_preview'] ?? '';
+				if ( ! empty( $details['has_attachment'] ) ) {
+					$summary .= $summary ? "\n" : '';
+					$summary .= __( 'Includes screenshot attachment.', LAUNCHDEK_TEXT_DOMAIN );
+				}
+				return $summary;
+
 			default:
 				$encoded = wp_json_encode( $details, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES );
 				return is_string( $encoded ) ? $encoded : '';
@@ -391,6 +436,9 @@ class LAUNCHDEK_Audit_Log {
 			'connection_test'        => __( 'Connection test', LAUNCHDEK_TEXT_DOMAIN ),
 			'drift_verified'         => __( 'Drift verification', LAUNCHDEK_TEXT_DOMAIN ),
 			'integration_push'       => __( 'Integration push', LAUNCHDEK_TEXT_DOMAIN ),
+			'client_run_pushed'      => __( 'Checklist pushed to client', LAUNCHDEK_TEXT_DOMAIN ),
+			'client_step_completed'  => __( 'Client step completed', LAUNCHDEK_TEXT_DOMAIN ),
+			'client_step_note_added' => __( 'Client step note added', LAUNCHDEK_TEXT_DOMAIN ),
 		);
 
 		if ( isset( $labels[ $action ] ) ) {

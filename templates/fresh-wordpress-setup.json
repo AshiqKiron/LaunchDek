@@ -1,0 +1,58 @@
+{
+  "title": "Fresh WordPress Setup",
+  "description": "Essential first steps after installing WordPress — site identity, timezone, permalinks, and sample content cleanup.",
+  "category": "launch",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "fwp_site_identity",
+      "title": "Set Site Title, Tagline & Language",
+      "instructions": "Update site title and tagline under Settings → General. Set the correct timezone and date format for your audience.",
+      "deep_link": "options-general.php",
+      "type": "manual"
+    },
+    {
+      "id": "fwp_permalinks",
+      "title": "Enable Pretty Permalinks",
+      "instructions": "Choose Post name (/%postname%/) under Settings → Permalinks unless your host requires a custom structure.",
+      "deep_link": "options-permalink.php",
+      "type": "manual"
+    },
+    {
+      "id": "fwp_remove_sample",
+      "title": "Remove Sample Content",
+      "instructions": "Delete the Hello World post, Sample Page, and default comment. Replace or remove the default Twenty* theme if unused.",
+      "deep_link": "edit.php",
+      "type": "manual"
+    },
+    {
+      "id": "fwp_site_icon",
+      "title": "Upload Site Icon & Logo",
+      "instructions": "Add a favicon via Appearance → Customize → Site Identity. Confirm it appears in browser tabs and mobile bookmarks.",
+      "deep_link": "customize.php",
+      "type": "manual"
+    },
+    {
+      "id": "fwp_discussion_settings",
+      "title": "Configure Comments & Discussion",
+      "instructions": "Decide whether comments are enabled site-wide. Set moderation rules and disable pingbacks if not needed.",
+      "deep_link": "options-discussion.php",
+      "type": "manual"
+    },
+    {
+      "id": "fwp_admin_account",
+      "title": "Secure the Admin Account",
+      "instructions": "Use a strong password and a non-obvious username (not 'admin'). Add a real email address for password resets.",
+      "deep_link": "profile.php",
+      "type": "manual"
+    },
+    {
+      "id": "fwp_staging_noindex",
+      "title": "Block Search Engines on Staging",
+      "instructions": "On non-production environments, check 'Discourage search engines' under Settings → Reading until launch day.",
+      "deep_link": "options-reading.php",
+      "type": "manual"
+    }
+  ]
+}

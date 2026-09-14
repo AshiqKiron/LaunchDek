@@ -31,6 +31,7 @@ class LAUNCHDEK_Plugin {
 		add_action( 'admin_menu', array( $this->admin, 'register_menu' ) );
 		add_action( 'admin_init', array( $this->admin, 'register_settings' ) );
 		add_action( 'admin_init', array( $this->admin, 'maybe_activation_redirect' ) );
+		add_action( 'admin_init', array( $this->admin, 'maybe_redirect_legacy_templates_page' ) );
 		add_action( 'admin_enqueue_scripts', array( $this->admin, 'enqueue_styles' ) );
 		add_action( 'admin_enqueue_scripts', array( $this->admin, 'enqueue_scripts' ) );
 		add_filter( 'plugin_action_links_' . LAUNCHDEK_PLUGIN_BASENAME, array( $this->admin, 'add_settings_link' ) );

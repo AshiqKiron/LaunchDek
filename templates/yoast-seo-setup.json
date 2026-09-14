@@ -1,0 +1,58 @@
+{
+  "title": "Yoast SEO Setup",
+  "description": "Configure Yoast SEO for production — site representation, search appearance, sitemaps, and Search Console.",
+  "category": "seo",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "yoast_general",
+      "title": "Complete Yoast General Settings",
+      "instructions": "Run the Yoast configuration wizard or set site name, tagline, organization/person type, and logo under SEO → General.",
+      "deep_link": "admin.php?page=wpseo_dashboard",
+      "type": "manual"
+    },
+    {
+      "id": "yoast_search_appearance",
+      "title": "Configure Search Appearance",
+      "instructions": "Set title templates and meta descriptions for posts, pages, and custom post types. Define separator and breadcrumb settings.",
+      "deep_link": "admin.php?page=wpseo_titles",
+      "type": "manual"
+    },
+    {
+      "id": "yoast_social",
+      "title": "Set Social & Open Graph Defaults",
+      "instructions": "Add Facebook app ID if used, default OG image, and Twitter card settings under SEO → Social.",
+      "deep_link": "admin.php?page=wpseo_social",
+      "type": "manual"
+    },
+    {
+      "id": "yoast_sitemap",
+      "title": "Enable & Tune XML Sitemap",
+      "instructions": "Confirm the Yoast sitemap is enabled. Exclude thin pages, internal search, cart, and admin-only post types from the index.",
+      "deep_link": "admin.php?page=wpseo_page_settings",
+      "type": "manual"
+    },
+    {
+      "id": "yoast_schema",
+      "title": "Verify Schema & Breadcrumbs",
+      "instructions": "Enable breadcrumbs if the theme supports them. Confirm Organization or Person schema matches legal business details.",
+      "deep_link": "admin.php?page=wpseo_dashboard",
+      "type": "manual"
+    },
+    {
+      "id": "yoast_noindex_rules",
+      "title": "Set Noindex for Staging & Utility Pages",
+      "instructions": "Noindex tag archives, author archives if thin, and utility pages. Keep production indexable; keep staging discouraged or noindexed.",
+      "deep_link": "admin.php?page=wpseo_titles",
+      "type": "manual"
+    },
+    {
+      "id": "yoast_search_console",
+      "title": "Connect Google Search Console",
+      "instructions": "Link Search Console in Yoast integrations or Site Kit. Submit the sitemap and review coverage for crawl errors.",
+      "deep_link": "admin.php?page=wpseo_page_settings",
+      "type": "manual"
+    }
+  ]
+}

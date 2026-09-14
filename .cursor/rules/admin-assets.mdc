@@ -9,7 +9,7 @@ alwaysApply: false
 ## JavaScript (`admin/js/launchdek-admin.js`)
 
 - Wrap in an IIFE with `'use strict'`; guard on `typeof launchdekAdmin`.
-- REST helpers: `request()`, `get()`, `post()`, `put()`, `del()` — all send `X-WP-Nonce` header.
+- REST helpers: `request()`, `get()`, `post()`, `put()`, `del()` — all send `X-WP-Nonce` header. `resolveApiPath(path)` merges query strings correctly when `restUrl` uses plain permalinks (`?rest_route=…`).
 - DOM helpers: `el( tag, attrs, children )`, `fillSelect( select, items, valueKey, labelKey, placeholder )`; notices via `notice( container, message, type )`.
 - Scope queries to `.launchdek-admin` or `[data-launchdek-page]`.
 - No jQuery unless WordPress already loads it.
@@ -28,13 +28,28 @@ alwaysApply: false
 |----------|-----------|--------------|
 | `initDashboard()` | `dashboard` | `#launchdek-stats`, `#launchdek-ticker`, `#launchdek-log-feed`, quick launch (`#launchdek-quick-site`, `#launchdek-quick-checklist`, `#launchdek-quick-launch`, `#launchdek-quick-result`) |
 | `initSettings()` | `settings` | `#launchdek-show-onboarding` → `POST /onboarding/reset` then `launchdekOpenOnboarding()` |
-| `initSites()` | `sites` | toolbar (`#launchdek-add-site`, `#launchdek-connection-tester`), tag/group filters, `#launchdek-sites-table`, site modal (`#launchdek-site-modal`), standalone connection tester modal |
-| `initChecklists()` | `checklists` | `#launchdek-new-checklist` opens template picker (clone → editor) or blank; `#launchdek-checklist-list`, editor (`#launchdek-checklist-editor`), canvas (`#launchdek-checklist-canvas`, `#launchdek-canvas-steps`), step config (`#launchdek-step-config`), save/export/delete/import controls |
+| `initSites()` | `sites` | toolbar (`#launchdek-add-site`, `#launchdek-connection-tester`), tag/group filters, `#launchdek-sites-table` (connection dot + warning icon, health badge, **Client panel** badge when `client_agent`), site modal (`#launchdek-site-modal`, panel install/retry via `GET /panel/bootstrap` download + auto-deploy), push checklist modal (`#launchdek-push-checklist-modal`, `#launchdek-push-checklist-select`, `#launchdek-push-to-client`, `POST /runs` with `push_to_client`), standalone connection tester modal; `refreshStaleSiteConnectionsInBackground()` re-tests sites older than 30 minutes |
+| `initChecklists()` | `checklists` | page tabs (`.launchdek-page-tab`, `[data-launchdek-tab-panel]`); `#launchdek-new-checklist` (hidden on Templates tab) opens template picker (clone → editor) or blank; `#launchdek-auto-capture` opens auto-capture modal; builder panel: `#launchdek-checklist-list`, editor (`#launchdek-checklist-editor`), canvas (`#launchdek-checklist-canvas`, `#launchdek-canvas-steps`), step config (`#launchdek-step-config`), save/export/delete/import controls |
 | `initAutomation()` | `automation` | batch queue (`#launchdek-batch-table`, `#launchdek-run-checklist`), run controls (`#launchdek-run-steps`, `#launchdek-run-auto`, `#launchdek-run-next`), audit filters/table (`#launchdek-audit-*`), drift panel (`#launchdek-drift-status`, `#launchdek-verify-drift`) |
-| `initTemplates()` | `templates` | category tabs (`#launchdek-category-tabs`, `#launchdek-category-description`), built-in grid (`#launchdek-builtin-templates`), custom checklists (`#launchdek-custom-checklists`), vault save (`#launchdek-vault-checklist`, `#launchdek-save-vault`), vault list (`#launchdek-vault-list`) |
+| `initTemplates()` | checklists (Templates tab) | no-ops unless `#launchdek-builtin-templates` exists; category tabs (`#launchdek-category-tabs`, `#launchdek-category-description`), built-in grid, custom checklists (`#launchdek-custom-checklists`), vault save (`#launchdek-vault-checklist`, `#launchdek-save-vault`), vault list (`#launchdek-vault-list`) |
 | `initIntegrations()` | `integrations` | Platform Connectors Hub (`#launchdek-connectors-list`, `#launchdek-connector-modal`), telemetry rules (`#launchdek-telemetry-rules-table`, `#launchdek-save-telemetry-rules`) |
 
-Each page init no-ops if `[data-launchdek-page="{page}"]` is absent. Modal inits no-op if their modal element is absent.
+Each page init no-ops if `[data-launchdek-page="{page}"]` is absent (except `initTemplates()`, which keys off `#launchdek-builtin-templates`). Modal inits no-op if their modal element is absent.
+
+### Checklists page tabs
+
+- `initChecklistTabs()` — toggles `.launchdek-page-tab` / `[data-launchdek-tab-panel]`; syncs `aria-selected`, hides `#launchdek-new-checklist` on Templates tab; updates `?tab=` via `history.replaceState`.
+- Initial tab: `builder` when `?checklist_id=` is set, else `templates` when `?tab=templates`, else `builder`.
+
+### Auto-capture helpers
+
+Key elements: `#launchdek-auto-capture`, `#launchdek-auto-capture-modal`, `#launchdek-auto-capture-site`, `#launchdek-auto-capture-status`, `#launchdek-auto-capture-steps`, `#launchdek-auto-capture-start`, `#launchdek-auto-capture-stop`, `#launchdek-auto-capture-import`, `#launchdek-auto-capture-clear`, `#launchdek-auto-capture-notice`.
+
+- `initAutoCapture()` — called from `initChecklists()` when modal markup exists; no-ops if `#launchdek-auto-capture` absent.
+- `openAutoCaptureModal()` / `closeAutoCaptureModal()` — site select populated from cached sites with `client_agent`; loads `GET /sites/{id}/capture` on open/site change.
+- `renderCaptureStatus( data )` — toggles recording UI (`.is-recording` on status), step list, and action button visibility.
+- **Start Recording** → `POST /sites/{id}/capture` `{ action: 'start' }`; **Stop** → `{ action: 'stop' }`; **Clear** → `DELETE /sites/{id}/capture`.
+- **Import Captured Steps** — maps captured steps into builder via `newChecklist()` + `renderSteps()` (requires client panel on selected site).
 
 ### Template picker helpers
 
@@ -75,13 +90,13 @@ Key elements: `#launchdek-template-picker-filters`, `#launchdek-template-picker-
 	roles: object,      // WP role slug => translated label (for step target_roles UI)
 	onboarding: {
 		show: boolean,          // ! onboarding_dismissed
-		templatesUrl: string,
+		templatesUrl: string,   // admin.php?page={slug}-checklists&tab=templates
 		checklistsUrl: string,
 		automationUrl: string
 	},
 	strings: {
 		confirmDelete, confirmDeleteSite, saved, error, loading,
-		healthOk, healthFail, healthUnknown, connectionOk, connectionFail,
+		healthOk, healthFail, healthUnknown, connectionOk, connectionFail, connectionDisconnected, connectionChecking,
 		cloneToChecklist, templateCloned, checklistTitleRequired, noCustomChecklists, noCustomTemplates,
 		editChecklist, customChecklistBadge, checklistCloned, confirmDeleteChecklist,
 		savedToVault, noVaultTemplates, noCategoryTemplates,
@@ -89,6 +104,9 @@ Key elements: `#launchdek-template-picker-filters`, `#launchdek-template-picker-
 		templateImported, selectTemplateFirst, templateStepsHeading, templateStepsEmpty, templateStepsNone,
 		stepsCount, viewSteps, hideSteps, checklistSteps, stepsPreviewHint,
 		connected, notDetected, setup,
+		pushChecklist, pushChecklistSelect, pushChecklistNeed, pushChecklistStarted, pushChecklistBlocked,
+		clientPanelBadge, clientPushOk, clientPushSkipped, clientPushFailed,
+		captureDefaultTitle, captureImported, captureIdle, captureRecording, captureReady, captureNeedPanel, captureSelectSite, captureImportOne, captureImportMany,
 		onboardingTitle, onboardingProgressLabel, onboardingStep1, onboardingStep1Hint,
 		onboardingStep2, onboardingStep2Hint, onboardingIntro, onboardingPasteLabel,
 		onboardingPreviewLabel, onboardingPreviewEmpty, onboardingTestSite, onboardingSelectSite,
@@ -111,6 +129,9 @@ Prefix all selectors with `.launchdek-`.
 | `.launchdek-stats-grid`, `.launchdek-stat-card`, `.launchdek-stat-value`, `.launchdek-stat-label` | Dashboard stats |
 | `.launchdek-quick-launch`, `.launchdek-inline-form` | Quick launch bar and inline forms |
 | `.launchdek-sites-toolbar`, `.launchdek-sites-toolbar-actions`, `.launchdek-sites-toolbar-filters` | Sites page toolbar and filters |
+| `.launchdek-site-connection`, `.launchdek-connection-dot`, `.launchdek-connection-warning` | Per-site connection status in sites table (modifiers `.healthy`, `.unhealthy`, `.unknown`, `.checking`) |
+| `.launchdek-site-health-badge`, `.launchdek-client-agent-badge` | Sites table health badge and client panel indicator |
+| `.launchdek-push-checklist` | Sites table **Push Checklist** action button |
 | `.launchdek-ticker-inline`, `.launchdek-ticker-chip`, `.launchdek-ticker-sep`, `.launchdek-ticker-dot` | Connection ticker (`#launchdek-ticker`) |
 | `.launchdek-log-feed`, `.launchdek-log-item` | Activity feed (`#launchdek-log-feed`) |
 | `.launchdek-badge`, `.launchdek-tag` | Site health / tags |
@@ -127,7 +148,9 @@ Prefix all selectors with `.launchdek-`.
 | `.launchdek-run-steps`, `.launchdek-run-step` | Run step tracker |
 | `.launchdek-audit-filters`, `.launchdek-audit-diff` | Audit log filters + drift diff display |
 | `.launchdek-drift-sites`, `.launchdek-drift-site-row` | Drift status panel |
-| `.launchdek-category-tabs`, `.launchdek-category-tab` | Template category tab bar (`#launchdek-category-tabs`) |
+| `.launchdek-page-tabs`, `.launchdek-page-tab`, `.launchdek-tab-panel` | Checklists page section tabs (My Checklists / Templates); modifier `.is-active` on tab |
+| `.launchdek-auto-capture-modal`, `.launchdek-auto-capture-content`, `.launchdek-auto-capture-header`, `.launchdek-auto-capture-close`, `.launchdek-auto-capture-status`, `.launchdek-auto-capture-steps`, `.launchdek-auto-capture-actions` | Auto-capture modal on Checklists builder tab; status modifier `.is-recording` |
+| `.launchdek-category-tabs`, `.launchdek-category-tab` | Template category tab bar inside Templates panel (`#launchdek-category-tabs`) |
 | `.launchdek-template-grid`, `.launchdek-template-card`, `.launchdek-template-card-actions` | Built-in and vault template cards |
 | `.launchdek-template-steps-preview`, `.launchdek-template-steps-toggle`, `.launchdek-template-steps-list` | Step preview on template cards (hover or toggle) |
 | `.launchdek-connector-list`, `.launchdek-connector-row`, `.launchdek-connector-actions` | Platform Connectors Hub |
@@ -152,7 +175,7 @@ Shared modal partials (require at end of page partial, do not duplicate markup):
 | `launchdek-onboarding-modal.php` | dashboard, settings |
 | `launchdek-template-picker-modal.php` | dashboard, checklists, settings |
 
-Dashboard and settings include both modals (onboarding opens the picker from step 1). Checklists includes only the template picker.
+Dashboard and settings include both modals (onboarding opens the picker from step 1). Checklists includes the template picker and auto-capture modal inline. Sites page includes push checklist and connection tester modals inline (not shared partials).
 
 ## Enqueuing
 

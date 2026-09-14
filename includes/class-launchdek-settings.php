@@ -124,11 +124,13 @@ class LAUNCHDEK_Settings {
 	 */
 	public static function get_notification_events() {
 		return array(
-			'run_started'   => __( 'Checklist run started', LAUNCHDEK_TEXT_DOMAIN ),
-			'run_completed' => __( 'Checklist run completed', LAUNCHDEK_TEXT_DOMAIN ),
-			'run_failed'    => __( 'Checklist run failed', LAUNCHDEK_TEXT_DOMAIN ),
-			'step_failed'   => __( 'Step failed', LAUNCHDEK_TEXT_DOMAIN ),
-			'drift_detected' => __( 'Configuration drift detected', LAUNCHDEK_TEXT_DOMAIN ),
+			'run_started'           => __( 'Checklist run started', LAUNCHDEK_TEXT_DOMAIN ),
+			'run_completed'         => __( 'Checklist run completed', LAUNCHDEK_TEXT_DOMAIN ),
+			'run_failed'            => __( 'Checklist run failed', LAUNCHDEK_TEXT_DOMAIN ),
+			'step_failed'           => __( 'Step failed', LAUNCHDEK_TEXT_DOMAIN ),
+			'drift_detected'        => __( 'Configuration drift detected', LAUNCHDEK_TEXT_DOMAIN ),
+			'client_step_completed' => __( 'Client completed a checklist step', LAUNCHDEK_TEXT_DOMAIN ),
+			'client_note_added'     => __( 'Client added a step note', LAUNCHDEK_TEXT_DOMAIN ),
 		);
 	}
 }

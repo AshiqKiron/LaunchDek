@@ -1,0 +1,58 @@
+{
+  "title": "Reliable Email Delivery",
+  "description": "Fix WordPress emails that never arrive — SMTP setup, DNS records, and delivery testing.",
+  "category": "launch",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "smtp_choose_provider",
+      "title": "Choose an Email Provider",
+      "instructions": "Pick a transactional provider (host mail, SendGrid, Mailgun, Amazon SES, etc.) instead of default PHP mail on shared hosting.",
+      "deep_link": "plugin-install.php",
+      "type": "manual"
+    },
+    {
+      "id": "smtp_install_plugin",
+      "title": "Install & Configure SMTP Plugin",
+      "instructions": "Install WP Mail SMTP or similar. Enter SMTP host, port, encryption, and authenticated sender credentials.",
+      "deep_link": "plugin-install.php",
+      "type": "manual"
+    },
+    {
+      "id": "smtp_from_address",
+      "title": "Set From Name & From Email",
+      "instructions": "Use a domain you control (e.g. noreply@yourdomain.com). Match the From address to SPF/DKIM authorized senders.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "smtp_dns_records",
+      "title": "Add SPF, DKIM & DMARC DNS Records",
+      "instructions": "Publish DNS records from your email provider. DMARC can start at p=none while monitoring deliverability.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "smtp_test_email",
+      "title": "Send Test Email from WordPress",
+      "instructions": "Use the plugin's test feature or trigger a password reset. Confirm delivery to inbox—not spam folder.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "smtp_test_forms",
+      "title": "Test Form & WooCommerce Emails",
+      "instructions": "Submit contact forms and place a test order if applicable. Verify admin notifications and customer receipts arrive.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "smtp_log_failures",
+      "title": "Enable Email Logging (Optional)",
+      "instructions": "Turn on email logging temporarily to debug failures. Disable or purge logs after confirming delivery works.",
+      "deep_link": "",
+      "type": "manual"
+    }
+  ]
+}

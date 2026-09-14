@@ -35,23 +35,23 @@ Cross-cutting quality standards. See also: `launchdek-project.mdc` (architecture
 - Load plugin-screen assets only via `is_plugin_screen()`.
 - Features must respect the global `enabled` kill switch.
 - Settings page uses WordPress Settings API (platform toggles, webhooks, role-permission matrix, onboarding preview button); all other pages use REST-driven JS UI.
-- Shared modals (`launchdek-onboarding-modal.php`, `launchdek-template-picker-modal.php`) are thin partials included via `require` — do not duplicate markup across pages.
+- Shared modals (`launchdek-onboarding-modal.php`, `launchdek-template-picker-modal.php`) are thin partials included via `require` — do not duplicate markup across pages. Built-in template grid and vault live on the Checklists → Templates tab (not a separate admin menu).
 - Modal close/dismiss: hide with `[hidden]` immediately; persist onboarding dismissal via REST in the background (do not block UI on network).
 
 ## Performance
 
 - Load code only where needed.
 - Avoid expensive queries on every request; repositories should use indexed columns.
-- Remote API calls only on user action, checklist execution, connection tests, or scheduled drift cron — never on every admin page load except dashboard ticker/feed fetches.
+- Remote API calls only on user action, checklist execution, connection tests, scheduled drift cron, client panel sync after run advances, or auto-capture sessions — never on every admin page load except dashboard ticker/feed fetches and Sites page background stale-connection refresh (30-minute threshold).
 - Avoid autoloading large options.
 
 ## Privacy & External Communication
 
 - No telemetry or undisclosed tracking.
-- **Allowed outbound**: remote site REST calls (Application Passwords), webhook notifications (Slack/Discord/Teams — user-configured URLs only), integration adapter pushes (user-initiated).
+- **Allowed outbound**: remote site REST calls (Application Passwords), client panel mu-plugin deploy/sync (user-initiated via site connect or push), webhook notifications (Slack/Discord/Teams — user-configured URLs only), integration adapter pushes (user-initiated).
 - Webhook URLs and notification events are opt-in via Settings (`run_started`, `run_completed`, `run_failed`, `step_failed`, `drift_detected`).
 - Credential vault encrypts app passwords at rest when `encrypt_credentials` is enabled.
-- Document any new external integration in `readme.txt`.
+- Document any new external integration or client panel behavior in `readme.txt`.
 - **Telemetry Sync Mapping Rules** on the Integrations page are user-configured field mappings for connector sync — not undisclosed tracking or outbound telemetry.
 
 ## Uninstall & Lifecycle

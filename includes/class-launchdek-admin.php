@@ -35,11 +35,10 @@ class LAUNCHDEK_Admin {
 		);
 
 		$pages = array(
-			self::PAGE_SLUG              => array( __( 'Dashboard', LAUNCHDEK_TEXT_DOMAIN ), 'render_admin_page' ),
+			self::PAGE_SLUG              => array( __( 'LaunchDek Overview', LAUNCHDEK_TEXT_DOMAIN ), 'render_admin_page' ),
 			self::PAGE_SLUG . '-sites'   => array( __( 'Sites', LAUNCHDEK_TEXT_DOMAIN ), 'render_sites_page' ),
 			self::PAGE_SLUG . '-checklists' => array( __( 'Checklists', LAUNCHDEK_TEXT_DOMAIN ), 'render_checklists_page' ),
 			self::PAGE_SLUG . '-automation' => array( __( 'Automation & Audit', LAUNCHDEK_TEXT_DOMAIN ), 'render_automation_page' ),
-			self::PAGE_SLUG . '-templates' => array( __( 'Templates', LAUNCHDEK_TEXT_DOMAIN ), 'render_templates_page' ),
 			self::PAGE_SLUG . '-integrations' => array( __( 'Integrations', LAUNCHDEK_TEXT_DOMAIN ), 'render_integrations_page' ),
 			self::PAGE_SLUG . '-settings' => array( __( 'Settings', LAUNCHDEK_TEXT_DOMAIN ), 'render_settings_page' ),
 		);
@@ -71,6 +70,22 @@ class LAUNCHDEK_Admin {
 				'default'           => LAUNCHDEK_Settings::get_defaults(),
 			)
 		);
+	}
+
+	/**
+	 * Redirect legacy Templates submenu URL to Checklists → Templates tab.
+	 *
+	 * @return void
+	 */
+	public function maybe_redirect_legacy_templates_page() {
+		if ( ! is_admin() || ! isset( $_GET['page'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			return;
+		}
+		if ( self::PAGE_SLUG . '-templates' !== sanitize_key( wp_unslash( $_GET['page'] ) ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			return;
+		}
+		wp_safe_redirect( admin_url( 'admin.php?page=' . self::PAGE_SLUG . '-checklists&tab=templates' ) );
+		exit;
 	}
 
 	public function maybe_activation_redirect() {
@@ -117,7 +132,7 @@ class LAUNCHDEK_Admin {
 				'roles'     => $wp_roles,
 				'onboarding' => array(
 					'show'           => empty( LAUNCHDEK_Settings::get()['onboarding_dismissed'] ),
-					'templatesUrl'   => admin_url( 'admin.php?page=' . self::PAGE_SLUG . '-templates' ),
+					'templatesUrl'   => admin_url( 'admin.php?page=' . self::PAGE_SLUG . '-checklists&tab=templates' ),
 					'checklistsUrl'  => admin_url( 'admin.php?page=' . self::PAGE_SLUG . '-checklists' ),
 					'automationUrl'  => admin_url( 'admin.php?page=' . self::PAGE_SLUG . '-automation' ),
 				),
@@ -135,6 +150,25 @@ class LAUNCHDEK_Admin {
 					'healthUnknown'  => __( 'Unknown', LAUNCHDEK_TEXT_DOMAIN ),
 					'connectionOk'   => __( 'Connection OK', LAUNCHDEK_TEXT_DOMAIN ),
 					'connectionFail' => __( 'Connection failed', LAUNCHDEK_TEXT_DOMAIN ),
+					'connectionDisconnected' => __( 'Connection not working', LAUNCHDEK_TEXT_DOMAIN ),
+					'connectionChecking' => __( 'Checking connection…', LAUNCHDEK_TEXT_DOMAIN ),
+					'pushChecklist'  => __( 'Push Checklist', LAUNCHDEK_TEXT_DOMAIN ),
+					'pushChecklistSelect' => __( 'Select checklist…', LAUNCHDEK_TEXT_DOMAIN ),
+					'pushChecklistNeed' => __( 'Select a checklist to push.', LAUNCHDEK_TEXT_DOMAIN ),
+					'pushChecklistStarted' => __( 'Checklist run started.', LAUNCHDEK_TEXT_DOMAIN ),
+					'pushChecklistBlocked' => __( 'Fix the connection before pushing a checklist.', LAUNCHDEK_TEXT_DOMAIN ),
+					'openRunner'     => __( 'Open runner →', LAUNCHDEK_TEXT_DOMAIN ),
+					'clientPanelBadge' => __( 'Client panel', LAUNCHDEK_TEXT_DOMAIN ),
+					'clientPushOk'   => __( 'Checklist pushed to client admin panel.', LAUNCHDEK_TEXT_DOMAIN ),
+					'clientPushSkipped' => __( 'Run started on the hub. Complete the one-time client panel setup on Sites to show the checklist on the client site.', LAUNCHDEK_TEXT_DOMAIN ),
+					'clientPushFailed' => __( 'Run started, but the client panel could not be updated.', LAUNCHDEK_TEXT_DOMAIN ),
+					'panelSetupTitle' => __( 'Client checklist panel setup', LAUNCHDEK_TEXT_DOMAIN ),
+					'panelSetupNeeded' => __( 'Client panel is not installed yet. Download the bootstrap file, upload it to the client site, then retry panel install.', LAUNCHDEK_TEXT_DOMAIN ),
+					'panelSetupReady' => __( 'Client panel is installed and ready.', LAUNCHDEK_TEXT_DOMAIN ),
+					'panelInstallOk' => __( 'Client panel installed successfully.', LAUNCHDEK_TEXT_DOMAIN ),
+					'panelInstallFailed' => __( 'Client panel install failed.', LAUNCHDEK_TEXT_DOMAIN ),
+					'panelRetryNeedsSave' => __( 'Save this site first, then retry panel install.', LAUNCHDEK_TEXT_DOMAIN ),
+					'panelBootstrapDownloaded' => __( 'Bootstrap file downloaded. Upload it to wp-content/mu-plugins/ on the client site, then click Retry panel install.', LAUNCHDEK_TEXT_DOMAIN ),
 					'cloneToChecklist' => __( 'Clone to Checklist', LAUNCHDEK_TEXT_DOMAIN ),
 					'templateCloned'  => __( 'Template cloned. Edit it under Checklists.', LAUNCHDEK_TEXT_DOMAIN ),
 					'checklistTitleRequired' => __( 'Checklist title is required.', LAUNCHDEK_TEXT_DOMAIN ),
@@ -157,6 +191,7 @@ class LAUNCHDEK_Admin {
 					'templateStepsHeading' => __( 'Steps preview', LAUNCHDEK_TEXT_DOMAIN ),
 					'templateStepsEmpty' => __( 'Select a template to preview its steps.', LAUNCHDEK_TEXT_DOMAIN ),
 					'templateStepsNone' => __( 'This template has no steps yet.', LAUNCHDEK_TEXT_DOMAIN ),
+					'stepCount'       => __( '%d step', LAUNCHDEK_TEXT_DOMAIN ),
 					'stepsCount'      => __( '%d steps', LAUNCHDEK_TEXT_DOMAIN ),
 					'viewSteps'       => __( 'View steps', LAUNCHDEK_TEXT_DOMAIN ),
 					'hideSteps'       => __( 'Hide steps', LAUNCHDEK_TEXT_DOMAIN ),
@@ -192,6 +227,15 @@ class LAUNCHDEK_Admin {
 					'onboardingNeedSteps' => __( 'Add at least one checklist step before continuing.', LAUNCHDEK_TEXT_DOMAIN ),
 					'onboardingNeedConnection' => __( 'Test the connection successfully before launching.', LAUNCHDEK_TEXT_DOMAIN ),
 					'onboardingExistingSiteReady' => __( 'Using selected site:', LAUNCHDEK_TEXT_DOMAIN ),
+					'captureSelectSite'   => __( 'Select site…', LAUNCHDEK_TEXT_DOMAIN ),
+					'captureNeedPanel'    => __( 'Auto-capture requires the client checklist panel on at least one site.', LAUNCHDEK_TEXT_DOMAIN ),
+					'captureIdle'         => __( 'Choose a client site and start recording to capture configuration changes.', LAUNCHDEK_TEXT_DOMAIN ),
+					'captureRecording'    => __( 'Recording — configure the client site in wp-admin. Changes are captured automatically.', LAUNCHDEK_TEXT_DOMAIN ),
+					'captureReady'        => __( 'Recording stopped. Review captured steps below.', LAUNCHDEK_TEXT_DOMAIN ),
+					'captureImportOne'    => __( 'Import 1 Captured Step', LAUNCHDEK_TEXT_DOMAIN ),
+					'captureImportMany'   => __( 'Import %d Captured Steps', LAUNCHDEK_TEXT_DOMAIN ),
+					'captureImported'     => __( 'Captured steps imported into the checklist builder.', LAUNCHDEK_TEXT_DOMAIN ),
+					'captureDefaultTitle' => __( 'Captured Checklist', LAUNCHDEK_TEXT_DOMAIN ),
 				),
 			)
 		);
@@ -224,10 +268,6 @@ class LAUNCHDEK_Admin {
 
 	public function render_automation_page() {
 		$this->render_page( 'launchdek-automation-page.php', array( 'page' => 'automation' ) );
-	}
-
-	public function render_templates_page() {
-		$this->render_page( 'launchdek-templates-page.php', array( 'page' => 'templates' ) );
 	}
 
 	public function render_integrations_page() {

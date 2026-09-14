@@ -1,0 +1,58 @@
+{
+  "title": "All-in-One WP Migration Setup",
+  "description": "Prepare safe migrations with All-in-One WP Migration — exports, imports, size limits, and post-move fixes.",
+  "category": "launch",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "ai1wm_pre_migration_backup",
+      "title": "Take Pre-Migration Backup",
+      "instructions": "Export a full site backup before any migration. Store the .wpress file off-server and note plugin/theme versions.",
+      "deep_link": "admin.php?page=ai1wm_export",
+      "type": "manual"
+    },
+    {
+      "id": "ai1wm_size_limits",
+      "title": "Resolve Export Size Limits",
+      "instructions": "Install the unlimited extension or use chunked export if the site exceeds free limits. Exclude cache and log folders.",
+      "deep_link": "admin.php?page=ai1wm_export",
+      "type": "manual"
+    },
+    {
+      "id": "ai1wm_find_replace",
+      "title": "Plan URL Search-Replace",
+      "instructions": "Document old and new domain URLs. After import, run search-replace for serialized data using a trusted tool if needed.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "ai1wm_import_staging",
+      "title": "Import to Staging First",
+      "instructions": "Import to staging and verify admin login, permalinks, and media URLs before touching production.",
+      "deep_link": "admin.php?page=ai1wm_import",
+      "type": "manual"
+    },
+    {
+      "id": "ai1wm_disable_plugins",
+      "title": "Disable Conflicting Plugins During Import",
+      "instructions": "Temporarily disable security, cache, and redirect plugins that may block large uploads or alter import requests.",
+      "deep_link": "plugins.php",
+      "type": "manual"
+    },
+    {
+      "id": "ai1wm_post_import_permalinks",
+      "title": "Flush Permalinks & Resave Settings",
+      "instructions": "Visit Settings → Permalinks and save. Re-save WooCommerce/EDD pages and menu locations if they break after import.",
+      "deep_link": "options-permalink.php",
+      "type": "manual"
+    },
+    {
+      "id": "ai1wm_post_import_smoke",
+      "title": "Post-Migration Smoke Test",
+      "instructions": "Test homepage, forms, checkout, and admin tasks. Re-enable cache and security plugins and purge all caches.",
+      "deep_link": "",
+      "type": "manual"
+    }
+  ]
+}

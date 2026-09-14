@@ -1,0 +1,58 @@
+{
+  "title": "First Week After Launch",
+  "description": "Post-launch monitoring for new sites — forms, analytics, errors, and search visibility during the critical first seven days.",
+  "category": "launch",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "fwal_monitor_uptime",
+      "title": "Monitor Uptime Daily",
+      "instructions": "Check uptime alerts or host status each day. Investigate any downtime or slow response immediately.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "fwal_test_forms_daily",
+      "title": "Re-test Forms & Checkout",
+      "instructions": "Submit contact forms and complete a test purchase if e-commerce. Confirm emails and webhooks still work.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "fwal_error_logs",
+      "title": "Review PHP & Server Error Logs",
+      "instructions": "Scan error logs for PHP warnings, fatal errors, and 500 responses. Fix issues before they affect visitors.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "fwal_analytics_baseline",
+      "title": "Confirm Analytics Tracking",
+      "instructions": "Verify GA4 or Site Kit shows page views and key events. Compare traffic to pre-launch expectations.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "fwal_search_console",
+      "title": "Check Search Console Coverage",
+      "instructions": "Look for indexing errors, sitemap processing status, and manual actions in the first week after go-live.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "fwal_client_feedback",
+      "title": "Collect Client & User Feedback",
+      "instructions": "Ask the client to browse on phone and desktop. Log UX issues, typos, and missing content for quick fixes.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "fwal_week_one_summary",
+      "title": "Send Week-One Summary",
+      "instructions": "Email a brief launch summary: what went live, monitoring results, open items, and next maintenance date.",
+      "deep_link": "",
+      "type": "manual"
+    }
+  ]
+}

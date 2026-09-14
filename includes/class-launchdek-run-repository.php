@@ -163,6 +163,15 @@ class LAUNCHDEK_Run_Repository {
 		}
 
 		$run_id = (int) $wpdb->insert_id;
+		$token  = wp_generate_password( 48, false, false );
+
+		$wpdb->update(
+			self::table(),
+			array( 'client_run_token' => $token ),
+			array( 'id' => $run_id ),
+			array( '%s' ),
+			array( '%d' )
+		);
 
 		foreach ( $checklist['steps'] as $index => $step ) {
 			$wpdb->insert(
@@ -228,6 +237,25 @@ class LAUNCHDEK_Run_Repository {
 	}
 
 	/**
+	 * Get the client callback token for a run.
+	 *
+	 * @param int $run_id Run ID.
+	 * @return string
+	 */
+	public static function get_client_token( $run_id ) {
+		global $wpdb;
+
+		$token = $wpdb->get_var(
+			$wpdb->prepare(
+				'SELECT client_run_token FROM ' . self::table() . ' WHERE id = %d',
+				absint( $run_id )
+			)
+		);
+
+		return is_string( $token ) ? $token : '';
+	}
+
+	/**
 	 * Get steps for a run.
 	 *
 	 * @param int $run_id Run ID.
@@ -249,23 +277,7 @@ class LAUNCHDEK_Run_Repository {
 		}
 
 		return array_map(
-			function ( $row ) {
-				$response = json_decode( (string) $row['response_json'], true );
-
-				return array(
-					'id'             => (int) $row['id'],
-					'step_index'     => (int) $row['step_index'],
-					'step_id'        => $row['step_id'],
-					'title'          => $row['title'],
-					'step_type'      => $row['step_type'],
-					'status'         => $row['status'],
-					'response'       => is_array( $response ) ? $response : null,
-					'error_message'  => $row['error_message'],
-					'manual_checked' => (bool) $row['manual_checked'],
-					'started_at'     => $row['started_at'],
-					'completed_at'   => $row['completed_at'],
-				);
-			},
+			array( __CLASS__, 'format_step_row' ),
 			$rows
 		);
 	}
@@ -296,6 +308,11 @@ class LAUNCHDEK_Run_Repository {
 			$format[]                = '%s';
 		}
 
+		if ( isset( $data['notes'] ) && is_array( $data['notes'] ) ) {
+			$fields['notes_json'] = wp_json_encode( $data['notes'] );
+			$format[]             = '%s';
+		}
+
 		if ( isset( $data['manual_checked'] ) ) {
 			$fields['manual_checked'] = $data['manual_checked'] ? 1 : 0;
 			$format[]                 = '%d';
@@ -324,6 +341,96 @@ class LAUNCHDEK_Run_Repository {
 			),
 			$format,
 			array( '%d', '%d' )
+		);
+	}
+
+	/**
+	 * Append a note to a run step.
+	 *
+	 * @param int   $run_id     Run ID.
+	 * @param int   $step_index Step index.
+	 * @param array $note       Note payload (user, text, attachment_id, attachment_url).
+	 * @return array|false Updated notes array or false on failure.
+	 */
+	public static function add_step_note( $run_id, $step_index, $note ) {
+		global $wpdb;
+
+		$row = $wpdb->get_row(
+			$wpdb->prepare(
+				'SELECT notes_json FROM ' . self::steps_table() . ' WHERE run_id = %d AND step_index = %d',
+				absint( $run_id ),
+				absint( $step_index )
+			),
+			ARRAY_A
+		);
+
+		if ( ! $row ) {
+			return false;
+		}
+
+		$notes   = json_decode( (string) $row['notes_json'], true );
+		$notes   = is_array( $notes ) ? $notes : array();
+		$notes[] = self::sanitize_step_note( $note );
+
+		$updated = self::update_step(
+			$run_id,
+			$step_index,
+			array(
+				'notes' => $notes,
+			)
+		);
+
+		return $updated ? $notes : false;
+	}
+
+	/**
+	 * Sanitize a single step note entry.
+	 *
+	 * @param array $note Raw note.
+	 * @return array
+	 */
+	public static function sanitize_step_note( $note ) {
+		$sanitized = array(
+			'user'       => sanitize_text_field( $note['user'] ?? '' ),
+			'text'       => sanitize_textarea_field( $note['text'] ?? '' ),
+			'created_at' => sanitize_text_field( $note['created_at'] ?? current_time( 'mysql', true ) ),
+		);
+
+		$attachment_id = absint( $note['attachment_id'] ?? 0 );
+		if ( $attachment_id > 0 ) {
+			$sanitized['attachment_id'] = $attachment_id;
+		}
+
+		if ( ! empty( $note['attachment_url'] ) ) {
+			$sanitized['attachment_url'] = esc_url_raw( $note['attachment_url'] );
+		}
+
+		return $sanitized;
+	}
+
+	/**
+	 * Format a run step database row.
+	 *
+	 * @param array $row Raw row.
+	 * @return array
+	 */
+	public static function format_step_row( $row ) {
+		$response = json_decode( (string) $row['response_json'], true );
+		$notes    = json_decode( (string) ( $row['notes_json'] ?? '' ), true );
+
+		return array(
+			'id'             => (int) $row['id'],
+			'step_index'     => (int) $row['step_index'],
+			'step_id'        => $row['step_id'],
+			'title'          => $row['title'],
+			'step_type'      => $row['step_type'],
+			'status'         => $row['status'],
+			'response'       => is_array( $response ) ? $response : null,
+			'notes'          => is_array( $notes ) ? $notes : array(),
+			'error_message'  => $row['error_message'],
+			'manual_checked' => (bool) $row['manual_checked'],
+			'started_at'     => $row['started_at'],
+			'completed_at'   => $row['completed_at'],
 		);
 	}
 

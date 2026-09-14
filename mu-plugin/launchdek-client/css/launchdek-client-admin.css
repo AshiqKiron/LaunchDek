@@ -1,0 +1,366 @@
+.launchdek-client-capture-notice {
+	border-left-color: #d63638 !important;
+}
+
+.launchdek-client-capture-notice strong {
+	color: #d63638;
+}
+
+.launchdek-client-panel-root {
+	position: relative;
+	z-index: 99998;
+}
+
+.launchdek-client-panel {
+	position: fixed;
+	top: 32px;
+	right: 0;
+	width: 320px;
+	max-height: calc(100vh - 48px);
+	display: flex;
+	flex-direction: column;
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	border-right: 0;
+	box-shadow: -4px 0 16px rgba(0, 0, 0, 0.08);
+	font-size: 13px;
+	line-height: 1.45;
+}
+
+@media screen and (max-width: 782px) {
+	.launchdek-client-panel {
+		top: 46px;
+		width: min(320px, calc(100vw - 16px));
+	}
+}
+
+.launchdek-client-panel.is-collapsed {
+	width: auto;
+	min-width: 0;
+	border-right: 1px solid #c3c4c7;
+	box-shadow: -2px 0 8px rgba(0, 0, 0, 0.06);
+}
+
+.launchdek-client-panel-header {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 8px;
+	padding: 12px 14px;
+	border-bottom: 1px solid #dcdcde;
+	background: #f6f7f7;
+}
+
+.launchdek-client-panel-title {
+	margin: 0;
+	font-size: 14px;
+	font-weight: 600;
+	color: #1d2327;
+}
+
+.launchdek-client-panel-subtitle {
+	margin: 4px 0 0;
+	font-size: 12px;
+	color: #646970;
+}
+
+.launchdek-client-panel-toggle {
+	flex-shrink: 0;
+	min-height: 28px;
+}
+
+.launchdek-client-panel-body {
+	overflow: auto;
+	padding: 10px 12px 14px;
+}
+
+.launchdek-client-panel.is-collapsed .launchdek-client-panel-body,
+.launchdek-client-panel.is-collapsed .launchdek-client-panel-progress-wrap {
+	display: none;
+}
+
+.launchdek-client-panel-progress-wrap {
+	padding: 8px 14px 0;
+}
+
+.launchdek-client-panel-progress-meta {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	margin-bottom: 6px;
+	font-size: 12px;
+	color: #50575e;
+}
+
+.launchdek-client-panel-progress-label {
+	font-weight: 600;
+	color: #1d2327;
+}
+
+.launchdek-client-toggle-steps {
+	font-size: 11px;
+	padding: 0;
+	min-height: auto;
+}
+
+.launchdek-client-progress-bar {
+	height: 6px;
+	border-radius: 999px;
+	background: #dcdcde;
+	overflow: hidden;
+}
+
+.launchdek-client-progress-fill {
+	display: block;
+	height: 100%;
+	background: linear-gradient(90deg, #2271b1, #135e96);
+	border-radius: 999px;
+	transition: width 0.25s ease;
+}
+
+.launchdek-client-step-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: grid;
+	gap: 10px;
+}
+
+.launchdek-client-step {
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+	padding: 10px;
+	background: #fff;
+}
+
+.launchdek-client-step.is-completed {
+	background: #f0f6f1;
+	border-color: #b8ddb9;
+}
+
+.launchdek-client-step.is-active,
+.launchdek-client-step.is-current {
+	border-color: #2271b1;
+	box-shadow: inset 0 0 0 1px #2271b1;
+}
+
+.launchdek-client-step.is-current {
+	background: #f0f6fc;
+}
+
+.launchdek-client-step.is-collapsed-summary {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	padding: 6px 10px;
+	background: #f6f7f7;
+	border-color: #e0e0e0;
+	opacity: 0.85;
+}
+
+.launchdek-client-step-summary-title {
+	font-size: 12px;
+	color: #646970;
+	text-decoration: line-through;
+}
+
+.launchdek-client-step-head {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 8px;
+}
+
+.launchdek-client-step-title {
+	margin: 0;
+	font-size: 13px;
+	font-weight: 600;
+	color: #1d2327;
+}
+
+.launchdek-client-step-badge {
+	display: inline-block;
+	padding: 2px 6px;
+	border-radius: 999px;
+	font-size: 11px;
+	font-weight: 600;
+	background: #f0f0f1;
+	color: #50575e;
+	white-space: nowrap;
+}
+
+.launchdek-client-step-badge.completed {
+	background: #d5f0d8;
+	color: #135e23;
+}
+
+.launchdek-client-step-badge.awaiting_manual {
+	background: #dceefb;
+	color: #135e96;
+}
+
+.launchdek-client-step-badge.failed {
+	background: #fcebea;
+	color: #8a2424;
+}
+
+.launchdek-client-step-instructions {
+	margin: 8px 0 0;
+	color: #50575e;
+	font-size: 12px;
+}
+
+.launchdek-client-step-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	margin-top: 10px;
+}
+
+.launchdek-client-step-actions .button {
+	min-height: 28px;
+	line-height: 26px;
+}
+
+.launchdek-client-panel-notice {
+	margin-top: 10px;
+	padding: 8px 10px;
+	border-radius: 4px;
+	font-size: 12px;
+}
+
+.launchdek-client-panel-notice.success {
+	background: #edfaef;
+	color: #135e23;
+}
+
+.launchdek-client-panel-notice.error {
+	background: #fcebea;
+	color: #8a2424;
+}
+
+.launchdek-client-panel-tab {
+	position: fixed;
+	top: 50%;
+	right: 0;
+	transform: translateY(-50%);
+	writing-mode: vertical-rl;
+	text-orientation: mixed;
+	padding: 12px 8px;
+	border: 1px solid #c3c4c7;
+	border-right: 0;
+	border-radius: 4px 0 0 4px;
+	background: #2271b1;
+	color: #fff;
+	cursor: pointer;
+	font-size: 12px;
+	font-weight: 600;
+	box-shadow: -2px 0 8px rgba(0, 0, 0, 0.08);
+}
+
+.launchdek-client-panel:not(.is-collapsed) + .launchdek-client-panel-tab,
+.launchdek-client-panel-root:not(.is-collapsed) .launchdek-client-panel-tab {
+	display: none;
+}
+
+.launchdek-client-panel-root.is-collapsed .launchdek-client-panel {
+	display: none;
+}
+
+.launchdek-client-step-notes {
+	margin-top: 10px;
+}
+
+.launchdek-client-step-notes-title {
+	margin: 0 0 6px;
+	font-size: 11px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.02em;
+	color: #646970;
+}
+
+.launchdek-client-note-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: grid;
+	gap: 8px;
+}
+
+.launchdek-client-note {
+	padding: 8px;
+	border-radius: 4px;
+	background: #f6f7f7;
+	border: 1px solid #dcdcde;
+}
+
+.launchdek-client-note-user {
+	display: block;
+	font-size: 11px;
+	font-weight: 600;
+	color: #50575e;
+	margin-bottom: 4px;
+}
+
+.launchdek-client-note-text {
+	margin: 0;
+	font-size: 12px;
+	color: #1d2327;
+	white-space: pre-wrap;
+}
+
+.launchdek-client-note-attachment img {
+	display: block;
+	max-width: 100%;
+	height: auto;
+	margin-top: 6px;
+	border-radius: 3px;
+	border: 1px solid #c3c4c7;
+}
+
+.launchdek-client-note-form {
+	margin-top: 10px;
+	display: grid;
+	gap: 6px;
+}
+
+.launchdek-client-note-input {
+	width: 100%;
+	font-size: 12px;
+	resize: vertical;
+}
+
+.launchdek-client-note-form-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	align-items: center;
+}
+
+.launchdek-client-note-attachment-preview {
+	position: relative;
+	display: inline-block;
+	max-width: 120px;
+}
+
+.launchdek-client-note-attachment-preview img {
+	display: block;
+	max-width: 100%;
+	border-radius: 3px;
+	border: 1px solid #c3c4c7;
+}
+
+.launchdek-client-remove-attachment {
+	position: absolute;
+	top: 2px;
+	right: 2px;
+	background: #fff;
+	border-radius: 50%;
+	width: 20px;
+	height: 20px;
+	line-height: 18px;
+	text-align: center;
+}

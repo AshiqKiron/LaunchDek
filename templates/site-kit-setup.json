@@ -1,0 +1,58 @@
+{
+  "title": "Site Kit by Google Setup",
+  "description": "Connect Google services via Site Kit — Analytics, Search Console, Tag Manager, and AdSense.",
+  "category": "seo",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "sitekit_connect_google",
+      "title": "Connect Google Account",
+      "instructions": "Sign in with the client's Google account or a dedicated agency service account with appropriate property access.",
+      "deep_link": "admin.php?page=googlesitekit-dashboard",
+      "type": "manual"
+    },
+    {
+      "id": "sitekit_search_console",
+      "title": "Link Search Console Property",
+      "instructions": "Verify the correct domain or URL-prefix property. Confirm ownership and that the sitemap is submitted.",
+      "deep_link": "admin.php?page=googlesitekit-dashboard",
+      "type": "manual"
+    },
+    {
+      "id": "sitekit_analytics",
+      "title": "Configure Google Analytics",
+      "instructions": "Connect GA4 property, enable enhanced measurement as needed, and exclude logged-in admin traffic if supported.",
+      "deep_link": "admin.php?page=googlesitekit-dashboard",
+      "type": "manual"
+    },
+    {
+      "id": "sitekit_tag_manager",
+      "title": "Set Up Tag Manager (If Used)",
+      "instructions": "Connect GTM container when the client manages tags externally. Avoid duplicate Analytics tags from theme or other plugins.",
+      "deep_link": "admin.php?page=googlesitekit-dashboard",
+      "type": "manual"
+    },
+    {
+      "id": "sitekit_adsense",
+      "title": "Connect AdSense (If Applicable)",
+      "instructions": "Link AdSense only for ad-supported sites. Place ads via theme blocks or GTM—not duplicate snippets in widgets.",
+      "deep_link": "admin.php?page=googlesitekit-dashboard",
+      "type": "manual"
+    },
+    {
+      "id": "sitekit_dashboard_roles",
+      "title": "Restrict Dashboard Access",
+      "instructions": "Limit Site Kit module settings to administrators. Confirm editors see only the metrics they need.",
+      "deep_link": "admin.php?page=googlesitekit-dashboard",
+      "type": "manual"
+    },
+    {
+      "id": "sitekit_verify_tracking",
+      "title": "Verify Tracking on Key Pages",
+      "instructions": "Use Tag Assistant or GA4 DebugView to confirm page views on homepage, thank-you, and conversion pages.",
+      "deep_link": "",
+      "type": "manual"
+    }
+  ]
+}

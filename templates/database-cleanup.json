@@ -1,0 +1,58 @@
+{
+  "title": "Database Cleanup",
+  "description": "Speed up a sluggish WordPress site — revisions, spam, transients, and orphaned metadata.",
+  "category": "maintenance",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "dbc_full_backup",
+      "title": "Take Full Backup First",
+      "instructions": "Export the database and files before any cleanup. Never run bulk deletes without a restore point.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "dbc_post_revisions",
+      "title": "Trim Post Revisions",
+      "instructions": "Limit or remove old post revisions beyond your retention policy (e.g. keep last 5 per post). Use a trusted plugin or WP-CLI.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "dbc_spam_trash",
+      "title": "Empty Spam & Trash",
+      "instructions": "Permanently delete spam comments, trashed posts, and trashed media. Empty the trash in Comments and Posts.",
+      "deep_link": "edit-comments.php",
+      "type": "manual"
+    },
+    {
+      "id": "dbc_transients",
+      "title": "Clear Expired Transients",
+      "instructions": "Remove expired transients and orphaned options left by deactivated plugins. Avoid deleting active plugin data.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "dbc_orphan_meta",
+      "title": "Remove Orphaned Post Meta",
+      "instructions": "Clean post meta rows with no parent post. Run only with a plugin designed for safe orphaned-data removal.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "dbc_autoload_options",
+      "title": "Audit Large Autoloaded Options",
+      "instructions": "Identify oversized autoload options bloating every page load. Fix or disable the source plugin setting if possible.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "dbc_optimize_tables",
+      "title": "Optimize Database Tables",
+      "instructions": "Run OPTIMIZE TABLE via host tools or plugin after cleanup. Re-test site speed and admin performance.",
+      "deep_link": "",
+      "type": "manual"
+    }
+  ]
+}

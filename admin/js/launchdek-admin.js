@@ -9,6 +9,28 @@
 	var nonce = launchdekAdmin.nonce;
 	var strings = launchdekAdmin.strings || {};
 
+	/**
+	 * Build a REST path that works with plain permalinks (?rest_route=…) and pretty permalinks.
+	 */
+	function resolveApiPath(path) {
+		var qPos = path.indexOf('?');
+		if (qPos === -1) {
+			return path;
+		}
+
+		var routePath = path.substring(0, qPos);
+		var query = path.substring(qPos + 1);
+		if (!query) {
+			return routePath;
+		}
+
+		if (API.indexOf('?') !== -1) {
+			return routePath + '&' + query;
+		}
+
+		return path;
+	}
+
 	function request(method, path, body) {
 		var opts = {
 			method: method,
@@ -21,7 +43,7 @@
 		if (body) {
 			opts.body = JSON.stringify(body);
 		}
-		return fetch(API + path, opts).then(function (res) {
+		return fetch(API + resolveApiPath(path), opts).then(function (res) {
 			return res.text().then(function (text) {
 				var data = null;
 				if (text) {
@@ -848,7 +870,11 @@
 			}
 			feed.innerHTML = '';
 			logs.forEach(function (log) {
-				feed.appendChild(el('div', { className: 'launchdek-log-item' }, [
+				var itemClass = 'launchdek-log-item';
+				if (log.action === 'client_step_completed' || log.action === 'client_step_note_added') {
+					itemClass += ' is-client-activity';
+				}
+				feed.appendChild(el('div', { className: itemClass }, [
 					el('time', { text: '[' + (log.created_at || '') + ']' }),
 					el('span', { text: ' ' + (log.message || log.action) })
 				]));
@@ -898,11 +924,130 @@
 
 	// ─── Sites ───────────────────────────────────────────────
 	var currentSiteId = null;
+	var pushChecklistSiteId = null;
+	var pushChecklistCache = null;
+	var siteTableColspan = 7;
+	var siteConnectionStaleMs = 30 * 60 * 1000;
 
 	function healthLabel(status) {
 		if (status === 'healthy') return strings.healthOk || 'OK';
 		if (status === 'unhealthy') return strings.healthFail || 'Fail';
 		return strings.healthUnknown || 'Unknown';
+	}
+
+	function connectionStatusLabel(status, lastError) {
+		if (status === 'healthy') return strings.connectionOk || 'Connection OK';
+		if (status === 'checking') return strings.connectionChecking || 'Checking connection…';
+		if (status === 'unhealthy') {
+			var base = strings.connectionDisconnected || 'Connection not working';
+			return lastError ? base + ': ' + lastError : base;
+		}
+		return strings.healthUnknown || 'Unknown';
+	}
+
+	function connectionStatusHtml(site, statusOverride) {
+		var status = statusOverride || site.health_status || 'unknown';
+		var label = connectionStatusLabel(status, site.last_error || '');
+		var html = '<span class="launchdek-site-connection" title="' + escAttr(label) + '">';
+		html += '<span class="launchdek-connection-dot ' + escAttr(status) + '" aria-hidden="true"></span>';
+		if (status === 'unhealthy') {
+			html += '<span class="dashicons dashicons-warning launchdek-connection-warning" aria-hidden="true"></span>';
+		}
+		html += '<span class="screen-reader-text">' + escHtml(label) + '</span></span>';
+		return html;
+	}
+
+	function getSiteRow(siteId) {
+		return document.querySelector('#launchdek-sites-table tr[data-site-id="' + siteId + '"]');
+	}
+
+	function updateSiteRowConnection(siteId, status, details) {
+		var row = getSiteRow(siteId);
+		if (!row) return;
+
+		var connCell = row.querySelector('.launchdek-site-connection-cell');
+		if (connCell) {
+			connCell.innerHTML = connectionStatusHtml({
+				health_status: status,
+				last_error: details && details.message ? details.message : ''
+			}, status);
+		}
+
+		var healthBadge = row.querySelector('.launchdek-site-health-badge');
+		if (healthBadge && status !== 'checking') {
+			healthBadge.className = 'launchdek-badge launchdek-site-health-badge ' + status;
+			healthBadge.textContent = healthLabel(status);
+		}
+
+		if (details && details.wp_version) {
+			var wpCell = row.querySelector('.launchdek-site-wp-version');
+			if (wpCell) wpCell.textContent = details.wp_version;
+		}
+		if (details && details.php_version) {
+			var phpCell = row.querySelector('.launchdek-site-php-version');
+			if (phpCell) phpCell.textContent = details.php_version;
+		}
+
+		var pushBtn = row.querySelector('.launchdek-push-checklist');
+		if (pushBtn) {
+			pushBtn.disabled = status === 'unhealthy' || status === 'checking';
+		}
+	}
+
+	function siteLastPingMs(site) {
+		if (!site || !site.last_ping_at) {
+			return null;
+		}
+		var parsed = Date.parse(String(site.last_ping_at).replace(' ', 'T') + 'Z');
+		return isNaN(parsed) ? null : parsed;
+	}
+
+	function isSiteConnectionStale(site) {
+		var lastPingMs = siteLastPingMs(site);
+		if (lastPingMs === null) {
+			return true;
+		}
+		return (Date.now() - lastPingMs) > siteConnectionStaleMs;
+	}
+
+	function testSiteConnection(siteId, options) {
+		var silent = options && options.silent;
+		var background = options && options.background;
+		if (!background) {
+			updateSiteRowConnection(siteId, 'checking');
+		}
+
+		return post('/sites/' + siteId + '/test', {}).then(function (r) {
+			var status = r.success ? 'healthy' : 'unhealthy';
+			updateSiteRowConnection(siteId, status, r);
+			if (!silent) {
+				alert(r.success ? (strings.connectionOk + ': ' + r.message) : (strings.connectionFail + ': ' + r.message));
+			}
+			if (r.client_agent) {
+				var row = getSiteRow(siteId);
+				if (row && !row.querySelector('.launchdek-client-agent-badge')) {
+					var nameCell = row.querySelector('td');
+					if (nameCell) {
+						nameCell.insertAdjacentHTML('beforeend', ' <span class="launchdek-badge healthy launchdek-client-agent-badge">' + escHtml(strings.clientPanelBadge || 'Client panel') + '</span>');
+					}
+				}
+			}
+			return r;
+		}).catch(function (e) {
+			updateSiteRowConnection(siteId, 'unhealthy', { message: e.message });
+			if (!silent) alert(e.message);
+			throw e;
+		});
+	}
+
+	function refreshStaleSiteConnectionsInBackground(sites) {
+		if (!sites || !sites.length) return;
+		sites.forEach(function (site) {
+			if (!isSiteConnectionStale(site)) {
+				return;
+			}
+			testSiteConnection(site.id, { silent: true, background: true });
+		});
 	}
 
 	function loadSites() {
@@ -913,41 +1058,45 @@
 			return;
 		}
 
-		var qs = '?';
-		if (tag && tag.value) qs += 'tag=' + encodeURIComponent(tag.value) + '&';
-		if (group && group.value) qs += 'group_type=' + encodeURIComponent(group.value) + '&';
+		var params = [];
+		if (tag && tag.value) params.push('tag=' + encodeURIComponent(tag.value));
+		if (group && group.value) params.push('group_type=' + encodeURIComponent(group.value));
+		var qs = params.length ? '?' + params.join('&') : '';
 
-		tbody.innerHTML = '<tr><td colspan="6" class="launchdek-muted">' + escHtml(strings.loading || 'Loading…') + '</td></tr>';
+		tbody.innerHTML = '<tr><td colspan="' + siteTableColspan + '" class="launchdek-muted">' + escHtml(strings.loading || 'Loading…') + '</td></tr>';
 
 		get('/sites' + qs).then(function (sites) {
 			tbody.innerHTML = '';
 			if (!sites || !sites.length) {
 				var emptyMsg = strings.noSites || 'No sites registered yet.';
-				if (group && group.value) {
-					emptyMsg = strings.noSitesFiltered || 'No sites match the current filters. Try clearing tag or group filters.';
-				} else if (tag && tag.value) {
+				if ((group && group.value) || (tag && tag.value)) {
 					emptyMsg = strings.noSitesFiltered || 'No sites match the current filters. Try clearing tag or group filters.';
 				}
-				tbody.innerHTML = '<tr><td colspan="6" class="launchdek-muted">' + escHtml(emptyMsg) + '</td></tr>';
+				tbody.innerHTML = '<tr><td colspan="' + siteTableColspan + '" class="launchdek-muted">' + escHtml(emptyMsg) + '</td></tr>';
 				return;
 			}
 			sites.forEach(function (site) {
-				var tr = el('tr');
+				var tr = el('tr', { 'data-site-id': String(site.id) });
+				var connectionBlocked = site.health_status === 'unhealthy';
 				tr.innerHTML =
-					'<td>' + escHtml(site.name) + '</td>' +
+					'<td>' + escHtml(site.name) + (site.client_agent ? ' <span class="launchdek-badge healthy launchdek-client-agent-badge">' + escHtml(strings.clientPanelBadge || 'Client panel') + '</span>' : '') + '</td>' +
 					'<td><a href="' + escAttr(site.url) + '" target="_blank" rel="noopener">' + escHtml(site.url) + '</a></td>' +
-					'<td>' + escHtml(site.wp_version || '—') + '</td>' +
-					'<td>' + escHtml(site.php_version || '—') + '</td>' +
-					'<td><span class="launchdek-badge ' + escAttr(site.health_status) + '">' + escHtml(healthLabel(site.health_status)) + '</span></td>' +
+					'<td class="launchdek-site-connection-cell">' + connectionStatusHtml(site) + '</td>' +
+					'<td class="launchdek-site-wp-version">' + escHtml(site.wp_version || '—') + '</td>' +
+					'<td class="launchdek-site-php-version">' + escHtml(site.php_version || '—') + '</td>' +
+					'<td><span class="launchdek-badge launchdek-site-health-badge ' + escAttr(site.health_status) + '">' + escHtml(healthLabel(site.health_status)) + '</span></td>' +
 					'<td class="launchdek-actions">' +
-					'<button type="button" class="button button-small launchdek-edit-site" data-id="' + escAttr(site.id) + '">Edit</button> ' +
+					'<div class="launchdek-actions-wrap">' +
+					'<button type="button" class="button button-small launchdek-push-checklist" data-id="' + escAttr(site.id) + '" data-name="' + escAttr(site.name) + '"' + (connectionBlocked ? ' disabled' : '') + '>' + escHtml(strings.pushChecklist || 'Push Checklist') + '</button>' +
+					'<button type="button" class="button button-small launchdek-edit-site" data-id="' + escAttr(site.id) + '">Edit</button>' +
 					'<button type="button" class="button button-small launchdek-test-site" data-id="' + escAttr(site.id) + '">Test</button>' +
-					'</td>';
+					'</div></td>';
 				tbody.appendChild(tr);
 			});
 			bindSiteActions();
+			refreshStaleSiteConnectionsInBackground(sites);
 		}).catch(function (err) {
-			tbody.innerHTML = '<tr><td colspan="6"><div class="notice-inline error">' + escHtml(err.message || strings.error || 'Could not load sites.') + '</div></td></tr>';
+			tbody.innerHTML = '<tr><td colspan="' + siteTableColspan + '"><div class="notice-inline error">' + escHtml(err.message || strings.error || 'Could not load sites.') + '</div></td></tr>';
 		});
 	}
 
@@ -957,11 +1106,41 @@
 		});
 		document.querySelectorAll('.launchdek-test-site').forEach(function (btn) {
 			btn.onclick = function () {
-				post('/sites/' + btn.dataset.id + '/test', {}).then(function (r) {
-					alert(r.success ? (strings.connectionOk + ': ' + r.message) : (strings.connectionFail + ': ' + r.message));
-					loadSites();
-				}).catch(function (e) { alert(e.message); });
+				testSiteConnection(parseInt(btn.dataset.id, 10), { silent: false });
 			};
+		});
+		document.querySelectorAll('.launchdek-push-checklist').forEach(function (btn) {
+			btn.onclick = function () {
+				openPushChecklistModal(parseInt(btn.dataset.id, 10), btn.dataset.name || '');
+			};
+		});
+	}
+
+	function ensurePushChecklistsLoaded() {
+		if (pushChecklistCache) {
+			return Promise.resolve(pushChecklistCache);
+		}
+		return get('/checklists?is_template=0').then(function (checklists) {
+			pushChecklistCache = checklists || [];
+			return pushChecklistCache;
+		});
+	}
+
+	function openPushChecklistModal(siteId, siteName) {
+		pushChecklistSiteId = siteId;
+		var modal = document.getElementById('launchdek-push-checklist-modal');
+		var select = document.getElementById('launchdek-push-checklist-select');
+		var result = document.getElementById('launchdek-push-checklist-result');
+		document.getElementById('launchdek-push-site-name').textContent = siteName || ('Site #' + siteId);
+		result.innerHTML = '';
+		select.innerHTML = '';
+
+		ensurePushChecklistsLoaded().then(function (checklists) {
+			fillSelect(select, checklists, 'id', 'title', strings.pushChecklistSelect || 'Select checklist…');
+			modal.hidden = false;
+		}).catch(function (err) {
+			notice(result, err.message, 'error');
+			modal.hidden = false;
 		});
 	}
 
@@ -972,6 +1151,7 @@
 		document.getElementById('launchdek-site-modal-title').textContent = id ? 'Edit Remote Site' : 'Add Remote Site';
 		document.getElementById('launchdek-site-id').value = id || '';
 		document.getElementById('launchdek-site-test-result').innerHTML = '';
+		togglePanelSetup(false);
 		deleteBtn.hidden = !id;
 
 		if (id) {
@@ -983,6 +1163,9 @@
 				document.getElementById('launchdek-site-tags').value = (site.tags || []).map(function (t) { return t.tag; }).join(', ');
 				if (site.tags && site.tags[0]) {
 					document.getElementById('launchdek-site-group').value = site.tags[0].group_type || 'general';
+				}
+				if (!site.client_agent) {
+					togglePanelSetup(true);
 				}
 			});
 		} else {
@@ -1008,6 +1191,94 @@
 		});
 	}
 
+	function togglePanelSetup(show) {
+		var panel = document.getElementById('launchdek-panel-setup');
+		if (!panel) {
+			return;
+		}
+		panel.hidden = !show;
+		if (!show) {
+			var result = document.getElementById('launchdek-panel-setup-result');
+			if (result) {
+				result.innerHTML = '';
+			}
+		}
+	}
+
+	function panelStatusFromResponse(response) {
+		if (response && response.client_panel) {
+			return response.client_panel;
+		}
+		if (response && response.client_agent) {
+			return { success: true };
+		}
+		return null;
+	}
+
+	function updatePanelSetupStatus(status) {
+		var setupResult = document.getElementById('launchdek-panel-setup-result');
+		if (!setupResult) {
+			return;
+		}
+
+		if (status && status.success) {
+			togglePanelSetup(false);
+			var testResult = document.getElementById('launchdek-site-test-result');
+			if (testResult) {
+				notice(testResult, strings.panelSetupReady || 'Client panel is installed and ready.', 'success');
+			}
+			return;
+		}
+
+		togglePanelSetup(true);
+		var message = (status && status.message) || strings.panelSetupNeeded || 'Client panel is not installed yet.';
+		notice(setupResult, message, 'error');
+	}
+
+	function downloadPanelBootstrap() {
+		var setupResult = document.getElementById('launchdek-panel-setup-result');
+		return get('/panel/bootstrap').then(function (data) {
+			var blob = new Blob([data.contents || ''], { type: 'application/x-php' });
+			var url = URL.createObjectURL(blob);
+			var link = document.createElement('a');
+			link.href = url;
+			link.download = data.filename || 'launchdek-client.php';
+			document.body.appendChild(link);
+			link.click();
+			document.body.removeChild(link);
+			URL.revokeObjectURL(url);
+			if (setupResult) {
+				notice(setupResult, strings.panelBootstrapDownloaded || 'Bootstrap file downloaded.', 'success');
+			}
+		}).catch(function (err) {
+			if (setupResult) {
+				notice(setupResult, err.message, 'error');
+			}
+		});
+	}
+
+	function retryPanelInstall(siteId) {
+		var setupResult = document.getElementById('launchdek-panel-setup-result');
+		if (!siteId) {
+			if (setupResult) {
+				notice(setupResult, strings.panelRetryNeedsSave || 'Save this site first, then retry panel install.', 'error');
+			}
+			togglePanelSetup(true);
+			return Promise.resolve();
+		}
+
+		return post('/sites/' + siteId + '/panel/install', {}).then(function (panel) {
+			updatePanelSetupStatus(panel);
+			if (panel && panel.success) {
+				loadSites();
+			}
+		}).catch(function (err) {
+			if (setupResult) {
+				notice(setupResult, err.message, 'error');
+			}
+		});
+	}
+
 	function initSites() {
 		if (!document.querySelector('[data-launchdek-page="sites"]')) return;
 
@@ -1028,6 +1299,53 @@
 		});
 		document.querySelectorAll('#launchdek-connection-tester-modal .launchdek-modal-close, #launchdek-connection-tester-modal .launchdek-modal-backdrop').forEach(function (n) {
 			n.addEventListener('click', function () { closeModal(document.getElementById('launchdek-connection-tester-modal')); });
+		});
+		document.querySelectorAll('#launchdek-push-checklist-modal .launchdek-modal-close, #launchdek-push-checklist-modal .launchdek-modal-backdrop').forEach(function (n) {
+			n.addEventListener('click', function () { closeModal(document.getElementById('launchdek-push-checklist-modal')); });
+		});
+
+		document.getElementById('launchdek-push-checklist-submit').addEventListener('click', function () {
+			var select = document.getElementById('launchdek-push-checklist-select');
+			var result = document.getElementById('launchdek-push-checklist-result');
+			var checklistId = parseInt(select.value || '0', 10);
+			if (!pushChecklistSiteId) return;
+			if (!checklistId) {
+				notice(result, strings.pushChecklistNeed || 'Select a checklist to push.', 'error');
+				return;
+			}
+
+			var row = getSiteRow(pushChecklistSiteId);
+			var connDot = row ? row.querySelector('.launchdek-connection-dot') : null;
+			if (connDot && connDot.classList.contains('unhealthy')) {
+				notice(result, strings.pushChecklistBlocked || 'Fix the connection before pushing a checklist.', 'error');
+				return;
+			}
+
+			var submitBtn = document.getElementById('launchdek-push-checklist-submit');
+			var pushToClientEl = document.getElementById('launchdek-push-to-client');
+			var pushToClient = !pushToClientEl || pushToClientEl.checked;
+			submitBtn.disabled = true;
+			post('/runs', { site_id: pushChecklistSiteId, checklist_id: checklistId, push_to_client: pushToClient })
+				.then(function (data) {
+					var automationUrl = launchdekAdmin.adminUrl + '?page=' + launchdekAdmin.pageSlug + '-automation';
+					var message = strings.pushChecklistStarted || 'Checklist run started.';
+					if (data.client_push) {
+						if (data.client_push.success) {
+							message += ' ' + (strings.clientPushOk || data.client_push.message);
+						} else if (pushToClient) {
+							message += ' ' + (strings.clientPushSkipped || data.client_push.message);
+						} else {
+							message += ' ' + (strings.clientPushFailed || data.client_push.message);
+						}
+					}
+					notice(result, message + ' <a href="' + automationUrl + '">' + (strings.openRunner || 'Open runner →') + '</a>', 'success');
+				})
+				.catch(function (err) {
+					notice(result, err.message, 'error');
+				})
+				.finally(function () {
+					submitBtn.disabled = false;
+				});
 		});
 
 		document.getElementById('launchdek-site-delete').addEventListener('click', function () {
@@ -1062,8 +1380,21 @@
 				? post('/sites/' + currentSiteId + '/test', {})
 				: post('/sites/test', payload);
 			promise.then(function (r) {
-				notice(result, r.success ? r.message : ('Failed: ' + r.message), r.success ? 'success' : 'error');
+				var message = r.success ? r.message : ('Failed: ' + r.message);
+				if (r.success && r.client_panel && !r.client_panel.success) {
+					message += ' ' + (r.client_panel.message || strings.panelSetupNeeded || '');
+				}
+				notice(result, message, r.success ? 'success' : 'error');
+				updatePanelSetupStatus(panelStatusFromResponse(r));
 			}).catch(function (e) { notice(result, e.message, 'error'); });
+		});
+
+		document.getElementById('launchdek-download-panel-bootstrap').addEventListener('click', function () {
+			downloadPanelBootstrap();
+		});
+
+		document.getElementById('launchdek-retry-panel-install').addEventListener('click', function () {
+			retryPanelInstall(currentSiteId);
 		});
 
 		document.getElementById('launchdek-site-form').addEventListener('submit', function (e) {
@@ -1081,8 +1412,16 @@
 				? put('/sites/' + currentSiteId, payload)
 				: post('/sites', payload);
 
-			promise.then(function () {
-				closeModal(document.getElementById('launchdek-site-modal'));
+			promise.then(function (site) {
+				if (site && site.id) {
+					currentSiteId = site.id;
+					document.getElementById('launchdek-site-id').value = site.id;
+					document.getElementById('launchdek-site-delete').hidden = false;
+				}
+				updatePanelSetupStatus(site ? site.client_panel : null);
+				if (site && site.client_panel && site.client_panel.success) {
+					closeModal(document.getElementById('launchdek-site-modal'));
+				}
 				loadSites();
 			}).catch(function (err) { alert(err.message); });
 		});
@@ -1113,7 +1452,7 @@
 				return;
 			}
 			checklists.forEach(function (wf) {
-				var li = el('li', { text: wf.title + ' (' + (wf.steps || []).length + ' steps)' });
+				var li = el('li', { text: wf.title + ' (' + formatStepsCount((wf.steps || []).length) + ')' });
 				li.dataset.id = wf.id;
 				if (currentChecklistId === wf.id) li.className = 'active';
 				li.onclick = function () { loadChecklistEditor(wf.id); };
@@ -1307,14 +1646,62 @@
 		renderSteps();
 	}
 
+	function initChecklistTabs() {
+		var tabs = document.querySelectorAll('.launchdek-page-tab');
+		var panels = document.querySelectorAll('[data-launchdek-tab-panel]');
+		if (!tabs.length) return null;
+
+		function showTab(tabId, updateUrl) {
+			tabs.forEach(function (tab) {
+				var active = tab.getAttribute('data-tab') === tabId;
+				tab.classList.toggle('is-active', active);
+				tab.setAttribute('aria-selected', active ? 'true' : 'false');
+			});
+			panels.forEach(function (panel) {
+				panel.hidden = panel.getAttribute('data-launchdek-tab-panel') !== tabId;
+			});
+			var newBtn = document.getElementById('launchdek-new-checklist');
+			if (newBtn) {
+				newBtn.hidden = tabId !== 'builder';
+			}
+			var captureBtn = document.getElementById('launchdek-auto-capture');
+			if (captureBtn) {
+				captureBtn.hidden = tabId !== 'builder';
+			}
+			if (updateUrl && window.history && window.history.replaceState) {
+				var url = new URL(window.location.href);
+				if (tabId === 'builder') {
+					url.searchParams.delete('tab');
+				} else {
+					url.searchParams.set('tab', tabId);
+				}
+				window.history.replaceState(null, '', url.toString());
+			}
+		}
+
+		tabs.forEach(function (tab) {
+			tab.addEventListener('click', function () {
+				showTab(tab.getAttribute('data-tab'), true);
+			});
+		});
+
+		return showTab;
+	}
+
 	function initChecklists() {
 		if (!document.querySelector('[data-launchdek-page="checklists"]')) return;
+
+		var showTab = initChecklistTabs();
+		var params = new URLSearchParams(window.location.search);
+		var openId = parseInt(params.get('checklist_id') || '0', 10);
+		var initialTab = openId ? 'builder' : (params.get('tab') === 'templates' ? 'templates' : 'builder');
+		if (showTab) {
+			showTab(initialTab, false);
+		}
 
 		loadChecklistList();
 		updateChecklistActions();
 
-		var params = new URLSearchParams(window.location.search);
-		var openId = parseInt(params.get('checklist_id') || '0', 10);
 		if (openId) {
 			loadChecklistEditor(openId);
 		}
@@ -1421,6 +1808,214 @@
 				post('/checklists/import', { url: urlInput.value }).then(function () { loadChecklistList(); alert('Imported.'); });
 			}
 		};
+
+		initAutoCapture();
+	}
+
+	var capturePollTimer = null;
+	var captureSiteId = null;
+	var capturedSteps = [];
+
+	function stopCapturePolling() {
+		if (capturePollTimer) {
+			clearInterval(capturePollTimer);
+			capturePollTimer = null;
+		}
+	}
+
+	function renderCaptureStatus(data) {
+		var statusEl = document.getElementById('launchdek-auto-capture-status');
+		var stepsEl = document.getElementById('launchdek-auto-capture-steps');
+		var startBtn = document.getElementById('launchdek-auto-capture-start');
+		var stopBtn = document.getElementById('launchdek-auto-capture-stop');
+		var importBtn = document.getElementById('launchdek-auto-capture-import');
+		var clearBtn = document.getElementById('launchdek-auto-capture-clear');
+
+		if (!statusEl || !stepsEl) {
+			return;
+		}
+
+		capturedSteps = (data && data.steps) ? data.steps : [];
+		var count = capturedSteps.length;
+		var active = !!(data && data.active);
+
+		statusEl.className = 'launchdek-auto-capture-status' + (active ? ' is-recording' : ' launchdek-muted');
+		statusEl.textContent = active
+			? (strings.captureRecording || 'Recording — configure the client site in wp-admin. Changes are captured automatically.')
+			: (count
+				? (strings.captureReady || 'Recording stopped. Review captured steps below.')
+				: (strings.captureIdle || 'Choose a client site and start recording to capture configuration changes.'));
+
+		if (count) {
+			stepsEl.hidden = false;
+			stepsEl.innerHTML = capturedSteps.map(function (step, index) {
+				return '<li><strong>' + escHtml(step.title || ('Step ' + (index + 1))) + '</strong> <span class="launchdek-muted">(' + escHtml(step.type || 'manual') + ')</span></li>';
+			}).join('');
+		} else {
+			stepsEl.hidden = true;
+			stepsEl.innerHTML = '';
+		}
+
+		if (startBtn) startBtn.hidden = active;
+		if (stopBtn) stopBtn.hidden = !active;
+		if (importBtn) {
+			importBtn.hidden = !count;
+			importBtn.textContent = count === 1
+				? (strings.captureImportOne || 'Import 1 Captured Step')
+				: (strings.captureImportMany || 'Import %d Captured Steps').replace('%d', String(count));
+		}
+		if (clearBtn) clearBtn.hidden = !count && !active;
+	}
+
+	function refreshCaptureStatus() {
+		if (!captureSiteId) {
+			renderCaptureStatus({ active: false, steps: [] });
+			return Promise.resolve();
+		}
+
+		return get('/sites/' + captureSiteId + '/capture').then(function (data) {
+			renderCaptureStatus(data);
+		}).catch(function (err) {
+			notice(document.getElementById('launchdek-auto-capture-notice'), err.message, 'error');
+		});
+	}
+
+	function openAutoCaptureModal() {
+		var modal = document.getElementById('launchdek-auto-capture-modal');
+		if (!modal) {
+			return;
+		}
+
+		stopCapturePolling();
+		captureSiteId = null;
+		modal.hidden = false;
+		notice(document.getElementById('launchdek-auto-capture-notice'), '', '');
+		renderCaptureStatus({ active: false, steps: [] });
+
+		get('/sites').then(function (sites) {
+			var select = document.getElementById('launchdek-auto-capture-site');
+			if (!select) {
+				return;
+			}
+
+			var panelSites = (sites || []).filter(function (site) {
+				return !!site.client_agent;
+			});
+
+			fillSelect(select, panelSites, 'id', 'name', strings.captureSelectSite || 'Select site…');
+			if (!panelSites.length) {
+				notice(
+					document.getElementById('launchdek-auto-capture-notice'),
+					strings.captureNeedPanel || 'Auto-capture requires the client checklist panel on at least one site.',
+					'error'
+				);
+			}
+		});
+	}
+
+	function closeAutoCaptureModal() {
+		var modal = document.getElementById('launchdek-auto-capture-modal');
+		if (modal) {
+			modal.hidden = true;
+		}
+		stopCapturePolling();
+	}
+
+	function initAutoCapture() {
+		var openBtn = document.getElementById('launchdek-auto-capture');
+		var modal = document.getElementById('launchdek-auto-capture-modal');
+		if (!openBtn || !modal) {
+			return;
+		}
+
+		openBtn.addEventListener('click', openAutoCaptureModal);
+
+		modal.querySelectorAll('[data-launchdek-close-capture]').forEach(function (node) {
+			node.addEventListener('click', closeAutoCaptureModal);
+		});
+
+		var siteSelect = document.getElementById('launchdek-auto-capture-site');
+		if (siteSelect) {
+			siteSelect.addEventListener('change', function () {
+				stopCapturePolling();
+				captureSiteId = parseInt(siteSelect.value || '0', 10) || null;
+				notice(document.getElementById('launchdek-auto-capture-notice'), '', '');
+				refreshCaptureStatus();
+			});
+		}
+
+		document.getElementById('launchdek-auto-capture-start').addEventListener('click', function () {
+			var noticeEl = document.getElementById('launchdek-auto-capture-notice');
+			if (!captureSiteId) {
+				notice(noticeEl, strings.captureSelectSite || 'Select a client site first.', 'error');
+				return;
+			}
+
+			post('/sites/' + captureSiteId + '/capture', { action: 'start' }).then(function (data) {
+				renderCaptureStatus(data);
+				stopCapturePolling();
+				capturePollTimer = setInterval(refreshCaptureStatus, 5000);
+			}).catch(function (err) {
+				notice(noticeEl, err.message, 'error');
+			});
+		});
+
+		document.getElementById('launchdek-auto-capture-stop').addEventListener('click', function () {
+			if (!captureSiteId) {
+				return;
+			}
+
+			post('/sites/' + captureSiteId + '/capture', { action: 'stop' }).then(function (data) {
+				stopCapturePolling();
+				renderCaptureStatus(data);
+			}).catch(function (err) {
+				notice(document.getElementById('launchdek-auto-capture-notice'), err.message, 'error');
+			});
+		});
+
+		document.getElementById('launchdek-auto-capture-clear').addEventListener('click', function () {
+			if (!captureSiteId) {
+				return;
+			}
+
+			del('/sites/' + captureSiteId + '/capture').then(function (data) {
+				renderCaptureStatus(data);
+			}).catch(function (err) {
+				notice(document.getElementById('launchdek-auto-capture-notice'), err.message, 'error');
+			});
+		});
+
+		document.getElementById('launchdek-auto-capture-import').addEventListener('click', function () {
+			if (!capturedSteps.length) {
+				return;
+			}
+
+			if (selectedStepIndex !== null) {
+				saveStepFromForm();
+			}
+
+			var importedSteps = capturedSteps.map(function (step, index) {
+				var copy = Object.assign({}, step);
+				copy.id = 'step_' + (index + 1);
+				if (copy.api) {
+					copy.api = Object.assign({}, copy.api);
+				}
+				return copy;
+			});
+
+			newChecklist();
+			currentSteps = importedSteps;
+			document.getElementById('launchdek-cl-title').value = strings.captureDefaultTitle || 'Captured Checklist';
+			selectedStepIndex = null;
+			renderSteps();
+			renderStepConfig();
+			closeAutoCaptureModal();
+			notice(
+				document.getElementById('launchdek-checklist-notice'),
+				strings.captureImported || 'Captured steps imported into the checklist builder.',
+				'success'
+			);
+		});
 	}
 
 	// ─── Automation ──────────────────────────────────────────
@@ -1598,6 +2193,26 @@
 				var responseBody = step.response.body || step.response;
 				html += '<details class="launchdek-run-step-response"><summary>API response</summary><pre>' +
 					escHtml(JSON.stringify(responseBody, null, 2)) + '</pre></details>';
+			}
+
+			if (step.notes && step.notes.length) {
+				html += '<div class="launchdek-run-step-notes"><strong>Notes</strong><ul>';
+				step.notes.forEach(function (note) {
+					html += '<li class="launchdek-run-step-note">';
+					if (note.user) {
+						html += '<span class="launchdek-run-step-note-user">' + escHtml(note.user) + '</span>';
+					}
+					if (note.text) {
+						html += '<p>' + escHtml(note.text) + '</p>';
+					}
+					if (note.attachment_url) {
+						html += '<a href="' + escAttr(note.attachment_url) + '" target="_blank" rel="noopener" class="launchdek-run-step-note-attachment">' +
+							'<img src="' + escAttr(note.attachment_url) + '" alt="" loading="lazy" />' +
+						'</a>';
+					}
+					html += '</li>';
+				});
+				html += '</ul></div>';
 			}
 
 			if (step.status === 'awaiting_manual') {
@@ -1786,8 +2401,11 @@
 	var activeTemplateCategory = '';
 
 	function formatStepsCount(count) {
-		var template = strings.stepsCount || '%d steps';
-		return template.replace('%d', count);
+		var n = parseInt(count, 10) || 0;
+		var template = n === 1
+			? (strings.stepCount || '%d step')
+			: (strings.stepsCount || '%d steps');
+		return template.replace('%d', String(n));
 	}
 
 	function buildTemplateStepsList(steps) {
@@ -1817,6 +2435,19 @@
 			e.preventDefault();
 			e.stopPropagation();
 			var open = card.classList.toggle('is-steps-open');
+			if (open) {
+				document.querySelectorAll('.launchdek-template-card.is-steps-open').forEach(function (other) {
+					if (other === card) {
+						return;
+					}
+					other.classList.remove('is-steps-open');
+					var otherToggle = other.querySelector('.launchdek-template-steps-toggle');
+					if (otherToggle) {
+						otherToggle.setAttribute('aria-expanded', 'false');
+						otherToggle.textContent = strings.viewSteps || 'View steps';
+					}
+				});
+			}
 			toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
 			toggle.textContent = open ? (strings.hideSteps || 'Hide steps') : (strings.viewSteps || 'View steps');
 		};
@@ -2051,7 +2682,7 @@
 	}
 
 	function initTemplates() {
-		if (!document.querySelector('[data-launchdek-page="templates"]')) return;
+		if (!document.getElementById('launchdek-builtin-templates')) return;
 
 		get('/templates').then(function (data) {
 			renderBuiltinCategories(data.builtin || [], data.categories || {});

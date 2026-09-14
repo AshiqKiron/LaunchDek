@@ -112,6 +112,36 @@ class LAUNCHDEK_REST_API {
 			'permission_callback' => array( __CLASS__, 'can_manage_sites' ),
 		) );
 
+		register_rest_route( self::NAMESPACE, '/sites/(?P<id>\d+)/panel/install', array(
+			'methods'             => 'POST',
+			'callback'            => array( __CLASS__, 'install_site_panel' ),
+			'permission_callback' => array( __CLASS__, 'can_manage_sites' ),
+		) );
+
+		register_rest_route( self::NAMESPACE, '/panel/bootstrap', array(
+			'methods'             => 'GET',
+			'callback'            => array( __CLASS__, 'get_panel_bootstrap' ),
+			'permission_callback' => array( __CLASS__, 'can_manage_sites' ),
+		) );
+
+		register_rest_route( self::NAMESPACE, '/sites/(?P<id>\d+)/capture', array(
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( __CLASS__, 'get_site_capture' ),
+				'permission_callback' => array( __CLASS__, 'can_edit_checklists' ),
+			),
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( __CLASS__, 'update_site_capture' ),
+				'permission_callback' => array( __CLASS__, 'can_edit_checklists' ),
+			),
+			array(
+				'methods'             => 'DELETE',
+				'callback'            => array( __CLASS__, 'clear_site_capture' ),
+				'permission_callback' => array( __CLASS__, 'can_edit_checklists' ),
+			),
+		) );
+
 		// Checklists.
 		register_rest_route( self::NAMESPACE, '/checklists', array(
 			array(
@@ -203,6 +233,24 @@ class LAUNCHDEK_REST_API {
 		register_rest_route( self::NAMESPACE, '/runs/(?P<id>\d+)/steps/(?P<step>\d+)/complete', array(
 			'methods'             => 'POST',
 			'callback'            => array( __CLASS__, 'complete_manual_step' ),
+			'permission_callback' => array( __CLASS__, 'can_execute' ),
+		) );
+
+		register_rest_route( self::NAMESPACE, '/client-runs/(?P<id>\d+)/steps/(?P<step>\d+)/complete', array(
+			'methods'             => 'POST',
+			'callback'            => array( __CLASS__, 'client_complete_step' ),
+			'permission_callback' => array( __CLASS__, 'can_client_token_access_run' ),
+		) );
+
+		register_rest_route( self::NAMESPACE, '/client-runs/(?P<id>\d+)/steps/(?P<step>\d+)/notes', array(
+			'methods'             => 'POST',
+			'callback'            => array( __CLASS__, 'client_add_step_note' ),
+			'permission_callback' => array( __CLASS__, 'can_client_token_access_run' ),
+		) );
+
+		register_rest_route( self::NAMESPACE, '/runs/(?P<id>\d+)/push-client', array(
+			'methods'             => 'POST',
+			'callback'            => array( __CLASS__, 'push_run_to_client' ),
 			'permission_callback' => array( __CLASS__, 'can_execute' ),
 		) );
 
@@ -316,6 +364,29 @@ class LAUNCHDEK_REST_API {
 		return LAUNCHDEK_Capabilities::current_user_can( LAUNCHDEK_Capabilities::MANAGE_SETTINGS );
 	}
 
+	/**
+	 * Validate run token sent by the optional client agent.
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return bool
+	 */
+	public static function can_client_token_access_run( $request ) {
+		$run_id = absint( $request['id'] );
+		$token  = (string) $request->get_header( 'X-LaunchDek-Run-Token' );
+
+		if ( '' === $token ) {
+			$token = sanitize_text_field( (string) $request->get_param( 'client_token' ) );
+		}
+
+		$stored = LAUNCHDEK_Run_Repository::get_client_token( $run_id );
+
+		if ( '' === $stored || '' === $token ) {
+			return false;
+		}
+
+		return hash_equals( $stored, $token );
+	}
+
 	// Dashboard handlers.
 	public static function get_dashboard_stats() {
 		return rest_ensure_response( array(
@@ -426,7 +497,17 @@ class LAUNCHDEK_REST_API {
 		if ( ! $id ) {
 			return new WP_Error( 'create_failed', __( 'Failed to create site.', LAUNCHDEK_TEXT_DOMAIN ), array( 'status' => 500 ) );
 		}
-		return rest_ensure_response( LAUNCHDEK_Site_Repository::find( $id ) );
+
+		$site  = LAUNCHDEK_Site_Repository::find( $id );
+		$panel = LAUNCHDEK_Mu_Plugin_Installer::ensure_installed( $id );
+		$site['client_panel'] = is_wp_error( $panel )
+			? array(
+				'success' => false,
+				'message' => $panel->get_error_message(),
+			)
+			: $panel;
+
+		return rest_ensure_response( $site );
 	}
 
 	public static function update_site( $request ) {
@@ -434,8 +515,22 @@ class LAUNCHDEK_REST_API {
 		if ( ! LAUNCHDEK_Site_Repository::find( $id ) ) {
 			return new WP_Error( 'not_found', __( 'Site not found.', LAUNCHDEK_TEXT_DOMAIN ), array( 'status' => 404 ) );
 		}
-		LAUNCHDEK_Site_Repository::update( $id, $request->get_json_params() );
-		return rest_ensure_response( LAUNCHDEK_Site_Repository::find( $id ) );
+		$data = $request->get_json_params();
+		LAUNCHDEK_Site_Repository::update( $id, $data );
+
+		$site = LAUNCHDEK_Site_Repository::find( $id );
+
+		if ( ! empty( $data['app_password'] ) || ! empty( $data['url'] ) || ! empty( $data['admin_username'] ) ) {
+			$panel = LAUNCHDEK_Mu_Plugin_Installer::ensure_installed( $id );
+			$site['client_panel'] = is_wp_error( $panel )
+				? array(
+					'success' => false,
+					'message' => $panel->get_error_message(),
+				)
+				: $panel;
+		}
+
+		return rest_ensure_response( $site );
 	}
 
 	public static function delete_site( $request ) {
@@ -448,6 +543,136 @@ class LAUNCHDEK_REST_API {
 
 	public static function test_site_connection( $request ) {
 		return rest_ensure_response( LAUNCHDEK_Connection_Tester::test_site( absint( $request['id'] ) ) );
+	}
+
+	/**
+	 * Retry client panel install for a stored site.
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public static function install_site_panel( $request ) {
+		$id = absint( $request['id'] );
+
+		if ( ! LAUNCHDEK_Site_Repository::find( $id ) ) {
+			return new WP_Error( 'not_found', __( 'Site not found.', LAUNCHDEK_TEXT_DOMAIN ), array( 'status' => 404 ) );
+		}
+
+		$panel = LAUNCHDEK_Mu_Plugin_Installer::ensure_installed( $id );
+
+		if ( is_wp_error( $panel ) ) {
+			return rest_ensure_response(
+				array(
+					'success' => false,
+					'message' => $panel->get_error_message(),
+				)
+			);
+		}
+
+		return rest_ensure_response( $panel );
+	}
+
+	/**
+	 * Get remote auto-capture status for a site.
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public static function get_site_capture( $request ) {
+		$id = absint( $request['id'] );
+
+		if ( ! LAUNCHDEK_Site_Repository::find( $id ) ) {
+			return new WP_Error( 'not_found', __( 'Site not found.', LAUNCHDEK_TEXT_DOMAIN ), array( 'status' => 404 ) );
+		}
+
+		$result = LAUNCHDEK_Auto_Capture::get_status( $id );
+
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+
+		return rest_ensure_response( $result );
+	}
+
+	/**
+	 * Start or stop remote auto-capture for a site.
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public static function update_site_capture( $request ) {
+		$id   = absint( $request['id'] );
+		$data = $request->get_json_params();
+		$action = is_array( $data ) ? sanitize_key( $data['action'] ?? '' ) : '';
+
+		if ( ! LAUNCHDEK_Site_Repository::find( $id ) ) {
+			return new WP_Error( 'not_found', __( 'Site not found.', LAUNCHDEK_TEXT_DOMAIN ), array( 'status' => 404 ) );
+		}
+
+		if ( 'start' === $action ) {
+			$result = LAUNCHDEK_Auto_Capture::start( $id );
+		} elseif ( 'stop' === $action ) {
+			$result = LAUNCHDEK_Auto_Capture::stop( $id );
+		} else {
+			return new WP_Error(
+				'launchdek_capture_action',
+				__( 'Invalid capture action.', LAUNCHDEK_TEXT_DOMAIN ),
+				array( 'status' => 400 )
+			);
+		}
+
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+
+		return rest_ensure_response( $result );
+	}
+
+	/**
+	 * Clear captured steps on a remote site.
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public static function clear_site_capture( $request ) {
+		$id = absint( $request['id'] );
+
+		if ( ! LAUNCHDEK_Site_Repository::find( $id ) ) {
+			return new WP_Error( 'not_found', __( 'Site not found.', LAUNCHDEK_TEXT_DOMAIN ), array( 'status' => 404 ) );
+		}
+
+		$result = LAUNCHDEK_Auto_Capture::clear( $id );
+
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+
+		return rest_ensure_response( $result );
+	}
+
+	/**
+	 * Return the one-time client panel bootstrap file bundled with LaunchDek.
+	 *
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public static function get_panel_bootstrap() {
+		$path = LAUNCHDEK_PLUGIN_DIR . 'mu-plugin/launchdek-client.php';
+
+		if ( ! is_readable( $path ) ) {
+			return new WP_Error(
+				'launchdek_bootstrap_missing',
+				__( 'Client panel bootstrap file is missing from this LaunchDek install.', LAUNCHDEK_TEXT_DOMAIN ),
+				array( 'status' => 500 )
+			);
+		}
+
+		return rest_ensure_response(
+			array(
+				'filename'    => 'launchdek-client.php',
+				'target_path' => 'wp-content/mu-plugins/launchdek-client.php',
+				'contents'    => file_get_contents( $path ), // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+			)
+		);
 	}
 
 	public static function test_raw_connection( $request ) {
@@ -652,36 +877,129 @@ class LAUNCHDEK_REST_API {
 	}
 
 	public static function start_run( $request ) {
-		$data = $request->get_json_params();
+		$data   = $request->get_json_params();
 		$result = LAUNCHDEK_Checklist_Runner::start(
 			absint( $data['checklist_id'] ?? 0 ),
 			absint( $data['site_id'] ?? 0 )
 		);
+
 		if ( is_wp_error( $result ) ) {
 			return $result;
 		}
+
+		$push_to_client = ! array_key_exists( 'push_to_client', $data ) || rest_sanitize_boolean( $data['push_to_client'] );
+
+		if ( $push_to_client && ! empty( $result['run_id'] ) ) {
+			$client_push = LAUNCHDEK_Client_Push::push_run( (int) $result['run_id'] );
+
+			if ( is_wp_error( $client_push ) ) {
+				$result['client_push'] = array(
+					'success' => false,
+					'message' => $client_push->get_error_message(),
+				);
+			} else {
+				$result['client_push'] = array(
+					'success' => true,
+					'message' => $client_push['message'],
+				);
+				$result['run']         = $client_push['run'];
+			}
+		}
+
 		return rest_ensure_response( $result );
 	}
 
 	public static function execute_next_step( $request ) {
-		$result = LAUNCHDEK_Checklist_Runner::execute_next( absint( $request['id'] ) );
+		$run_id = absint( $request['id'] );
+		$result = LAUNCHDEK_Checklist_Runner::execute_next( $run_id );
 		if ( is_wp_error( $result ) ) {
 			return $result;
 		}
+		LAUNCHDEK_Client_Push::sync_run( $run_id );
 		return rest_ensure_response( $result );
 	}
 
 	public static function execute_auto_steps( $request ) {
-		return rest_ensure_response( LAUNCHDEK_Checklist_Runner::execute_all_auto( absint( $request['id'] ) ) );
+		$run_id = absint( $request['id'] );
+		$result = LAUNCHDEK_Checklist_Runner::execute_all_auto( $run_id );
+		LAUNCHDEK_Client_Push::sync_run( $run_id );
+		return rest_ensure_response( $result );
 	}
 
 	public static function complete_manual_step( $request ) {
-		$ok = LAUNCHDEK_Step_Executor::mark_manual_complete( absint( $request['id'] ), absint( $request['step'] ) );
-		LAUNCHDEK_Checklist_Runner::check_completion( absint( $request['id'] ) );
-		return rest_ensure_response( array(
-			'success' => $ok,
-			'run'     => LAUNCHDEK_Run_Repository::find( absint( $request['id'] ) ),
-		) );
+		$run_id = absint( $request['id'] );
+		$ok     = LAUNCHDEK_Step_Executor::mark_manual_complete( $run_id, absint( $request['step'] ) );
+		LAUNCHDEK_Checklist_Runner::check_completion( $run_id );
+		LAUNCHDEK_Client_Push::sync_run( $run_id );
+
+		return rest_ensure_response(
+			array(
+				'success' => $ok,
+				'run'     => LAUNCHDEK_Run_Repository::find( $run_id ),
+			)
+		);
+	}
+
+	/**
+	 * Complete a manual step from the optional client agent.
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public static function client_complete_step( $request ) {
+		$data = $request->get_json_params();
+		$meta = is_array( $data ) ? $data : array();
+
+		$result = LAUNCHDEK_Client_Push::complete_client_step(
+			absint( $request['id'] ),
+			absint( $request['step'] ),
+			$meta
+		);
+
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+
+		return rest_ensure_response( $result );
+	}
+
+	/**
+	 * Add a step note from the optional client panel.
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public static function client_add_step_note( $request ) {
+		$data = $request->get_json_params();
+		$meta = is_array( $data ) ? $data : array();
+
+		$result = LAUNCHDEK_Client_Push::add_client_step_note(
+			absint( $request['id'] ),
+			absint( $request['step'] ),
+			$meta
+		);
+
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+
+		return rest_ensure_response( $result );
+	}
+
+	/**
+	 * Push or refresh a run on the client admin panel.
+	 *
+	 * @param WP_REST_Request $request Request object.
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public static function push_run_to_client( $request ) {
+		$result = LAUNCHDEK_Client_Push::push_run( absint( $request['id'] ) );
+
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+
+		return rest_ensure_response( $result );
 	}
 
 	public static function get_audit_meta() {

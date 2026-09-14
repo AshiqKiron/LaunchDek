@@ -1,0 +1,58 @@
+{
+  "title": "Rank Math SEO Setup",
+  "description": "Configure Rank Math for launch — modules, titles, schema, sitemaps, and Search Console integration.",
+  "category": "seo",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "rankmath_setup_wizard",
+      "title": "Run Rank Math Setup Wizard",
+      "instructions": "Complete the setup wizard: site type, logo, social profiles, and sitemap defaults. Connect your Google account if using analytics modules.",
+      "deep_link": "admin.php?page=rank-math",
+      "type": "manual"
+    },
+    {
+      "id": "rankmath_modules",
+      "title": "Enable Required Modules",
+      "instructions": "Turn on Sitemap, Schema, Redirections, and 404 Monitor as needed. Disable unused modules to reduce overhead.",
+      "deep_link": "admin.php?page=rank-math",
+      "type": "manual"
+    },
+    {
+      "id": "rankmath_titles",
+      "title": "Configure Titles & Meta",
+      "instructions": "Set global title and description templates per post type. Define homepage, blog, and archive meta patterns.",
+      "deep_link": "admin.php?page=rank-math-options-titles",
+      "type": "manual"
+    },
+    {
+      "id": "rankmath_schema",
+      "title": "Add LocalBusiness or Organization Schema",
+      "instructions": "Configure default schema type with name, URL, logo, and contact info. Validate a sample page with Rich Results Test.",
+      "deep_link": "admin.php?page=rank-math-options-general",
+      "type": "manual"
+    },
+    {
+      "id": "rankmath_sitemap",
+      "title": "Review XML Sitemap Settings",
+      "instructions": "Confirm sitemap URLs are reachable. Exclude cart, checkout, my-account, and other non-indexable routes.",
+      "deep_link": "admin.php?page=rank-math-options-sitemap",
+      "type": "manual"
+    },
+    {
+      "id": "rankmath_redirections",
+      "title": "Import or Add Redirect Rules",
+      "instructions": "Import redirects from a migration or add rules for changed URLs. Test top landing pages return 200 or 301 as expected.",
+      "deep_link": "admin.php?page=rank-math-redirections",
+      "type": "manual"
+    },
+    {
+      "id": "rankmath_search_console",
+      "title": "Verify Search Console & Sitemap",
+      "instructions": "Submit the Rank Math sitemap in Search Console. Fix coverage issues for important templates and key landing pages.",
+      "deep_link": "admin.php?page=rank-math-options-general",
+      "type": "manual"
+    }
+  ]
+}

@@ -1,0 +1,58 @@
+{
+  "title": "Plugin Health Audit",
+  "description": "Clean up plugin bloat — deactivate unused plugins, check for abandoned software, and resolve conflicts.",
+  "category": "maintenance",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "pha_inventory",
+      "title": "Inventory Active Plugins",
+      "instructions": "List every active plugin with its purpose and owner (agency vs client). Flag duplicates that do the same job.",
+      "deep_link": "plugins.php",
+      "type": "manual"
+    },
+    {
+      "id": "pha_deactivate_unused",
+      "title": "Deactivate Unused Plugins",
+      "instructions": "Deactivate plugins not used in the last 90 days. Monitor the site for a week before deleting.",
+      "deep_link": "plugins.php",
+      "type": "manual"
+    },
+    {
+      "id": "pha_abandoned",
+      "title": "Replace Abandoned Plugins",
+      "instructions": "Identify plugins with no updates in 12+ months or incompatible with your PHP/WP version. Plan replacements.",
+      "deep_link": "plugins.php",
+      "type": "manual"
+    },
+    {
+      "id": "pha_premium_licenses",
+      "title": "Verify Premium Licenses",
+      "instructions": "Confirm paid plugins have valid licenses for updates. Document renewal dates and billing owner.",
+      "deep_link": "plugins.php",
+      "type": "manual"
+    },
+    {
+      "id": "pha_conflict_test",
+      "title": "Test for Plugin Conflicts",
+      "instructions": "After changes, test homepage, admin, forms, and checkout. Use health check or staging if errors appear.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "pha_delete_inactive",
+      "title": "Delete Inactive Plugin Files",
+      "instructions": "Remove deactivated plugins you will not reuse. Fewer installed plugins reduces attack surface and update noise.",
+      "deep_link": "plugins.php",
+      "type": "manual"
+    },
+    {
+      "id": "pha_document_stack",
+      "title": "Document Final Plugin Stack",
+      "instructions": "Save the approved plugin list with version numbers. Attach to client docs or your agency wiki.",
+      "deep_link": "",
+      "type": "manual"
+    }
+  ]
+}

@@ -1,0 +1,65 @@
+{
+  "title": "Blog Launch Checklist",
+  "description": "Launch a new WordPress blog — categories, RSS, comments, author pages, and first posts.",
+  "category": "launch",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "blog_homepage_posts",
+      "title": "Set Blog Posts on Homepage",
+      "instructions": "Choose 'Your latest posts' or assign a static front page with a separate Posts page under Settings → Reading.",
+      "deep_link": "options-reading.php",
+      "type": "manual"
+    },
+    {
+      "id": "blog_categories",
+      "title": "Create Core Categories",
+      "instructions": "Define 3–8 clear categories that match your content plan. Avoid a single 'Uncategorized' catch-all.",
+      "deep_link": "edit-tags.php?taxonomy=category",
+      "type": "manual"
+    },
+    {
+      "id": "blog_author_bio",
+      "title": "Complete Author Profiles",
+      "instructions": "Add display name, bio, and avatar for each author under Users → Profile. Link author archives if the theme supports them.",
+      "deep_link": "profile.php",
+      "type": "manual"
+    },
+    {
+      "id": "blog_rss_feed",
+      "title": "Verify RSS Feed",
+      "instructions": "Open /feed/ in a browser or reader. Confirm titles, excerpts, and featured images appear correctly.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "blog_comment_policy",
+      "title": "Set Comment Moderation Rules",
+      "instructions": "Enable moderation for first-time commenters. Install anti-spam (Akismet or similar) before publishing.",
+      "deep_link": "options-discussion.php",
+      "type": "manual"
+    },
+    {
+      "id": "blog_starter_posts",
+      "title": "Publish 3–5 Starter Posts",
+      "instructions": "Launch with enough content that visitors see a living blog—not a single Hello World. Schedule the next posts if ready.",
+      "deep_link": "edit.php",
+      "type": "manual"
+    },
+    {
+      "id": "blog_subscribe_cta",
+      "title": "Add Subscribe or Newsletter CTA",
+      "instructions": "Place an email signup or RSS prompt in sidebar, footer, or end-of-post. Connect to your newsletter tool if used.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "blog_social_share",
+      "title": "Enable Social Sharing",
+      "instructions": "Add share buttons or Open Graph tags so posts preview well on social networks when readers share them.",
+      "deep_link": "",
+      "type": "manual"
+    }
+  ]
+}

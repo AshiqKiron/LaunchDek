@@ -52,6 +52,29 @@
 	gap: 0 16px;
 }
 
+.launchdek-builder-layout {
+	grid-template-columns: minmax(240px, 320px) minmax(0, 1fr);
+	align-items: start;
+}
+
+.launchdek-builder-layout > * {
+	min-width: 0;
+}
+
+.launchdek-admin > h1 {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 4px 8px;
+}
+
+.launchdek-admin > h1 .page-title-action {
+	position: static;
+	top: auto;
+	margin: 0;
+	vertical-align: baseline;
+}
+
 @media (max-width: 960px) {
 	.launchdek-grid-2,
 	.launchdek-builder-layout {
@@ -97,6 +120,81 @@
 
 .launchdek-actions {
 	white-space: nowrap;
+}
+
+.launchdek-actions-wrap {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px;
+}
+
+.launchdek-site-connection {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	vertical-align: middle;
+}
+
+.launchdek-connection-dot {
+	width: 10px;
+	height: 10px;
+	border-radius: 50%;
+	flex-shrink: 0;
+}
+
+.launchdek-connection-dot.healthy { background: #00a32a; }
+.launchdek-connection-dot.unhealthy { background: #d63638; }
+.launchdek-connection-dot.unknown { background: #dba617; }
+
+.launchdek-connection-dot.checking {
+	background: #c3c4c7;
+	animation: launchdek-connection-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes launchdek-connection-pulse {
+	0%, 100% { opacity: 0.45; }
+	50% { opacity: 1; }
+}
+
+.launchdek-connection-warning {
+	color: #d63638;
+	font-size: 18px;
+	width: 18px;
+	height: 18px;
+}
+
+.launchdek-client-agent-badge {
+	margin-left: 6px;
+	font-size: 11px;
+	vertical-align: middle;
+}
+
+.launchdek-panel-setup {
+	margin: 12px 0 0;
+	padding: 12px 14px;
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+	background: #f6f7f7;
+}
+
+.launchdek-panel-setup-title {
+	margin: 0 0 8px;
+	font-size: 14px;
+}
+
+.launchdek-panel-setup-steps {
+	margin: 0 0 12px 18px;
+}
+
+.launchdek-panel-setup-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin: 0 0 8px;
+}
+
+.launchdek-panel-setup-path code {
+	font-size: 12px;
 }
 
 .launchdek-select {
@@ -859,9 +957,10 @@
 /* Checklist builder */
 .launchdek-builder-workspace {
 	display: grid;
-	grid-template-columns: 1fr 320px;
+	grid-template-columns: minmax(0, 1fr) 320px;
 	gap: 16px;
 	margin: 16px 0;
+	min-width: 0;
 }
 
 @media (max-width: 1100px) {
@@ -876,6 +975,8 @@
 	border-radius: 4px;
 	padding: 16px;
 	min-height: 220px;
+	min-width: 0;
+	overflow: hidden;
 }
 
 .launchdek-canvas-header {
@@ -893,11 +994,16 @@
 
 .launchdek-checklist-canvas {
 	overflow-x: auto;
-	padding: 8px 4px 16px;
+	overflow-y: hidden;
+	padding: 8px 4px 12px;
+	-webkit-overflow-scrolling: touch;
+	scrollbar-gutter: stable;
 }
 
 .launchdek-canvas-steps {
 	min-height: 140px;
+	width: max-content;
+	min-width: 100%;
 }
 
 .launchdek-canvas-empty {
@@ -908,9 +1014,10 @@
 
 .launchdek-canvas-flow {
 	display: flex;
-	align-items: stretch;
+	align-items: center;
 	gap: 0;
 	min-width: min-content;
+	width: max-content;
 }
 
 .launchdek-canvas-node {
@@ -1039,6 +1146,8 @@
 	margin-bottom: 6px;
 	cursor: pointer;
 	background: #fafafa;
+	line-height: 1.4;
+	word-break: break-word;
 }
 
 .launchdek-list li.active,
@@ -1287,6 +1396,99 @@
 	border-radius: 3px;
 }
 
+.launchdek-run-step-notes {
+	margin-top: 8px;
+	font-size: 12px;
+}
+
+.launchdek-run-step-notes ul {
+	list-style: none;
+	margin: 6px 0 0;
+	padding: 0;
+	display: grid;
+	gap: 8px;
+}
+
+.launchdek-run-step-note {
+	padding: 8px;
+	background: #f6f7f7;
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+}
+
+.launchdek-run-step-note-user {
+	display: block;
+	font-size: 11px;
+	font-weight: 600;
+	color: #50575e;
+	margin-bottom: 4px;
+}
+
+.launchdek-run-step-note p {
+	margin: 0;
+	white-space: pre-wrap;
+}
+
+.launchdek-run-step-note-attachment img {
+	display: block;
+	max-width: 160px;
+	margin-top: 6px;
+	border-radius: 3px;
+	border: 1px solid #c3c4c7;
+}
+
+.launchdek-log-item.is-client-activity {
+	border-left: 3px solid #2271b1;
+	padding-left: 8px;
+}
+
+/* Checklists page tabs */
+.launchdek-page-tabs {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0;
+	margin: 0 0 16px;
+	border-bottom: 1px solid #c3c4c7;
+}
+
+.launchdek-admin .launchdek-page-tab {
+	appearance: none;
+	-webkit-appearance: none;
+	background: transparent;
+	border: 1px solid transparent;
+	border-bottom: none;
+	border-radius: 4px 4px 0 0;
+	padding: 8px 16px;
+	margin-bottom: -1px;
+	font-size: 14px;
+	font-weight: 500;
+	line-height: 1.4;
+	color: #50575e;
+	cursor: pointer;
+	box-shadow: none;
+}
+
+.launchdek-admin .launchdek-page-tab:hover {
+	color: #2271b1;
+	background: #f6f7f7;
+}
+
+.launchdek-admin .launchdek-page-tab:focus {
+	color: #2271b1;
+	outline: 2px solid transparent;
+	box-shadow: inset 0 0 0 1px #2271b1;
+}
+
+.launchdek-admin .launchdek-page-tab.is-active {
+	background: #fff;
+	border-color: #c3c4c7;
+	border-bottom-color: #fff;
+	color: #1d2327;
+	font-weight: 600;
+	cursor: default;
+	box-shadow: none;
+}
+
 /* Template category tabs */
 .launchdek-category-tabs {
 	display: flex;
@@ -1325,15 +1527,19 @@
 	grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
 	gap: 12px;
 	margin-top: 12px;
+	align-items: stretch;
 }
 
 .launchdek-template-card {
 	position: relative;
+	display: flex;
+	flex-direction: column;
+	height: 100%;
 	border: 1px solid #c3c4c7;
 	border-radius: 4px;
 	padding: 16px;
 	background: #fafafa;
-	overflow: visible;
+	overflow: hidden;
 }
 
 .launchdek-template-card:hover,
@@ -1342,13 +1548,10 @@
 	box-shadow: 0 2px 8px rgba(34, 113, 177, 0.12);
 }
 
-.launchdek-template-card.is-steps-open .launchdek-template-card-content {
-	min-height: 180px;
-}
-
 .launchdek-template-card-content {
 	position: relative;
-	min-height: 100px;
+	flex: 1 1 auto;
+	min-height: 148px;
 }
 
 .launchdek-template-card-main {
@@ -1386,13 +1589,26 @@
 	flex-wrap: wrap;
 	align-items: center;
 	gap: 8px 12px;
-	margin-top: 12px;
+	margin-top: auto;
+	padding-top: 12px;
+	flex-shrink: 0;
 }
 
 .launchdek-template-steps-toggle {
 	padding: 0 !important;
 	min-height: auto;
 	line-height: 1.4;
+	height: auto;
+	border: none !important;
+	background: transparent !important;
+	box-shadow: none !important;
+}
+
+.launchdek-template-card-actions .button.button-primary {
+	flex: 1 0 100%;
+	width: 100%;
+	justify-content: center;
+	text-align: center;
 }
 
 .launchdek-template-steps-preview {
@@ -1409,11 +1625,18 @@
 	pointer-events: none;
 }
 
-.launchdek-template-card-content:hover .launchdek-template-steps-preview,
 .launchdek-template-card.is-steps-open .launchdek-template-steps-preview {
 	opacity: 1;
 	visibility: visible;
 	pointer-events: auto;
+}
+
+@media (hover: hover) {
+	.launchdek-template-card:not(.is-steps-open) .launchdek-template-card-content:hover .launchdek-template-steps-preview {
+		opacity: 1;
+		visibility: visible;
+		pointer-events: auto;
+	}
 }
 
 .launchdek-template-steps-heading {
@@ -1651,4 +1874,51 @@
 	.launchdek-settings-role-presets {
 		grid-template-columns: 1fr;
 	}
+}
+
+.launchdek-auto-capture-modal .launchdek-auto-capture-content {
+	max-width: 640px;
+}
+
+.launchdek-auto-capture-header {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 12px;
+	margin-bottom: 8px;
+}
+
+.launchdek-auto-capture-header h2 {
+	margin: 0;
+}
+
+.launchdek-auto-capture-close {
+	border: 0;
+	background: transparent;
+	font-size: 24px;
+	line-height: 1;
+	cursor: pointer;
+	color: #646970;
+}
+
+.launchdek-auto-capture-status.is-recording {
+	color: #d63638;
+	font-weight: 600;
+}
+
+.launchdek-auto-capture-steps {
+	margin: 12px 0 0;
+	padding-left: 20px;
+	max-height: 220px;
+	overflow: auto;
+}
+
+.launchdek-auto-capture-steps li {
+	margin: 0 0 8px;
+}
+
+.launchdek-auto-capture-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
 }

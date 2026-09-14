@@ -23,16 +23,19 @@ See `launchdek-project.mdc` (architecture), `launchdek-standards.mdc` (quality),
 
 ## Remote Site Access
 
-- Plugin-free model: only WordPress core REST API + Application Passwords.
+- Core automation model: WordPress core REST API + Application Passwords for API checklist steps, connection tests, and drift reads.
+- Optional client checklist panel: hub auto-deploys the bundled mu-plugin to `wp-content/mu-plugins/` when a site is saved or tested with credentials — user-initiated via site registration, not undisclosed. Panel files are whitelisted bundle copies only; install route validates paths and requires hub Application Password auth.
 - Connection tests must not leak credentials in error messages shown to non-privileged users.
 - Payload mapper must whitelist/validate endpoint paths and methods before remote execution.
 - Drift verification reads remote state for comparison only — no arbitrary code execution.
+- Client run callbacks use per-run `client_run_token` (`hash_equals` in `can_client_token_access_run`) — never expose tokens in hub REST responses, logs, or audit entries shown to non-privileged users; token travels only in hub→client run snapshots and client→hub callback headers.
+- Auto-capture is user-initiated (`can_edit_checklists` on hub, logged-in client admin on remote); records only whitelisted admin actions (REST settings mutations, plugin activate/deactivate) into ephemeral client option data — not background telemetry.
 - Legacy audit actions (`workflow_created`, `workflow_updated`) and webhook `details.workflow` are read-only backward-compat shims — new code must use `checklist_*` keys and `details.checklist`.
 
 ## Directory & Privacy
 
 - No obfuscated code or undisclosed telemetry.
-- Outbound requests are limited to: user-registered remote sites, user-configured webhook URLs, and integration adapters (user-initiated push).
+- Outbound requests are limited to: user-registered remote sites (including mu-plugin deploy/push), user-configured webhook URLs, and integration adapters (user-initiated push).
 - Integrations **Telemetry Sync Mapping Rules** store field-mapping preferences only (`telemetry_sync_rules`); they do not emit tracking data.
 - Webhook and integration behavior must be documented in `readme.txt`.
 - No spammy readme or deceptive behavior.
