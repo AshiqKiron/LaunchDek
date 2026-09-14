@@ -130,15 +130,20 @@ class LAUNCHDEK_Client_Push {
 				$deep_link = $remote->admin_link( $def['deep_link'] );
 			}
 
+			$show_note_field = array_key_exists( 'show_note_field', $def )
+				? ! empty( $def['show_note_field'] )
+				: ( 'manual' === ( $step['step_type'] ?? 'manual' ) );
+
 			$steps[] = array(
-				'step_index'   => (int) $step['step_index'],
-				'title'        => $step['title'],
-				'type'         => $step['step_type'],
-				'status'       => $step['status'],
-				'instructions' => sanitize_textarea_field( $def['instructions'] ?? '' ),
-				'target_roles' => array_values( array_map( 'sanitize_key', (array) ( $def['target_roles'] ?? array() ) ) ),
-				'deep_link'    => $deep_link ? esc_url_raw( $deep_link ) : '',
-				'notes'        => is_array( $step['notes'] ?? null ) ? $step['notes'] : array(),
+				'step_index'      => (int) $step['step_index'],
+				'title'           => $step['title'],
+				'type'            => $step['step_type'],
+				'status'          => $step['status'],
+				'instructions'    => sanitize_textarea_field( $def['instructions'] ?? '' ),
+				'target_roles'    => array_values( array_map( 'sanitize_key', (array) ( $def['target_roles'] ?? array() ) ) ),
+				'deep_link'       => $deep_link ? esc_url_raw( $deep_link ) : '',
+				'show_note_field' => $show_note_field,
+				'notes'           => is_array( $step['notes'] ?? null ) ? $step['notes'] : array(),
 			);
 		}
 

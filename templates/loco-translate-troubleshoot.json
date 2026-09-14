@@ -1,0 +1,65 @@
+{
+  "title": "Loco Translate Troubleshooting",
+  "description": "Fix missing translations, overwritten .po files, plugin update wiping strings, and incorrect locale loading.",
+  "category": "troubleshooting",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "loco_identify_scope",
+      "title": "Identify Untranslated Scope",
+      "instructions": "Note whether strings are missing site-wide, for one plugin/theme only, or in admin vs front end. Confirm the active site language under Settings → General.",
+      "deep_link": "options-general.php",
+      "type": "manual"
+    },
+    {
+      "id": "loco_custom_location",
+      "title": "Use Custom Save Location (Not Author Directories)",
+      "instructions": "Save translations to wp-content/languages/loco/ — not inside plugin or theme folders. Author directories are overwritten on plugin/theme updates.",
+      "deep_link": "admin.php?page=loco",
+      "type": "manual"
+    },
+    {
+      "id": "loco_sync_template",
+      "title": "Sync Template After Plugin Updates",
+      "instructions": "After a plugin update, open the bundle in Loco → Sync to pull new source strings. Re-translate added or changed strings and save the .po/.mo files.",
+      "deep_link": "admin.php?page=loco",
+      "type": "manual"
+    },
+    {
+      "id": "loco_compile_mo",
+      "title": "Recompile and Verify .mo Files",
+      "instructions": "Loco auto-compiles .mo on save. If translations still missing, delete the .mo and re-save the .po. Confirm file permissions allow the web server to read them.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "loco_text_domain",
+      "title": "Confirm Correct Text Domain and Locale",
+      "instructions": "Translate the right bundle (plugin slug text domain). Verify locale code matches WordPress (e.g. de_DE not de). Check for duplicate .mo files loading the wrong one.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "loco_cache",
+      "title": "Clear Caches and Object Cache",
+      "instructions": "Page cache and persistent object cache can serve stale translated pages. Purge all caches after saving translations and test in a private browser window.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "loco_jed_json",
+      "title": "Handle JavaScript (Jed/JSON) Translations",
+      "instructions": "Block editor and some plugins use JSON translation files. Use Loco's JSON tab or regenerate script translations if admin UI strings stay in English.",
+      "deep_link": "admin.php?page=loco",
+      "type": "manual"
+    },
+    {
+      "id": "loco_verify",
+      "title": "Verify Translations on Front End and Admin",
+      "instructions": "Spot-check key plugin strings, menus, and WooCommerce/checkout labels in the target language. Document custom Loco path for future deploys.",
+      "deep_link": "",
+      "type": "manual"
+    }
+  ]
+}

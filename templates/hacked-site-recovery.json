@@ -1,0 +1,65 @@
+{
+  "title": "Hacked Site Recovery",
+  "description": "Respond to a compromised WordPress site — isolate, clean malware, close entry points, and restore from clean backup.",
+  "category": "troubleshooting",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "hack_isolate",
+      "title": "Isolate the Site Immediately",
+      "instructions": "Put the site in maintenance mode or block public access. Change all admin, FTP, database, and hosting panel passwords before investigating.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "hack_identify_symptoms",
+      "title": "Document Hack Symptoms",
+      "instructions": "Note spam redirects, injected scripts, unknown admin users, pharma spam in search results, or hosting suspension notices. Screenshot evidence for records.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "hack_scan_malware",
+      "title": "Scan for Malware and Backdoors",
+      "instructions": "Run Wordfence, Sucuri, or MalCare scan. Check wp-content/uploads for .php files, suspicious mu-plugins, and modified core files. Compare checksums with clean WordPress.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "hack_remove_malware",
+      "title": "Remove Malicious Code and Files",
+      "instructions": "Delete unknown plugins, rogue admin users, and injected code in theme functions.php, wp-config.php, and .htaccess. Do not trust infected files — replace from clean source.",
+      "deep_link": "users.php",
+      "type": "manual"
+    },
+    {
+      "id": "hack_reinstall_core",
+      "title": "Reinstall WordPress Core and Audit Themes",
+      "instructions": "Upload fresh wp-admin and wp-includes. Replace active theme with a clean copy or default theme. Remove nulled/pirated plugins — common infection vectors.",
+      "deep_link": "update-core.php",
+      "type": "manual"
+    },
+    {
+      "id": "hack_close_entry",
+      "title": "Close the Entry Point",
+      "instructions": "Update all plugins and PHP. Revoke all Application Passwords. Fix weak credentials, outdated plugins, and file permission issues (no 777). Block xmlrpc.php if abused.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "hack_restore_backup",
+      "title": "Restore from Clean Backup if Needed",
+      "instructions": "If malware is widespread, restore files and database from a known-clean backup before the infection date. Re-apply legitimate changes made after that date manually.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "hack_harden_monitor",
+      "title": "Harden Site and Monitor",
+      "instructions": "Enable 2FA, file change monitoring, and least-privilege user roles. Submit reconsideration request to Google if blacklisted. Monitor for 30 days post-recovery.",
+      "deep_link": "",
+      "type": "manual"
+    }
+  ]
+}

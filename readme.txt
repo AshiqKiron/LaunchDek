@@ -18,7 +18,7 @@ LaunchDek is a master-site plugin for WordPress agencies to manage remote client
 
 * **Dashboard** — Live stats, API connection ticker, activity log feed, quick launch bar
 * **Sites** — Register remote sites, connection tester, tagging and grouping
-* **Checklists** — Drag-and-drop builder, step configuration, API payload mapper, import/export, plus 38 built-in templates and agency vault
+* **Checklists** — Drag-and-drop builder, step configuration, API payload mapper, import/export, plus 66 built-in templates and agency vault
 * **Automation & Audit** — Run control, live step tracker, immutable audit logs, drift verifier
 * **Integrations** — MainWP, ManageWP, WP Umbrella, WP Engine, WPvibe adapters
 * **Settings** — Encrypted credential vault, Slack/Discord/Teams webhooks, role guardrails
@@ -63,6 +63,22 @@ Yes, when enabled in Settings, application passwords are encrypted using your Wo
 
 == Changelog ==
 
+= 1.0.13 =
+* Added 28 built-in troubleshooting checklists — common WordPress errors plus plugin-specific guides (Elementor, ACF, Loco Translate, WP Super Cache, OptinMonster, WooCommerce, Ninja Forms, block editor)
+* New Troubleshooting template category on Checklists → Templates
+
+= 1.0.12 =
+* Client checklist panel: expandable steps with chevron toggle, "Go to settings" deep link, and per-step note field control from the hub builder
+* Checklist builder: chevron on canvas steps opens step settings; manual steps can enable or disable the client note textarea
+
+= 1.0.11 =
+* Dashboard stat cards, API connection summary, and live log feed now load instantly from cache and refresh only when underlying data changes
+
+= 1.0.10 =
+* Dashboard live log feed limited to the latest 15 entries (with site name labels) and a link to view all activity logs
+* Sites page: Activity Logs button links to a dedicated activity logs page with filters and action details
+* Sites page: cached sites list with server-side preload on first paint; cache refreshes when sites are added, updated, or deleted
+
 = 1.0.9 =
 * Added 11 built-in checklist templates for popular plugins: Yoast SEO, Rank Math, Wordfence, Elementor, Easy Digital Downloads, Contact Form 7, LiteSpeed Cache, Site Kit by Google, All-in-One WP Migration, WPForms, and UpdraftPlus
 * Added 10 general-purpose checklists: Fresh WordPress Setup, SSL & HTTPS, Reliable Email Delivery, Content Publish Review, User Access Audit, Plugin Health Audit, 404 & Redirect Audit, First Week After Launch, Database Cleanup, and Blog Launch
@@ -95,6 +111,9 @@ Yes, when enabled in Settings, application passwords are encrypted using your Wo
 * Client checklist panel: focused runner UX with progress bar, "Step X of Y", collapsed completed steps, and localStorage focus preference
 * Client panel step notes with optional screenshot attachments (media library); notes sync to hub and appear in Automation run tracker
 * Hub webhooks for client_step_completed and client_note_added; dashboard feed highlights client completions and notes with site name
+
+= 1.0.4 =
+* Dashboard API Connection Status: summary stat cards (All Sites, Healthy, Issues, Unknown) with Manage Sites link to the full sites list
 
 = 1.0.3 =
 * Dashboard onboarding modal: paste plain-text SOPs for a live checklist preview, connect a remote site with inline connection test, and Finish & Launch your first run

@@ -26,10 +26,11 @@ alwaysApply: false
 
 | Function | Page attr | Key elements |
 |----------|-----------|--------------|
-| `initDashboard()` | `dashboard` | `#launchdek-stats`, `#launchdek-ticker`, `#launchdek-log-feed`, quick launch (`#launchdek-quick-site`, `#launchdek-quick-checklist`, `#launchdek-quick-launch`, `#launchdek-quick-result`) |
+| `initDashboard()` | `dashboard` | `#launchdek-stats`, `#launchdek-ticker`, `#launchdek-log-feed` (preloaded via `launchdekAdmin.dashboard` or PHP partial; `data-launchdek-preloaded="1"` skips initial fetch), quick launch (`#launchdek-quick-site`, `#launchdek-quick-checklist`, `#launchdek-quick-launch`, `#launchdek-quick-result`) |
 | `initSettings()` | `settings` | `#launchdek-show-onboarding` → `POST /onboarding/reset` then `launchdekOpenOnboarding()` |
-| `initSites()` | `sites` | toolbar (`#launchdek-add-site`, `#launchdek-connection-tester`), tag/group filters, `#launchdek-sites-table` (connection dot + warning icon, health badge, **Client panel** badge when `client_agent`), site modal (`#launchdek-site-modal`, panel install/retry via `GET /panel/bootstrap` download + auto-deploy), push checklist modal (`#launchdek-push-checklist-modal`, `#launchdek-push-checklist-select`, `#launchdek-push-to-client`, `POST /runs` with `push_to_client`), standalone connection tester modal; `refreshStaleSiteConnectionsInBackground()` re-tests sites older than 30 minutes |
-| `initChecklists()` | `checklists` | page tabs (`.launchdek-page-tab`, `[data-launchdek-tab-panel]`); `#launchdek-new-checklist` (hidden on Templates tab) opens template picker (clone → editor) or blank; `#launchdek-auto-capture` opens auto-capture modal; builder panel: `#launchdek-checklist-list`, editor (`#launchdek-checklist-editor`), canvas (`#launchdek-checklist-canvas`, `#launchdek-canvas-steps`), step config (`#launchdek-step-config`), save/export/delete/import controls |
+| `initSites()` | `sites` | toolbar (`#launchdek-add-site`, `#launchdek-connection-tester`, `#launchdek-activity-logs` → Activity Logs page), tag/group filters, `#launchdek-sites-table` (connection dot + warning icon, health badge, **Client panel** badge when `client_agent`), site modal (`#launchdek-site-modal`, panel install/retry via `GET /panel/bootstrap` download + auto-deploy), push checklist modal (`#launchdek-push-checklist-modal`, `#launchdek-push-checklist-select`, `#launchdek-push-to-client`, `POST /runs` with `push_to_client`), standalone connection tester modal; `refreshStaleSiteConnectionsInBackground()` re-tests sites older than 30 minutes |
+| `initActivityLogs()` | `activity-logs` | filters (`#launchdek-activity-logs-site`, `#launchdek-activity-logs-status`, `#launchdek-activity-logs-date-from`, `#launchdek-activity-logs-date-to`, `#launchdek-activity-logs-search`, `#launchdek-activity-logs-filter`), table `#launchdek-activity-logs-table`; loads `GET /logs/feed?detailed=1` (limit 200); honors `?site_id=` query param |
+| `initChecklists()` | `checklists` | page tabs (`.launchdek-page-tab`, `[data-launchdek-tab-panel]`); `#launchdek-new-checklist` (hidden on Templates tab) opens template picker (clone → editor) or blank; `#launchdek-auto-capture` opens auto-capture modal; builder panel: `#launchdek-checklist-list`, editor (`#launchdek-checklist-editor`), canvas (`#launchdek-checklist-canvas`, `#launchdek-canvas-steps`, `.launchdek-canvas-node-chevron` toggles step config), step config (`#launchdek-step-config`, `#ld-step-show-note` for manual `show_note_field`), save/export/delete/import controls |
 | `initAutomation()` | `automation` | batch queue (`#launchdek-batch-table`, `#launchdek-run-checklist`), run controls (`#launchdek-run-steps`, `#launchdek-run-auto`, `#launchdek-run-next`), audit filters/table (`#launchdek-audit-*`), drift panel (`#launchdek-drift-status`, `#launchdek-verify-drift`) |
 | `initTemplates()` | checklists (Templates tab) | no-ops unless `#launchdek-builtin-templates` exists; category tabs (`#launchdek-category-tabs`, `#launchdek-category-description`), built-in grid, custom checklists (`#launchdek-custom-checklists`), vault save (`#launchdek-vault-checklist`, `#launchdek-save-vault`), vault list (`#launchdek-vault-list`) |
 | `initIntegrations()` | `integrations` | Platform Connectors Hub (`#launchdek-connectors-list`, `#launchdek-connector-modal`), telemetry rules (`#launchdek-telemetry-rules-table`, `#launchdek-save-telemetry-rules`) |
@@ -88,11 +89,17 @@ Key elements: `#launchdek-template-picker-filters`, `#launchdek-template-picker-
 	adminUrl: string,
 	pageSlug: string,
 	roles: object,      // WP role slug => translated label (for step target_roles UI)
+	dashboard: {              // present only on dashboard screen (toplevel_page_{slug})
+		stats: object,        // sites_connected, active_checklists, runs_in_progress, completion_rate
+		connections: object,  // healthy, unhealthy, unknown, total
+		feed: array           // latest 15 log entries (FEED_LIMIT)
+	},
 	onboarding: {
 		show: boolean,          // ! onboarding_dismissed
 		templatesUrl: string,   // admin.php?page={slug}-checklists&tab=templates
 		checklistsUrl: string,
-		automationUrl: string
+		automationUrl: string,
+		activityLogsUrl: string // admin.php?page={slug}-activity-logs
 	},
 	strings: {
 		confirmDelete, confirmDeleteSite, saved, error, loading,
@@ -102,7 +109,7 @@ Key elements: `#launchdek-template-picker-filters`, `#launchdek-template-picker-
 		savedToVault, noVaultTemplates, noCategoryTemplates,
 		chooseTemplate, startBlankInstead, importTemplate, cancel, allCategories,
 		templateImported, selectTemplateFirst, templateStepsHeading, templateStepsEmpty, templateStepsNone,
-		stepsCount, viewSteps, hideSteps, checklistSteps, stepsPreviewHint,
+		stepsCount, viewSteps, hideSteps, checklistSteps, stepsPreviewHint, stepSettings, showNoteField,
 		connected, notDetected, setup,
 		pushChecklist, pushChecklistSelect, pushChecklistNeed, pushChecklistStarted, pushChecklistBlocked,
 		clientPanelBadge, clientPushOk, clientPushSkipped, clientPushFailed,
@@ -133,7 +140,8 @@ Prefix all selectors with `.launchdek-`.
 | `.launchdek-site-health-badge`, `.launchdek-client-agent-badge` | Sites table health badge and client panel indicator |
 | `.launchdek-push-checklist` | Sites table **Push Checklist** action button |
 | `.launchdek-ticker-inline`, `.launchdek-ticker-chip`, `.launchdek-ticker-sep`, `.launchdek-ticker-dot` | Connection ticker (`#launchdek-ticker`) |
-| `.launchdek-log-feed`, `.launchdek-log-item` | Activity feed (`#launchdek-log-feed`) |
+| `.launchdek-log-feed`, `.launchdek-log-feed-meta`, `.launchdek-log-item`, `.launchdek-log-site`, `.launchdek-log-message` | Dashboard activity feed (`#launchdek-log-feed`); modifier `.is-client-activity` on client step events |
+| `.launchdek-activity-logs-intro` | Activity Logs page intro + back link |
 | `.launchdek-badge`, `.launchdek-tag` | Site health / tags |
 | `.launchdek-modal`, `.launchdek-modal-backdrop`, `.launchdek-modal-content`, `.launchdek-modal-actions` | Modals (`[hidden]` when closed) |
 | `.launchdek-template-picker-modal`, `.launchdek-template-picker-content`, `.launchdek-template-picker-header`, `.launchdek-template-picker-close`, `.launchdek-template-picker-filters`, `.launchdek-template-picker-filter`, `.launchdek-template-picker-body`, `.launchdek-template-picker-list`, `.launchdek-template-picker-item`, `.launchdek-template-picker-item-body`, `.launchdek-template-picker-item-title`, `.launchdek-template-picker-item-desc`, `.launchdek-template-picker-item-meta`, `.launchdek-template-picker-steps`, `.launchdek-template-picker-steps-list`, `.launchdek-template-picker-steps-heading`, `.launchdek-template-picker-steps-empty`, `.launchdek-template-picker-footer`, `.launchdek-template-picker-footer-actions`, `.launchdek-template-picker-loading`, `.launchdek-template-picker-empty` | Template picker modal (`#launchdek-template-picker-modal`); filter/item modifiers `.is-active`, `.is-selected` |
@@ -142,8 +150,8 @@ Prefix all selectors with `.launchdek-`.
 | `.launchdek-list` | Selectable lists |
 | `.launchdek-builder-layout`, `.launchdek-builder-workspace` | Checklist builder layout |
 | `.launchdek-canvas-card`, `.launchdek-checklist-canvas`, `.launchdek-canvas-flow` | Drag-and-drop checklist canvas |
-| `.launchdek-canvas-node`, `.launchdek-canvas-node-roles`, `.launchdek-canvas-connector` | Canvas step nodes + role badges + flow arrows |
-| `.launchdek-step-config-sidebar`, `.launchdek-role-mapping`, `.launchdek-role-option` | Step config panel + role target mapping |
+| `.launchdek-canvas-node`, `.launchdek-canvas-node-chevron`, `.launchdek-canvas-node-roles`, `.launchdek-canvas-connector` | Canvas step nodes + chevron (opens step config) + role badges + flow arrows |
+| `.launchdek-step-config-sidebar`, `.launchdek-role-mapping`, `.launchdek-role-option`, `.launchdek-step-note-field-option` | Step config panel + role target mapping + manual-step note field toggle |
 | `.launchdek-target-selector`, `.launchdek-batch-queue`, `.launchdek-automation-layout` | Automation run/batch UI |
 | `.launchdek-run-steps`, `.launchdek-run-step` | Run step tracker |
 | `.launchdek-audit-filters`, `.launchdek-audit-diff` | Audit log filters + drift diff display |

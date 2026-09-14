@@ -1,0 +1,65 @@
+{
+  "title": "Brute Force Login Attacks",
+  "description": "Stop wp-login.php brute force attacks, reduce server load, and harden authentication without locking out legitimate users.",
+  "category": "troubleshooting",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "bf_identify_attack",
+      "title": "Confirm Brute Force Attack",
+      "instructions": "Check server logs for repeated POST requests to wp-login.php or xmlrpc.php. Note spike in failed login attempts and server CPU from security plugin logs.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "bf_rate_limit",
+      "title": "Enable Login Rate Limiting",
+      "instructions": "Configure Wordfence, Solid Security, or Limit Login Attempts Reloaded. Set lockout threshold (e.g. 3 failures, 20-minute lockout) and whitelist agency IPs.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "bf_2fa",
+      "title": "Enforce Two-Factor Authentication",
+      "instructions": "Require 2FA for all administrator accounts. Even if passwords are guessed, 2FA blocks unauthorized access.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "bf_hide_login",
+      "title": "Change Default Login URL (Optional)",
+      "instructions": "Use WPS Hide Login or server rules to move wp-login.php to a custom slug. This reduces automated bot traffic but is not a substitute for strong auth.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "bf_disable_xmlrpc",
+      "title": "Disable or Restrict XML-RPC",
+      "instructions": "Brute force often targets xmlrpc.php. Disable if Jetpack/mobile apps do not need it. Block via .htaccess or security plugin.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "bf_cdn_waf",
+      "title": "Enable CDN or WAF Bot Protection",
+      "instructions": "Cloudflare Bot Fight Mode, Sucuri WAF, or host-level WAF can block attack traffic before it hits PHP. Enable challenge rules for wp-login.php.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "bf_strong_passwords",
+      "title": "Audit Usernames and Passwords",
+      "instructions": "Remove 'admin' username. Force password reset for weak passwords. Disable unused accounts and application passwords.",
+      "deep_link": "users.php",
+      "type": "manual"
+    },
+    {
+      "id": "bf_verify",
+      "title": "Monitor Attack Volume Post-Fix",
+      "instructions": "Confirm failed login rate drops and server load normalizes. Ensure agency and client staff can still log in from all locations.",
+      "deep_link": "",
+      "type": "manual"
+    }
+  ]
+}

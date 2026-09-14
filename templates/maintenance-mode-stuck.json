@@ -1,0 +1,51 @@
+{
+  "title": "Stuck in Maintenance Mode",
+  "description": "Remove maintenance mode after failed updates — .maintenance file, plugin lockouts, or hosting maintenance pages.",
+  "category": "troubleshooting",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "mm_identify_source",
+      "title": "Identify Maintenance Source",
+      "instructions": "Determine if the message is WordPress core ('Briefly unavailable'), a maintenance plugin, or host-level maintenance page.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "mm_delete_file",
+      "title": "Delete .maintenance File",
+      "instructions": "Remove .maintenance from the WordPress root via SFTP. This file is created during core/plugin/theme updates and should auto-delete — stale files cause stuck maintenance.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "mm_complete_update",
+      "title": "Complete or Roll Back Failed Update",
+      "instructions": "Check if a partial update left mixed file versions. Re-run the update or restore wp-admin/wp-includes from a matching WordPress zip.",
+      "deep_link": "update-core.php",
+      "type": "manual"
+    },
+    {
+      "id": "mm_maintenance_plugins",
+      "title": "Disable Maintenance Plugins",
+      "instructions": "Deactivate WP Maintenance Mode, SeedProd, or similar via SFTP if admin is inaccessible. Remove maintenance.php drop-ins in wp-content if present.",
+      "deep_link": "plugins.php",
+      "type": "manual"
+    },
+    {
+      "id": "mm_host_maintenance",
+      "title": "Check Hosting Maintenance Toggle",
+      "instructions": "Some hosts have a one-click maintenance mode in the control panel. Disable it if you did not intentionally enable it.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "mm_verify_public",
+      "title": "Verify Public Site Access",
+      "instructions": "Load the site from incognito and external monitoring. Confirm no maintenance message and admin is reachable.",
+      "deep_link": "",
+      "type": "manual"
+    }
+  ]
+}

@@ -160,7 +160,57 @@
 	opacity: 0.85;
 }
 
+.launchdek-client-step.is-collapsed .launchdek-client-step-body {
+	display: none;
+}
+
+.launchdek-client-step-toggle {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	width: 24px;
+	height: 24px;
+	padding: 0;
+	border: 0;
+	background: transparent;
+	color: #50575e;
+	cursor: pointer;
+	border-radius: 2px;
+}
+
+.launchdek-client-step-toggle:hover,
+.launchdek-client-step-toggle:focus {
+	color: #2271b1;
+	background: #f0f6fc;
+}
+
+.launchdek-client-step-toggle .dashicons {
+	width: 18px;
+	height: 18px;
+	font-size: 18px;
+}
+
+.launchdek-client-step-settings-link-wrap {
+	margin: 8px 0 0;
+}
+
+.launchdek-client-step-settings-link {
+	font-weight: 600;
+	text-decoration: none;
+}
+
+.launchdek-client-step-settings-link:hover,
+.launchdek-client-step-settings-link:focus {
+	text-decoration: underline;
+}
+
+.launchdek-client-step-body {
+	margin-top: 8px;
+}
+
 .launchdek-client-step-summary-title {
+	flex: 1;
 	font-size: 12px;
 	color: #646970;
 	text-decoration: line-through;
@@ -174,6 +224,7 @@
 }
 
 .launchdek-client-step-title {
+	flex: 1;
 	margin: 0;
 	font-size: 13px;
 	font-weight: 600;

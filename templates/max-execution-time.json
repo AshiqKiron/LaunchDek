@@ -1,0 +1,58 @@
+{
+  "title": "Maximum Execution Time Exceeded",
+  "description": "Resolve PHP script timeout errors during updates, imports, backups, or slow admin operations.",
+  "category": "troubleshooting",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "exec_identify_action",
+      "title": "Identify the Timing-Out Action",
+      "instructions": "Record which URL, cron hook, or CLI command hits the limit. Check error logs for the script filename and approximate runtime.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "exec_raise_limit",
+      "title": "Increase max_execution_time",
+      "instructions": "Set max_execution_time in php.ini, .user.ini, or via set_time_limit(0) in wp-config for admin only. Avoid unlimited timeouts on public-facing requests.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "exec_wp_cli",
+      "title": "Use WP-CLI for Long Operations",
+      "instructions": "Run plugin updates, search-replace, imports, and regenerations via WP-CLI instead of the browser. CLI often has higher or no web timeout limits.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "exec_batch_jobs",
+      "title": "Enable Batch Processing in Plugins",
+      "instructions": "Many import and migration plugins support chunked processing. Reduce batch size so each HTTP request finishes within the server timeout window.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "exec_cron_offload",
+      "title": "Move Heavy Work to WP-Cron or Server Cron",
+      "instructions": "Schedule large tasks during low-traffic windows. Use real server cron with DISABLE_WP_CRON and wp cron event run for reliability.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "exec_optimize_db",
+      "title": "Optimize Slow Queries Behind the Timeout",
+      "instructions": "Timeouts often mask slow SQL. Add indexes, clean revisions/transients, and disable plugins that query thousands of rows per page load.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "exec_verify",
+      "title": "Retest Previously Failing Tasks",
+      "instructions": "Confirm imports, updates, and backups complete successfully. Document the final timeout settings and preferred run method (CLI vs admin).",
+      "deep_link": "",
+      "type": "manual"
+    }
+  ]
+}

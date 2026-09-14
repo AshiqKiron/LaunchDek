@@ -1,0 +1,58 @@
+{
+  "title": "Redirect Loop (ERR_TOO_MANY_REDIRECTS)",
+  "description": "Stop infinite redirect loops between http/https, www/non-www, or misconfigured plugins and server rules.",
+  "category": "troubleshooting",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "rl_identify_urls",
+      "title": "Trace the Redirect Chain",
+      "instructions": "Use curl -I or browser DevTools Network tab to see each redirect hop. Note if it bounces between http/https or www/non-www variants.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "rl_site_url_match",
+      "title": "Align WordPress URLs with Actual Access URL",
+      "instructions": "Settings → General siteurl and home must match how users reach the site (https, www). Update wp-config constants if the database values are wrong.",
+      "deep_link": "options-general.php",
+      "type": "manual"
+    },
+    {
+      "id": "rl_ssl_plugins",
+      "title": "Check SSL and Really Simple SSL Settings",
+      "instructions": "SSL plugins can force https while the server also redirects — causing a loop. Disable one layer or set FORCE_SSL_ADMIN only in wp-config.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "rl_server_rules",
+      "title": "Review Server and CDN Redirect Rules",
+      "instructions": "Compare Apache/nginx redirects, Cloudflare SSL mode, and host 'force HTTPS' toggles. Only one layer should canonicalize protocol and hostname.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "rl_cookie_domain",
+      "title": "Fix COOKIE_DOMAIN and Proxy Headers",
+      "instructions": "Behind load balancers, ensure HTTPS is detected via $_SERVER['HTTPS'] or HTTP_X_FORWARDED_PROTO. Wrong detection causes login and front-end redirect loops.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "rl_redirect_plugins",
+      "title": "Audit Redirection Plugin Rules",
+      "instructions": "Export and review redirect rules for regex loops (A→B→A). Disable the Redirection plugin temporarily to test if loops stop.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "rl_verify",
+      "title": "Verify Clean Single Redirect",
+      "instructions": "Confirm one 301 from alternate URLs to canonical. Test homepage, wp-login.php, and wp-admin with curl -IL from external network.",
+      "deep_link": "",
+      "type": "manual"
+    }
+  ]
+}

@@ -1,0 +1,65 @@
+{
+  "title": "Ninja Forms Troubleshooting",
+  "description": "Fix forms not submitting, email actions failing, validation errors, and conflicts with cache or security plugins.",
+  "category": "troubleshooting",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "nf_identify_symptom",
+      "title": "Identify Form Failure Type",
+      "instructions": "Note if the form does not load, submit button spins forever, validation blocks submission, emails never arrive, or submissions missing in admin.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "nf_console_errors",
+      "title": "Check Browser Console and Network Tab",
+      "instructions": "Submit the form with DevTools open. Look for 403/500 on admin-ajax.php or REST endpoints. Note nonce failures or blocked scripts.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "nf_email_action",
+      "title": "Debug Email Actions",
+      "instructions": "Review form Actions → Email. Confirm To/From addresses, use SMTP plugin for delivery, and check WP Mail Logging for send failures.",
+      "deep_link": "admin.php?page=ninja-forms",
+      "type": "manual"
+    },
+    {
+      "id": "nf_required_fields",
+      "title": "Audit Required Fields and Conditional Logic",
+      "instructions": "Hidden required fields or broken conditional logic can block submission silently. Test with all fields visible and simplify conditions temporarily.",
+      "deep_link": "admin.php?page=ninja-forms",
+      "type": "manual"
+    },
+    {
+      "id": "nf_cache_security",
+      "title": "Exclude Forms from Cache and Security Rules",
+      "instructions": "Page cache may serve stale nonces. Exclude form pages from cache. Whitelist admin-ajax.php in Wordfence or similar if submissions return 403.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "nf_add_ons",
+      "title": "Update Ninja Forms and Add-ons Together",
+      "instructions": "Mismatched core and add-on versions cause JS errors. Update all Ninja Forms extensions or deactivate add-ons one by one to find conflicts.",
+      "deep_link": "plugins.php",
+      "type": "manual"
+    },
+    {
+      "id": "nf_spam_honeypot",
+      "title": "Check Akismet, reCAPTCHA, and Honeypot Settings",
+      "instructions": "Over-aggressive spam protection can reject legitimate submissions. Test with spam modules disabled, then re-enable with correct API keys.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "nf_verify",
+      "title": "Submit Test Entry and Confirm Delivery",
+      "instructions": "Submit from front end and confirm success message, entry in Ninja Forms → Submissions, and email receipt. Test on mobile if reported mobile-only issues.",
+      "deep_link": "",
+      "type": "manual"
+    }
+  ]
+}

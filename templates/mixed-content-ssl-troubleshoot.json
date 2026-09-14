@@ -1,0 +1,58 @@
+{
+  "title": "Mixed Content After SSL",
+  "description": "Fix insecure http:// assets, padlock warnings, and broken resources after enabling HTTPS on a WordPress site.",
+  "category": "troubleshooting",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "mc_audit_warnings",
+      "title": "Audit Mixed Content Warnings",
+      "instructions": "Open browser DevTools → Console on key pages. List blocked or warned resources still loading over http:// (images, scripts, stylesheets, iframes).",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "mc_search_replace",
+      "title": "Search-Replace http to https in Database",
+      "instructions": "Use Better Search Replace or WP-CLI search-replace on staging first. Replace http://yourdomain.com with https://yourdomain.com in posts, options, and meta.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "mc_site_url",
+      "title": "Update Site URL Settings",
+      "instructions": "Set both WordPress Address and Site Address to https:// in Settings → General. Add FORCE_SSL_ADMIN to wp-config if admin should always use SSL.",
+      "deep_link": "options-general.php",
+      "type": "manual"
+    },
+    {
+      "id": "mc_content_plugins",
+      "title": "Fix Hardcoded URLs in Content and Widgets",
+      "instructions": "Check custom HTML widgets, page builder sections, and theme options for hardcoded http links. Update logo, favicon, and background image URLs in theme settings.",
+      "deep_link": "customize.php",
+      "type": "manual"
+    },
+    {
+      "id": "mc_ssl_plugin",
+      "title": "Run SSL Insecure Content Fixer",
+      "instructions": "Really Simple SSL or similar can rewrite asset URLs on the fly. Use as a bridge while fixing source URLs in the database.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "mc_cdn_origin",
+      "title": "Update CDN and External Service URLs",
+      "instructions": "Reconfigure CDN pull zone for https origin. Update Google Fonts, embeds, and third-party scripts to https versions.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "mc_verify_padlock",
+      "title": "Verify Padlock and HSTS",
+      "instructions": "Confirm no mixed content on homepage, checkout, and login. Test with SSL Labs and enable HSTS only after https is stable everywhere.",
+      "deep_link": "",
+      "type": "manual"
+    }
+  ]
+}

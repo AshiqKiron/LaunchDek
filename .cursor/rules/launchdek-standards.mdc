@@ -42,7 +42,8 @@ Cross-cutting quality standards. See also: `launchdek-project.mdc` (architecture
 
 - Load code only where needed.
 - Avoid expensive queries on every request; repositories should use indexed columns.
-- Remote API calls only on user action, checklist execution, connection tests, scheduled drift cron, client panel sync after run advances, or auto-capture sessions — never on every admin page load except dashboard ticker/feed fetches and Sites page background stale-connection refresh (30-minute threshold).
+- Remote API calls only on user action, checklist execution, connection tests, scheduled drift cron, client panel sync after run advances, or auto-capture sessions — never on every admin page load except Sites page background stale-connection refresh (30-minute threshold).
+- Dashboard stats, connection ticker, and live log feed use `LAUNCHDEK_Dashboard_Cache` (`launchdek_dashboard_cache`, non-autoload); preloaded in PHP/`launchdekAdmin.dashboard` on dashboard load; cache invalidated on underlying data changes. Activity Logs page fetches via REST only when opened/filtered.
 - Avoid autoloading large options.
 
 ## Privacy & External Communication
@@ -58,7 +59,7 @@ Cross-cutting quality standards. See also: `launchdek-project.mdc` (architecture
 
 - **Activate**: seed settings, install DB tables, register caps, schedule drift cron, redirect to dashboard onboarding (`?onboarding=1`).
 - **Deactivate**: clear activation redirect transient, unschedule drift cron.
-- **Delete**: `uninstall.php` drops all tables, removes options (`launchdek_settings`, `launchdek_version`, `launchdek_db_version`, `launchdek_templates_seeded`), unregisters capabilities.
+- **Delete**: `uninstall.php` drops all tables, removes options (`launchdek_settings`, `launchdek_version`, `launchdek_db_version`, `launchdek_templates_seeded`, `launchdek_dashboard_cache`), unregisters capabilities.
 - If adding new options or tables, update `uninstall.php` and `LAUNCHDEK_Installer::uninstall()`.
 
 ## Release

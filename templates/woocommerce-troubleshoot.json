@@ -1,0 +1,65 @@
+{
+  "title": "WooCommerce Troubleshooting",
+  "description": "Fix checkout failures, payment gateway errors, cart session issues, and Action Scheduler backlog problems.",
+  "category": "troubleshooting",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "woo_identify_flow",
+      "title": "Identify Broken Store Flow",
+      "instructions": "Pinpoint where it fails: add to cart, cart page, checkout fields, payment, order confirmation email, or my-account. Note any JS errors on checkout.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "woo_status_page",
+      "title": "Review WooCommerce System Status",
+      "instructions": "Open WooCommerce → Status and fix red/yellow items: pages missing, outdated templates, SSL, geolocation, or background processing warnings.",
+      "deep_link": "admin.php?page=wc-status",
+      "type": "manual"
+    },
+    {
+      "id": "woo_action_scheduler",
+      "title": "Clear Action Scheduler Backlog",
+      "instructions": "Check WooCommerce → Status → Scheduled Actions for failed or pending hooks. Clear stuck batches and ensure WP-Cron or server cron is running.",
+      "deep_link": "admin.php?page=wc-status&tab=action-scheduler",
+      "type": "manual"
+    },
+    {
+      "id": "woo_cache_exclusions",
+      "title": "Exclude Cart, Checkout, and Account from Cache",
+      "instructions": "Page cache must not cache cart/checkout or logged-in sessions. Add WooCommerce cookies to cache bypass rules and purge cache after testing.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "woo_payment_gateway",
+      "title": "Debug Payment Gateway Errors",
+      "instructions": "Enable gateway debug/logging (Stripe, PayPal, etc.). Verify API keys, webhooks, and test mode vs live mode. Check for SSL and currency mismatches.",
+      "deep_link": "admin.php?page=wc-settings&tab=checkout",
+      "type": "manual"
+    },
+    {
+      "id": "woo_template_conflicts",
+      "title": "Resolve Theme Template Overrides",
+      "instructions": "Outdated woocommerce/ templates in the theme break checkout after WC updates. Compare with WooCommerce → Status → Templates and update overrides.",
+      "deep_link": "admin.php?page=wc-status&tab=templates",
+      "type": "manual"
+    },
+    {
+      "id": "woo_plugin_conflicts",
+      "title": "Test for Plugin Conflicts",
+      "instructions": "Deactivate nonessential plugins on staging. Common conflicts: cache, minify, currency switchers, and custom checkout field plugins.",
+      "deep_link": "plugins.php",
+      "type": "manual"
+    },
+    {
+      "id": "woo_verify_order",
+      "title": "Place Test Order and Verify Emails",
+      "instructions": "Complete a full test purchase (gateway test mode). Confirm order in admin, customer email, and stock reduction. Document fix for client runbook.",
+      "deep_link": "edit.php?post_type=shop_order",
+      "type": "manual"
+    }
+  ]
+}

@@ -1,0 +1,58 @@
+{
+  "title": "PHP Memory Limit Exhausted",
+  "description": "Fix 'Allowed memory size exhausted' fatal errors — tune limits, find memory-hungry plugins, and optimize queries.",
+  "category": "troubleshooting",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "mem_identify_trigger",
+      "title": "Identify When Memory Errors Occur",
+      "instructions": "Check debug.log for the exact file and line. Note if errors happen on specific pages, during cron, imports, or plugin updates.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "mem_raise_limits",
+      "title": "Raise WordPress Memory Constants",
+      "instructions": "Add define('WP_MEMORY_LIMIT', '256M') and define('WP_MAX_MEMORY_LIMIT', '512M') to wp-config.php. Confirm php.ini memory_limit is at least as high.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "mem_query_monitor",
+      "title": "Profile Memory Usage on Staging",
+      "instructions": "Use Query Monitor or similar to see which plugins consume the most memory per request. Focus fixes on the top offenders.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "mem_reduce_autoload",
+      "title": "Reduce Autoloaded Options Bloat",
+      "instructions": "Large autoloaded options load on every request. Audit wp_options for oversized autoload=yes rows and fix or remove orphaned plugin data.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "mem_disable_unused",
+      "title": "Deactivate Unused or Duplicate Plugins",
+      "instructions": "Page builders, SEO suites, and backup plugins are common memory hogs. Remove plugins not actively needed on production.",
+      "deep_link": "plugins.php",
+      "type": "manual"
+    },
+    {
+      "id": "mem_object_cache",
+      "title": "Enable Object Caching",
+      "instructions": "Persistent object cache lowers memory churn from repeated option and post meta lookups. Verify Redis/Memcached is active after install.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "mem_verify",
+      "title": "Verify Stable Operation",
+      "instructions": "Load high-traffic pages and run previously failing actions. Monitor logs for 48 hours to ensure memory errors do not return.",
+      "deep_link": "",
+      "type": "manual"
+    }
+  ]
+}

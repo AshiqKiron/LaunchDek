@@ -1,0 +1,58 @@
+{
+  "title": "500 Internal Server Error",
+  "description": "Resolve HTTP 500 errors — often caused by .htaccess rules, PHP crashes, corrupt core files, or server misconfiguration.",
+  "category": "troubleshooting",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "err500_check_logs",
+      "title": "Check Server and PHP Error Logs",
+      "instructions": "Review the host error log, PHP-FPM log, and wp-content/debug.log. Note the timestamp, file path, and line number of the first error after the 500 started.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "err500_htaccess",
+      "title": "Test .htaccess Rules",
+      "instructions": "Rename .htaccess to .htaccess.bak and reload the site. If it works, regenerate permalinks or fix malformed rewrite rules. Restore a clean WordPress .htaccess block.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "err500_php_version",
+      "title": "Confirm PHP Version Compatibility",
+      "instructions": "Ensure PHP meets WordPress minimums and your plugins' requirements. Switch PHP version in hosting panel if a recent upgrade coincides with the 500 error.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "err500_plugins_theme",
+      "title": "Isolate Plugin or Theme Fault",
+      "instructions": "Deactivate all plugins and switch to a default theme via SFTP or database. Re-enable one at a time to find the component triggering the 500.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "err500_core_files",
+      "title": "Reinstall WordPress Core Files",
+      "instructions": "Upload fresh copies of wp-admin and wp-includes from a matching WordPress release. Do not overwrite wp-config.php or wp-content.",
+      "deep_link": "update-core.php",
+      "type": "manual"
+    },
+    {
+      "id": "err500_file_permissions",
+      "title": "Fix File and Folder Permissions",
+      "instructions": "Directories should typically be 755 and files 644. wp-config.php is often 440 or 600. Incorrect permissions on .htaccess or wp-config can cause 500 errors.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "err500_verify",
+      "title": "Verify Site Recovery",
+      "instructions": "Confirm HTTP 200 on homepage, admin login, and REST API. Monitor error logs for 24 hours after the fix.",
+      "deep_link": "",
+      "type": "manual"
+    }
+  ]
+}

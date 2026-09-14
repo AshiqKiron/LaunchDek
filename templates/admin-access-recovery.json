@@ -1,0 +1,58 @@
+{
+  "title": "Admin Access Recovery",
+  "description": "Regain wp-admin access when locked out — wrong credentials, security blocks, two-factor issues, or corrupted user accounts.",
+  "category": "troubleshooting",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "aar_confirm_symptoms",
+      "title": "Confirm Login Failure Type",
+      "instructions": "Distinguish between wrong password, blank page on login, redirect loop, 'cookies blocked', or IP ban messages. Each has a different fix path.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "aar_reset_password_db",
+      "title": "Reset Password via Database or WP-CLI",
+      "instructions": "Use phpMyAdmin to set user_pass with MD5 (legacy) or use WP-CLI: wp user update admin --user_pass='newpassword'. Prefer WP-CLI on supported hosts.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "aar_create_emergency_user",
+      "title": "Create Emergency Admin via WP-CLI or functions.php",
+      "instructions": "Run wp user create rescue@agency.com rescue --role=administrator --user_pass=... or add a temporary mu-plugin that creates an admin on next load (remove immediately after).",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "aar_security_unblock",
+      "title": "Unblock IP in Security Plugins",
+      "instructions": "Check Wordfence, Solid Security, or host WAF for IP blocks. Whitelist your IP or disable lockout temporarily via SFTP by renaming the security plugin folder.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "aar_cookie_domain",
+      "title": "Fix Cookie and URL Mismatches",
+      "instructions": "Ensure COOKIE_DOMAIN, siteurl, and home use the same protocol and domain (www vs non-www). Mixed http/https prevents auth cookies from sticking.",
+      "deep_link": "options-general.php",
+      "type": "manual"
+    },
+    {
+      "id": "aar_2fa_recovery",
+      "title": "Recover Two-Factor Access",
+      "instructions": "Use backup codes, disable 2FA plugin via SFTP, or reset 2FA user meta in the database. Re-enable 2FA after securing the account.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "aar_secure_account",
+      "title": "Secure Account After Recovery",
+      "instructions": "Set a strong unique password, enable 2FA, remove emergency users/scripts, and audit other administrator accounts for unauthorized access.",
+      "deep_link": "users.php",
+      "type": "manual"
+    }
+  ]
+}

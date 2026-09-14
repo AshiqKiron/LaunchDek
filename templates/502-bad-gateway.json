@@ -1,0 +1,58 @@
+{
+  "title": "502 Bad Gateway",
+  "description": "Fix 502 errors when the web server cannot get a valid response from PHP-FPM or upstream services.",
+  "category": "troubleshooting",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "err502_confirm_scope",
+      "title": "Confirm Scope and Timing",
+      "instructions": "Check if the 502 affects the whole site or specific URLs. Note when it started — often tied to deploys, traffic spikes, or host maintenance.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "err502_host_status",
+      "title": "Check Host Status and Resource Limits",
+      "instructions": "Review hosting dashboard for CPU, memory, or connection limit alerts. Restart PHP-FPM or the web server pool if your host allows it.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "err502_php_fpm",
+      "title": "Review PHP-FPM and Nginx/Apache Logs",
+      "instructions": "Look for 'upstream timed out', 'connection refused', or 'pool exhausted' messages. Increase pm.max_children or worker limits with your host if pools are saturated.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "err502_long_requests",
+      "title": "Identify Long-Running PHP Scripts",
+      "instructions": "Heavy imports, backup plugins, or cron jobs can tie up workers. Pause large jobs, run them via WP-CLI or off-peak, and add object caching if queries are slow.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "err502_proxy_cdn",
+      "title": "Check CDN or Reverse Proxy",
+      "instructions": "If using Cloudflare or a load balancer, confirm origin server health and SSL mode. Purge CDN cache and verify origin responds directly by IP or bypass rule.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "err502_disable_heavy",
+      "title": "Temporarily Disable Heavy Plugins",
+      "instructions": "Deactivate caching, security scanners, or backup plugins that hook early. Re-enable after confirming the origin responds within gateway timeout limits.",
+      "deep_link": "plugins.php",
+      "type": "manual"
+    },
+    {
+      "id": "err502_monitor",
+      "title": "Monitor After Stabilization",
+      "instructions": "Watch response times and error rate for 24–48 hours. Document root cause and any host configuration changes for future incidents.",
+      "deep_link": "",
+      "type": "manual"
+    }
+  ]
+}

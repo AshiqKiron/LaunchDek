@@ -1,0 +1,58 @@
+{
+  "title": "Plugin Conflict Diagnosis",
+  "description": "Systematically isolate plugin conflicts causing errors, broken features, or layout issues without guesswork.",
+  "category": "troubleshooting",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "pc_document_symptoms",
+      "title": "Document Symptoms and Recent Changes",
+      "instructions": "Record exact error messages, affected URLs, and any plugin/theme updates in the last 48 hours. Note if the issue is front-end only, admin only, or both.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "pc_staging_clone",
+      "title": "Reproduce on Staging",
+      "instructions": "Clone production to staging before testing. Never bulk-deactivate plugins on live client sites during business hours without a rollback plan.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "pc_health_check",
+      "title": "Enable Troubleshooting Mode",
+      "instructions": "Use the Health Check plugin troubleshooting mode to disable plugins for your session only, without affecting other visitors.",
+      "deep_link": "plugins.php",
+      "type": "manual"
+    },
+    {
+      "id": "pc_binary_search",
+      "title": "Binary Search Plugin Groups",
+      "instructions": "Deactivate half the plugins at a time. When the issue clears, the conflict is in the disabled half. Narrow down until one plugin reproduces the problem.",
+      "deep_link": "plugins.php",
+      "type": "manual"
+    },
+    {
+      "id": "pc_check_js_console",
+      "title": "Check Browser Console for JS Conflicts",
+      "instructions": "Open DevTools → Console on affected pages. Script errors from two plugins loading incompatible libraries often point to the conflicting pair.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "pc_resolve_conflict",
+      "title": "Resolve or Replace Conflicting Plugin",
+      "instructions": "Update both plugins, change load order if supported, or replace one with an alternative. Contact plugin vendors with reproducible steps if needed.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "pc_document_stack",
+      "title": "Document Resolution for Client",
+      "instructions": "Record which plugin caused the conflict, the fix applied, and any plugins that must not run together on this site.",
+      "deep_link": "",
+      "type": "manual"
+    }
+  ]
+}

@@ -126,6 +126,7 @@ class LAUNCHDEK_Checklist_Repository {
 
 		$id = (int) $wpdb->insert_id;
 		LAUNCHDEK_Audit_Log::log( 'checklist_created', array( 'checklist_id' => $id, 'title' => $data['title'] ?? '' ) );
+		LAUNCHDEK_Dashboard_Cache::invalidate_stats();
 
 		return $id;
 	}
@@ -168,6 +169,7 @@ class LAUNCHDEK_Checklist_Repository {
 
 		if ( false !== $result ) {
 			LAUNCHDEK_Audit_Log::log( 'checklist_updated', array( 'checklist_id' => $id ) );
+			LAUNCHDEK_Dashboard_Cache::invalidate_stats();
 		}
 
 		return false !== $result;
@@ -186,6 +188,7 @@ class LAUNCHDEK_Checklist_Repository {
 
 		if ( $result ) {
 			LAUNCHDEK_Audit_Log::log( 'checklist_deleted', array( 'checklist_id' => $id ) );
+			LAUNCHDEK_Dashboard_Cache::invalidate_stats();
 		}
 
 		return (bool) $result;
@@ -263,14 +266,19 @@ class LAUNCHDEK_Checklist_Repository {
 				$target_roles = array_values( array_unique( $target_roles ) );
 			}
 
+			$show_note_field = array_key_exists( 'show_note_field', $step )
+				? ! empty( $step['show_note_field'] )
+				: ( 'manual' === $type );
+
 			$normalized[] = array(
-				'id'           => ! empty( $step['id'] ) ? sanitize_key( $step['id'] ) : 'step_' . ( $index + 1 ),
-				'title'        => sanitize_text_field( $step['title'] ?? sprintf( __( 'Step %d', LAUNCHDEK_TEXT_DOMAIN ), $index + 1 ) ),
-				'instructions' => sanitize_textarea_field( $step['instructions'] ?? '' ),
-				'deep_link'    => esc_url_raw( $step['deep_link'] ?? '' ),
-				'type'         => $type,
-				'target_roles' => $target_roles,
-				'api'          => self::normalize_api_config( $step['api'] ?? array() ),
+				'id'              => ! empty( $step['id'] ) ? sanitize_key( $step['id'] ) : 'step_' . ( $index + 1 ),
+				'title'           => sanitize_text_field( $step['title'] ?? sprintf( __( 'Step %d', LAUNCHDEK_TEXT_DOMAIN ), $index + 1 ) ),
+				'instructions'    => sanitize_textarea_field( $step['instructions'] ?? '' ),
+				'deep_link'       => esc_url_raw( $step['deep_link'] ?? '' ),
+				'type'            => $type,
+				'target_roles'    => $target_roles,
+				'show_note_field' => $show_note_field,
+				'api'             => self::normalize_api_config( $step['api'] ?? array() ),
 			);
 		}
 

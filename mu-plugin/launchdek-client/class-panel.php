@@ -35,7 +35,7 @@ class LAUNCHDEK_Client_Panel {
 		wp_enqueue_style(
 			'launchdek-client-admin',
 			LAUNCHDEK_CLIENT_PANEL_URL . 'css/launchdek-client-admin.css',
-			array(),
+			array( 'dashicons' ),
 			file_exists( $css_path ) ? (string) filemtime( $css_path ) : LAUNCHDEK_CLIENT_PANEL_VERSION
 		);
 
@@ -65,6 +65,8 @@ class LAUNCHDEK_Client_Panel {
 					'waiting'     => __( 'Waiting on agency', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
 					'pending'     => __( 'Pending', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
 					'openStep'    => __( 'Open step', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+					'goToSettings' => __( 'Go to settings', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+					'toggleStep'  => __( 'Toggle step details', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
 					'error'       => __( 'Could not update this step.', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
 					'runComplete' => __( 'Checklist complete — great work!', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
 					'progress'    => __( 'Progress', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),

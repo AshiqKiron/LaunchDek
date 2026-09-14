@@ -1,0 +1,65 @@
+{
+  "title": "Auto-Update Failures",
+  "description": "Fix WordPress core, plugin, and theme auto-updates that fail silently or leave the site in maintenance mode.",
+  "category": "troubleshooting",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "autoupd_identify_failure",
+      "title": "Identify What Failed to Update",
+      "instructions": "Check Dashboard → Updates for available vs failed updates. Review Site Health and email notifications. Note if core, plugin, or theme update caused the failure.",
+      "deep_link": "update-core.php",
+      "type": "manual"
+    },
+    {
+      "id": "autoupd_maintenance_file",
+      "title": "Remove Stale .maintenance File",
+      "instructions": "Failed updates often leave .maintenance in the WordPress root. Delete it via SFTP if the site shows 'Briefly unavailable for scheduled maintenance'.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "autoupd_file_permissions",
+      "title": "Fix File System Permissions",
+      "instructions": "Auto-updates need write access to wp-content, plugins, and themes. Verify ownership and permissions. Use FTP/SSH credentials in wp-config if direct writes fail.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "autoupd_disk_space",
+      "title": "Check Disk Space and Inode Quota",
+      "instructions": "Full disk causes partial updates — mixed file versions and fatal errors. Free space and retry the update.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "autoupd_manual_update",
+      "title": "Complete Update Manually",
+      "instructions": "Run the failed update manually from Dashboard or via WP-CLI: wp core update, wp plugin update --all. Verify site works before re-enabling auto-updates.",
+      "deep_link": "update-core.php",
+      "type": "manual"
+    },
+    {
+      "id": "autoupd_disable_problem",
+      "title": "Disable Auto-Update for Problem Component",
+      "instructions": "If one plugin consistently breaks auto-updates, disable auto-update for it and update manually on staging first. Document in client maintenance notes.",
+      "deep_link": "plugins.php",
+      "type": "manual"
+    },
+    {
+      "id": "autoupd_fs_method",
+      "title": "Configure FS_METHOD if Needed",
+      "instructions": "Add define('FS_METHOD', 'direct') to wp-config if updates fail with permission errors and the server supports direct writes. Use FTP constants only as fallback.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "autoupd_verify",
+      "title": "Verify Updates Complete Successfully",
+      "instructions": "Confirm all components show current versions. Test site functionality and monitor error logs for 24 hours after the fix.",
+      "deep_link": "update-core.php",
+      "type": "manual"
+    }
+  ]
+}

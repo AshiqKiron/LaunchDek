@@ -206,6 +206,7 @@ class LAUNCHDEK_Run_Repository {
 				'site_id'   => $site_id,
 			)
 		);
+		LAUNCHDEK_Dashboard_Cache::invalidate_stats();
 
 		return $run_id;
 	}
@@ -231,6 +232,7 @@ class LAUNCHDEK_Run_Repository {
 		if ( false !== $result ) {
 			LAUNCHDEK_Audit_Log::log( 'run_status_changed', array( 'status' => $status ), 0, $id );
 			LAUNCHDEK_Webhook_Dispatcher::dispatch( 'run_' . $status, array( 'run_id' => $id, 'status' => $status ) );
+			LAUNCHDEK_Dashboard_Cache::invalidate_stats();
 		}
 
 		return false !== $result;

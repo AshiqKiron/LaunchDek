@@ -35,7 +35,7 @@ class LAUNCHDEK_Admin {
 		);
 
 		$pages = array(
-			self::PAGE_SLUG              => array( __( 'LaunchDek Overview', LAUNCHDEK_TEXT_DOMAIN ), 'render_admin_page' ),
+			self::PAGE_SLUG              => array( __( 'LaunchDek Overview', LAUNCHDEK_TEXT_DOMAIN ), 'render_admin_page', __( 'Dashboard', LAUNCHDEK_TEXT_DOMAIN ) ),
 			self::PAGE_SLUG . '-sites'   => array( __( 'Sites', LAUNCHDEK_TEXT_DOMAIN ), 'render_sites_page' ),
 			self::PAGE_SLUG . '-checklists' => array( __( 'Checklists', LAUNCHDEK_TEXT_DOMAIN ), 'render_checklists_page' ),
 			self::PAGE_SLUG . '-automation' => array( __( 'Automation & Audit', LAUNCHDEK_TEXT_DOMAIN ), 'render_automation_page' ),
@@ -47,11 +47,24 @@ class LAUNCHDEK_Admin {
 			add_submenu_page(
 				self::PAGE_SLUG,
 				$page[0],
-				$page[0],
+				isset( $page[2] ) ? $page[2] : $page[0],
 				$cap,
 				$slug,
 				array( $this, $page[1] )
 			);
+		}
+
+		// Hidden page — null parent keeps it out of the menu while allowing direct URL access.
+		$activity_logs_hook = add_submenu_page(
+			null,
+			__( 'Activity Logs', LAUNCHDEK_TEXT_DOMAIN ),
+			__( 'Activity Logs', LAUNCHDEK_TEXT_DOMAIN ),
+			$cap,
+			self::PAGE_SLUG . '-activity-logs',
+			array( $this, 'render_activity_logs_page' )
+		);
+		if ( $activity_logs_hook ) {
+			add_action( 'load-' . $activity_logs_hook, array( $this, 'prepare_activity_logs_page' ) );
 		}
 	}
 
@@ -81,11 +94,18 @@ class LAUNCHDEK_Admin {
 		if ( ! is_admin() || ! isset( $_GET['page'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			return;
 		}
-		if ( self::PAGE_SLUG . '-templates' !== sanitize_key( wp_unslash( $_GET['page'] ) ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-			return;
+
+		$page = sanitize_key( wp_unslash( $_GET['page'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+
+		if ( self::PAGE_SLUG . '-templates' === $page ) {
+			wp_safe_redirect( admin_url( 'admin.php?page=' . self::PAGE_SLUG . '-checklists&tab=templates' ) );
+			exit;
 		}
-		wp_safe_redirect( admin_url( 'admin.php?page=' . self::PAGE_SLUG . '-checklists&tab=templates' ) );
-		exit;
+
+		if ( self::PAGE_SLUG . '-sites' === $page && ! empty( $_GET['activity_logs'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			wp_safe_redirect( admin_url( 'admin.php?page=' . self::PAGE_SLUG . '-activity-logs' ) );
+			exit;
+		}
 	}
 
 	public function maybe_activation_redirect() {
@@ -121,10 +141,7 @@ class LAUNCHDEK_Admin {
 			}
 		}
 
-		wp_localize_script(
-			'launchdek-admin',
-			'launchdekAdmin',
-			array(
+		$localize = array(
 				'restUrl'   => esc_url_raw( rest_url( LAUNCHDEK_REST_NAMESPACE ) ),
 				'nonce'     => wp_create_nonce( 'wp_rest' ),
 				'adminUrl'  => admin_url( 'admin.php' ),
@@ -135,6 +152,7 @@ class LAUNCHDEK_Admin {
 					'templatesUrl'   => admin_url( 'admin.php?page=' . self::PAGE_SLUG . '-checklists&tab=templates' ),
 					'checklistsUrl'  => admin_url( 'admin.php?page=' . self::PAGE_SLUG . '-checklists' ),
 					'automationUrl'  => admin_url( 'admin.php?page=' . self::PAGE_SLUG . '-automation' ),
+					'activityLogsUrl' => admin_url( 'admin.php?page=' . self::PAGE_SLUG . '-activity-logs' ),
 				),
 				'strings'   => array(
 					'confirmDelete'  => __( 'Are you sure you want to delete this?', LAUNCHDEK_TEXT_DOMAIN ),
@@ -152,6 +170,10 @@ class LAUNCHDEK_Admin {
 					'connectionFail' => __( 'Connection failed', LAUNCHDEK_TEXT_DOMAIN ),
 					'connectionDisconnected' => __( 'Connection not working', LAUNCHDEK_TEXT_DOMAIN ),
 					'connectionChecking' => __( 'Checking connection…', LAUNCHDEK_TEXT_DOMAIN ),
+					'connectionAllStatuses' => __( 'All Sites', LAUNCHDEK_TEXT_DOMAIN ),
+					'connectionSummaryHealthy' => __( 'Healthy', LAUNCHDEK_TEXT_DOMAIN ),
+					'connectionSummaryUnhealthy' => __( 'Issues', LAUNCHDEK_TEXT_DOMAIN ),
+					'connectionSummaryUnknown' => __( 'Unknown', LAUNCHDEK_TEXT_DOMAIN ),
 					'pushChecklist'  => __( 'Push Checklist', LAUNCHDEK_TEXT_DOMAIN ),
 					'pushChecklistSelect' => __( 'Select checklist…', LAUNCHDEK_TEXT_DOMAIN ),
 					'pushChecklistNeed' => __( 'Select a checklist to push.', LAUNCHDEK_TEXT_DOMAIN ),
@@ -196,6 +218,8 @@ class LAUNCHDEK_Admin {
 					'viewSteps'       => __( 'View steps', LAUNCHDEK_TEXT_DOMAIN ),
 					'hideSteps'       => __( 'Hide steps', LAUNCHDEK_TEXT_DOMAIN ),
 					'checklistSteps'  => __( 'Checklist steps', LAUNCHDEK_TEXT_DOMAIN ),
+					'stepSettings'    => __( 'Step settings', LAUNCHDEK_TEXT_DOMAIN ),
+					'showNoteField'   => __( 'Show note field on client panel', LAUNCHDEK_TEXT_DOMAIN ),
 					'stepsPreviewHint' => __( 'Hover or click View steps to preview the checklist.', LAUNCHDEK_TEXT_DOMAIN ),
 					'connected'       => __( 'Connected', LAUNCHDEK_TEXT_DOMAIN ),
 					'notDetected'     => __( 'Not Detected', LAUNCHDEK_TEXT_DOMAIN ),
@@ -237,8 +261,23 @@ class LAUNCHDEK_Admin {
 					'captureImported'     => __( 'Captured steps imported into the checklist builder.', LAUNCHDEK_TEXT_DOMAIN ),
 					'captureDefaultTitle' => __( 'Captured Checklist', LAUNCHDEK_TEXT_DOMAIN ),
 				),
-			)
 		);
+
+		if ( 'toplevel_page_' . self::PAGE_SLUG === $hook ) {
+			$localize['dashboard'] = array(
+				'stats'       => LAUNCHDEK_Dashboard_Cache::get_stats(),
+				'connections' => LAUNCHDEK_Dashboard_Cache::get_connection_counts(),
+				'feed'        => LAUNCHDEK_Dashboard_Cache::get_feed(),
+			);
+		}
+
+		if ( self::PAGE_SLUG . '_page_' . self::PAGE_SLUG . '-sites' === $hook ) {
+			$localize['sites'] = array(
+				'list' => LAUNCHDEK_Dashboard_Cache::get_sites_list(),
+			);
+		}
+
+		wp_localize_script( 'launchdek-admin', 'launchdekAdmin', $localize );
 	}
 
 	public function add_settings_link( $links ) {
@@ -255,11 +294,40 @@ class LAUNCHDEK_Admin {
 	}
 
 	public function render_admin_page() {
-		$this->render_page( 'launchdek-admin-page.php', array( 'page' => 'dashboard' ) );
+		$this->render_page(
+			'launchdek-admin-page.php',
+			array(
+				'page'              => 'dashboard',
+				'dashboard_stats'   => LAUNCHDEK_Dashboard_Cache::get_stats(),
+				'connection_counts' => LAUNCHDEK_Dashboard_Cache::get_connection_counts(),
+				'log_feed'          => LAUNCHDEK_Dashboard_Cache::get_feed(),
+			)
+		);
 	}
 
 	public function render_sites_page() {
-		$this->render_page( 'launchdek-sites-page.php', array( 'page' => 'sites' ) );
+		$this->render_page(
+			'launchdek-sites-page.php',
+			array(
+				'page'       => 'sites',
+				'sites_list' => LAUNCHDEK_Dashboard_Cache::get_sites_list(),
+			)
+		);
+	}
+
+	/**
+	 * Set admin screen title before admin-header.php runs (hidden pages have no parent menu).
+	 *
+	 * @return void
+	 */
+	public function prepare_activity_logs_page() {
+		global $title;
+
+		$title = __( 'Activity Logs', LAUNCHDEK_TEXT_DOMAIN );
+	}
+
+	public function render_activity_logs_page() {
+		$this->render_page( 'launchdek-activity-logs-page.php', array( 'page' => 'activity-logs' ) );
 	}
 
 	public function render_checklists_page() {

@@ -1,0 +1,58 @@
+{
+  "title": "Permalink & 404 Errors",
+  "description": "Fix broken permalinks, unexpected 404s, and rewrite rule issues after migrations or server changes.",
+  "category": "troubleshooting",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "p404_identify_pattern",
+      "title": "Identify 404 Pattern",
+      "instructions": "Note whether all pages 404, only posts, only categories, or specific URLs. Check if admin works while front-end pages fail.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "p404_flush_permalinks",
+      "title": "Flush Permalink Rewrite Rules",
+      "instructions": "Go to Settings → Permalinks and click Save without changing settings. This regenerates rewrite rules in the database.",
+      "deep_link": "options-permalink.php",
+      "type": "manual"
+    },
+    {
+      "id": "p404_htaccess",
+      "title": "Verify .htaccess Rewrite Block",
+      "instructions": "Ensure WordPress rewrite rules exist in .htaccess (Apache) or nginx config points try_files to index.php. Restore default rules if missing or corrupted.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "p404_site_url",
+      "title": "Confirm Site URL and Home URL",
+      "instructions": "Check Settings → General for correct http/https and domain. After migration, update siteurl and home in wp_options or wp-config.php constants if needed.",
+      "deep_link": "options-general.php",
+      "type": "manual"
+    },
+    {
+      "id": "p404_redirect_plugins",
+      "title": "Audit Redirect and SEO Plugins",
+      "instructions": "Redirection, Rank Math, and Yoast can create conflicting rules. Export redirect list, disable temporarily, and test if 404s resolve.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "p404_custom_post_types",
+      "title": "Re-register Custom Post Type Rewrites",
+      "instructions": "CPT plugins may need a permalink flush after activation. Deactivate/reactivate the CPT plugin or visit Permalinks settings again.",
+      "deep_link": "options-permalink.php",
+      "type": "manual"
+    },
+    {
+      "id": "p404_verify_urls",
+      "title": "Verify Sample URLs",
+      "instructions": "Test homepage, a recent post, a category archive, and a static page. Confirm sitemap URLs return HTTP 200.",
+      "deep_link": "",
+      "type": "manual"
+    }
+  ]
+}

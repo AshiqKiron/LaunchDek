@@ -1,0 +1,65 @@
+{
+  "title": "Broken Images & Media Library",
+  "description": "Fix images not displaying, wrong paths after migration, missing thumbnails, and media library showing blank thumbnails.",
+  "category": "troubleshooting",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "bimg_identify_pattern",
+      "title": "Identify Broken Image Pattern",
+      "instructions": "Note if all images fail, only uploads, only thumbnails, or only images in content. Check if URLs point to wrong domain or http instead of https.",
+      "deep_link": "upload.php",
+      "type": "manual"
+    },
+    {
+      "id": "bimg_url_mismatch",
+      "title": "Fix URL Mismatch After Migration",
+      "instructions": "Run serialization-safe search-replace for old upload URL. Verify upload_url_path and upload_path options in database are correct or empty for default.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "bimg_files_exist",
+      "title": "Verify Physical Files Exist on Server",
+      "instructions": "Check wp-content/uploads/year/month/ via SFTP. Missing files need restore from backup — database references alone cannot recreate images.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "bimg_regenerate_thumbnails",
+      "title": "Regenerate Thumbnails",
+      "instructions": "After theme switch or image size changes, regenerate thumbnails with Regenerate Thumbnails plugin or WP-CLI. Large libraries should run via CLI to avoid timeouts.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "bimg_hotlink_protection",
+      "title": "Check Hotlink Protection and CDN",
+      "instructions": "Server hotlink rules or CDN misconfiguration can block image loading. Verify CDN origin path matches uploads directory.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "bimg_permissions",
+      "title": "Fix Upload Directory Permissions",
+      "instructions": "Ensure wp-content/uploads is readable by the web server (755 dirs, 644 files). Wrong permissions cause 403 on image URLs.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "bimg_ssl_mixed",
+      "title": "Fix Mixed Content Image URLs",
+      "instructions": "Images hardcoded as http:// on an https site may be blocked. Search-replace or use SSL plugin to rewrite image URLs to https.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "bimg_verify",
+      "title": "Verify Images on Front End and Library",
+      "instructions": "Spot-check media library thumbnails, featured images, galleries, and inline content images. Test on mobile and after cache purge.",
+      "deep_link": "upload.php",
+      "type": "manual"
+    }
+  ]
+}

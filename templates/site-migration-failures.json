@@ -1,0 +1,65 @@
+{
+  "title": "Site Migration Failures",
+  "description": "Fix broken sites after migration — wrong URLs, missing media, broken permalinks, serialized data corruption, and DNS issues.",
+  "category": "troubleshooting",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "mig_document_symptoms",
+      "title": "Document Post-Migration Symptoms",
+      "instructions": "List broken images, wrong links, 404s, login failures, or layout issues. Note migration tool used and whether database or files were migrated separately.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "mig_search_replace",
+      "title": "Run Safe Search-Replace on URLs",
+      "instructions": "Use Better Search Replace or WP-CLI on staging first. Replace old domain with new (http and https variants). Never blind replace in production without backup.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "mig_site_url",
+      "title": "Update siteurl and home Options",
+      "instructions": "Set correct URLs in Settings → General or wp-config.php constants (WP_HOME, WP_SITEURL). Mismatched URLs break logins, assets, and REST API.",
+      "deep_link": "options-general.php",
+      "type": "manual"
+    },
+    {
+      "id": "mig_serialized_data",
+      "title": "Fix Corrupted Serialized Data",
+      "instructions": "Naive search-replace breaks serialized PHP strings in options and meta. Use serialization-aware tools only. Symptoms: broken widgets, theme settings, page builder data.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "mig_permalinks",
+      "title": "Flush Permalinks and Rewrite Rules",
+      "instructions": "Visit Settings → Permalinks and save. Re-assign WooCommerce pages and menu locations if they broke after import.",
+      "deep_link": "options-permalink.php",
+      "type": "manual"
+    },
+    {
+      "id": "mig_media_files",
+      "title": "Verify Media Files Migrated",
+      "instructions": "Confirm wp-content/uploads copied completely. Broken images often mean incomplete file transfer or wrong upload URL in database.",
+      "deep_link": "upload.php",
+      "type": "manual"
+    },
+    {
+      "id": "mig_dns_ssl",
+      "title": "Confirm DNS and SSL on New Host",
+      "instructions": "Verify A/CNAME records point to new server. Install SSL certificate and update URLs to https. Test before switching production DNS if possible.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "mig_verify",
+      "title": "Full Site Verification Checklist",
+      "instructions": "Test homepage, internal links, forms, checkout, admin login, and email delivery. Run a broken link checker before announcing migration complete.",
+      "deep_link": "",
+      "type": "manual"
+    }
+  ]
+}

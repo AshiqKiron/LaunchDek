@@ -1,0 +1,65 @@
+{
+  "title": "Block Editor (Gutenberg) Troubleshooting",
+  "description": "Fix editor not loading, missing blocks, REST API failures, reusable blocks issues, and classic editor conflicts.",
+  "category": "troubleshooting",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "gute_identify_symptom",
+      "title": "Identify Editor Symptom",
+      "instructions": "Note if the editor white-screens, blocks fail to insert, styles are wrong in editor vs front end, or only certain post types are affected.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "gute_rest_api",
+      "title": "Verify REST API and Permalinks",
+      "instructions": "Block editor depends on /wp-json/. Test REST in browser or Site Health. Flush permalinks and fix security plugins blocking REST for logged-in users.",
+      "deep_link": "options-permalink.php",
+      "type": "manual"
+    },
+    {
+      "id": "gute_console_errors",
+      "title": "Check Browser Console for Block Errors",
+      "instructions": "Open DevTools when loading the editor. Failed block registrations, React errors, or 404 script loads often point to a specific plugin block.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "gute_plugin_blocks",
+      "title": "Isolate Plugin Block Conflicts",
+      "instructions": "Deactivate plugins that register blocks (page builders, ACF blocks, custom blocks) one at a time. Use Health Check troubleshooting mode if needed.",
+      "deep_link": "plugins.php",
+      "type": "manual"
+    },
+    {
+      "id": "gute_classic_editor",
+      "title": "Resolve Classic Editor Plugin Conflicts",
+      "instructions": "Classic Editor, Disable Gutenberg, or builder plugins may force the wrong editor per post type. Review plugin settings and use_block_editor filter conflicts.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "gute_theme_json",
+      "title": "Audit theme.json and Block Theme Settings",
+      "instructions": "Block themes use theme.json for colors, fonts, and layout. Invalid JSON or aggressive theme restrictions can hide blocks or break editor styles.",
+      "deep_link": "site-editor.php",
+      "type": "manual"
+    },
+    {
+      "id": "gute_reusable_patterns",
+      "title": "Fix Broken Reusable Blocks and Patterns",
+      "instructions": "Invalid reusable block references show validation errors. Edit or recreate broken reusables. Sync patterns after theme updates if using theme-bundled patterns.",
+      "deep_link": "edit.php?post_type=wp_block",
+      "type": "manual"
+    },
+    {
+      "id": "gute_verify",
+      "title": "Verify Edit, Save, and Front-End Match",
+      "instructions": "Create a test post with core blocks, save, and compare editor preview to the published page. Test on a second post type if the issue was CPT-specific.",
+      "deep_link": "post-new.php",
+      "type": "manual"
+    }
+  ]
+}

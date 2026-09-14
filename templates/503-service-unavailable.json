@@ -1,0 +1,51 @@
+{
+  "title": "503 Service Unavailable",
+  "description": "Resolve temporary 503 responses — maintenance mode, overloaded server, or security plugins blocking traffic.",
+  "category": "troubleshooting",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "err503_maintenance_file",
+      "title": "Check for .maintenance File",
+      "instructions": "Delete .maintenance in the WordPress root if a failed update left the site in maintenance mode. The file should auto-remove after 10 minutes — stale files cause 503.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "err503_maintenance_plugins",
+      "title": "Disable Maintenance Mode Plugins",
+      "instructions": "Deactivate plugins that put the site in maintenance or coming-soon mode. Check wp-content/maintenance.php and hosting-level maintenance toggles.",
+      "deep_link": "plugins.php",
+      "type": "manual"
+    },
+    {
+      "id": "err503_server_load",
+      "title": "Review Server Load and Rate Limits",
+      "instructions": "High traffic or DDoS can trigger 503 from the host or WAF. Check resource graphs, enable rate limiting, and contact support if the server is at capacity.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "err503_security_plugins",
+      "title": "Audit Security Plugin Lockouts",
+      "instructions": "Wordfence, iThemes, or server mod_security rules may return 503 for blocked IPs. Whitelist your office IP and review recent firewall blocks.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "err503_caching_layer",
+      "title": "Bypass or Purge Caching Layer",
+      "instructions": "A misconfigured page cache or CDN can serve stale 503 pages. Purge all caches and test with cache bypass (nocache query param or development mode).",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "err503_verify",
+      "title": "Confirm Public Access Restored",
+      "instructions": "Test from an external network and incognito browser. Verify crawlers and monitoring tools receive HTTP 200 on key URLs.",
+      "deep_link": "",
+      "type": "manual"
+    }
+  ]
+}

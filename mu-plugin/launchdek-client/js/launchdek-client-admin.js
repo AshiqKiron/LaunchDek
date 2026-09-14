@@ -14,6 +14,7 @@
 	var run = launchdekClient.run;
 	var collapsed = false;
 	var showAllSteps = false;
+	var expandedSteps = {};
 	var pendingAttachment = null;
 	var STORAGE_KEY = 'launchdek_client_runner_prefs';
 
@@ -35,6 +36,9 @@
 			if (prefs && typeof prefs.showAllSteps === 'boolean') {
 				showAllSteps = prefs.showAllSteps;
 			}
+			if (prefs && prefs.expandedSteps && typeof prefs.expandedSteps === 'object') {
+				expandedSteps = prefs.expandedSteps;
+			}
 		} catch (e) {
 			// Ignore invalid localStorage.
 		}
@@ -42,10 +46,39 @@
 
 	function savePrefs() {
 		try {
-			localStorage.setItem(STORAGE_KEY, JSON.stringify({ showAllSteps: showAllSteps }));
+			localStorage.setItem(STORAGE_KEY, JSON.stringify({
+				showAllSteps: showAllSteps,
+				expandedSteps: expandedSteps
+			}));
 		} catch (e) {
 			// Ignore quota errors.
 		}
+	}
+
+	function stepExpandedKey(step) {
+		return String(step.step_index);
+	}
+
+	function isStepExpanded(step, index, activeIndex) {
+		var key = stepExpandedKey(step);
+		if (expandedSteps.hasOwnProperty(key)) {
+			return !!expandedSteps[key];
+		}
+		return index === activeIndex || step.status === 'awaiting_manual';
+	}
+
+	function toggleStepExpanded(stepIndex) {
+		var key = String(stepIndex);
+		var current = expandedSteps.hasOwnProperty(key)
+			? !!expandedSteps[key]
+			: true;
+		expandedSteps[key] = !current;
+		savePrefs();
+		render();
+	}
+
+	function stepShowsNoteField(step) {
+		return step.show_note_field !== false;
 	}
 
 	function statusLabel(status) {
@@ -118,7 +151,7 @@
 	}
 
 	function renderNoteForm(step) {
-		if (step.status !== 'awaiting_manual' || !step.can_complete) {
+		if (!stepShowsNoteField(step) || step.status !== 'awaiting_manual' || !step.can_complete) {
 			return '';
 		}
 
@@ -154,15 +187,28 @@
 		return false;
 	}
 
-	function renderCollapsedStep(step) {
-		return '<li class="launchdek-client-step is-collapsed-summary is-completed" data-step-index="' + escHtml(step.step_index) + '">' +
-			'<span class="launchdek-client-step-summary-title">' + escHtml(step.title) + '</span>' +
-			'<span class="launchdek-client-step-badge completed">' + escHtml(statusLabel('completed')) + '</span>' +
-		'</li>';
+	function renderCollapsedStep(step, index, activeIndex) {
+		var expanded = isStepExpanded(step, index, activeIndex);
+		var chevronClass = expanded ? 'dashicons-arrow-up-alt2' : 'dashicons-arrow-down-alt2';
+
+		if (!expanded) {
+			return '<li class="launchdek-client-step is-collapsed-summary is-completed" data-step-index="' + escHtml(step.step_index) + '">' +
+				'<button type="button" class="launchdek-client-step-toggle" data-step="' + escHtml(step.step_index) + '" aria-expanded="false" aria-label="' + escHtml(strings.toggleStep || 'Toggle step details') + '">' +
+					'<span class="dashicons ' + chevronClass + '" aria-hidden="true"></span>' +
+				'</button>' +
+				'<span class="launchdek-client-step-summary-title">' + escHtml(step.title) + '</span>' +
+				'<span class="launchdek-client-step-badge completed">' + escHtml(statusLabel('completed')) + '</span>' +
+			'</li>';
+		}
+
+		return renderStep(step, false, index, activeIndex, true);
 	}
 
-	function renderStep(step, isActive) {
+	function renderStep(step, isActive, index, activeIndex, forceExpanded) {
 		var classes = ['launchdek-client-step'];
+		var expanded = forceExpanded || isStepExpanded(step, index, activeIndex);
+		var chevronClass = expanded ? 'dashicons-arrow-up-alt2' : 'dashicons-arrow-down-alt2';
+
 		if (step.status === 'completed') {
 			classes.push('is-completed');
 		}
@@ -172,24 +218,41 @@
 		if (isActive) {
 			classes.push('is-current');
 		}
+		if (!expanded) {
+			classes.push('is-collapsed');
+		}
 
 		var actions = '';
-		if (step.deep_link && (isActive || step.status === 'awaiting_manual')) {
-			actions += '<a class="button button-primary button-small launchdek-client-open-step" href="' + escHtml(step.deep_link) + '" target="_blank" rel="noopener">' + escHtml(strings.openStep || 'Open step') + '</a>';
-		}
 		if (step.status === 'awaiting_manual' && step.can_complete) {
 			actions += '<button type="button" class="button button-small launchdek-client-complete-step" data-step="' + escHtml(step.step_index) + '">' + escHtml(strings.complete || 'Mark complete') + '</button>';
 		}
 
+		var body = '';
+		if (expanded) {
+			if (step.instructions) {
+				body += '<p class="launchdek-client-step-instructions">' + escHtml(step.instructions) + '</p>';
+			}
+			if (step.deep_link) {
+				body += '<p class="launchdek-client-step-settings-link-wrap">' +
+					'<a class="launchdek-client-step-settings-link" href="' + escHtml(step.deep_link) + '" target="_blank" rel="noopener">' + escHtml(strings.goToSettings || 'Go to settings') + '</a>' +
+				'</p>';
+			}
+			body += renderNotes(step.notes);
+			body += renderNoteForm(step);
+			if (actions) {
+				body += '<div class="launchdek-client-step-actions">' + actions + '</div>';
+			}
+		}
+
 		return '<li class="' + classes.join(' ') + '" data-step-index="' + escHtml(step.step_index) + '">' +
 			'<div class="launchdek-client-step-head">' +
+				'<button type="button" class="launchdek-client-step-toggle" data-step="' + escHtml(step.step_index) + '" aria-expanded="' + (expanded ? 'true' : 'false') + '" aria-label="' + escHtml(strings.toggleStep || 'Toggle step details') + '">' +
+					'<span class="dashicons ' + chevronClass + '" aria-hidden="true"></span>' +
+				'</button>' +
 				'<h3 class="launchdek-client-step-title">' + escHtml(step.title) + '</h3>' +
 				'<span class="launchdek-client-step-badge ' + escHtml(step.status) + '">' + escHtml(statusLabel(step.status)) + '</span>' +
 			'</div>' +
-			((isActive || step.status === 'awaiting_manual') && step.instructions ? '<p class="launchdek-client-step-instructions">' + escHtml(step.instructions) + '</p>' : '') +
-			renderNotes(step.notes) +
-			renderNoteForm(step) +
-			(actions ? '<div class="launchdek-client-step-actions">' + actions + '</div>' : '') +
+			(body ? '<div class="launchdek-client-step-body">' + body + '</div>' : '') +
 		'</li>';
 	}
 
@@ -231,12 +294,12 @@
 						? '<div class="launchdek-client-panel-notice success">' + escHtml(strings.runComplete || 'Checklist complete — great work!') + '</div>'
 						: '<ol class="launchdek-client-step-list">' + steps.map(function (step, index) {
 							if (!showAllSteps && step.status === 'completed') {
-								return renderCollapsedStep(step);
+								return renderCollapsedStep(step, index, activeIndex);
 							}
 							if (!shouldShowStep(step, index, steps, activeIndex)) {
 								return '';
 							}
-							return renderStep(step, index === activeIndex);
+							return renderStep(step, index === activeIndex, index, activeIndex, false);
 						}).join('') + '</ol>') +
 					'<div id="launchdek-client-panel-notice"></div>' +
 				'</div>' +
@@ -271,6 +334,12 @@
 				render();
 			});
 		}
+
+		root.querySelectorAll('.launchdek-client-step-toggle').forEach(function (btn) {
+			btn.addEventListener('click', function () {
+				toggleStepExpanded(parseInt(btn.getAttribute('data-step'), 10));
+			});
+		});
 
 		root.querySelectorAll('.launchdek-client-complete-step').forEach(function (btn) {
 			btn.addEventListener('click', function () {

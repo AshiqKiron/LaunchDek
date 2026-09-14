@@ -1,0 +1,58 @@
+{
+  "title": "Theme Conflict Diagnosis",
+  "description": "Isolate theme and child-theme issues affecting layout, functionality, or compatibility with plugins and the block editor.",
+  "category": "troubleshooting",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "tc_document_issue",
+      "title": "Document Layout or Function Breakage",
+      "instructions": "Capture screenshots of broken pages, list affected templates (single, archive, checkout), and note if the issue appeared after a theme update.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "tc_switch_default",
+      "title": "Switch to a Default Theme Temporarily",
+      "instructions": "Activate Twenty Twenty-Four (or latest default) on staging. If the issue disappears, the active theme or child theme is involved.",
+      "deep_link": "themes.php",
+      "type": "manual"
+    },
+    {
+      "id": "tc_child_theme",
+      "title": "Test Parent vs Child Theme",
+      "instructions": "Switch from child to parent theme. If the child alone breaks, review functions.php overrides, dequeue scripts, and custom template parts.",
+      "deep_link": "themes.php",
+      "type": "manual"
+    },
+    {
+      "id": "tc_custom_functions",
+      "title": "Review functions.php and Custom Code",
+      "instructions": "Comment out recent additions in the child theme functions.php. Check for deprecated hooks, removed template tags, or aggressive script dequeuing.",
+      "deep_link": "theme-editor.php",
+      "type": "manual"
+    },
+    {
+      "id": "tc_page_builder",
+      "title": "Check Page Builder and Theme Integration",
+      "instructions": "Elementor, Divi, and similar builders can conflict with theme headers/footers. Regenerate CSS, clear builder cache, and test with default theme templates.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "tc_update_theme",
+      "title": "Update Theme and Clear Caches",
+      "instructions": "Apply pending theme updates on staging first. Purge page cache, CDN, and browser cache after updating theme or builder plugin versions.",
+      "deep_link": "update-core.php",
+      "type": "manual"
+    },
+    {
+      "id": "tc_verify_templates",
+      "title": "Verify Key Templates on Production",
+      "instructions": "After deploying the fix, test homepage, blog, contact page, and WooCommerce flows if applicable. Confirm mobile and desktop layouts.",
+      "deep_link": "",
+      "type": "manual"
+    }
+  ]
+}

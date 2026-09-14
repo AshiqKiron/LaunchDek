@@ -1,0 +1,58 @@
+{
+  "title": "Database Connection Error",
+  "description": "Resolve 'Error establishing a database connection' — wrong credentials, down MySQL server, or corrupted wp-config.",
+  "category": "troubleshooting",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "dbc_confirm_outage",
+      "title": "Confirm Site-Wide Database Failure",
+      "instructions": "If only one page fails, it may be a plugin query issue — not a true connection error. True DB errors block the entire site including wp-admin.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "dbc_host_status",
+      "title": "Check MySQL/MariaDB Server Status",
+      "instructions": "Verify the database service is running in hosting panel. Check for host maintenance notices or resource limit suspensions.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "dbc_wp_config",
+      "title": "Verify wp-config.php Credentials",
+      "instructions": "Confirm DB_NAME, DB_USER, DB_PASSWORD, and DB_HOST match hosting credentials. After migration, host may use a socket path instead of localhost.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "dbc_test_connection",
+      "title": "Test Connection Outside WordPress",
+      "instructions": "Use phpMyAdmin, MySQL CLI, or a one-line PHP mysqli test with the same credentials. Isolate whether WordPress or the server is at fault.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "dbc_connection_limit",
+      "title": "Check max_connections and Sleeping Queries",
+      "instructions": "Too many connections from a runaway plugin or missing persistent cache can exhaust MySQL max_connections. Kill long-running queries and restart MySQL if safe.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "dbc_repair_tables",
+      "title": "Repair Corrupted Tables if Needed",
+      "instructions": "If logs show 'table is marked as crashed', run REPAIR TABLE via phpMyAdmin. Restore from backup if corruption is widespread.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "dbc_verify",
+      "title": "Verify Site and Admin Access",
+      "instructions": "Load homepage and wp-admin. Monitor for recurring connection errors and document any credential or host changes made.",
+      "deep_link": "",
+      "type": "manual"
+    }
+  ]
+}

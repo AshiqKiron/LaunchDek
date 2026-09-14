@@ -1,0 +1,65 @@
+{
+  "title": "WP Super Cache Troubleshooting",
+  "description": "Fix stale cached pages, cache not generating, logged-in user issues, and conflicts with other optimization plugins.",
+  "category": "troubleshooting",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "wpsc_identify_symptom",
+      "title": "Identify Cache Symptom",
+      "instructions": "Determine if pages show stale content, cache never builds, only anonymous users affected, or admin breaks. Note if another cache plugin is also active.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "wpsc_single_cache_plugin",
+      "title": "Disable Duplicate Caching Plugins",
+      "instructions": "Run only one full-page cache (WP Super Cache, LiteSpeed, W3 Total Cache, etc.). Deactivate others to avoid double-caching and unpredictable purges.",
+      "deep_link": "plugins.php",
+      "type": "manual"
+    },
+    {
+      "id": "wpsc_mod_rewrite",
+      "title": "Verify mod_rewrite and Advanced Cache Drop-in",
+      "instructions": "Check Settings → WP Super Cache: mod_rewrite rules in .htaccess or wp-cache-config.php. Confirm advanced-cache.php exists in wp-content and WP_CACHE is true in wp-config.",
+      "deep_link": "options-general.php?page=wpsupercache",
+      "type": "manual"
+    },
+    {
+      "id": "wpsc_rejected_uri",
+      "title": "Review Rejected URI and Cookie Rules",
+      "instructions": "Ensure cart, checkout, my-account, and wp-admin are excluded. Add cookies that should bypass cache (woocommerce_items_in_cart, wordpress_logged_in).",
+      "deep_link": "options-general.php?page=wpsupercache",
+      "type": "manual"
+    },
+    {
+      "id": "wpsc_preload",
+      "title": "Fix or Disable Broken Preload",
+      "instructions": "Preload can hammer the server or serve incomplete pages. Disable preload temporarily, delete cache, and test manual cache generation on a single URL.",
+      "deep_link": "options-general.php?page=wpsupercache",
+      "type": "manual"
+    },
+    {
+      "id": "wpsc_purge_hooks",
+      "title": "Confirm Cache Purge on Publish",
+      "instructions": "After publishing, confirm the live page updates. If not, manually delete cache from the admin bar and check if a theme or plugin blocks wp_cache_clear_cache hooks.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "wpsc_cdn_conflict",
+      "title": "Check CDN and minify Conflicts",
+      "instructions": "Disable WP Super Cache minify if using Autoptimize or host CDN. CDN caching another layer may require purge rules at Cloudflare or similar.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "wpsc_verify",
+      "title": "Verify Cache Headers and Fresh Content",
+      "instructions": "Use curl -I or DevTools to confirm cache HIT/MISS behavior. Test logged-out view after edits; confirm WooCommerce cart still works when caching is on.",
+      "deep_link": "",
+      "type": "manual"
+    }
+  ]
+}

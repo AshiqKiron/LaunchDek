@@ -1,0 +1,58 @@
+{
+  "title": "Fatal Error Recovery",
+  "description": "Use WordPress recovery mode and safe debugging practices to fix PHP fatal errors without extended downtime.",
+  "category": "troubleshooting",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "fer_read_error",
+      "title": "Read the Fatal Error Message",
+      "instructions": "Check the admin email recovery notice, wp-content/debug.log, or host PHP error log. Note plugin/theme file path, line number, and error type (undefined function, class not found, etc.).",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "fer_recovery_link",
+      "title": "Enter Recovery Mode",
+      "instructions": "Click the recovery mode link in the admin email. This logs you in with the problematic plugin or theme paused. Extend the recovery session if needed.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "fer_update_offender",
+      "title": "Update or Roll Back Offending Component",
+      "instructions": "If the error started after an update, roll back the plugin/theme version via backup or vendor changelog. Apply pending updates if the error is from outdated code on new PHP.",
+      "deep_link": "plugins.php",
+      "type": "manual"
+    },
+    {
+      "id": "fer_php_compatibility",
+      "title": "Check PHP Version Compatibility",
+      "instructions": "Fatal 'undefined function' errors often mean PHP was upgraded before plugins. Match PHP version to plugin requirements or update plugins for the new PHP.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "fer_custom_code",
+      "title": "Review Custom Snippets and mu-plugins",
+      "instructions": "Disable custom code in Code Snippets, functions.php, or mu-plugins that reference removed WordPress APIs. Test after each removal.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "fer_staging_test",
+      "title": "Validate Fix on Staging First",
+      "instructions": "Before re-enabling the paused plugin on production, confirm the fix on staging with the same PHP version and active plugin set.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "fer_exit_recovery",
+      "title": "Exit Recovery and Monitor",
+      "instructions": "Re-enable the fixed component, exit recovery mode, and monitor error logs for 24 hours. Document root cause for the client runbook.",
+      "deep_link": "",
+      "type": "manual"
+    }
+  ]
+}

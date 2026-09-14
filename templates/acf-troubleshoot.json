@@ -1,0 +1,65 @@
+{
+  "title": "Advanced Custom Fields (ACF) Troubleshooting",
+  "description": "Fix missing field groups, values not saving, REST/API exposure issues, and ACF Pro license problems.",
+  "category": "troubleshooting",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "acf_identify_issue",
+      "title": "Identify the ACF Symptom",
+      "instructions": "Determine if field groups are missing in admin, values not saving on save, fields empty on the front end, or JSON sync out of date after deploy.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "acf_location_rules",
+      "title": "Review Field Group Location Rules",
+      "instructions": "Open ACF → Field Groups and confirm location rules match the post type, page template, or taxonomy. A single wrong rule hides the entire group.",
+      "deep_link": "edit.php?post_type=acf-field-group",
+      "type": "manual"
+    },
+    {
+      "id": "acf_json_sync",
+      "title": "Sync Local JSON Field Groups",
+      "instructions": "If using acf-json in the theme, check ACF → Tools → Sync for available updates. Deploy theme JSON files before expecting fields on staging/production.",
+      "deep_link": "edit.php?post_type=acf-field-group&page=acf-tools",
+      "type": "manual"
+    },
+    {
+      "id": "acf_save_conflicts",
+      "title": "Check for Save Hook Conflicts",
+      "instructions": "Other plugins or theme code hooking save_post can prevent meta from saving. Temporarily disable custom save hooks and test if ACF values persist.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "acf_template_tags",
+      "title": "Verify get_field() and Template Usage",
+      "instructions": "Confirm field names match (no typos). Use the second parameter for post ID on archives. For options pages, use 'option' as the post_id.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "acf_rest_api",
+      "title": "Enable REST API Exposure if Needed",
+      "instructions": "For headless or block editor use, enable 'Show in REST API' on field groups. Verify fields appear in /wp/v2/{post_type} responses.",
+      "deep_link": "edit.php?post_type=acf-field-group",
+      "type": "manual"
+    },
+    {
+      "id": "acf_pro_license",
+      "title": "Verify ACF Pro License and Updates",
+      "instructions": "Expired licenses block Pro updates and can cause compatibility issues on new WordPress versions. Re-activate the license under Plugins or ACF settings.",
+      "deep_link": "plugins.php",
+      "type": "manual"
+    },
+    {
+      "id": "acf_verify",
+      "title": "Test Save and Front-End Display",
+      "instructions": "Edit a post with ACF fields, save, reload admin, and confirm values on the front end. Repeat on staging after any JSON sync or deploy.",
+      "deep_link": "",
+      "type": "manual"
+    }
+  ]
+}

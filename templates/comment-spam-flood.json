@@ -1,0 +1,65 @@
+{
+  "title": "Comment Spam Flood",
+  "description": "Stop comment spam floods, clean thousands of spam comments, and prevent recurrence without breaking legitimate discussion.",
+  "category": "troubleshooting",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "spam_assess_volume",
+      "title": "Assess Spam Volume and Source",
+      "instructions": "Check Comments admin for pending spam count. Note if spam targets one post or is site-wide. Check if comments are even needed on the site.",
+      "deep_link": "edit-comments.php",
+      "type": "manual"
+    },
+    {
+      "id": "spam_bulk_delete",
+      "title": "Bulk Delete Existing Spam",
+      "instructions": "Use Comments → Spam → Empty Spam. For huge volumes, use WP-CLI: wp comment delete $(wp comment list --status=spam --format=ids) --force. Backup database first.",
+      "deep_link": "edit-comments.php",
+      "type": "manual"
+    },
+    {
+      "id": "spam_disable_if_unused",
+      "title": "Disable Comments Where Not Needed",
+      "instructions": "Turn off comments on pages and old posts via Settings → Discussion or bulk edit. Use a disable-comments plugin for site-wide shutdown if comments are unused.",
+      "deep_link": "options-discussion.php",
+      "type": "manual"
+    },
+    {
+      "id": "spam_akismet_antispam",
+      "title": "Enable Akismet or Anti-Spam Plugin",
+      "instructions": "Install Akismet, Antispam Bee, or CleanTalk. Configure API keys and test with a legitimate comment to ensure real comments are not blocked.",
+      "deep_link": "plugins.php",
+      "type": "manual"
+    },
+    {
+      "id": "spam_honeypot_captcha",
+      "title": "Add Honeypot or CAPTCHA",
+      "instructions": "Add reCAPTCHA, hCaptcha, or honeypot fields to comment forms. Balance friction — too aggressive blocks real users.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "spam_close_old_posts",
+      "title": "Auto-Close Comments on Old Posts",
+      "instructions": "Enable 'Automatically close comments on posts older than X days' under Settings → Discussion. Most spam targets old high-traffic posts.",
+      "deep_link": "options-discussion.php",
+      "type": "manual"
+    },
+    {
+      "id": "spam_block_bots",
+      "title": "Block Comment Spam Bots at Server Level",
+      "instructions": "Rate-limit comment POST requests in WAF or security plugin. Block known spam IP ranges and disable pingbacks if not needed.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "spam_verify",
+      "title": "Monitor Comment Queue for 48 Hours",
+      "instructions": "Watch for new spam influx. Confirm legitimate comments still work if comments remain enabled. Document anti-spam stack for client.",
+      "deep_link": "edit-comments.php",
+      "type": "manual"
+    }
+  ]
+}

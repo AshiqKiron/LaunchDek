@@ -49,6 +49,10 @@ class LAUNCHDEK_Templates {
 				'label'       => __( 'Compliance & Privacy', LAUNCHDEK_TEXT_DOMAIN ),
 				'description' => __( 'GDPR, cookies, accessibility, and legal pages.', LAUNCHDEK_TEXT_DOMAIN ),
 			),
+			'troubleshooting' => array(
+				'label'       => __( 'Troubleshooting', LAUNCHDEK_TEXT_DOMAIN ),
+				'description' => __( 'Step-by-step fixes for common WordPress errors and outages.', LAUNCHDEK_TEXT_DOMAIN ),
+			),
 		);
 	}
 

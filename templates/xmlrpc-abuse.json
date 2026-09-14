@@ -1,0 +1,58 @@
+{
+  "title": "XML-RPC Abuse & Attacks",
+  "description": "Stop xmlrpc.php abuse — pingback DDoS, brute force amplification, and unnecessary exposure on sites that do not need XML-RPC.",
+  "category": "troubleshooting",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "xmlrpc_confirm_abuse",
+      "title": "Confirm XML-RPC Is the Attack Vector",
+      "instructions": "Check server logs for high traffic to /xmlrpc.php. Look for system.multicall brute force attempts or pingback floods in access logs.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "xmlrpc_check_dependencies",
+      "title": "Check if XML-RPC Is Required",
+      "instructions": "Jetpack, some mobile apps, and remote publishing tools need XML-RPC. Confirm with client before disabling. WooCommerce and most sites do not need it.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "xmlrpc_disable_plugin",
+      "title": "Disable XML-RPC via Plugin or Filter",
+      "instructions": "Use Disable XML-RPC plugin or add remove_action for xmlrpc if not needed. Safer than deleting the file — WordPress may restore it on update.",
+      "deep_link": "plugins.php",
+      "type": "manual"
+    },
+    {
+      "id": "xmlrpc_htaccess_block",
+      "title": "Block xmlrpc.php at Server Level",
+      "instructions": "Add Apache/nginx deny rule for xmlrpc.php if plugin approach is insufficient. More efficient — blocked before PHP loads.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "xmlrpc_disable_pingback",
+      "title": "Disable Pingbacks Site-Wide",
+      "instructions": "Uncheck 'Attempt to notify any blogs linked from the post' under Settings → Writing. Pingbacks are a common DDoS amplification vector.",
+      "deep_link": "options-writing.php",
+      "type": "manual"
+    },
+    {
+      "id": "xmlrpc_security_plugin",
+      "title": "Restrict XML-RPC in Security Plugin",
+      "instructions": "Wordfence and similar plugins can block xmlrpc.php or allow only authenticated requests. Configure instead of full disable if Jetpack is required.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "xmlrpc_verify",
+      "title": "Verify Attack Stopped and Site Functions",
+      "instructions": "Confirm xmlrpc.php traffic drops in logs. Test Jetpack/mobile app if applicable. Monitor for 48 hours.",
+      "deep_link": "",
+      "type": "manual"
+    }
+  ]
+}

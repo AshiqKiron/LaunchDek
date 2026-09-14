@@ -71,15 +71,21 @@ class LAUNCHDEK_Client_Run_Store {
 				$notes[] = $sanitized;
 			}
 
+			$step_type       = sanitize_key( $step['type'] ?? 'manual' );
+			$show_note_field = array_key_exists( 'show_note_field', $step )
+				? ! empty( $step['show_note_field'] )
+				: ( 'manual' === $step_type );
+
 			$steps[] = array(
-				'step_index'   => absint( $step['step_index'] ?? 0 ),
-				'title'        => sanitize_text_field( $step['title'] ?? '' ),
-				'type'         => sanitize_key( $step['type'] ?? 'manual' ),
-				'status'       => sanitize_key( $step['status'] ?? 'pending' ),
-				'instructions' => sanitize_textarea_field( $step['instructions'] ?? '' ),
-				'target_roles' => array_values( array_map( 'sanitize_key', (array) ( $step['target_roles'] ?? array() ) ) ),
-				'deep_link'    => ! empty( $step['deep_link'] ) ? esc_url_raw( $step['deep_link'] ) : '',
-				'notes'        => $notes,
+				'step_index'      => absint( $step['step_index'] ?? 0 ),
+				'title'           => sanitize_text_field( $step['title'] ?? '' ),
+				'type'            => $step_type,
+				'status'          => sanitize_key( $step['status'] ?? 'pending' ),
+				'instructions'    => sanitize_textarea_field( $step['instructions'] ?? '' ),
+				'target_roles'    => array_values( array_map( 'sanitize_key', (array) ( $step['target_roles'] ?? array() ) ) ),
+				'deep_link'       => ! empty( $step['deep_link'] ) ? esc_url_raw( $step['deep_link'] ) : '',
+				'show_note_field' => $show_note_field,
+				'notes'           => $notes,
 			);
 		}
 

@@ -51,9 +51,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 - Remote: `LAUNCHDEK_Remote_Client::from_site( $id )` for authenticated requests (returns `null` if credentials missing).
 - Client panel: `LAUNCHDEK_Mu_Plugin_Installer::ensure_installed( $site_id )` on site create/update/test; `LAUNCHDEK_Client_Push::push_run()` / `::sync_run()` / `::complete_client_step()` for hub↔client run flow; `LAUNCHDEK_Auto_Capture::{get_status,start,stop,clear}()` proxies capture sessions to remote panel.
 - Credentials: `LAUNCHDEK_Credential_Vault::encrypt()` / `::decrypt()` on save/read.
-- Audit: `LAUNCHDEK_Audit_Log::log()` for privileged actions.
+- Audit: `LAUNCHDEK_Audit_Log::log()` for privileged actions; `::log()` invalidates `LAUNCHDEK_Dashboard_Cache::invalidate_feed()`.
+- Dashboard cache: `LAUNCHDEK_Dashboard_Cache::{get_stats,get_connection_counts,get_feed}()` read from `launchdek_dashboard_cache`; repositories call `invalidate_stats()` / `invalidate_connections()` on mutations. `::clear()` on uninstall.
 - Activation: `LAUNCHDEK_Activator` (sets redirect transient); `LAUNCHDEK_Admin::maybe_activation_redirect()` sends new installs to dashboard with `?onboarding=1`. Deactivation: `LAUNCHDEK_Deactivator` (clears drift cron).
-- Legacy redirect: `LAUNCHDEK_Admin::maybe_redirect_legacy_templates_page()` on `admin_init` — `?page={slug}-templates` → Checklists with `?tab=templates`.
+- Legacy redirects (`LAUNCHDEK_Admin::maybe_redirect_legacy_templates_page()` on `admin_init`): `?page={slug}-templates` → Checklists with `?tab=templates`; `?page={slug}-sites&activity_logs` → Activity Logs page.
 
 ## Settings Option Shape
 
@@ -76,7 +77,7 @@ array(
 
 Steps live in `checklist.steps[]` (JSON in DB or template files).
 
-**`manual`** — fields: `id`, `title`, `instructions`, `target_roles` (optional array of WP role slugs — UI metadata for agency assignment), `deep_link` (optional admin path), `type: manual`. Executor sets status `awaiting_manual` and resolves `deep_link` via `LAUNCHDEK_Remote_Client::admin_link()`. User completes via `/runs/{id}/steps/{step}/complete`.
+**`manual`** — fields: `id`, `title`, `instructions`, `target_roles` (optional array of WP role slugs — UI metadata for agency assignment), `deep_link` (optional admin path), `show_note_field` (optional bool, default `true` — when `false`, client panel hides the per-step note textarea), `type: manual`. Executor sets status `awaiting_manual` and resolves `deep_link` via `LAUNCHDEK_Remote_Client::admin_link()`. User completes via `/runs/{id}/steps/{step}/complete`.
 
 **`api`** — executed by `LAUNCHDEK_Payload_Mapper::execute()` using nested `api` object:
 
@@ -121,8 +122,9 @@ All non-settings pages use `render_page()` which passes `$settings`, `$page`, an
 
 | Partial | `$page` value |
 |---------|---------------|
-| `launchdek-admin-page.php` | `dashboard` |
+| `launchdek-admin-page.php` | `dashboard` (receives `$dashboard_stats`, `$connection_counts`, `$log_feed` from cache) |
 | `launchdek-sites-page.php` | `sites` |
+| `launchdek-activity-logs-page.php` | `activity-logs` (hidden submenu; `GET /logs/feed?detailed=1`, `can_view_dashboard`) |
 | `launchdek-checklists-page.php` | `checklists` (builder + Templates tab panel) |
 | `launchdek-automation-page.php` | `automation` |
 | `launchdek-integrations-page.php` | `integrations` |

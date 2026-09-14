@@ -52,7 +52,7 @@ class LAUNCHDEK_Site_Repository {
 	}
 
 	/**
-	 * List sites with optional tag filter.
+	 * List sites with optional filters.
 	 *
 	 * @param array $args Query args.
 	 * @return array
@@ -64,14 +64,101 @@ class LAUNCHDEK_Site_Repository {
 			'tag'        => '',
 			'group_type' => '',
 			'health'     => '',
+			'search'     => '',
 			'limit'      => 100,
 			'offset'     => 0,
 		);
 
 		$args  = wp_parse_args( $args, $defaults );
+		$parts = self::build_list_query_parts( $args );
+		$sql   = 'SELECT s.* ' . $parts['from_where'] . ' ORDER BY s.name ASC LIMIT %d OFFSET %d';
+		$vals  = array_merge(
+			$parts['vals'],
+			array(
+				max( 1, absint( $args['limit'] ) ),
+				max( 0, absint( $args['offset'] ) ),
+			)
+		);
+
+		$prepared = $wpdb->prepare( $sql, $vals ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$rows     = $wpdb->get_results( $prepared, ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+
+		return is_array( $rows ) ? array_map( array( __CLASS__, 'format' ), $rows ) : array();
+	}
+
+	/**
+	 * Count sites matching list filters.
+	 *
+	 * @param array $args Query args (tag, group_type, health, search).
+	 * @return int
+	 */
+	public static function count_filtered( $args = array() ) {
+		global $wpdb;
+
+		$defaults = array(
+			'tag'        => '',
+			'group_type' => '',
+			'health'     => '',
+			'search'     => '',
+		);
+
+		$args  = wp_parse_args( $args, $defaults );
+		$parts = self::build_list_query_parts( $args );
+		$sql   = 'SELECT COUNT(DISTINCT s.id) ' . $parts['from_where'];
+
+		if ( $parts['vals'] ) {
+			$sql = $wpdb->prepare( $sql, $parts['vals'] ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		}
+
+		return (int) $wpdb->get_var( $sql ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+	}
+
+	/**
+	 * Count sites grouped by health status.
+	 *
+	 * @return array{healthy:int,unhealthy:int,unknown:int,total:int}
+	 */
+	public static function health_counts() {
+		global $wpdb;
+
+		$table = self::table();
+		$rows  = $wpdb->get_results(
+			"SELECT health_status, COUNT(*) AS count FROM {$table} GROUP BY health_status", // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			ARRAY_A
+		);
+
+		$counts = array(
+			'healthy'   => 0,
+			'unhealthy' => 0,
+			'unknown'   => 0,
+		);
+
+		if ( is_array( $rows ) ) {
+			foreach ( $rows as $row ) {
+				$status = sanitize_key( $row['health_status'] ?? '' );
+				if ( isset( $counts[ $status ] ) ) {
+					$counts[ $status ] = (int) $row['count'];
+				}
+			}
+		}
+
+		$counts['total'] = $counts['healthy'] + $counts['unhealthy'] + $counts['unknown'];
+
+		return $counts;
+	}
+
+	/**
+	 * Build shared FROM/WHERE clause for site list queries.
+	 *
+	 * @param array $args Query args.
+	 * @return array{from_where:string,vals:array}
+	 */
+	private static function build_list_query_parts( $args ) {
+		global $wpdb;
+
 		$table = self::table();
 		$tags  = self::tags_table();
-		$sql   = "SELECT s.* FROM {$table} s";
+		$sql   = "FROM {$table} s";
 		$where = array();
 		$vals  = array();
 
@@ -92,18 +179,21 @@ class LAUNCHDEK_Site_Repository {
 			$vals[]  = sanitize_key( $args['health'] );
 		}
 
+		if ( ! empty( $args['search'] ) ) {
+			$like    = '%' . $wpdb->esc_like( sanitize_text_field( $args['search'] ) ) . '%';
+			$where[] = '(s.name LIKE %s OR s.url LIKE %s)';
+			$vals[]  = $like;
+			$vals[]  = $like;
+		}
+
 		if ( $where ) {
 			$sql .= ' WHERE ' . implode( ' AND ', $where );
 		}
 
-		$sql .= ' ORDER BY s.name ASC LIMIT %d OFFSET %d';
-		$vals[] = max( 1, absint( $args['limit'] ) );
-		$vals[] = max( 0, absint( $args['offset'] ) );
-
-		$prepared = $wpdb->prepare( $sql, $vals ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-		$rows     = $wpdb->get_results( $prepared, ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-
-		return is_array( $rows ) ? array_map( array( __CLASS__, 'format' ), $rows ) : array();
+		return array(
+			'from_where' => $sql,
+			'vals'       => $vals,
+		);
 	}
 
 	/**
@@ -152,6 +242,9 @@ class LAUNCHDEK_Site_Repository {
 		}
 
 		LAUNCHDEK_Audit_Log::log( 'site_created', array( 'site_id' => $id, 'url' => $url ), $id );
+		LAUNCHDEK_Dashboard_Cache::invalidate_stats();
+		LAUNCHDEK_Dashboard_Cache::invalidate_connections();
+		LAUNCHDEK_Dashboard_Cache::invalidate_sites_list();
 
 		return $id;
 	}
@@ -229,6 +322,11 @@ class LAUNCHDEK_Site_Repository {
 
 		if ( false !== $result ) {
 			LAUNCHDEK_Audit_Log::log( 'site_updated', array( 'site_id' => $id ), $id );
+			LAUNCHDEK_Dashboard_Cache::invalidate_sites_list();
+
+			if ( isset( $data['health_status'] ) ) {
+				LAUNCHDEK_Dashboard_Cache::invalidate_connections();
+			}
 		}
 
 		return false !== $result;
@@ -243,11 +341,24 @@ class LAUNCHDEK_Site_Repository {
 	public static function delete( $id ) {
 		global $wpdb;
 
+		$site = self::find( $id );
+
 		$wpdb->delete( self::tags_table(), array( 'site_id' => absint( $id ) ), array( '%d' ) );
 		$result = $wpdb->delete( self::table(), array( 'id' => absint( $id ) ), array( '%d' ) );
 
 		if ( $result ) {
-			LAUNCHDEK_Audit_Log::log( 'site_deleted', array( 'site_id' => $id ), $id );
+			LAUNCHDEK_Audit_Log::log(
+				'site_deleted',
+				array(
+					'site_id' => $id,
+					'name'    => $site ? ( $site['name'] ?? '' ) : '',
+					'url'     => $site ? ( $site['url'] ?? '' ) : '',
+				),
+				$id
+			);
+			LAUNCHDEK_Dashboard_Cache::invalidate_stats();
+			LAUNCHDEK_Dashboard_Cache::invalidate_connections();
+			LAUNCHDEK_Dashboard_Cache::invalidate_sites_list();
 		}
 
 		return (bool) $result;
@@ -307,6 +418,8 @@ class LAUNCHDEK_Site_Repository {
 				array( '%d', '%s', '%s' )
 			);
 		}
+
+		LAUNCHDEK_Dashboard_Cache::invalidate_sites_list();
 	}
 
 	/**

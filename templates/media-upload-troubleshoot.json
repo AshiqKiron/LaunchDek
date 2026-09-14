@@ -1,0 +1,58 @@
+{
+  "title": "Media Upload Failures",
+  "description": "Fix 'HTTP error', file size limits, permission issues, and broken image uploads in the media library.",
+  "category": "troubleshooting",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "mu_identify_error",
+      "title": "Capture Exact Upload Error",
+      "instructions": "Note the browser message (HTTP error, file too large, unable to create directory). Test a small JPG vs a large PDF to narrow the cause.",
+      "deep_link": "upload.php",
+      "type": "manual"
+    },
+    {
+      "id": "mu_php_limits",
+      "title": "Raise upload_max_filesize and post_max_size",
+      "instructions": "Increase php.ini limits (e.g. 64M upload, 128M post). post_max_size must be larger than upload_max_filesize. Restart PHP after changes.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "mu_folder_permissions",
+      "title": "Fix wp-content/uploads Permissions",
+      "instructions": "Ensure uploads directory exists with 755 permissions and is writable by the web server user. Create missing year/month subfolders if needed.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "mu_disk_quota",
+      "title": "Check Disk Space and Inode Quota",
+      "instructions": "Full disks or exhausted inodes cause silent upload failures. Verify hosting quota in the control panel and clean unused backups or logs.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "mu_mod_security",
+      "title": "Check mod_security and MIME Restrictions",
+      "instructions": "WAF rules may block certain file types or multipart uploads. Review server error logs and whitelist WordPress admin upload paths if needed.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "mu_image_processing",
+      "title": "Verify Image Processing Libraries",
+      "instructions": "WordPress needs GD or Imagick for image thumbnails. Install missing PHP extensions and confirm memory is sufficient for large images.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "mu_verify",
+      "title": "Test Upload and Display",
+      "instructions": "Upload images, PDFs, and a video if allowed. Confirm thumbnails generate and files display correctly on the front end.",
+      "deep_link": "upload.php",
+      "type": "manual"
+    }
+  ]
+}

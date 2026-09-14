@@ -21,6 +21,7 @@ includes/
   class-launchdek-capabilities.php     # custom caps + role guardrails
   class-launchdek-credential-vault.php # AES-256 app password encryption
   class-launchdek-audit-log.php        # immutable audit trail
+  class-launchdek-dashboard-cache.php  # cached dashboard stats, connections, log feed
   class-launchdek-{site,checklist,run}-repository.php
   class-launchdek-remote-client.php    # wp_remote_* to remote REST
   class-launchdek-connection-tester.php
@@ -43,9 +44,9 @@ includes/
 admin/
   css/launchdek-admin.css
   js/launchdek-admin.js
-  partials/launchdek-{admin,sites,checklists,automation,integrations,settings}-page.php
+  partials/launchdek-{admin,sites,activity-logs,checklists,automation,integrations,settings}-page.php
   partials/launchdek-{onboarding-modal,template-picker-modal}.php  # shared modal markup
-templates/                           # built-in checklist JSON templates (38 slugs)
+templates/                           # built-in checklist JSON templates (75 slugs)
 mu-plugin/                           # client checklist panel bundle (deployed to remote mu-plugins/)
   launchdek-client.php               # mu-plugin loader
   launchdek-client/                  # panel classes, admin CSS/JS
@@ -70,6 +71,8 @@ Use **Checklist** in all user-facing copy, REST paths (`/checklists`), table nam
 - Checklist engine: `LAUNCHDEK_Checklist_Runner::start()` creates run → `execute_next()` / `auto_advance()` / `execute_all_auto()` → `LAUNCHDEK_Step_Executor` → `LAUNCHDEK_Payload_Mapper` for `api` steps; `manual` steps set `awaiting_manual` until `/runs/{id}/steps/{step}/complete`. Failures trigger `LAUNCHDEK_Webhook_Dispatcher`.
 - Client checklist panel: `LAUNCHDEK_Mu_Plugin_Installer::ensure_installed()` deploys the bundled `mu-plugin/` files when a site is saved or connection-tested with credentials. `LAUNCHDEK_Client_Push::push_run()` auto-advances API steps, pushes a run snapshot to the remote panel (`POST /launchdek/v1/client/run`), and stores a per-run `client_run_token` for client callbacks. Hub run handlers call `LAUNCHDEK_Client_Push::sync_run()` after step advances. Client manual completions hit hub `POST /client-runs/{id}/steps/{step}/complete` with `X-LaunchDek-Run-Token`. Sites REST responses expose `client_agent` when the panel is detected.
 - Admin UI: thin partials in `admin/partials/` with `data-launchdek-page`; JS drives CRUD via REST (`launchdekAdmin` global). Checklists use a drag-and-drop canvas builder with step config sidebar (role mapping, API payload mapper).
+- Dashboard cache: `LAUNCHDEK_Dashboard_Cache` stores stats, connection health counts, and the 15-entry live log feed in `launchdek_dashboard_cache` (non-autoload). Repositories call `invalidate_stats()` / `invalidate_connections()` on site/checklist/run mutations; `LAUNCHDEK_Audit_Log::log()` calls `invalidate_feed()`. Dashboard PHP partial and `launchdekAdmin.dashboard` localize preloaded data on first paint; REST `/dashboard/*` and `/logs/feed` (default) read from cache.
+- Activity logs: dedicated hidden submenu page (`PAGE_SLUG . '-activity-logs'`, registered then `remove_submenu_page`) reachable from Sites toolbar, dashboard feed link, and legacy `?page={slug}-sites&activity_logs` redirect. Full filtered audit table via `GET /logs/feed?detailed=1` (`can_view_dashboard`); supports `site_id`, `status`, `date_from`, `date_to`, `search`, `limit` (default 200). Automation page audit panel still uses `/audit` (`can_view_audit`).
 - Dashboard onboarding: activation redirect (`?onboarding=1`) opens a 2-step modal — **Step 1**: paste plain-text SOPs with placeholder-as-sample live preview, or **Start from a template** via the shared template picker (`importMode: populate` loads steps into paste/preview); **Step 2**: optional existing-site picker or new-site connect/test (App Passwords) → create checklist + site + first run. Segmented progress UI with labeled step hints. Dismissal persisted via `onboarding_dismissed` (`POST /onboarding/dismiss`, `can_view_dashboard`); Settings can re-show via `POST /onboarding/reset` (`can_manage_settings`) + **Show onboarding wizard** button. Modal markup in `launchdek-onboarding-modal.php` (required on dashboard + settings); logic in `initOnboarding()` (global init, not dashboard-only). Exposes `window.launchdekOpenOnboarding`.
 - Template picker: shared modal (`launchdek-template-picker-modal.php`) with capsule category filters, selectable template list, steps preview panel, **Start blank instead**, and **Import Template**. Included on dashboard, checklists, and settings. **New Checklist** opens picker → default `importMode: clone` via `POST /templates/{slug}/clone` → load editor; onboarding uses `importMode: populate` to fill paste text. Logic in `initTemplatePicker()` (global init); exposes `window.launchdekOpenTemplatePicker(callbacks)`.
 - Checklists page tabs: **My Checklists** (builder + import/export + **Auto-Capture** modal) and **Templates** (built-in category grid, custom checklists, agency vault). Tab state via `?tab=templates` or `?checklist_id={id}` (opens builder). Legacy `?page={slug}-templates` redirects to Checklists → Templates tab (`maybe_redirect_legacy_templates_page()`).
@@ -84,12 +87,13 @@ Use `LAUNCHDEK_Admin::PAGE_SLUG` — never hardcode slug strings.
 |------|------|---------|---------|
 | Dashboard | `PAGE_SLUG` | `launchdek-admin-page.php` | `initDashboard()` |
 | Sites | `PAGE_SLUG . '-sites'` | `launchdek-sites-page.php` | `initSites()` |
+| Activity Logs | `PAGE_SLUG . '-activity-logs'` | `launchdek-activity-logs-page.php` | `initActivityLogs()` |
 | Checklists | `PAGE_SLUG . '-checklists'` | `launchdek-checklists-page.php` | `initChecklists()` + `initTemplates()` |
 | Automation & Audit | `PAGE_SLUG . '-automation'` | `launchdek-automation-page.php` | `initAutomation()` |
 | Integrations | `PAGE_SLUG . '-integrations'` | `launchdek-integrations-page.php` | `initIntegrations()` |
 | Settings | `PAGE_SLUG . '-settings'` | `launchdek-settings-page.php` | `initSettings()` + Settings API form |
 
-Checklists partial has two tab panels (`data-launchdek-tab-panel="builder|templates"`). Templates tab hosts built-in grid, vault, and custom checklist cards — no separate admin submenu.
+Checklists partial has two tab panels (`data-launchdek-tab-panel="builder|templates"`). Templates tab hosts built-in grid, vault, and custom checklist cards — no separate admin submenu. Activity Logs is a hidden submenu (no sidebar entry) — link from Sites toolbar or dashboard feed.
 
 Menu capability: `LAUNCHDEK_Capabilities::admin_menu_capability()` (`launchdek_view_dashboard`). Settings page render checks `MANAGE_SETTINGS` even though the submenu uses the menu cap.
 
@@ -125,7 +129,7 @@ Registered in `LAUNCHDEK_REST_API`. Auth: `X-WP-Nonce` (`wp_rest`) + capability 
 
 | Group | Routes |
 |-------|--------|
-| Dashboard | `/dashboard/stats`, `/connections/ticker`, `/logs/feed`, `/onboarding/dismiss`, `/onboarding/reset` |
+| Dashboard | `/dashboard/stats`, `/connections/ticker`, `/logs/feed` (cached feed; `?detailed=1` bypasses cache for full audit query), `/onboarding/dismiss`, `/onboarding/reset` |
 | Sites | `/sites`, `/sites/{id}`, `/sites/{id}/test`, `/sites/test`, `/sites/tags`, `/sites/{id}/capture` (GET status, POST start/stop, DELETE clear), `/panel/bootstrap` (manual mu-plugin loader download) |
 | Checklists | `/checklists`, `/checklists/{id}`, `/checklists/import`, `/checklists/{id}/export`, `/checklists/{id}/validate-step` |
 | Runs | `/runs/batch`, `/runs` (optional `push_to_client` bool, default true), `/runs/{id}`, `/runs/{id}/next`, `/runs/{id}/auto`, `/runs/{id}/steps/{step}/complete`, `/runs/{id}/push-client`, `/client-runs/{id}/steps/{step}/complete` (token auth via `X-LaunchDek-Run-Token`) |
@@ -145,7 +149,7 @@ Bundled under `mu-plugin/` and deployed to remote `wp-content/mu-plugins/` by `L
 |-------|------|
 | `LAUNCHDEK_Client_REST_API` | Remote routes under `launchdek/v1/client/*` |
 | `LAUNCHDEK_Client_Run_Store` | Active run snapshot in client options |
-| `LAUNCHDEK_Client_Panel` | Sticky admin panel UI + asset enqueue |
+| `LAUNCHDEK_Client_Panel` | Sticky admin panel UI + asset enqueue (expandable steps, deep-link button, optional per-step note field via `show_note_field`) |
 | `LAUNCHDEK_Client_Hub_Client` | Callbacks to hub with run token |
 | `LAUNCHDEK_Client_Auto_Capture` | Records admin actions into checklist steps during capture sessions |
 
@@ -163,7 +167,7 @@ Hub-side orchestration: `LAUNCHDEK_Client_Push` (`push_run`, `sync_run`, `comple
 
 ## Built-in Templates
 
-38 JSON files in `templates/` (one slug per file). Each file requires `title`, `description`, `category`, `steps[]`, and `is_template: true`. Categories from `LAUNCHDEK_Templates::get_categories()`:
+75 JSON files in `templates/` (one slug per file). Each file requires `title`, `description`, `category`, `steps[]`, and `is_template: true`. Categories from `LAUNCHDEK_Templates::get_categories()`:
 
 | Category slug | Templates |
 |---------------|-----------|
@@ -174,6 +178,7 @@ Hub-side orchestration: `LAUNCHDEK_Client_Push` (`push_run`, `sync_run`, `comple
 | `ecommerce` | `woocommerce-launch`, `woocommerce-optimization`, `easy-digital-downloads-launch` |
 | `maintenance` | `monthly-maintenance`, `backup-verification`, `safe-update-routine`, `plugin-health-audit`, `database-cleanup`, `updraftplus-setup` |
 | `compliance` | `gdpr-compliance`, `accessibility-basics` |
+| `troubleshooting` | `white-screen-of-death`, `500-internal-server-error`, `502-bad-gateway`, `503-service-unavailable`, `504-gateway-timeout`, `php-memory-limit`, `max-execution-time`, `plugin-conflict-troubleshoot`, `theme-conflict-troubleshoot`, `permalink-404-fix`, `admin-access-recovery`, `password-reset-troubleshoot`, `email-delivery-troubleshoot`, `redirect-loop-fix`, `wp-cron-troubleshoot`, `media-upload-troubleshoot`, `database-connection-error`, `maintenance-mode-stuck`, `fatal-error-recovery`, `mixed-content-ssl-troubleshoot`, `elementor-troubleshoot`, `acf-troubleshoot`, `loco-translate-troubleshoot`, `wp-super-cache-troubleshoot`, `optinmonster-troubleshoot`, `woocommerce-troubleshoot`, `ninja-forms-troubleshoot`, `block-editor-troubleshoot`, `brute-force-login-attacks`, `comment-spam-flood`, `hacked-site-recovery`, `slow-site-diagnosis`, `xmlrpc-abuse`, `php-version-upgrade`, `site-migration-failures`, `auto-update-failures`, `broken-images-media` |
 
 `LAUNCHDEK_Templates::seed_builtin()` runs once (`launchdek_templates_seeded` option). `sync_builtin()` on every init adds any new JSON slugs missing from the DB. `/templates` GET returns `{ builtin, categories, stored }`.
 
@@ -196,7 +201,7 @@ Integration REST routes require `MANAGE_SETTINGS` (`can_manage_settings`).
 | Constants | `LAUNCHDEK_*` | `LAUNCHDEK_VERSION`, `LAUNCHDEK_REST_NAMESPACE` |
 | Classes | `LAUNCHDEK_{Name}` | `LAUNCHDEK_Site_Repository` |
 | Functions | `launchdek_{action}` | `launchdek_run_plugin()` |
-| Options | `launchdek_{key}` | `launchdek_settings`, `launchdek_db_version` |
+| Options | `launchdek_{key}` | `launchdek_settings`, `launchdek_db_version`, `launchdek_dashboard_cache` |
 | CSS/JS handles | `launchdek-{name}` | `launchdek-admin` |
 | CSS classes | `launchdek-*` | `launchdek-card`, `launchdek-stats-grid` |
 | JS global | `launchdekAdmin` | REST URL, nonce, strings |

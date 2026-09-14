@@ -1,0 +1,65 @@
+{
+  "title": "Slow Site Diagnosis",
+  "description": "Systematically find why a WordPress site loads slowly — TTFB, database, plugins, images, and third-party scripts.",
+  "category": "troubleshooting",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "slow_baseline",
+      "title": "Establish Performance Baseline",
+      "instructions": "Run PageSpeed Insights, GTmetrix, or WebPageTest on homepage and a heavy page. Record TTFB, LCP, and total load time to compare after fixes.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "slow_server_ttfb",
+      "title": "Check Server TTFB and Hosting Tier",
+      "instructions": "High TTFB (>600ms) points to server, PHP, or database — not front-end assets. Review host CPU/RAM usage and consider upgrading or object caching.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "slow_query_monitor",
+      "title": "Profile Database Queries",
+      "instructions": "Use Query Monitor on staging to find slow or duplicate queries. Clean revisions, transients, and autoloaded options. Add indexes if a plugin queries millions of rows.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "slow_plugin_audit",
+      "title": "Audit Plugin Impact Per Page",
+      "instructions": "Query Monitor shows per-plugin load time. Deactivate heavy plugins not needed on every page. Replace bloated plugins with lighter alternatives.",
+      "deep_link": "plugins.php",
+      "type": "manual"
+    },
+    {
+      "id": "slow_images",
+      "title": "Optimize Images and Lazy Loading",
+      "instructions": "Compress oversized images, serve WebP/AVIF, and enable lazy loading. Fix layout shift from images missing width/height attributes.",
+      "deep_link": "upload.php",
+      "type": "manual"
+    },
+    {
+      "id": "slow_caching",
+      "title": "Enable Page and Object Caching",
+      "instructions": "Configure full-page cache for anonymous visitors and Redis/Memcached for object cache. Verify cache HIT headers and correct exclusions for logged-in users.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "slow_third_party",
+      "title": "Audit Third-Party Scripts",
+      "instructions": "Defer or remove unused analytics, chat widgets, ad pixels, and social embeds. Each external script adds DNS lookup and blocking time.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "slow_verify",
+      "title": "Re-test and Document Improvements",
+      "instructions": "Re-run the same performance tests. Document changes made and set a monitoring alert if load time regresses.",
+      "deep_link": "",
+      "type": "manual"
+    }
+  ]
+}

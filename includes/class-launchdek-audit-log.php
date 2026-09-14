@@ -43,7 +43,13 @@ class LAUNCHDEK_Audit_Log {
 			array( '%d', '%d', '%d', '%s', '%s', '%s', '%s' )
 		);
 
-		return false === $result ? false : (int) $wpdb->insert_id;
+		if ( false === $result ) {
+			return false;
+		}
+
+		LAUNCHDEK_Dashboard_Cache::invalidate_feed();
+
+		return (int) $wpdb->insert_id;
 	}
 
 	/**
@@ -140,7 +146,7 @@ class LAUNCHDEK_Audit_Log {
 	 * @param int $limit Number of entries.
 	 * @return array
 	 */
-	public static function get_feed( $limit = 20 ) {
+	public static function get_feed( $limit = 15 ) {
 		$entries = self::query( array( 'limit' => $limit ) );
 
 		return array_map(
@@ -160,7 +166,7 @@ class LAUNCHDEK_Audit_Log {
 	 */
 	public static function format_feed_message( $entry ) {
 		$details = is_array( $entry['details'] ) ? $entry['details'] : array();
-		$site    = self::resolve_site_name( (int) $entry['site_id'], $entry['run_id'] );
+		$site    = self::resolve_site_name( (int) $entry['site_id'], $entry['run_id'], $details );
 
 		switch ( $entry['action'] ) {
 			case 'run_started':
@@ -217,7 +223,11 @@ class LAUNCHDEK_Audit_Log {
 				);
 
 			case 'site_deleted':
-				return __( 'Site removed', LAUNCHDEK_TEXT_DOMAIN );
+				return sprintf(
+					/* translators: %s: site name */
+					__( 'Site %s removed', LAUNCHDEK_TEXT_DOMAIN ),
+					$site
+				);
 
 			case 'checklist_created':
 			case 'workflow_created':
@@ -265,6 +275,48 @@ class LAUNCHDEK_Audit_Log {
 					$site
 				);
 
+			case 'client_run_pushed':
+				return sprintf(
+					/* translators: 1: checklist title, 2: site name */
+					__( "Checklist '%1\$s' pushed to %2\$s", LAUNCHDEK_TEXT_DOMAIN ),
+					$details['checklist'] ?? __( 'Checklist', LAUNCHDEK_TEXT_DOMAIN ),
+					$site
+				);
+
+			case 'drift_verified':
+				$count = (int) ( $details['count'] ?? 0 );
+
+				if ( $count > 0 ) {
+					return sprintf(
+						/* translators: 1: drift count, 2: site name */
+						__( '%1$d drift issue(s) detected on %2$s', LAUNCHDEK_TEXT_DOMAIN ),
+						$count,
+						$site
+					);
+				}
+
+				return sprintf(
+					/* translators: %s: site name */
+					__( 'Drift check passed on %s', LAUNCHDEK_TEXT_DOMAIN ),
+					$site
+				);
+
+			case 'manual_step_completed':
+				return sprintf(
+					/* translators: %s: site name */
+					__( 'Manual step completed on %s', LAUNCHDEK_TEXT_DOMAIN ),
+					$site
+				);
+
+			case 'api_step_executed':
+				return sprintf(
+					/* translators: 1: HTTP method, 2: route, 3: site name */
+					__( '%1$s %2$s executed on %3$s', LAUNCHDEK_TEXT_DOMAIN ),
+					$details['method'] ?? 'GET',
+					$details['route'] ?? '',
+					$site
+				);
+
 			default:
 				return str_replace( '_', ' ', $entry['action'] );
 		}
@@ -273,11 +325,12 @@ class LAUNCHDEK_Audit_Log {
 	/**
 	 * Resolve a site display name from site or run context.
 	 *
-	 * @param int $site_id Site ID.
-	 * @param int $run_id  Run ID.
+	 * @param int   $site_id Site ID.
+	 * @param int   $run_id  Run ID.
+	 * @param array $details Audit details fallback.
 	 * @return string
 	 */
-	private static function resolve_site_name( $site_id, $run_id = 0 ) {
+	private static function resolve_site_name( $site_id, $run_id = 0, $details = array() ) {
 		if ( $site_id ) {
 			$site = LAUNCHDEK_Site_Repository::find( $site_id );
 			if ( $site ) {
@@ -289,6 +342,24 @@ class LAUNCHDEK_Audit_Log {
 			$run = LAUNCHDEK_Run_Repository::find( (int) $run_id );
 			if ( $run && ! empty( $run['site_name'] ) ) {
 				return $run['site_name'];
+			}
+			if ( $run && ! empty( $run['site_id'] ) ) {
+				$site = LAUNCHDEK_Site_Repository::find( (int) $run['site_id'] );
+				if ( $site ) {
+					return $site['name'] ?: $site['url'];
+				}
+			}
+		}
+
+		if ( is_array( $details ) ) {
+			if ( ! empty( $details['name'] ) ) {
+				return sanitize_text_field( $details['name'] );
+			}
+			if ( ! empty( $details['site_name'] ) ) {
+				return sanitize_text_field( $details['site_name'] );
+			}
+			if ( ! empty( $details['url'] ) ) {
+				return esc_url_raw( $details['url'] );
 			}
 		}
 
@@ -511,7 +582,7 @@ class LAUNCHDEK_Audit_Log {
 			'user_id'         => (int) $row['user_id'],
 			'user_name'       => $user ? $user->display_name : __( 'System', LAUNCHDEK_TEXT_DOMAIN ),
 			'site_id'         => $site_id,
-			'site_name'       => self::resolve_site_name( $site_id, (int) $row['run_id'] ),
+			'site_name'       => self::resolve_site_name( $site_id, (int) $row['run_id'], $details ),
 			'run_id'          => (int) $row['run_id'],
 			'action'          => $row['action'],
 			'action_label'    => self::format_action_label( $row['action'] ),

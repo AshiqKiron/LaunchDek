@@ -1,0 +1,58 @@
+{
+  "title": "White Screen of Death (WSOD)",
+  "description": "Diagnose and fix a blank white page on the front end or wp-admin — usually PHP fatal errors, memory limits, or plugin conflicts.",
+  "category": "troubleshooting",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "wsod_enable_debug",
+      "title": "Enable WP_DEBUG and Check Error Logs",
+      "instructions": "Add WP_DEBUG, WP_DEBUG_LOG, and WP_DEBUG_DISPLAY (false on production) to wp-config.php. Check wp-content/debug.log and your host error log for the fatal error message.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "wsod_recovery_mode",
+      "title": "Use Recovery Mode or Health Check",
+      "instructions": "If WordPress emails a recovery link, use it to access admin with the faulty plugin paused. Alternatively install the Health Check plugin to enable troubleshooting mode.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "wsod_deactivate_plugins",
+      "title": "Deactivate All Plugins via FTP or Database",
+      "instructions": "Rename wp-content/plugins to plugins.off via SFTP, or set active_plugins to a:0:{} in wp_options. Reload the site — if it works, a plugin caused the WSOD.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "wsod_switch_theme",
+      "title": "Switch to a Default Theme",
+      "instructions": "Rename the active theme folder under wp-content/themes. WordPress falls back to a default theme. If the site loads, the theme or its child theme is the culprit.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "wsod_check_memory",
+      "title": "Raise PHP Memory Limit",
+      "instructions": "Set WP_MEMORY_LIMIT and WP_MAX_MEMORY_LIMIT in wp-config.php (e.g. 256M). Confirm php.ini memory_limit with your host if errors persist.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "wsod_reactivate_incrementally",
+      "title": "Reactivate Plugins One by One",
+      "instructions": "Restore the plugins folder name, then activate plugins individually until the white screen returns. Document the offending plugin and check for updates or replacements.",
+      "deep_link": "plugins.php",
+      "type": "manual"
+    },
+    {
+      "id": "wsod_verify_fix",
+      "title": "Verify Front End and Admin",
+      "instructions": "Test homepage, key landing pages, wp-admin login, and any critical flows (forms, checkout). Disable WP_DEBUG_DISPLAY before closing the ticket.",
+      "deep_link": "",
+      "type": "manual"
+    }
+  ]
+}

@@ -1,0 +1,58 @@
+{
+  "title": "WP-Cron Not Running",
+  "description": "Fix missed scheduled posts, stale transients, and plugin tasks when WordPress cron stops firing reliably.",
+  "category": "troubleshooting",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "cron_identify_symptoms",
+      "title": "Identify Missed Cron Symptoms",
+      "instructions": "Look for scheduled posts not publishing, backup plugins skipping runs, license checks failing, or 'missed schedule' on posts.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "cron_check_disabled",
+      "title": "Check DISABLE_WP_CRON and ALTERNATE_WP_CRON",
+      "instructions": "Review wp-config.php for define('DISABLE_WP_CRON', true) — valid only if real server cron is configured. Remove ALTERNATE_WP_CRON unless specifically needed.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "cron_wp_cli_status",
+      "title": "Inspect Scheduled Events",
+      "instructions": "Run wp cron event list and wp cron test. Look for duplicate hooks, far-future schedules, or orphaned events from deleted plugins.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "cron_server_cron",
+      "title": "Set Up Real Server Cron",
+      "instructions": "Add a crontab entry: */5 * * * * curl -s https://example.com/wp-cron.php?doing_wp_cron or wp cron event run --due-now. Set DISABLE_WP_CRON true after verifying.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "cron_blocking",
+      "title": "Ensure wp-cron.php Is Not Blocked",
+      "instructions": "Security plugins, bot protection, and HTTP auth can block wp-cron.php. Whitelist the cron URL and server cron user-agent if needed.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "cron_loops",
+      "title": "Clear Stuck Cron Locks",
+      "instructions": "Delete _transient_doing_cron from wp_options if a previous run crashed mid-execution. Avoid running overlapping long cron jobs.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "cron_verify",
+      "title": "Verify Scheduled Tasks Execute",
+      "instructions": "Schedule a test post 5 minutes ahead or trigger a plugin cron manually. Confirm it runs on time and logs show successful completion.",
+      "deep_link": "",
+      "type": "manual"
+    }
+  ]
+}

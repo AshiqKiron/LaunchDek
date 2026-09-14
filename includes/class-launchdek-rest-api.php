@@ -389,59 +389,32 @@ class LAUNCHDEK_REST_API {
 
 	// Dashboard handlers.
 	public static function get_dashboard_stats() {
-		return rest_ensure_response( array(
-			'sites_connected'      => LAUNCHDEK_Site_Repository::count(),
-			'active_checklists'     => LAUNCHDEK_Checklist_Repository::count_active(),
-			'runs_in_progress'     => LAUNCHDEK_Run_Repository::count_by_status( 'running' ),
-			'completion_rate'      => LAUNCHDEK_Run_Repository::completion_rate(),
-			'healthy_sites'        => count( LAUNCHDEK_Site_Repository::all( array( 'health' => 'healthy' ) ) ),
-			'unhealthy_sites'      => count( LAUNCHDEK_Site_Repository::all( array( 'health' => 'unhealthy' ) ) ),
-		) );
+		return rest_ensure_response( LAUNCHDEK_Dashboard_Cache::get_stats() );
 	}
 
 	public static function get_connection_ticker() {
-		$sites = LAUNCHDEK_Site_Repository::all();
-		$items = array();
-
-		foreach ( $sites as $site ) {
-			$items[] = array(
-				'id'     => (int) $site['id'],
-				'name'   => $site['name'] ?: $site['url'],
-				'status' => $site['health_status'],
-				'label'  => self::connection_ticker_label( $site ),
-			);
-		}
-
-		return rest_ensure_response( $items );
-	}
-
-	/**
-	 * Human-readable connection status for the dashboard ticker.
-	 *
-	 * @param array $site Site row.
-	 * @return string
-	 */
-	private static function connection_ticker_label( $site ) {
-		if ( 'healthy' === $site['health_status'] ) {
-			return __( 'Good', LAUNCHDEK_TEXT_DOMAIN );
-		}
-
-		if ( 'unhealthy' === $site['health_status'] ) {
-			$error = ! empty( $site['last_error'] ) ? $site['last_error'] : __( 'Connection Error', LAUNCHDEK_TEXT_DOMAIN );
-
-			return sprintf(
-				/* translators: %s: error message */
-				__( 'Bad - %s', LAUNCHDEK_TEXT_DOMAIN ),
-				$error
-			);
-		}
-
-		return __( 'Unknown', LAUNCHDEK_TEXT_DOMAIN );
+		return rest_ensure_response( LAUNCHDEK_Dashboard_Cache::get_connection_counts() );
 	}
 
 	public static function get_log_feed( $request ) {
-		$limit = absint( $request->get_param( 'limit' ) ?: 20 );
-		return rest_ensure_response( LAUNCHDEK_Audit_Log::get_feed( $limit ) );
+		$detailed = filter_var( $request->get_param( 'detailed' ), FILTER_VALIDATE_BOOLEAN );
+
+		if ( $detailed ) {
+			return rest_ensure_response( LAUNCHDEK_Audit_Log::query( array(
+				'user_id'   => absint( $request->get_param( 'user_id' ) ?: 0 ),
+				'site_id'   => absint( $request->get_param( 'site_id' ) ?: 0 ),
+				'action'    => sanitize_key( $request->get_param( 'action' ) ?: '' ),
+				'search'    => sanitize_text_field( $request->get_param( 'search' ) ?: '' ),
+				'status'    => sanitize_key( $request->get_param( 'status' ) ?: '' ),
+				'date_from' => sanitize_text_field( $request->get_param( 'date_from' ) ?: '' ),
+				'date_to'   => sanitize_text_field( $request->get_param( 'date_to' ) ?: '' ),
+				'limit'     => absint( $request->get_param( 'limit' ) ?: 200 ),
+				'offset'    => absint( $request->get_param( 'offset' ) ?: 0 ),
+			) ) );
+		}
+
+		$limit = min( LAUNCHDEK_Dashboard_Cache::FEED_LIMIT, max( 1, absint( $request->get_param( 'limit' ) ?: LAUNCHDEK_Dashboard_Cache::FEED_LIMIT ) ) );
+		return rest_ensure_response( LAUNCHDEK_Dashboard_Cache::get_feed( $limit ) );
 	}
 
 	/**
@@ -473,11 +446,12 @@ class LAUNCHDEK_REST_API {
 	// Sites handlers.
 	public static function get_sites( $request ) {
 		$args = array(
-			'tag'        => sanitize_text_field( $request->get_param( 'tag' ) ?: '' ),
-			'group_type' => sanitize_key( $request->get_param( 'group_type' ) ?: '' ),
-			'health'     => sanitize_key( $request->get_param( 'health' ) ?: '' ),
+			'tag'        => $request->get_param( 'tag' ) ?: '',
+			'group_type' => $request->get_param( 'group_type' ) ?: '',
+			'health'     => $request->get_param( 'health' ) ?: '',
 		);
-		return rest_ensure_response( LAUNCHDEK_Site_Repository::all( $args ) );
+
+		return rest_ensure_response( LAUNCHDEK_Dashboard_Cache::get_sites_list( $args ) );
 	}
 
 	public static function get_site( $request ) {

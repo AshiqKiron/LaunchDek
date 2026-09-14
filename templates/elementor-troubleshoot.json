@@ -1,0 +1,65 @@
+{
+  "title": "Elementor Troubleshooting",
+  "description": "Fix Elementor editor not loading, broken layouts, missing styles, and Theme Builder display issues.",
+  "category": "troubleshooting",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "eltr_document_symptoms",
+      "title": "Document Editor vs Front-End Symptoms",
+      "instructions": "Note if the issue is the editor stuck loading, widgets missing, styles not applying on the front end, or Theme Builder templates not showing. Check browser console for JS errors.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "eltr_regenerate_css",
+      "title": "Regenerate CSS & Clear Elementor Cache",
+      "instructions": "Go to Elementor → Tools → Regenerate CSS & Data, then Sync Library. Clear Elementor cache and any page-cache plugin after regenerating.",
+      "deep_link": "admin.php?page=elementor-tools",
+      "type": "manual"
+    },
+    {
+      "id": "eltr_php_limits",
+      "title": "Raise PHP Memory and Execution Limits",
+      "instructions": "Elementor needs adequate memory (256M+ recommended). Increase WP_MEMORY_LIMIT and max_execution_time. Check for 500 errors in the editor iframe network tab.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "eltr_safe_mode",
+      "title": "Enable Elementor Safe Mode",
+      "instructions": "Use Elementor → Tools → Safe Mode to load the editor without the theme and third-party plugins. If Safe Mode works, isolate the conflicting plugin or theme.",
+      "deep_link": "admin.php?page=elementor-tools",
+      "type": "manual"
+    },
+    {
+      "id": "eltr_experiments",
+      "title": "Disable Problematic Experiments",
+      "instructions": "Turn off Elementor experiments (Flexbox, DOM optimization, etc.) one at a time under Elementor → Settings → Features. Beta features often break after updates.",
+      "deep_link": "admin.php?page=elementor-settings",
+      "type": "manual"
+    },
+    {
+      "id": "eltr_display_conditions",
+      "title": "Audit Theme Builder Display Conditions",
+      "instructions": "Wrong display conditions cause missing headers/footers or duplicate templates. Review each template's include/exclude rules and priority order.",
+      "deep_link": "admin.php?page=elementor-app",
+      "type": "manual"
+    },
+    {
+      "id": "eltr_version_match",
+      "title": "Match Elementor and Pro Versions",
+      "instructions": "Elementor Free and Pro must be compatible versions. Update both together or roll back both if a recent update caused the break. Check Elementor status page for known issues.",
+      "deep_link": "update-core.php",
+      "type": "manual"
+    },
+    {
+      "id": "eltr_verify",
+      "title": "Verify Editor and Key Pages",
+      "instructions": "Edit a test page in Elementor, save, and confirm front-end matches. Test homepage, a landing page, and mobile breakpoints with caching enabled.",
+      "deep_link": "",
+      "type": "manual"
+    }
+  ]
+}

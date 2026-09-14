@@ -271,7 +271,7 @@
 		var allBtn = el('button', {
 			type: 'button',
 			className: 'launchdek-template-picker-filter' + (pickerActiveCategory === 'all' ? ' is-active' : ''),
-			text: strings.allCategories || 'All',
+			text: (strings.allCategories || 'All') + ' (' + pickerTemplates.length + ')',
 			'data-category': 'all',
 			role: 'tab',
 			'aria-selected': pickerActiveCategory === 'all' ? 'true' : 'false'
@@ -299,7 +299,7 @@
 			var filterBtn = el('button', {
 				type: 'button',
 				className: 'launchdek-template-picker-filter' + (isActive ? ' is-active' : ''),
-				text: meta.label || slug,
+				text: (meta.label || slug) + ' (' + count + ')',
 				'data-category': slug,
 				role: 'tab',
 				'aria-selected': isActive ? 'true' : 'false'
@@ -826,60 +826,84 @@
 	}
 
 	// ─── Dashboard ───────────────────────────────────────────
+	function renderDashboardStats(page, stats) {
+		if (!page || !stats) return;
+		Object.keys(stats).forEach(function (key) {
+			var node = page.querySelector('[data-stat="' + key + '"]');
+			if (!node) return;
+			if (key === 'completion_rate') {
+				node.textContent = stats[key] + '%';
+			} else if (typeof stats[key] === 'number') {
+				node.textContent = stats[key].toLocaleString();
+			} else {
+				node.textContent = stats[key];
+			}
+		});
+	}
+
+	function refreshDashboardStats(page) {
+		return get('/dashboard/stats').then(function (stats) {
+			renderDashboardStats(page, stats);
+			return stats;
+		});
+	}
+
+	function renderLogFeed(feedEl, logs) {
+		if (!feedEl) return;
+		if (!logs || !logs.length) {
+			feedEl.innerHTML = '<p class="launchdek-muted">No activity yet.</p>';
+			return;
+		}
+		feedEl.innerHTML = '';
+		logs.forEach(function (log) {
+			var itemClass = 'launchdek-log-item';
+			if (log.action === 'client_step_completed' || log.action === 'client_step_note_added') {
+				itemClass += ' is-client-activity';
+			}
+			var children = [
+				el('time', { text: '[' + (log.created_at || '') + ']' })
+			];
+			if ((log.site_id || log.run_id) && log.site_name) {
+				children.push(el('span', {
+					className: 'launchdek-log-site',
+					text: log.site_name,
+					title: log.site_name
+				}));
+			}
+			children.push(el('span', { className: 'launchdek-log-message', text: log.message || log.action }));
+			feedEl.appendChild(el('div', { className: itemClass }, children));
+		});
+	}
+
+	function refreshLogFeed() {
+		var feedEl = document.getElementById('launchdek-log-feed');
+		if (!feedEl) {
+			return Promise.resolve([]);
+		}
+		return get('/logs/feed?limit=15').then(function (logs) {
+			renderLogFeed(feedEl, logs);
+			return logs;
+		});
+	}
+
 	function initDashboard() {
 		var page = document.querySelector('[data-launchdek-page="dashboard"]');
 		if (!page) return;
 
-		get('/dashboard/stats').then(function (stats) {
-			Object.keys(stats).forEach(function (key) {
-				var node = page.querySelector('[data-stat="' + key + '"]');
-				if (!node) return;
-				if (key === 'completion_rate') {
-					node.textContent = stats[key] + '%';
-				} else if (typeof stats[key] === 'number') {
-					node.textContent = stats[key].toLocaleString();
-				} else {
-					node.textContent = stats[key];
-				}
-			});
-		}).catch(function () {});
+		if (launchdekAdmin.dashboard && launchdekAdmin.dashboard.stats) {
+			renderDashboardStats(page, launchdekAdmin.dashboard.stats);
+		} else {
+			refreshDashboardStats(page).catch(function () {});
+		}
 
-		get('/connections/ticker').then(function (sites) {
-			var ticker = document.getElementById('launchdek-ticker');
-			if (!sites.length) {
-				ticker.innerHTML = '<p class="launchdek-muted">No sites registered yet.</p>';
-				return;
-			}
-			ticker.innerHTML = '';
-			sites.forEach(function (site, index) {
-				if (index > 0) {
-					ticker.appendChild(el('span', { className: 'launchdek-ticker-sep', text: '|', 'aria-hidden': 'true' }));
-				}
-				ticker.appendChild(el('span', { className: 'launchdek-ticker-chip ' + (site.status || 'unknown') }, [
-					el('span', { className: 'launchdek-ticker-dot ' + (site.status || 'unknown') }),
-					el('span', { text: (site.name || 'Unknown') + ' (' + (site.label || 'Unknown') + ')' })
-				]));
-			});
-		}).catch(function () {});
+		initConnectionPanel(launchdekAdmin.dashboard && launchdekAdmin.dashboard.connections);
 
-		get('/logs/feed?limit=15').then(function (logs) {
-			var feed = document.getElementById('launchdek-log-feed');
-			if (!logs.length) {
-				feed.innerHTML = '<p class="launchdek-muted">No activity yet.</p>';
-				return;
-			}
-			feed.innerHTML = '';
-			logs.forEach(function (log) {
-				var itemClass = 'launchdek-log-item';
-				if (log.action === 'client_step_completed' || log.action === 'client_step_note_added') {
-					itemClass += ' is-client-activity';
-				}
-				feed.appendChild(el('div', { className: itemClass }, [
-					el('time', { text: '[' + (log.created_at || '') + ']' }),
-					el('span', { text: ' ' + (log.message || log.action) })
-				]));
-			});
-		}).catch(function () {});
+		var feedEl = document.getElementById('launchdek-log-feed');
+		if (launchdekAdmin.dashboard && launchdekAdmin.dashboard.feed) {
+			renderLogFeed(feedEl, launchdekAdmin.dashboard.feed);
+		} else if (feedEl && feedEl.getAttribute('data-launchdek-preloaded') !== '1') {
+			refreshLogFeed().catch(function () {});
+		}
 
 		Promise.all([get('/sites'), get('/checklists?is_template=0')]).then(function (results) {
 			fillSelect(document.getElementById('launchdek-quick-site'), results[0], 'id', 'name', 'Select site…');
@@ -897,6 +921,8 @@
 			post('/runs', { site_id: parseInt(siteId, 10), checklist_id: parseInt(wfId, 10) })
 				.then(function (data) {
 					notice(result, 'Run #' + data.run_id + ' started. <a href="' + launchdekAdmin.adminUrl + '?page=' + launchdekAdmin.pageSlug + '-automation">Open runner →</a>', 'success');
+					refreshDashboardStats(page).catch(function () {});
+					refreshLogFeed().catch(function () {});
 				})
 				.catch(function (err) { notice(result, err.message, 'error'); });
 		});
@@ -933,6 +959,46 @@
 		if (status === 'healthy') return strings.healthOk || 'OK';
 		if (status === 'unhealthy') return strings.healthFail || 'Fail';
 		return strings.healthUnknown || 'Unknown';
+	}
+
+	function renderConnectionSummary(summaryEl, summary) {
+		if (!summaryEl) return;
+		summary = summary || {};
+
+		function connectionStatCard(modifier, count, label) {
+			return el('div', { className: 'launchdek-stat-card launchdek-connection-stat-card ' + modifier }, [
+				el('span', { className: 'launchdek-stat-value', text: (count || 0).toLocaleString() }),
+				el('span', { className: 'launchdek-stat-label', text: label })
+			]);
+		}
+
+		summaryEl.innerHTML = '';
+		summaryEl.appendChild(connectionStatCard('is-total', summary.total, strings.connectionAllStatuses || 'All Sites'));
+		summaryEl.appendChild(connectionStatCard('is-healthy', summary.healthy, strings.connectionSummaryHealthy || 'Healthy'));
+		summaryEl.appendChild(connectionStatCard('is-unhealthy', summary.unhealthy, strings.connectionSummaryUnhealthy || 'Issues'));
+		summaryEl.appendChild(connectionStatCard('is-unknown', summary.unknown, strings.connectionSummaryUnknown || 'Unknown'));
+	}
+
+	function initConnectionPanel(preloadedSummary) {
+		var summaryEl = document.getElementById('launchdek-connection-summary');
+		if (!summaryEl) {
+			return;
+		}
+
+		if (preloadedSummary) {
+			renderConnectionSummary(summaryEl, preloadedSummary);
+			return;
+		}
+
+		if (summaryEl.getAttribute('data-launchdek-preloaded') === '1') {
+			return;
+		}
+
+		get('/connections/ticker').then(function (summary) {
+			renderConnectionSummary(summaryEl, summary);
+		}).catch(function () {
+			summaryEl.innerHTML = '<p class="launchdek-muted">' + escHtml(strings.error || 'Something went wrong.') + '</p>';
+		});
 	}
 
 	function connectionStatusLabel(status, lastError) {
@@ -1050,7 +1116,14 @@
 		});
 	}
 
-	function loadSites() {
+	function sitesListHasFilters() {
+		var tag = document.getElementById('launchdek-filter-tag');
+		var group = document.getElementById('launchdek-filter-group');
+		return Boolean((tag && tag.value) || (group && group.value));
+	}
+
+	function renderSitesTable(sites, options) {
+		options = options || {};
 		var tag = document.getElementById('launchdek-filter-tag');
 		var group = document.getElementById('launchdek-filter-group');
 		var tbody = document.querySelector('#launchdek-sites-table tbody');
@@ -1058,43 +1131,72 @@
 			return;
 		}
 
+		tbody.innerHTML = '';
+		if (!sites || !sites.length) {
+			var emptyMsg = strings.noSites || 'No sites registered yet.';
+			if (options.filtered || sitesListHasFilters()) {
+				emptyMsg = strings.noSitesFiltered || 'No sites match the current filters. Try clearing tag or group filters.';
+			}
+			tbody.innerHTML = '<tr><td colspan="' + siteTableColspan + '" class="launchdek-muted">' + escHtml(emptyMsg) + '</td></tr>';
+			return;
+		}
+
+		sites.forEach(function (site) {
+			var tr = el('tr', { 'data-site-id': String(site.id) });
+			var connectionBlocked = site.health_status === 'unhealthy';
+			tr.innerHTML =
+				'<td>' + escHtml(site.name) + (site.client_agent ? ' <span class="launchdek-badge healthy launchdek-client-agent-badge">' + escHtml(strings.clientPanelBadge || 'Client panel') + '</span>' : '') + '</td>' +
+				'<td><a href="' + escAttr(site.url) + '" target="_blank" rel="noopener">' + escHtml(site.url) + '</a></td>' +
+				'<td class="launchdek-site-connection-cell">' + connectionStatusHtml(site) + '</td>' +
+				'<td class="launchdek-site-wp-version">' + escHtml(site.wp_version || '—') + '</td>' +
+				'<td class="launchdek-site-php-version">' + escHtml(site.php_version || '—') + '</td>' +
+				'<td><span class="launchdek-badge launchdek-site-health-badge ' + escAttr(site.health_status) + '">' + escHtml(healthLabel(site.health_status)) + '</span></td>' +
+				'<td class="launchdek-actions">' +
+				'<div class="launchdek-actions-wrap">' +
+				'<button type="button" class="button button-small launchdek-push-checklist" data-id="' + escAttr(site.id) + '" data-name="' + escAttr(site.name) + '"' + (connectionBlocked ? ' disabled' : '') + '>' + escHtml(strings.pushChecklist || 'Push Checklist') + '</button>' +
+				'<button type="button" class="button button-small launchdek-edit-site" data-id="' + escAttr(site.id) + '">Edit</button>' +
+				'<button type="button" class="button button-small launchdek-test-site" data-id="' + escAttr(site.id) + '">Test</button>' +
+				'</div></td>';
+			tbody.appendChild(tr);
+		});
+		bindSiteActions();
+		if (!options.skipStaleRefresh) {
+			refreshStaleSiteConnectionsInBackground(sites);
+		}
+	}
+
+	function loadSites(options) {
+		options = options || {};
+		var tag = document.getElementById('launchdek-filter-tag');
+		var group = document.getElementById('launchdek-filter-group');
+		var tbody = document.querySelector('#launchdek-sites-table tbody');
+		if (!tbody) {
+			return;
+		}
+
+		var hasFilters = sitesListHasFilters();
+		if (!options.forceFetch && !hasFilters) {
+			if (launchdekAdmin.sites && launchdekAdmin.sites.list) {
+				renderSitesTable(launchdekAdmin.sites.list);
+				return;
+			}
+			if (tbody.getAttribute('data-launchdek-preloaded') === '1' && tbody.querySelector('tr[data-site-id]')) {
+				bindSiteActions();
+				refreshStaleSiteConnectionsInBackground(launchdekAdmin.sites && launchdekAdmin.sites.list ? launchdekAdmin.sites.list : null);
+				return;
+			}
+		}
+
 		var params = [];
 		if (tag && tag.value) params.push('tag=' + encodeURIComponent(tag.value));
 		if (group && group.value) params.push('group_type=' + encodeURIComponent(group.value));
 		var qs = params.length ? '?' + params.join('&') : '';
 
+		tbody.removeAttribute('data-launchdek-preloaded');
 		tbody.innerHTML = '<tr><td colspan="' + siteTableColspan + '" class="launchdek-muted">' + escHtml(strings.loading || 'Loading…') + '</td></tr>';
 
 		get('/sites' + qs).then(function (sites) {
-			tbody.innerHTML = '';
-			if (!sites || !sites.length) {
-				var emptyMsg = strings.noSites || 'No sites registered yet.';
-				if ((group && group.value) || (tag && tag.value)) {
-					emptyMsg = strings.noSitesFiltered || 'No sites match the current filters. Try clearing tag or group filters.';
-				}
-				tbody.innerHTML = '<tr><td colspan="' + siteTableColspan + '" class="launchdek-muted">' + escHtml(emptyMsg) + '</td></tr>';
-				return;
-			}
-			sites.forEach(function (site) {
-				var tr = el('tr', { 'data-site-id': String(site.id) });
-				var connectionBlocked = site.health_status === 'unhealthy';
-				tr.innerHTML =
-					'<td>' + escHtml(site.name) + (site.client_agent ? ' <span class="launchdek-badge healthy launchdek-client-agent-badge">' + escHtml(strings.clientPanelBadge || 'Client panel') + '</span>' : '') + '</td>' +
-					'<td><a href="' + escAttr(site.url) + '" target="_blank" rel="noopener">' + escHtml(site.url) + '</a></td>' +
-					'<td class="launchdek-site-connection-cell">' + connectionStatusHtml(site) + '</td>' +
-					'<td class="launchdek-site-wp-version">' + escHtml(site.wp_version || '—') + '</td>' +
-					'<td class="launchdek-site-php-version">' + escHtml(site.php_version || '—') + '</td>' +
-					'<td><span class="launchdek-badge launchdek-site-health-badge ' + escAttr(site.health_status) + '">' + escHtml(healthLabel(site.health_status)) + '</span></td>' +
-					'<td class="launchdek-actions">' +
-					'<div class="launchdek-actions-wrap">' +
-					'<button type="button" class="button button-small launchdek-push-checklist" data-id="' + escAttr(site.id) + '" data-name="' + escAttr(site.name) + '"' + (connectionBlocked ? ' disabled' : '') + '>' + escHtml(strings.pushChecklist || 'Push Checklist') + '</button>' +
-					'<button type="button" class="button button-small launchdek-edit-site" data-id="' + escAttr(site.id) + '">Edit</button>' +
-					'<button type="button" class="button button-small launchdek-test-site" data-id="' + escAttr(site.id) + '">Test</button>' +
-					'</div></td>';
-				tbody.appendChild(tr);
-			});
-			bindSiteActions();
-			refreshStaleSiteConnectionsInBackground(sites);
+			renderSitesTable(sites, { filtered: hasFilters });
 		}).catch(function (err) {
 			tbody.innerHTML = '<tr><td colspan="' + siteTableColspan + '"><div class="notice-inline error">' + escHtml(err.message || strings.error || 'Could not load sites.') + '</div></td></tr>';
 		});
@@ -1282,7 +1384,17 @@
 	function initSites() {
 		if (!document.querySelector('[data-launchdek-page="sites"]')) return;
 
-		loadSites();
+		var tbody = document.querySelector('#launchdek-sites-table tbody');
+		if (launchdekAdmin.sites && launchdekAdmin.sites.list) {
+			if (tbody && tbody.getAttribute('data-launchdek-preloaded') !== '1') {
+				renderSitesTable(launchdekAdmin.sites.list);
+			} else if (tbody && tbody.getAttribute('data-launchdek-preloaded') === '1') {
+				bindSiteActions();
+				refreshStaleSiteConnectionsInBackground(launchdekAdmin.sites.list);
+			}
+		} else {
+			loadSites();
+		}
 		get('/sites/tags').then(function (tags) {
 			var sel = document.getElementById('launchdek-filter-tag');
 			tags.forEach(function (t) {
@@ -1352,7 +1464,7 @@
 			if (!currentSiteId || !confirm(strings.confirmDeleteSite || strings.confirmDelete)) return;
 			del('/sites/' + currentSiteId).then(function () {
 				closeModal(document.getElementById('launchdek-site-modal'));
-				loadSites();
+				loadSites({ forceFetch: true });
 			}).catch(function (e) { alert(e.message); });
 		});
 
@@ -1422,7 +1534,7 @@
 				if (site && site.client_panel && site.client_panel.success) {
 					closeModal(document.getElementById('launchdek-site-modal'));
 				}
-				loadSites();
+				loadSites({ forceFetch: true });
 			}).catch(function (err) { alert(err.message); });
 		});
 	}
@@ -1524,10 +1636,28 @@
 			});
 
 			node.innerHTML =
+				'<button type="button" class="launchdek-canvas-node-chevron" aria-label="' + escAttr(strings.stepSettings || 'Step settings') + '" aria-expanded="' + (selectedStepIndex === i ? 'true' : 'false') + '">' +
+					'<span class="dashicons dashicons-arrow-down-alt2" aria-hidden="true"></span>' +
+				'</button>' +
 				'<span class="launchdek-canvas-node-num">' + (i + 1) + '</span>' +
 				'<span class="launchdek-canvas-node-title">' + escHtml(step.title || 'Step ' + (i + 1)) + '</span>' +
 				'<span class="launchdek-canvas-node-type">' + escHtml(step.type || 'manual') + '</span>' +
 				(roles.length ? '<span class="launchdek-canvas-node-roles">' + escHtml(roles.join(', ')) + '</span>' : '');
+
+			var chevronBtn = node.querySelector('.launchdek-canvas-node-chevron');
+			if (chevronBtn) {
+				chevronBtn.addEventListener('click', function (e) {
+					e.preventDefault();
+					e.stopPropagation();
+					selectedStepIndex = i;
+					renderSteps();
+					renderStepConfig();
+					var configSidebar = document.querySelector('.launchdek-step-config-sidebar');
+					if (configSidebar) {
+						configSidebar.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+					}
+				});
+			}
 
 			node.addEventListener('click', function () { selectedStepIndex = i; renderSteps(); renderStepConfig(); });
 			node.addEventListener('keydown', function (e) {
@@ -1579,12 +1709,14 @@
 			return;
 		}
 		var step = currentSteps[selectedStepIndex];
+		var showNoteField = step.show_note_field !== false;
 		box.innerHTML =
 			'<label>Step Title<input type="text" id="ld-step-title" value="' + escAttr(step.title || '') + '" /></label>' +
 			'<label>Instructions<textarea id="ld-step-instructions" rows="3">' + escHtml(step.instructions || '') + '</textarea></label>' +
 			renderRoleMapping(step) +
 			'<label>Deep Link (admin path)<input type="text" id="ld-step-deeplink" value="' + escAttr(step.deep_link || '') + '" placeholder="options-permalink.php" /></label>' +
 			'<label>Step Type<select id="ld-step-type"><option value="manual"' + (step.type === 'manual' ? ' selected' : '') + '>Manual</option><option value="api"' + (step.type === 'api' ? ' selected' : '') + '>API</option></select></label>' +
+			'<label class="launchdek-step-note-field-option" id="ld-step-show-note-wrap"><input type="checkbox" id="ld-step-show-note"' + (showNoteField ? ' checked' : '') + ' /> ' + escHtml(strings.showNoteField || 'Show note field on client panel') + '</label>' +
 			'<div id="ld-api-config"' + (step.type === 'api' ? '' : ' style="display:none"') + '>' +
 			'<h4 class="launchdek-config-subheading">API Payload Mapper</h4>' +
 			'<label>HTTP Method<select id="ld-api-method"><option' + sel(step.api && step.api.method, 'GET') + '>GET</option><option' + sel(step.api && step.api.method, 'POST') + '>POST</option><option' + sel(step.api && step.api.method, 'PUT') + '>PUT</option><option' + sel(step.api && step.api.method, 'PATCH') + '>PATCH</option><option' + sel(step.api && step.api.method, 'DELETE') + '>DELETE</option></select></label>' +
@@ -1594,10 +1726,20 @@
 			'</div>' +
 			'<button type="button" class="button" id="ld-remove-step" style="margin-top:8px">Remove Step</button>';
 
+		function syncStepTypeFields() {
+			var isManual = document.getElementById('ld-step-type').value === 'manual';
+			document.getElementById('ld-api-config').style.display = isManual ? 'none' : '';
+			var noteWrap = document.getElementById('ld-step-show-note-wrap');
+			if (noteWrap) {
+				noteWrap.style.display = isManual ? '' : 'none';
+			}
+		}
+
 		document.getElementById('ld-step-type').onchange = function () {
-			document.getElementById('ld-api-config').style.display = this.value === 'api' ? '' : 'none';
+			syncStepTypeFields();
 			saveStepFromForm();
 		};
+		syncStepTypeFields();
 		['ld-step-title', 'ld-step-instructions', 'ld-step-deeplink', 'ld-api-method', 'ld-api-route', 'ld-api-payload'].forEach(function (id) {
 			var node = document.getElementById(id);
 			if (node) node.onchange = saveStepFromForm;
@@ -1605,6 +1747,10 @@
 		box.querySelectorAll('.ld-target-role').forEach(function (input) {
 			input.onchange = saveStepFromForm;
 		});
+		var showNoteInput = document.getElementById('ld-step-show-note');
+		if (showNoteInput) {
+			showNoteInput.onchange = saveStepFromForm;
+		}
 		document.getElementById('ld-remove-step').onclick = function () {
 			currentSteps.splice(selectedStepIndex, 1);
 			selectedStepIndex = null;
@@ -1642,6 +1788,10 @@
 				route: document.getElementById('ld-api-route').value,
 				payload: payload
 			};
+			step.show_note_field = false;
+		} else {
+			var showNoteInput = document.getElementById('ld-step-show-note');
+			step.show_note_field = showNoteInput ? showNoteInput.checked : true;
 		}
 		renderSteps();
 	}
@@ -1722,6 +1872,7 @@
 				target_roles: [],
 				deep_link: '',
 				type: 'manual',
+				show_note_field: true,
 				api: { method: 'GET', route: '', payload: {} }
 			});
 			selectedStepIndex = currentSteps.length - 1;
@@ -2239,6 +2390,27 @@
 		return escHtml(JSON.stringify(log.details || {}, null, 2));
 	}
 
+	function renderAuditRows(tbody, logs, emptyMessage) {
+		if (!tbody) return;
+		tbody.innerHTML = '';
+		if (!logs.length) {
+			tbody.innerHTML = '<tr><td colspan="4" class="launchdek-muted">' + escHtml(emptyMessage || 'No audit entries match these filters.') + '</td></tr>';
+			return;
+		}
+		logs.forEach(function (log) {
+			var tr = el('tr');
+			tr.innerHTML =
+				'<td>' + escHtml(log.created_at) + '</td>' +
+				'<td>' + escHtml(log.user_name) + '</td>' +
+				'<td>' + escHtml(log.site_name || '—') + '</td>' +
+				'<td>' +
+					'<div class="launchdek-audit-action"><span class="launchdek-badge ' + escHtml(log.outcome_class || 'unknown') + '">' + escHtml(log.action_label || log.action) + '</span></div>' +
+					'<pre class="launchdek-audit-diff">' + formatAuditDiff(log) + '</pre>' +
+				'</td>';
+			tbody.appendChild(tr);
+		});
+	}
+
 	function loadAuditMeta() {
 		return get('/audit/meta').then(function (meta) {
 			var userSelect = document.getElementById('launchdek-audit-user');
@@ -2261,25 +2433,73 @@
 		if (dateTo) qs += '&date_to=' + encodeURIComponent(dateTo);
 
 		get('/audit' + qs).then(function (logs) {
-			var tbody = document.querySelector('#launchdek-audit-table tbody');
-			tbody.innerHTML = '';
-			if (!logs.length) {
-				tbody.innerHTML = '<tr><td colspan="4" class="launchdek-muted">No audit entries match these filters.</td></tr>';
-				return;
-			}
-			logs.forEach(function (log) {
-				var tr = el('tr');
-				tr.innerHTML =
-					'<td>' + escHtml(log.created_at) + '</td>' +
-					'<td>' + escHtml(log.user_name) + '</td>' +
-					'<td>' + escHtml(log.site_name || '—') + '</td>' +
-					'<td>' +
-						'<div class="launchdek-audit-action"><span class="launchdek-badge ' + escHtml(log.outcome_class || 'unknown') + '">' + escHtml(log.action_label || log.action) + '</span></div>' +
-						'<pre class="launchdek-audit-diff">' + formatAuditDiff(log) + '</pre>' +
-					'</td>';
-				tbody.appendChild(tr);
-			});
+			renderAuditRows(document.querySelector('#launchdek-audit-table tbody'), logs);
 		});
+	}
+
+	function loadActivityLogsSiteFilter() {
+		var select = document.getElementById('launchdek-activity-logs-site');
+		if (!select) return Promise.resolve();
+		return get('/sites').then(function (sites) {
+			var current = select.value;
+			select.innerHTML = '<option value="">All sites</option>';
+			(sites || []).forEach(function (site) {
+				select.appendChild(el('option', { value: String(site.id), text: site.name || ('Site #' + site.id) }));
+			});
+			if (current) select.value = current;
+		}).catch(function () {});
+	}
+
+	function loadActivityLogs() {
+		var searchEl = document.getElementById('launchdek-activity-logs-search');
+		var statusEl = document.getElementById('launchdek-activity-logs-status');
+		var siteEl = document.getElementById('launchdek-activity-logs-site');
+		var dateFromEl = document.getElementById('launchdek-activity-logs-date-from');
+		var dateToEl = document.getElementById('launchdek-activity-logs-date-to');
+		var tbody = document.querySelector('#launchdek-activity-logs-table tbody');
+		if (!tbody) return;
+
+		var qs = '?detailed=1&limit=200';
+		if (searchEl && searchEl.value) qs += '&search=' + encodeURIComponent(searchEl.value);
+		if (statusEl && statusEl.value) qs += '&status=' + encodeURIComponent(statusEl.value);
+		if (siteEl && siteEl.value) qs += '&site_id=' + encodeURIComponent(siteEl.value);
+		if (dateFromEl && dateFromEl.value) qs += '&date_from=' + encodeURIComponent(dateFromEl.value);
+		if (dateToEl && dateToEl.value) qs += '&date_to=' + encodeURIComponent(dateToEl.value);
+
+		tbody.innerHTML = '<tr><td colspan="4" class="launchdek-muted">' + escHtml(strings.loading || 'Loading…') + '</td></tr>';
+		get('/logs/feed' + qs).then(function (logs) {
+			renderAuditRows(tbody, logs);
+		}).catch(function () {
+			tbody.innerHTML = '<tr><td colspan="4" class="launchdek-muted">' + escHtml(strings.error || 'Something went wrong.') + '</td></tr>';
+		});
+	}
+
+	function initActivityLogs() {
+		if (!document.querySelector('[data-launchdek-page="activity-logs"]')) return;
+
+		var params = new URLSearchParams(window.location.search);
+		var siteId = params.get('site_id') || '';
+
+		loadActivityLogsSiteFilter().then(function () {
+			if (siteId) {
+				var siteSelect = document.getElementById('launchdek-activity-logs-site');
+				if (siteSelect) siteSelect.value = siteId;
+			}
+			loadActivityLogs();
+		});
+
+		var filterBtn = document.getElementById('launchdek-activity-logs-filter');
+		if (filterBtn) filterBtn.addEventListener('click', loadActivityLogs);
+
+		var searchEl = document.getElementById('launchdek-activity-logs-search');
+		if (searchEl) {
+			searchEl.addEventListener('keydown', function (e) {
+				if (e.key === 'Enter') {
+					e.preventDefault();
+					loadActivityLogs();
+				}
+			});
+		}
 	}
 
 	function loadDriftStatus() {
@@ -2815,6 +3035,7 @@
 		initOnboarding();
 		initDashboard();
 		initSites();
+		initActivityLogs();
 		initChecklists();
 		initAutomation();
 		initTemplates();

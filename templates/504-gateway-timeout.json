@@ -1,0 +1,58 @@
+{
+  "title": "504 Gateway Timeout",
+  "description": "Fix requests that exceed proxy or PHP execution limits — common during imports, backups, or slow database queries.",
+  "category": "troubleshooting",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "err504_identify_url",
+      "title": "Identify Affected URLs or Actions",
+      "instructions": "Note which pages or admin actions timeout (imports, plugin updates, sitemap generation). Reproduce on staging with browser dev tools Network tab open.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "err504_increase_limits",
+      "title": "Increase Timeout and Execution Limits",
+      "instructions": "Raise max_execution_time and max_input_time in php.ini. Ask your host to increase nginx proxy_read_timeout or Apache Timeout if needed.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "err504_slow_queries",
+      "title": "Find Slow Database Queries",
+      "instructions": "Enable SAVEQUERIES or use Query Monitor on staging. Add missing indexes, clean postmeta/revisions, and disable plugins that run heavy queries on every request.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "err504_external_calls",
+      "title": "Check External HTTP Calls",
+      "instructions": "Plugins calling slow third-party APIs during page load can cause timeouts. Identify blocking wp_remote_get/post calls and defer them to cron or async jobs.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "err504_batch_operations",
+      "title": "Run Heavy Jobs in Smaller Batches",
+      "instructions": "Split large imports, image regenerations, or search-replace into smaller chunks via WP-CLI or plugin batch settings instead of one long HTTP request.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "err504_object_cache",
+      "title": "Add or Verify Object Caching",
+      "instructions": "Redis or Memcached reduces repeated DB hits. Confirm object cache is connected and not misconfigured (wrong host/port causes long connection waits).",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "err504_verify",
+      "title": "Retest Critical Paths",
+      "instructions": "Confirm previously timing-out URLs load within acceptable limits. Document new timeout values and any cron-based alternatives for heavy tasks.",
+      "deep_link": "",
+      "type": "manual"
+    }
+  ]
+}

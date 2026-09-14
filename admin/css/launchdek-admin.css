@@ -228,51 +228,67 @@
 	background: #edfaef;
 }
 
-/* Ticker */
-.launchdek-ticker-inline {
+/* Connection status panel (dashboard) */
+.launchdek-connection-panel-header {
 	display: flex;
 	flex-wrap: wrap;
 	align-items: center;
-	gap: 6px 10px;
-	padding: 4px 0;
-	font-size: 13px;
-	line-height: 1.5;
+	justify-content: space-between;
+	gap: 12px;
+	margin-bottom: 12px;
 }
 
-.launchdek-ticker-chip {
-	display: inline-flex;
-	align-items: center;
-	gap: 6px;
-	white-space: nowrap;
+.launchdek-connection-panel-header h2 {
+	margin: 0;
 }
 
-.launchdek-ticker-sep {
-	color: #c3c4c7;
-	user-select: none;
+.launchdek-connection-stats {
+	margin: 0;
 }
 
-.launchdek-ticker-dot {
-	width: 8px;
-	height: 8px;
-	border-radius: 50%;
-	flex-shrink: 0;
+.launchdek-connection-stat-card.is-healthy {
+	border-color: #b8e6bf;
+	background: #edfaef;
 }
 
-.launchdek-ticker-dot.healthy,
-.launchdek-ticker-dot.success { background: #00a32a; }
+.launchdek-connection-stat-card.is-healthy .launchdek-stat-value {
+	color: #007017;
+}
 
-.launchdek-ticker-dot.unhealthy,
-.launchdek-ticker-dot.error { background: #d63638; }
+.launchdek-connection-stat-card.is-unhealthy {
+	border-color: #f1aeb5;
+	background: #fcf0f1;
+}
 
-.launchdek-ticker-dot.unknown { background: #dba617; }
+.launchdek-connection-stat-card.is-unhealthy .launchdek-stat-value {
+	color: #8a2424;
+}
+
+.launchdek-connection-stat-card.is-unknown {
+	border-color: #f0d58c;
+	background: #fcf9e8;
+}
+
+.launchdek-connection-stat-card.is-unknown .launchdek-stat-value {
+	color: #8a6d00;
+}
 
 /* Log feed */
+.launchdek-log-feed-meta {
+	margin: 0 0 10px;
+	font-size: 12px;
+}
+
 .launchdek-log-feed {
 	max-height: 280px;
 	overflow-y: auto;
 }
 
 .launchdek-log-item {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	gap: 6px;
 	padding: 6px 0 6px 14px;
 	border-bottom: 1px solid #f0f0f1;
 	font-size: 13px;
@@ -290,6 +306,27 @@
 	color: #646970;
 	font-size: 12px;
 	font-variant-numeric: tabular-nums;
+	flex-shrink: 0;
+}
+
+.launchdek-log-site {
+	display: inline-block;
+	padding: 1px 7px;
+	border-radius: 3px;
+	font-size: 11px;
+	font-weight: 600;
+	background: #f0f6fc;
+	color: #1d2327;
+	flex-shrink: 0;
+	max-width: 180px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.launchdek-log-message {
+	flex: 1 1 160px;
+	min-width: 0;
 }
 
 /* Health badges */
@@ -1018,6 +1055,43 @@
 	gap: 0;
 	min-width: min-content;
 	width: max-content;
+}
+
+.launchdek-canvas-node-chevron {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	width: 24px;
+	height: 24px;
+	padding: 0;
+	border: 0;
+	background: transparent;
+	color: #50575e;
+	cursor: pointer;
+	border-radius: 2px;
+}
+
+.launchdek-canvas-node-chevron:hover,
+.launchdek-canvas-node-chevron:focus,
+.launchdek-canvas-node.active .launchdek-canvas-node-chevron {
+	color: #2271b1;
+	background: #f0f6fc;
+}
+
+.launchdek-canvas-node-chevron .dashicons {
+	width: 18px;
+	height: 18px;
+	font-size: 18px;
+}
+
+.launchdek-step-note-field-option {
+	font-weight: 600;
+}
+
+.launchdek-step-note-field-option input {
+	width: auto;
+	margin-right: 6px;
 }
 
 .launchdek-canvas-node {
@@ -1878,6 +1952,14 @@
 
 .launchdek-auto-capture-modal .launchdek-auto-capture-content {
 	max-width: 640px;
+}
+
+.launchdek-activity-logs-intro {
+	margin: 0 0 16px;
+}
+
+.launchdek-activity-logs-intro a {
+	margin-left: 8px;
 }
 
 .launchdek-auto-capture-header {

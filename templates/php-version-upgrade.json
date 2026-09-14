@@ -1,0 +1,65 @@
+{
+  "title": "PHP Version Upgrade Breakage",
+  "description": "Fix sites that break after the host upgrades PHP — deprecated functions, incompatible plugins, and version mismatch errors.",
+  "category": "troubleshooting",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "phpver_identify_version",
+      "title": "Identify Current and Required PHP Version",
+      "instructions": "Check Site Health → Info for PHP version. Note WordPress minimum and each active plugin's PHP requirement. Host may have jumped multiple versions at once.",
+      "deep_link": "site-health.php",
+      "type": "manual"
+    },
+    {
+      "id": "phpver_read_errors",
+      "title": "Read PHP Error Logs for Deprecated Calls",
+      "instructions": "Look for 'deprecated', 'undefined function', or 'syntax error' in debug.log and host PHP logs. The file path usually identifies the offending plugin or theme.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "phpver_staging_test",
+      "title": "Test Target PHP Version on Staging",
+      "instructions": "Switch PHP version on staging clone before production. Run through homepage, admin, forms, and checkout. Never test PHP upgrades on live during business hours.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "phpver_update_plugins",
+      "title": "Update All Plugins and Themes",
+      "instructions": "Most breakage is outdated code on new PHP. Update everything compatible. Replace abandoned plugins that have not been updated in 12+ months.",
+      "deep_link": "update-core.php",
+      "type": "manual"
+    },
+    {
+      "id": "phpver_rollback_option",
+      "title": "Rollback PHP Temporarily if Critical",
+      "instructions": "If production is down, switch back to previous PHP version in hosting panel while fixing. Document deadline before host forces upgrade.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "phpver_custom_code",
+      "title": "Fix Custom Snippets and Child Theme Code",
+      "instructions": "Review functions.php, mu-plugins, and Code Snippets for removed PHP functions (each(), create_function(), etc.). Update to modern equivalents.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "phpver_extensions",
+      "title": "Verify Required PHP Extensions",
+      "instructions": "New PHP versions may drop extensions (e.g. mysql, mcrypt). Confirm mysqli, curl, gd/imagick, zip, and intl are installed on the new version.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "phpver_verify",
+      "title": "Verify Site on New PHP Version",
+      "instructions": "Confirm no errors in logs after 24 hours on new PHP. Update client documentation with supported PHP version and next review date.",
+      "deep_link": "",
+      "type": "manual"
+    }
+  ]
+}

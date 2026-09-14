@@ -1,0 +1,65 @@
+{
+  "title": "OptinMonster Troubleshooting",
+  "description": "Fix campaigns not showing, JavaScript conflicts, incorrect targeting rules, and WooCommerce integration issues.",
+  "category": "troubleshooting",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "om_identify_campaign",
+      "title": "Identify Campaign and Display Rule",
+      "instructions": "Note which campaign should appear (popup, slide-in, inline) and its targeting (URL, referrer, device, logged-in state). Confirm the campaign is Published in the OptinMonster dashboard.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "om_api_connection",
+      "title": "Verify WordPress Plugin API Connection",
+      "instructions": "Reconnect the OptinMonster WordPress plugin to your account. Check for API key errors in OptinMonster → Settings and refresh campaign sync.",
+      "deep_link": "admin.php?page=optin-monster-dashboard",
+      "type": "manual"
+    },
+    {
+      "id": "om_embed_script",
+      "title": "Confirm Embed Script Loads on Page",
+      "instructions": "View page source or Network tab for api.optinmonster.com or omappapi scripts. Ad blockers and CSP headers can block the embed — test without extensions.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "om_targeting_rules",
+      "title": "Audit Targeting and Cookie Rules",
+      "instructions": "Visitors who already converted or dismissed may be cookied out. Test in incognito or clear om* cookies. Verify URL rules match production paths (trailing slashes).",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "om_js_conflicts",
+      "title": "Check JavaScript Conflicts",
+      "instructions": "Console errors from jQuery conflicts, deferred scripts, or minify plugins can stop campaigns. Exclude OptinMonster scripts from Autoptimize/delay-JS rules.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "om_cache_exclusion",
+      "title": "Exclude Cached Pages if Needed",
+      "instructions": "Full-page cache may serve HTML without fresh campaign embeds. Purge cache after campaign changes or exclude pages with inline campaigns from cache.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "om_woocommerce",
+      "title": "Verify WooCommerce Triggers (If Used)",
+      "instructions": "Cart abandonment and revenue campaigns need correct WooCommerce connection. Confirm webhooks/cron and that checkout pages are not over-cached.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "om_verify",
+      "title": "Test Campaign Display End-to-End",
+      "instructions": "Trigger the campaign on a test URL in incognito. Submit a test opt-in and confirm the integration (Mailchimp, etc.) receives the lead.",
+      "deep_link": "",
+      "type": "manual"
+    }
+  ]
+}

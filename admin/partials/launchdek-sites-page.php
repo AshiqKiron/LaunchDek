@@ -4,13 +4,68 @@
  *
  * @package LaunchDek
  *
- * @var array  $settings Plugin settings.
- * @var string $page     Page identifier.
+ * @var array  $settings   Plugin settings.
+ * @var string $page       Page identifier.
+ * @var array  $sites_list Cached sites list for the default table view.
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
+
+$sites_list = isset( $sites_list ) && is_array( $sites_list ) ? $sites_list : LAUNCHDEK_Dashboard_Cache::get_sites_list();
+
+/**
+ * Render translated health label for the sites table.
+ *
+ * @param string $status Health status slug.
+ * @return string
+ */
+if ( ! function_exists( 'launchdek_sites_health_label' ) ) :
+function launchdek_sites_health_label( $status ) {
+	if ( 'healthy' === $status ) {
+		return __( 'OK', LAUNCHDEK_TEXT_DOMAIN );
+	}
+	if ( 'unhealthy' === $status ) {
+		return __( 'Fail', LAUNCHDEK_TEXT_DOMAIN );
+	}
+
+	return __( 'Unknown', LAUNCHDEK_TEXT_DOMAIN );
+}
+endif;
+
+/**
+ * Render connection status markup for a site row.
+ *
+ * @param array $site Site payload.
+ * @return string
+ */
+if ( ! function_exists( 'launchdek_sites_connection_status_html' ) ) :
+function launchdek_sites_connection_status_html( $site ) {
+	$status     = sanitize_key( $site['health_status'] ?? 'unknown' );
+	$last_error = isset( $site['last_error'] ) ? (string) $site['last_error'] : '';
+
+	if ( 'healthy' === $status ) {
+		$label = __( 'Connection OK', LAUNCHDEK_TEXT_DOMAIN );
+	} elseif ( 'unhealthy' === $status ) {
+		$label = __( 'Connection not working', LAUNCHDEK_TEXT_DOMAIN );
+		if ( '' !== $last_error ) {
+			$label .= ': ' . $last_error;
+		}
+	} else {
+		$label = __( 'Unknown', LAUNCHDEK_TEXT_DOMAIN );
+	}
+
+	$html  = '<span class="launchdek-site-connection" title="' . esc_attr( $label ) . '">';
+	$html .= '<span class="launchdek-connection-dot ' . esc_attr( $status ) . '" aria-hidden="true"></span>';
+	if ( 'unhealthy' === $status ) {
+		$html .= '<span class="dashicons dashicons-warning launchdek-connection-warning" aria-hidden="true"></span>';
+	}
+	$html .= '<span class="screen-reader-text">' . esc_html( $label ) . '</span></span>';
+
+	return $html;
+}
+endif;
 ?>
 <div class="wrap launchdek-admin" data-launchdek-page="sites">
 	<h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
@@ -19,6 +74,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 		<div class="launchdek-sites-toolbar-actions">
 			<button type="button" class="button button-primary" id="launchdek-add-site"><?php esc_html_e( 'Add Site', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
 			<button type="button" class="button" id="launchdek-connection-tester"><?php esc_html_e( 'Connection Tester', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
+			<a href="<?php echo esc_url( admin_url( 'admin.php?page=' . LAUNCHDEK_Admin::PAGE_SLUG . '-activity-logs' ) ); ?>" class="button" id="launchdek-activity-logs"><?php esc_html_e( 'Activity Logs', LAUNCHDEK_TEXT_DOMAIN ); ?></a>
 		</div>
 		<div class="launchdek-sites-toolbar-filters" role="search" aria-label="<?php esc_attr_e( 'Tagging and grouping filters', LAUNCHDEK_TEXT_DOMAIN ); ?>">
 			<label class="launchdek-filter-label">
@@ -53,7 +109,44 @@ if ( ! defined( 'ABSPATH' ) ) {
 					<th scope="col"><?php esc_html_e( 'Actions', LAUNCHDEK_TEXT_DOMAIN ); ?></th>
 				</tr>
 			</thead>
-			<tbody></tbody>
+			<tbody data-launchdek-preloaded="1">
+				<?php if ( empty( $sites_list ) ) : ?>
+					<tr>
+						<td colspan="7" class="launchdek-muted"><?php esc_html_e( 'No sites registered yet.', LAUNCHDEK_TEXT_DOMAIN ); ?></td>
+					</tr>
+				<?php else : ?>
+					<?php foreach ( $sites_list as $site ) : ?>
+						<?php
+						$health_status      = sanitize_key( $site['health_status'] ?? 'unknown' );
+						$connection_blocked = 'unhealthy' === $health_status;
+						?>
+						<tr data-site-id="<?php echo esc_attr( (string) ( $site['id'] ?? 0 ) ); ?>">
+							<td>
+								<?php echo esc_html( $site['name'] ?? '' ); ?>
+								<?php if ( ! empty( $site['client_agent'] ) ) : ?>
+									<span class="launchdek-badge healthy launchdek-client-agent-badge"><?php esc_html_e( 'Client panel', LAUNCHDEK_TEXT_DOMAIN ); ?></span>
+								<?php endif; ?>
+							</td>
+							<td>
+								<a href="<?php echo esc_url( $site['url'] ?? '' ); ?>" target="_blank" rel="noopener"><?php echo esc_html( $site['url'] ?? '' ); ?></a>
+							</td>
+							<td class="launchdek-site-connection-cell"><?php echo launchdek_sites_connection_status_html( $site ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></td>
+							<td class="launchdek-site-wp-version"><?php echo esc_html( $site['wp_version'] ?? '—' ); ?></td>
+							<td class="launchdek-site-php-version"><?php echo esc_html( $site['php_version'] ?? '—' ); ?></td>
+							<td>
+								<span class="launchdek-badge launchdek-site-health-badge <?php echo esc_attr( $health_status ); ?>"><?php echo esc_html( launchdek_sites_health_label( $health_status ) ); ?></span>
+							</td>
+							<td class="launchdek-actions">
+								<div class="launchdek-actions-wrap">
+									<button type="button" class="button button-small launchdek-push-checklist" data-id="<?php echo esc_attr( (string) ( $site['id'] ?? 0 ) ); ?>" data-name="<?php echo esc_attr( $site['name'] ?? '' ); ?>"<?php disabled( $connection_blocked ); ?>><?php esc_html_e( 'Push Checklist', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
+									<button type="button" class="button button-small launchdek-edit-site" data-id="<?php echo esc_attr( (string) ( $site['id'] ?? 0 ) ); ?>"><?php esc_html_e( 'Edit', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
+									<button type="button" class="button button-small launchdek-test-site" data-id="<?php echo esc_attr( (string) ( $site['id'] ?? 0 ) ); ?>"><?php esc_html_e( 'Test', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
+								</div>
+							</td>
+						</tr>
+					<?php endforeach; ?>
+				<?php endif; ?>
+			</tbody>
 		</table>
 	</div>
 

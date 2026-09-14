@@ -1,0 +1,58 @@
+{
+  "title": "Email Not Sending",
+  "description": "Diagnose wp_mail failures affecting contact forms, WooCommerce orders, and admin notifications.",
+  "category": "troubleshooting",
+  "version": "1.0.0",
+  "is_template": true,
+  "steps": [
+    {
+      "id": "email_identify_scope",
+      "title": "Identify Which Emails Fail",
+      "instructions": "Determine if all emails fail or only specific types (forms, WooCommerce, core notifications). Test wp_mail with a logging plugin like WP Mail Logging.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "email_check_logs",
+      "title": "Review Mail Logs and SMTP Errors",
+      "instructions": "Check SMTP plugin logs, host mail queue, and bounce messages. Look for authentication failures, relay denied, or quota exceeded errors.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "email_configure_smtp",
+      "title": "Configure Reliable SMTP Provider",
+      "instructions": "Set up SendGrid, Mailgun, Amazon SES, or host SMTP with TLS on port 587. Avoid port 25 on shared hosting — it is often blocked.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "email_dns_records",
+      "title": "Add SPF, DKIM, and DMARC Records",
+      "instructions": "Publish DNS records required by your mail provider. Use mail-tester.com or similar to verify deliverability score before closing the ticket.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "email_from_headers",
+      "title": "Fix From Name and Reply-To Headers",
+      "instructions": "Form plugins may override From with visitor addresses — many hosts reject this. Set a domain From address and use Reply-To for the submitter.",
+      "deep_link": "",
+      "type": "manual"
+    },
+    {
+      "id": "email_plugin_conflicts",
+      "title": "Check for Plugin Hook Conflicts",
+      "instructions": "Multiple plugins filtering wp_mail can break headers. Disable other mail plugins temporarily and test with a simple wp_mail() call.",
+      "deep_link": "plugins.php",
+      "type": "manual"
+    },
+    {
+      "id": "email_verify_delivery",
+      "title": "Verify End-to-End Delivery",
+      "instructions": "Submit a contact form, place a test order, and trigger a password reset. Confirm emails arrive in inbox (not spam) within expected time.",
+      "deep_link": "",
+      "type": "manual"
+    }
+  ]
+}
