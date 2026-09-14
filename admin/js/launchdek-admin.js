@@ -196,6 +196,11 @@
 		return String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 	}
 
+	function renderDoubleTickIcon() {
+		var tick = '<svg class="launchdek-double-tick-icon" width="10" height="10" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+		return '<span class="launchdek-double-tick-icons">' + tick + tick + '</span>';
+	}
+
 	function fillSelect(select, items, valueKey, labelKey, placeholder) {
 		if (!select) return;
 		select.innerHTML = '';
@@ -2647,7 +2652,9 @@
 			if (step.status && step.status !== 'pending') {
 				html += ' — ' + escHtml(step.status);
 			}
-			if (step.manual_checked) html += ' ✓✓';
+			if (step.manual_checked) {
+				html += ' <span class="launchdek-double-tick" aria-hidden="true">' + renderDoubleTickIcon() + '</span>';
+			}
 			html += '</div>';
 
 			if (step.error_message) {

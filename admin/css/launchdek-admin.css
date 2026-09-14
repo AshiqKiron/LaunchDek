@@ -1522,6 +1522,27 @@
 	margin-top: 4px;
 }
 
+.launchdek-double-tick {
+	display: inline-flex;
+	align-items: center;
+	vertical-align: middle;
+	margin-left: 2px;
+	color: #1a202c;
+}
+
+.launchdek-double-tick-icons {
+	display: inline-flex;
+	align-items: center;
+	gap: 1px;
+}
+
+.launchdek-double-tick-icon {
+	display: block;
+	width: 10px;
+	height: 10px;
+	flex-shrink: 0;
+}
+
 .launchdek-run-step-error {
 	color: #d63638;
 	font-size: 12px;

@@ -106,7 +106,7 @@ class LAUNCHDEK_Client_Panel {
 		foreach ( $screens as $screen ) {
 			add_meta_box(
 				'launchdek-client-checklist',
-				__( 'Agency Checklist', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+				LAUNCHDEK_Client_Run_Store::get_panel_title( $run ),
 				array( __CLASS__, 'render_metabox' ),
 				$screen,
 				'side',
@@ -172,7 +172,7 @@ class LAUNCHDEK_Client_Panel {
 					'email' => sanitize_email( wp_get_current_user()->user_email ),
 				),
 				'strings' => array(
-					'panelTitle'  => __( 'Agency Checklist', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+					'panelTitle'  => LAUNCHDEK_Client_Run_Store::get_panel_title( $run ),
 					'collapse'    => __( 'Collapse', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
 					'expand'      => __( 'Expand', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
 					'showSteps'   => __( 'Show steps', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
@@ -210,7 +210,6 @@ class LAUNCHDEK_Client_Panel {
 					'noteSavedLocal' => __( 'Note saved on this site. Hub sync will retry on the next checklist update.', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
 					'notesHeading' => __( 'Notes', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
 					'notesCount' => __( '%1$s (%2$s)', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
-					'expandAllNotes' => __( 'Show all notes', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
 					'removeAttachment' => __( 'Remove screenshot', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
 					'mediaError'  => __( 'Could not open media library.', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
 				),

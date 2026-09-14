@@ -518,7 +518,7 @@ body.launchdek-client-layout-live_topbar #wpadminbar #wp-admin-bar-launchdek-cli
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	width: 20px;
+	width: 22px;
 	height: 20px;
 	flex-shrink: 0;
 }
@@ -535,8 +535,17 @@ body.launchdek-client-layout-live_topbar #wpadminbar #wp-admin-bar-launchdek-cli
 	transition: opacity 0.15s ease;
 }
 
+.launchdek-client-double-tick-icons {
+	display: inline-flex;
+	align-items: center;
+	gap: 1px;
+}
+
 .launchdek-client-icon-double-tick {
-	width: 20px;
+	display: block;
+	width: 10px;
+	height: 10px;
+	flex-shrink: 0;
 }
 
 .launchdek-client-step-complete-state:not(.is-readonly) .launchdek-client-step-done-icon {
@@ -697,17 +706,6 @@ body.launchdek-client-layout-live_topbar #wpadminbar #wp-admin-bar-launchdek-cli
 
 .launchdek-client-panel-root.is-collapsed .launchdek-client-panel {
 	display: none;
-}
-
-.launchdek-client-panel-notes-toolbar {
-	display: flex;
-	justify-content: flex-end;
-	margin-bottom: 8px;
-}
-
-.launchdek-client-toggle-all-notes {
-	font-size: 12px;
-	padding: 0;
 }
 
 .launchdek-client-step-notes {
@@ -1044,8 +1042,25 @@ body.launchdek-client-layout-bottom_dock #wpcontent {
 	z-index: 99999;
 }
 
-.launchdek-client-panel-root.launchdek-client-layout-admin_menu.is-admin-hidden {
-	display: none;
+.launchdek-client-admin-menu-trigger {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	padding: 8px 12px;
+	border: 1px solid #c3c4c7;
+	border-radius: 6px;
+	background: #2271b1;
+	color: #fff;
+	cursor: pointer;
+	font-size: 12px;
+	font-weight: 600;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.launchdek-client-admin-menu-trigger:hover,
+.launchdek-client-admin-menu-trigger:focus {
+	background: #135e96;
+	color: #fff;
 }
 
 .launchdek-client-admin-flyout {
@@ -1161,4 +1176,15 @@ body.launchdek-client-fullscreen-open {
 .launchdek-client-metabox-root .launchdek-client-panel-body {
 	max-height: 420px;
 	overflow: auto;
+}
+
+.launchdek-client-panel.is-metabox.is-collapsed {
+	border-color: #c3c4c7;
+}
+
+.launchdek-client-panel-collapsed-meta {
+	margin: 6px 0 0;
+	font-size: 12px;
+	font-weight: 600;
+	color: #2271b1;
 }

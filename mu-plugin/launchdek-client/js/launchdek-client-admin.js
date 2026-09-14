@@ -28,7 +28,6 @@
 	var noteDrafts = {};
 	var openNoteComposers = {};
 	var collapsedNoteSections = {};
-	var notesGloballyMinimized = false;
 	var STORAGE_KEY = 'launchdek_client_runner_prefs_v2';
 	var CLIENT_API = String(launchdekClient.restUrl || '').replace(/\/$/, '');
 
@@ -198,9 +197,6 @@
 		if (openNoteComposers[stepIndex]) {
 			return true;
 		}
-		if (notesGloballyMinimized) {
-			return false;
-		}
 		if (noteDrafts[stepIndex] && String(noteDrafts[stepIndex]).trim()) {
 			return true;
 		}
@@ -229,95 +225,6 @@
 
 	function stepHasSavedNotes(step) {
 		return (step.notes || []).some(isValidNote);
-	}
-
-	function hasOpenComposerState() {
-		if (notesGloballyMinimized) {
-			return false;
-		}
-
-		var steps = run.steps || [];
-		var i;
-
-		for (i = 0; i < steps.length; i++) {
-			if (noteComposerOpen(parseInt(steps[i].step_index, 10))) {
-				return true;
-			}
-		}
-
-		return false;
-	}
-
-	function hasAnyNotesOrOpenComposers() {
-		var steps = run.steps || [];
-		var i;
-		var stepIndex;
-
-		for (i = 0; i < steps.length; i++) {
-			if (stepHasSavedNotes(steps[i])) {
-				return true;
-			}
-			stepIndex = parseInt(steps[i].step_index, 10);
-			if (noteDrafts[stepIndex] && String(noteDrafts[stepIndex]).trim()) {
-				return true;
-			}
-		}
-
-		if (pendingAttachment) {
-			return true;
-		}
-
-		return hasOpenComposerState();
-	}
-
-	function allNotesMinimized() {
-		if (!hasAnyNotesOrOpenComposers()) {
-			return true;
-		}
-
-		var steps = run.steps || [];
-		var i;
-		var stepIndex;
-
-		for (i = 0; i < steps.length; i++) {
-			stepIndex = parseInt(steps[i].step_index, 10);
-			if (stepHasSavedNotes(steps[i]) && !isNoteSectionCollapsed(stepIndex)) {
-				return false;
-			}
-		}
-
-		return notesGloballyMinimized;
-	}
-
-	function minimizeAllNotes() {
-		var steps = run.steps || [];
-
-		captureNoteDrafts();
-		notesGloballyMinimized = true;
-		steps.forEach(function (step) {
-			var stepIndex = parseInt(step.step_index, 10);
-			if (stepHasSavedNotes(step)) {
-				collapsedNoteSections[String(stepIndex)] = true;
-			}
-			setNoteComposerOpen(stepIndex, false);
-		});
-		savePrefs();
-		render();
-	}
-
-	function expandAllNotes() {
-		notesGloballyMinimized = false;
-		collapsedNoteSections = {};
-		savePrefs();
-		render();
-	}
-
-	function toggleAllNotes() {
-		if (allNotesMinimized()) {
-			expandAllNotes();
-			return;
-		}
-		minimizeAllNotes();
 	}
 
 	function getNoteForm(stepIndex) {
@@ -648,7 +555,8 @@
 	}
 
 	function renderDoubleTickIcon() {
-		return '<svg class="launchdek-client-icon launchdek-client-icon-double-tick" width="18" height="16" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 14 4 17 7 12"></polyline><polyline points="7 12 10.5 16 21 4"></polyline></svg>';
+		var tick = '<svg class="launchdek-client-icon launchdek-client-icon-double-tick" width="10" height="10" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+		return '<span class="launchdek-client-double-tick-icons">' + tick + tick + '</span>';
 	}
 
 	function renderNoteIcon() {
@@ -898,12 +806,24 @@
 		);
 	}
 
+	function resolvePanelTitle() {
+		return String(
+			(run && run.panel_title) ||
+			strings.panelTitle ||
+			'Agency Checklist'
+		);
+	}
+
 	function refreshLayoutState() {
 		panelLayout = resolvePanelLayout();
 	}
 
 	function layoutCollapsesOnToggle(layout) {
 		return TOGGLE_LAYOUTS.indexOf(layout) !== -1;
+	}
+
+	function layoutKeepsPanelChromeOnCollapse(layout) {
+		return layout === 'inline_metabox';
 	}
 
 	function layoutStartsCollapsed(layout) {
@@ -982,13 +902,6 @@
 
 	function renderPanelBody(steps, allDone, activeIndex) {
 		return (allDone ? renderRunCompleteSummary(steps) : '') +
-			(allNotesMinimized()
-				? '<div class="launchdek-client-panel-notes-toolbar">' +
-					'<button type="button" class="button-link launchdek-client-toggle-all-notes" id="launchdek-client-toggle-all-notes">' +
-						escHtml(strings.expandAllNotes || 'Show all notes') +
-					'</button>' +
-				'</div>'
-				: '') +
 			'<ol class="launchdek-client-step-list">' + steps.map(function (step, index) {
 				return renderStep(step, index === activeIndex, index, activeIndex);
 			}).join('') + '</ol>' +
@@ -1006,7 +919,7 @@
 	function renderPanelChrome(steps, allDone, activeIndex, percent, currentDisplay, total, toggleLabel) {
 		return '<div class="launchdek-client-panel-header">' +
 				'<div>' +
-					'<h2 class="launchdek-client-panel-title">' + escHtml(strings.panelTitle || 'Agency Checklist') + '</h2>' +
+					'<h2 class="launchdek-client-panel-title">' + escHtml(resolvePanelTitle()) + '</h2>' +
 					'<p class="launchdek-client-panel-subtitle">' + escHtml(run.checklist_title || '') + '</p>' +
 				'</div>' +
 				'<button type="button" class="button button-small launchdek-client-panel-toggle" id="launchdek-client-panel-collapse">' + escHtml(toggleLabel || strings.collapse || 'Collapse') + '</button>' +
@@ -1043,6 +956,9 @@
 		options = options || {};
 		var variant = options.variant || 'default';
 		var toggleLabel = options.toggleLabel || strings.collapse || 'Collapse';
+		if (variant === 'metabox' && collapsed) {
+			toggleLabel = strings.expand || 'Expand';
+		}
 		var panelClasses = 'launchdek-client-panel' +
 			(variant === 'metabox' ? ' is-metabox' : '') +
 			(variant === 'focus' ? ' is-focus' : '') +
@@ -1054,11 +970,14 @@
 		return (collapsed && variant !== 'metabox'
 			? '<button type="button" class="launchdek-client-panel-tab" id="launchdek-client-panel-expand">' + escHtml(formatCompactProgress(completedCount(steps), total, percent, currentDisplay, allDone)) + '</button>'
 			: '') +
-			'<aside class="' + panelClasses + '" aria-label="' + escHtml(strings.panelTitle || 'Agency Checklist') + '">' +
+			'<aside class="' + panelClasses + '" aria-label="' + escHtml(resolvePanelTitle()) + '">' +
 				'<div class="launchdek-client-panel-header">' +
 					'<div>' +
-						'<h2 class="launchdek-client-panel-title">' + escHtml(strings.panelTitle || 'Agency Checklist') + '</h2>' +
+						'<h2 class="launchdek-client-panel-title">' + escHtml(resolvePanelTitle()) + '</h2>' +
 						'<p class="launchdek-client-panel-subtitle">' + escHtml(run.checklist_title || '') + '</p>' +
+						(variant === 'metabox' && collapsed
+							? '<p class="launchdek-client-panel-collapsed-meta">' + escHtml(formatStepOf(currentDisplay, total)) + ' · ' + percent + '%</p>'
+							: '') +
 					'</div>' +
 					'<button type="button" class="button button-small launchdek-client-panel-toggle" id="launchdek-client-panel-collapse">' + escHtml(toggleLabel) + '</button>' +
 				'</div>' +
@@ -1083,10 +1002,10 @@
 			? (strings.showSteps || 'Show steps')
 			: (strings.hideSteps || 'Hide steps');
 
-		return '<div class="' + shellClass + (collapsed ? ' is-collapsed' : ' is-expanded') + '" role="region" aria-label="' + escHtml(strings.panelTitle || 'Agency Checklist') + '">' +
+		return '<div class="' + shellClass + (collapsed ? ' is-collapsed' : ' is-expanded') + '" role="region" aria-label="' + escHtml(resolvePanelTitle()) + '">' +
 			'<div class="' + shellClass + '-inner">' +
 				'<div class="' + shellClass + '-copy">' +
-					'<span class="' + shellClass + '-kicker">' + escHtml(strings.panelTitle || 'Agency Checklist') + '</span>' +
+					'<span class="' + shellClass + '-kicker">' + escHtml(resolvePanelTitle()) + '</span>' +
 					'<strong class="' + shellClass + '-title">' + escHtml(run.checklist_title || '') + '</strong>' +
 					'<span class="' + shellClass + '-progress-label">' + escHtml(formatStepOf(currentDisplay, total)) + ' · ' + percent + '%</span>' +
 				'</div>' +
@@ -1144,10 +1063,12 @@
 
 	function renderAdminFlyoutLayout(steps, allDone, activeIndex, percent, currentDisplay, total) {
 		if (collapsed) {
-			return '';
+			return '<button type="button" class="launchdek-client-admin-menu-trigger" id="launchdek-client-panel-expand" aria-label="' + escHtml(strings.openChecklist || 'Open checklist') + '">' +
+				escHtml(formatCompactProgress(completedCount(steps), total, percent, currentDisplay, allDone)) +
+			'</button>';
 		}
 
-		return '<div class="launchdek-client-admin-flyout" role="dialog" aria-label="' + escHtml(strings.panelTitle || 'Agency Checklist') + '">' +
+		return '<div class="launchdek-client-admin-flyout" role="dialog" aria-label="' + escHtml(resolvePanelTitle()) + '">' +
 			renderPanelChrome(steps, allDone, activeIndex, percent, currentDisplay, total, strings.collapse || 'Collapse') +
 		'</div>';
 	}
@@ -1165,7 +1086,7 @@
 
 		return '<div class="launchdek-client-fullscreen is-open">' +
 			'<button type="button" class="launchdek-client-fullscreen-backdrop" id="launchdek-client-fullscreen-backdrop" aria-label="' + escHtml(strings.collapse || 'Collapse') + '"></button>' +
-			'<div class="launchdek-client-fullscreen-dialog" role="dialog" aria-label="' + escHtml(strings.panelTitle || 'Agency Checklist') + '">' +
+			'<div class="launchdek-client-fullscreen-dialog" role="dialog" aria-label="' + escHtml(resolvePanelTitle()) + '">' +
 				renderPanelChrome(steps, allDone, activeIndex, percent, currentDisplay, total, strings.collapse || 'Collapse') +
 			'</div>' +
 		'</div>';
@@ -1209,11 +1130,8 @@
 		var layoutClass = 'launchdek-client-layout-' + panelLayout;
 		var rootClasses = 'launchdek-client-panel-root ' + layoutClass;
 
-		if (collapsed && !layoutCollapsesOnToggle(panelLayout)) {
+		if (collapsed && !layoutCollapsesOnToggle(panelLayout) && !layoutKeepsPanelChromeOnCollapse(panelLayout)) {
 			rootClasses += ' is-collapsed';
-		}
-		if (panelLayout === 'admin_menu' && collapsed) {
-			rootClasses += ' is-admin-hidden';
 		}
 
 		root.className = rootClasses;
@@ -1239,7 +1157,9 @@
 
 		if (collapseBtn) {
 			collapseBtn.addEventListener('click', function () {
-				collapsed = layoutCollapsesOnToggle(panelLayout) ? !collapsed : true;
+				collapsed = (layoutCollapsesOnToggle(panelLayout) || layoutKeepsPanelChromeOnCollapse(panelLayout))
+					? !collapsed
+					: true;
 				render();
 			});
 		}
@@ -1279,19 +1199,9 @@
 				var stepIndex = parseInt(btn.getAttribute('data-step'), 10);
 				var collapsed = !isNoteSectionCollapsed(stepIndex);
 				setNoteSectionCollapsed(stepIndex, collapsed);
-				if (!collapsed) {
-					notesGloballyMinimized = false;
-				}
 				render();
 			});
 		});
-
-		var toggleAllNotesBtn = document.getElementById('launchdek-client-toggle-all-notes');
-		if (toggleAllNotesBtn) {
-			toggleAllNotesBtn.addEventListener('click', function () {
-				toggleAllNotes();
-			});
-		}
 
 		root.querySelectorAll('.launchdek-client-complete-step').forEach(function (btn) {
 			btn.addEventListener('click', function () {
@@ -1369,7 +1279,6 @@
 		var hasText = textarea && String(textarea.value || '').trim().length > 0;
 
 		if (!isOpen) {
-			notesGloballyMinimized = false;
 			setNoteComposerOpen(stepIndex, true);
 			syncNoteComposerUi(stepIndex, true);
 			if (textarea) {
