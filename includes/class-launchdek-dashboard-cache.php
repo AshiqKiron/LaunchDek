@@ -225,6 +225,55 @@ class LAUNCHDEK_Dashboard_Cache {
 	}
 
 	/**
+	 * Cached quick-launch site and checklist picker options.
+	 *
+	 * @return array{sites:array,checklists:array}
+	 */
+	public static function get_quick_launch_picker() {
+		$cache = self::get_cache();
+
+		if ( isset( $cache['quick_launch'] ) && is_array( $cache['quick_launch'] ) ) {
+			return $cache['quick_launch'];
+		}
+
+		return self::refresh_quick_launch_picker();
+	}
+
+	/**
+	 * Recompute and store quick-launch picker options.
+	 *
+	 * @return array{sites:array,checklists:array}
+	 */
+	public static function refresh_quick_launch_picker() {
+		$picker = array(
+			'sites'      => LAUNCHDEK_Site_Repository::picker_list(),
+			'checklists' => LAUNCHDEK_Checklist_Repository::picker_list(),
+		);
+
+		$cache                   = self::get_cache();
+		$cache['quick_launch']   = $picker;
+		self::save_cache( $cache );
+
+		return $picker;
+	}
+
+	/**
+	 * Drop cached quick-launch picker options.
+	 *
+	 * @return void
+	 */
+	public static function invalidate_quick_launch_picker() {
+		$cache = self::get_cache();
+
+		if ( ! isset( $cache['quick_launch'] ) ) {
+			return;
+		}
+
+		unset( $cache['quick_launch'] );
+		self::save_cache( $cache );
+	}
+
+	/**
 	 * Drop cached sites list payloads.
 	 *
 	 * @return void

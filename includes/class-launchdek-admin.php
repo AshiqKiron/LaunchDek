@@ -282,6 +282,7 @@ class LAUNCHDEK_Admin {
 				'stats'       => LAUNCHDEK_Dashboard_Cache::get_stats(),
 				'connections' => LAUNCHDEK_Dashboard_Cache::get_connection_counts(),
 				'feed'        => LAUNCHDEK_Dashboard_Cache::get_feed(),
+				'quickLaunch' => LAUNCHDEK_Dashboard_Cache::get_quick_launch_picker(),
 			);
 		}
 
@@ -312,9 +313,10 @@ class LAUNCHDEK_Admin {
 			'launchdek-admin-page.php',
 			array(
 				'page'              => 'dashboard',
-				'dashboard_stats'   => LAUNCHDEK_Dashboard_Cache::get_stats(),
-				'connection_counts' => LAUNCHDEK_Dashboard_Cache::get_connection_counts(),
-				'log_feed'          => LAUNCHDEK_Dashboard_Cache::get_feed(),
+				'dashboard_stats'     => LAUNCHDEK_Dashboard_Cache::get_stats(),
+				'connection_counts'   => LAUNCHDEK_Dashboard_Cache::get_connection_counts(),
+				'log_feed'            => LAUNCHDEK_Dashboard_Cache::get_feed(),
+				'quick_launch_picker' => LAUNCHDEK_Dashboard_Cache::get_quick_launch_picker(),
 			)
 		);
 	}

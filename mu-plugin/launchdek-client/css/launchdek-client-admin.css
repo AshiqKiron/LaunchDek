@@ -317,14 +317,18 @@ body.launchdek-client-layout-live_topbar #wpadminbar #wp-admin-bar-launchdek-cli
 }
 
 .launchdek-client-step-settings-link {
+	display: inline-block;
+	font-size: 12px;
+	font-weight: 500;
+	line-height: 1.4;
 	text-decoration: none;
-	color: #50575e;
+	color: #2271b1;
 }
 
 .launchdek-client-step-settings-link:hover,
 .launchdek-client-step-settings-link:focus {
-	color: #2271b1;
-	text-decoration: none;
+	color: #135e96;
+	text-decoration: underline;
 }
 
 .launchdek-client-step-body {
@@ -529,6 +533,10 @@ body.launchdek-client-layout-live_topbar #wpadminbar #wp-admin-bar-launchdek-cli
 	background: transparent;
 	color: #1a202c;
 	transition: opacity 0.15s ease;
+}
+
+.launchdek-client-icon-double-tick {
+	width: 20px;
 }
 
 .launchdek-client-step-complete-state:not(.is-readonly) .launchdek-client-step-done-icon {
@@ -790,6 +798,11 @@ body.launchdek-client-layout-live_topbar #wpadminbar #wp-admin-bar-launchdek-cli
 	margin-top: 10px;
 }
 
+.launchdek-client-note-form-settings,
+.launchdek-client-step-settings {
+	margin-bottom: 6px;
+}
+
 .launchdek-client-note-form-actions {
 	display: flex;
 	flex-wrap: wrap;
@@ -849,33 +862,6 @@ body.launchdek-client-layout-live_topbar #wpadminbar #wp-admin-bar-launchdek-cli
 	height: 20px;
 	line-height: 18px;
 	text-align: center;
-}
-
-/* Left sidebar + split panel */
-.launchdek-client-panel.is-left {
-	left: 0;
-	right: auto;
-	border-left: 0;
-	border-right: 1px solid #c3c4c7;
-	box-shadow: 4px 0 16px rgba(0, 0, 0, 0.08);
-}
-
-.launchdek-client-panel.is-split {
-	width: 400px;
-	max-width: min(400px, calc(100vw - 32px));
-}
-
-.launchdek-client-panel-tab.is-left-tab {
-	left: 0;
-	right: auto;
-	border-left: 1px solid #c3c4c7;
-	border-right: 0;
-	border-radius: 0 4px 4px 0;
-	box-shadow: 2px 0 8px rgba(0, 0, 0, 0.08);
-}
-
-body.launchdek-client-rail-open #wpcontent {
-	padding-left: var(--launchdek-client-rail-offset, 320px);
 }
 
 /* Bottom dock */

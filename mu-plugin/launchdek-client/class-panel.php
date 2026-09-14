@@ -196,6 +196,7 @@ class LAUNCHDEK_Client_Panel {
 					'dismissError' => __( 'Could not dismiss this checklist.', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
 					'progress'    => __( 'Progress', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
 					'stepOf'      => __( 'Step %1$s of %2$s', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+					'checklistProgress' => __( 'Checklist %1$d/%2$d', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
 					'showAll'     => __( 'Show all steps', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
 					'showFocused' => __( 'Focus current step', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
 					'addNote'     => __( 'Add note', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),

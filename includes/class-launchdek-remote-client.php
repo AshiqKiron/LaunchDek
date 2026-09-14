@@ -235,7 +235,6 @@ class LAUNCHDEK_Remote_Client {
 		}
 
 		$route  = '/' . ltrim( $route, '/' );
-		$url    = trailingslashit( $this->url ) . 'wp-json' . $route;
 		$method = strtoupper( $method );
 
 		$args = array(
@@ -252,7 +251,45 @@ class LAUNCHDEK_Remote_Client {
 			$args['body'] = wp_json_encode( $body );
 		}
 
-		return wp_remote_request( $url, $args );
+		$urls = array(
+			trailingslashit( $this->url ) . 'wp-json' . $route,
+			trailingslashit( $this->url ) . '?rest_route=' . rawurlencode( $route ),
+		);
+
+		$response = null;
+
+		foreach ( $urls as $url ) {
+			$response = wp_remote_request( $url, $args );
+
+			if ( is_wp_error( $response ) ) {
+				continue;
+			}
+
+			if ( $this->is_rest_no_route_response( $response ) ) {
+				continue;
+			}
+
+			break;
+		}
+
+		return $response;
+	}
+
+	/**
+	 * Whether a remote response is WordPress REST "route not found".
+	 *
+	 * @param array $response wp_remote_request() response.
+	 * @return bool
+	 */
+	protected function is_rest_no_route_response( $response ) {
+		$code = (int) wp_remote_retrieve_response_code( $response );
+		if ( 404 !== $code ) {
+			return false;
+		}
+
+		$body = json_decode( wp_remote_retrieve_body( $response ), true );
+
+		return is_array( $body ) && 'rest_no_route' === ( $body['code'] ?? '' );
 	}
 
 	/**

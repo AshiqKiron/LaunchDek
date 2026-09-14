@@ -34,6 +34,7 @@ define( 'LAUNCHDEK_REST_NAMESPACE', 'launchdek/v1' );
 
 // Core.
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-settings.php';
+require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-admin-deep-links.php';
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-installer.php';
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-capabilities.php';
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-credential-vault.php';
@@ -49,7 +50,6 @@ require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-dashboard-cache.ph
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-remote-client.php';
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-connection-tester.php';
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-payload-mapper.php';
-require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-admin-deep-links.php';
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-step-executor.php';
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-checklist-runner.php';
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-client-push.php';

@@ -2009,23 +2009,6 @@
 	border-radius: 0;
 }
 
-.launchdek-preview-panel--left,
-.launchdek-preview-panel--split {
-	top: 14%;
-	left: 0;
-	bottom: 0;
-	border-left: 0;
-	border-radius: 0;
-}
-
-.launchdek-preview-panel--left {
-	width: 24%;
-}
-
-.launchdek-preview-panel--split {
-	width: 30%;
-}
-
 .launchdek-preview-bar {
 	left: 0;
 	right: 0;
@@ -2099,8 +2082,6 @@
 }
 
 .launchdek-panel-layout-preview[data-layout="sidebar"] .launchdek-preview-panel--right,
-.launchdek-panel-layout-preview[data-layout="left_sidebar"] .launchdek-preview-panel--left,
-.launchdek-panel-layout-preview[data-layout="split_panel"] .launchdek-preview-panel--split,
 .launchdek-panel-layout-preview[data-layout="live_topbar"] .launchdek-preview-bar--top,
 .launchdek-panel-layout-preview[data-layout="bottom_dock"] .launchdek-preview-bar--bottom,
 .launchdek-panel-layout-preview[data-layout="floating_pill"] .launchdek-preview-pill,

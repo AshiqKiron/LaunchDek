@@ -72,7 +72,8 @@ class LAUNCHDEK_Settings {
 			return $output;
 		}
 
-		$checkboxes = array( 'enabled', 'encrypt_credentials', 'drift_verification_enabled', 'onboarding_dismissed' );
+		// onboarding_dismissed is REST-only (POST /onboarding/dismiss|reset) — not a Settings form field.
+		$checkboxes = array( 'enabled', 'encrypt_credentials', 'drift_verification_enabled' );
 		foreach ( $checkboxes as $key ) {
 			if ( array_key_exists( $key, $input ) ) {
 				$output[ $key ] = (bool) $input[ $key ];
@@ -251,14 +252,6 @@ class LAUNCHDEK_Settings {
 			'sidebar'        => array(
 				'label'       => __( 'Right sidebar floater', LAUNCHDEK_TEXT_DOMAIN ),
 				'description' => __( 'Sticky panel on the right edge with a vertical expand tab when collapsed.', LAUNCHDEK_TEXT_DOMAIN ),
-			),
-			'left_sidebar'   => array(
-				'label'       => __( 'Left sidebar', LAUNCHDEK_TEXT_DOMAIN ),
-				'description' => __( 'Mirror of the right floater on the left edge for RTL-friendly workflows.', LAUNCHDEK_TEXT_DOMAIN ),
-			),
-			'split_panel'    => array(
-				'label'       => __( 'Split panel', LAUNCHDEK_TEXT_DOMAIN ),
-				'description' => __( 'Wider fixed left rail that keeps steps visible beside the main admin content.', LAUNCHDEK_TEXT_DOMAIN ),
 			),
 			'live_topbar'    => array(
 				'label'       => __( 'Live top bar', LAUNCHDEK_TEXT_DOMAIN ),

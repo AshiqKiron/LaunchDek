@@ -199,6 +199,70 @@ class LAUNCHDEK_Templates {
 			LAUNCHDEK_Checklist_Repository::create( $template );
 			$known_slugs[ $slug ] = true;
 		}
+
+		self::repair_builtin_deep_links();
+	}
+
+	/**
+	 * Restore admin-path deep links on built-in templates stripped by legacy esc_url_raw sanitization.
+	 *
+	 * @return void
+	 */
+	public static function repair_builtin_deep_links() {
+		if ( get_option( 'launchdek_deep_links_repaired' ) ) {
+			return;
+		}
+
+		$json_steps = array();
+		foreach ( self::get_builtin() as $template ) {
+			$slug = $template['template_slug'] ?? '';
+			if ( $slug ) {
+				$json_steps[ $slug ] = is_array( $template['steps'] ?? null ) ? $template['steps'] : array();
+			}
+		}
+
+		$existing = LAUNCHDEK_Checklist_Repository::all(
+			array(
+				'is_template' => true,
+				'limit'       => 200,
+			)
+		);
+
+		foreach ( $existing as $checklist ) {
+			$slug = $checklist['template_slug'] ?? '';
+			if ( ! $slug || empty( $json_steps[ $slug ] ) || empty( $checklist['steps'] ) || ! is_array( $checklist['steps'] ) ) {
+				continue;
+			}
+
+			$steps   = $checklist['steps'];
+			$source  = $json_steps[ $slug ];
+			$changed = false;
+
+			foreach ( $steps as $index => $step ) {
+				if ( ! is_array( $step ) || ! empty( $step['deep_link'] ) ) {
+					continue;
+				}
+
+				$source_link = $source[ $index ]['deep_link'] ?? '';
+				if ( '' === $source_link ) {
+					continue;
+				}
+
+				$steps[ $index ]['deep_link'] = LAUNCHDEK_Admin_Deep_Links::normalize_stored_path( $source_link );
+				$changed                      = true;
+			}
+
+			if ( $changed ) {
+				LAUNCHDEK_Checklist_Repository::update(
+					(int) $checklist['id'],
+					array(
+						'steps' => $steps,
+					)
+				);
+			}
+		}
+
+		update_option( 'launchdek_deep_links_repaired', 1, false );
 	}
 
 	/**

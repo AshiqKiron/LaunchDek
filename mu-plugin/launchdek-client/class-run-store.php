@@ -81,7 +81,8 @@ class LAUNCHDEK_Client_Run_Store {
 				'status'          => sanitize_key( $step['status'] ?? 'pending' ),
 				'instructions'    => sanitize_textarea_field( $step['instructions'] ?? '' ),
 				'target_roles'    => array_values( array_map( 'sanitize_key', (array) ( $step['target_roles'] ?? array() ) ) ),
-				'deep_link'       => self::resolve_step_deep_link( $step['deep_link'] ?? '' ),
+				'deep_link'       => self::resolve_step_deep_link( $step['deep_link'] ?? '', $step['admin_path'] ?? '' ),
+				'admin_path'      => sanitize_text_field( $step['admin_path'] ?? '' ),
 				'show_note_field' => $show_note_field,
 				'manual_checked'  => ! empty( $step['manual_checked'] ),
 				'notes'           => $notes,
@@ -449,21 +450,28 @@ class LAUNCHDEK_Client_Run_Store {
 	/**
 	 * Resolve a step deep link to a local wp-admin URL.
 	 *
-	 * @param string $link Admin path or full URL.
+	 * @param string $link       Full URL, admin path, or empty string.
+	 * @param string $admin_path Fallback admin path from the hub snapshot.
 	 * @return string
 	 */
-	public static function resolve_step_deep_link( $link ) {
+	public static function resolve_step_deep_link( $link, $admin_path = '' ) {
 		$link = trim( (string) $link );
 
-		if ( '' === $link ) {
+		if ( '' !== $link ) {
+			if ( filter_var( $link, FILTER_VALIDATE_URL ) ) {
+				return esc_url_raw( $link );
+			}
+
+			return esc_url_raw( admin_url( ltrim( $link, '/' ) ) );
+		}
+
+		$admin_path = trim( (string) $admin_path );
+
+		if ( '' === $admin_path ) {
 			return '';
 		}
 
-		if ( filter_var( $link, FILTER_VALIDATE_URL ) ) {
-			return esc_url_raw( $link );
-		}
-
-		return esc_url_raw( admin_url( ltrim( $link, '/' ) ) );
+		return esc_url_raw( admin_url( ltrim( $admin_path, '/' ) ) );
 	}
 
 	/**
@@ -476,8 +484,6 @@ class LAUNCHDEK_Client_Run_Store {
 		$layout = sanitize_key( (string) $layout );
 		$valid  = array(
 			'sidebar',
-			'left_sidebar',
-			'split_panel',
 			'live_topbar',
 			'bottom_dock',
 			'floating_pill',
@@ -531,6 +537,10 @@ class LAUNCHDEK_Client_Run_Store {
 			foreach ( $formatted['steps'] as $index => $step ) {
 				$formatted['steps'][ $index ]['can_complete'] = self::user_can_complete_step( $step );
 				$formatted['steps'][ $index ]['notes']         = self::filter_step_notes( $step['notes'] ?? null );
+				$formatted['steps'][ $index ]['deep_link']     = self::resolve_step_deep_link(
+					$step['deep_link'] ?? '',
+					$step['admin_path'] ?? ''
+				);
 			}
 		}
 

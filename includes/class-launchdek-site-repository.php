@@ -87,6 +87,35 @@ class LAUNCHDEK_Site_Repository {
 	}
 
 	/**
+	 * Lightweight id/name pairs for dashboard quick-launch pickers.
+	 *
+	 * @return array<int, array{id:int,name:string}>
+	 */
+	public static function picker_list() {
+		global $wpdb;
+
+		$table = self::table();
+		$rows  = $wpdb->get_results(
+			'SELECT id, name FROM ' . $table . ' ORDER BY name ASC LIMIT 100', // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			ARRAY_A
+		);
+
+		if ( ! is_array( $rows ) ) {
+			return array();
+		}
+
+		return array_map(
+			static function ( $row ) {
+				return array(
+					'id'   => (int) $row['id'],
+					'name' => (string) $row['name'],
+				);
+			},
+			$rows
+		);
+	}
+
+	/**
 	 * Count sites matching list filters.
 	 *
 	 * @param array $args Query args (tag, group_type, health, search).
@@ -245,6 +274,7 @@ class LAUNCHDEK_Site_Repository {
 		LAUNCHDEK_Dashboard_Cache::invalidate_stats();
 		LAUNCHDEK_Dashboard_Cache::invalidate_connections();
 		LAUNCHDEK_Dashboard_Cache::invalidate_sites_list();
+		LAUNCHDEK_Dashboard_Cache::invalidate_quick_launch_picker();
 
 		return $id;
 	}
@@ -323,6 +353,7 @@ class LAUNCHDEK_Site_Repository {
 		if ( false !== $result ) {
 			LAUNCHDEK_Audit_Log::log( 'site_updated', array( 'site_id' => $id ), $id );
 			LAUNCHDEK_Dashboard_Cache::invalidate_sites_list();
+			LAUNCHDEK_Dashboard_Cache::invalidate_quick_launch_picker();
 
 			if ( isset( $data['health_status'] ) ) {
 				LAUNCHDEK_Dashboard_Cache::invalidate_connections();
@@ -359,6 +390,7 @@ class LAUNCHDEK_Site_Repository {
 			LAUNCHDEK_Dashboard_Cache::invalidate_stats();
 			LAUNCHDEK_Dashboard_Cache::invalidate_connections();
 			LAUNCHDEK_Dashboard_Cache::invalidate_sites_list();
+			LAUNCHDEK_Dashboard_Cache::invalidate_quick_launch_picker();
 		}
 
 		return (bool) $result;
@@ -420,6 +452,7 @@ class LAUNCHDEK_Site_Repository {
 		}
 
 		LAUNCHDEK_Dashboard_Cache::invalidate_sites_list();
+		LAUNCHDEK_Dashboard_Cache::invalidate_quick_launch_picker();
 	}
 
 	/**

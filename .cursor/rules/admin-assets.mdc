@@ -9,7 +9,7 @@ alwaysApply: false
 ## JavaScript (`admin/js/launchdek-admin.js`)
 
 - Wrap in an IIFE with `'use strict'`; guard on `typeof launchdekAdmin`.
-- REST helpers: `request()`, `get()`, `post()`, `put()`, `del()` — all send `X-WP-Nonce` header. `resolveApiPath(path)` merges query strings correctly when `restUrl` uses plain permalinks (`?rest_route=…`).
+- REST helpers: `request()`, `get()`, `post()`, `put()`, `del()` — all send `X-WP-Nonce` header. `buildApiUrl(path)` / `splitApiPath()` / `mergeExtraQuery()` build URLs for pretty (`/wp-json/`) and plain (`?rest_route=`) permalinks; `buildPlainPermalinkFallbackUrl()` retries on `rest_no_route` when pretty permalinks are configured but rewrites are broken (common on local MAMP).
 - DOM helpers: `el( tag, attrs, children )`, `fillSelect( select, items, valueKey, labelKey, placeholder )`; notices via `notice( container, message, type )`.
 - Scope queries to `.launchdek-admin` or `[data-launchdek-page]`.
 - No jQuery unless WordPress already loads it.
@@ -26,7 +26,7 @@ alwaysApply: false
 
 | Function | Page attr | Key elements |
 |----------|-----------|--------------|
-| `initDashboard()` | `dashboard` | `#launchdek-stats`, `#launchdek-ticker`, `#launchdek-log-feed` (preloaded via `launchdekAdmin.dashboard` or PHP partial; `data-launchdek-preloaded="1"` skips initial fetch; entries use `show_site_label` for separate site badge vs embedded site name in message), quick launch (`#launchdek-quick-site`, `#launchdek-quick-checklist`, `#launchdek-quick-launch`, `#launchdek-quick-result`) |
+| `initDashboard()` | `dashboard` | `#launchdek-stats`, `#launchdek-ticker`, `#launchdek-log-feed` (preloaded via `launchdekAdmin.dashboard` or PHP partial; `data-launchdek-preloaded="1"` skips initial fetch; entries use `show_site_label` for separate site badge vs embedded site name in message), quick launch (`#launchdek-quick-site`, `#launchdek-quick-checklist`, `#launchdek-quick-launch`, `#launchdek-quick-result` — selects pre-rendered in PHP with `data-launchdek-preloaded="1"`; JS uses `launchdekAdmin.dashboard.quickLaunch` or falls back to `GET /sites` + `GET /checklists?is_template=0`) |
 | `initSettings()` | `settings` | `#launchdek-panel-layout` + `#launchdek-panel-layout-preview` (`initPanelLayoutPreview()` — syncs `data-layout` and description on change); `#launchdek-show-onboarding` → `POST /onboarding/reset` then `launchdekOpenOnboarding()` |
 | `initSites()` | `sites` | toolbar (`#launchdek-add-site`, `#launchdek-connection-tester`, `#launchdek-activity-logs` → Activity Logs page), tag/group filters, `#launchdek-sites-table` (`.launchdek-site-row` + expandable `.launchdek-site-runs-row` with `.launchdek-site-history-toggle` → `GET /sites/{id}/runs`; **View run** links to `?page={slug}-automation&run_id={id}`; connection dot + warning icon, health badge, **Client panel** badge when `client_agent`), site modal (`#launchdek-site-modal`, panel install/retry via `GET /panel/bootstrap` download + `retryPanelInstall()` → `POST /sites/{id}/panel/install`), push checklist modal (`#launchdek-push-checklist-modal`, `#launchdek-push-checklist-select`, `#launchdek-push-to-client`, `POST /runs` with `push_to_client`), standalone connection tester modal; `refreshStaleSiteConnectionsInBackground()` re-tests sites older than 30 minutes |
 | `initActivityLogs()` | `activity-logs` | filters (`#launchdek-activity-logs-site`, `#launchdek-activity-logs-status`, `#launchdek-activity-logs-date-from`, `#launchdek-activity-logs-date-to`, `#launchdek-activity-logs-search`, `#launchdek-activity-logs-filter`), table `#launchdek-activity-logs-table`; loads `GET /logs/feed?detailed=1` (limit 200); honors `?site_id=` query param |
@@ -86,7 +86,7 @@ Key elements: `#launchdek-template-picker-filters`, `#launchdek-template-picker-
 - `initOnboarding()` — 2-step modal flow:
   - **Step 1** (`#launchdek-onboarding-step-1`): paste SOP text (`#launchdek-onboarding-paste`) → live preview (`#launchdek-onboarding-preview`); placeholder shows sample preview until user types; **Start from a template** (`#launchdek-onboarding-use-template`) opens template picker with `importMode: populate`.
   - **Step 2** (`#launchdek-onboarding-step-2`): optional existing-site select (`#launchdek-onboarding-site`) or new-site connect panel (`#launchdek-onboarding-connect-panel`, `/sites/test`, `/sites`) → save checklist (`POST /checklists`) → optional run (`POST /runs`) → dismiss (`POST /onboarding/dismiss`).
-  - Shows when `launchdekAdmin.onboarding.show` is true or URL has `?onboarding=1`; Settings **Show onboarding wizard** resets via `POST /onboarding/reset` then calls `launchdekOpenOnboarding()`.
+  - Auto-opens when `data-launchdek-page="dashboard"` and `launchdekAdmin.onboarding.show` is true, or when URL has `?onboarding=1` (any page with modal markup); Settings **Show onboarding wizard** resets via `POST /onboarding/reset` then calls `launchdekOpenOnboarding()` — saving settings alone does not auto-open the wizard.
 
 ### `launchdekAdmin` shape
 
@@ -100,7 +100,11 @@ Key elements: `#launchdek-template-picker-filters`, `#launchdek-template-picker-
 	dashboard: {              // present only on dashboard screen (toplevel_page_{slug})
 		stats: object,        // sites_connected, active_checklists, runs_in_progress, completion_rate
 		connections: object,  // healthy, unhealthy, unknown, total
-		feed: array           // latest 15 log entries (FEED_LIMIT)
+		feed: array,          // latest 15 log entries (FEED_LIMIT)
+		quickLaunch: {        // cached picker options (also rendered server-side in dashboard partial)
+			sites: array,     // { id, name } max 100
+			checklists: array // { id, title } max 100 non-template
+		}
 	},
 	onboarding: {
 		show: boolean,          // ! onboarding_dismissed
@@ -110,7 +114,7 @@ Key elements: `#launchdek-template-picker-filters`, `#launchdek-template-picker-
 		activityLogsUrl: string // admin.php?page={slug}-activity-logs
 	},
 	strings: {
-		confirmDelete, confirmDeleteSite, saved, error, loading,
+		confirmDelete, confirmDeleteSite, saved, error, loading, restUnavailable,
 		healthOk, healthFail, healthUnknown, connectionOk, connectionFail, connectionDisconnected, connectionChecking,
 		cloneToChecklist, templateCloned, checklistTitleRequired, noCustomChecklists, noCustomTemplates,
 		editChecklist, customChecklistBadge, checklistCloned, confirmDeleteChecklist,
@@ -206,9 +210,9 @@ Bundled mu-plugin admin UI — not loaded by hub `launchdek-admin` handle. Enque
 | `css/launchdek-client-admin.css` | Panel styles — prefix `.launchdek-client-*` |
 | `js/launchdek-client-admin.js` | Panel UI — IIFE, `launchdekClient` global (`restUrl`, `nonce`, `run`, `currentUser`, `strings`); uses `wp.media` for optional screenshot attachments; note collapse prefs in `localStorage` |
 
-Key helpers: `applyOptimisticStepUpdate()` / `updateStepStatus()` — optimistic complete/uncomplete with rollback on error; hub callbacks return updated `run` (no redundant hub→client re-sync). Step complete/uncomplete posts `POST /client/run/steps/{step}/complete|uncomplete` → hub token route → applies returned snapshot via `save()` / `patch_from_hub_run()`. `minimizeAllNotes()` / `expandAllNotes()` bulk-toggle note sections; per-step `.launchdek-client-step-notes-toggle` collapses individual note lists.
+Key helpers: `buildClientApiUrl()` / `clientFetch()` — REST calls with plain-permalink `?rest_route=` fallback on `rest_no_route` (mirrors hub admin JS). `formatCompactProgress()` / `syncAdminBarProgress()` — keep collapsed layouts (sidebar tab, pill, toast, bars, fullscreen launcher, `#wp-admin-bar-launchdek-client-checklist`) in sync on step toggles. `applyOptimisticStepUpdate()` / `updateStepStatus()` — optimistic complete/uncomplete with rollback on error; hub callbacks return updated `run` (no redundant hub→client re-sync). Step complete/uncomplete posts `POST /client/run/steps/{step}/complete|uncomplete` → hub token route → applies returned snapshot via `save()` / `patch_from_hub_run()`. `minimizeAllNotes()` / `expandAllNotes()` bulk-toggle note sections; per-step `.launchdek-client-step-notes-toggle` collapses individual note lists.
 
-Key panel classes: `.launchdek-client-panel-root`, `.launchdek-client-panel`, `.launchdek-client-panel-tab`, `.launchdek-client-panel-toggle`, `.launchdek-client-panel-notes-toolbar`, `.launchdek-client-toggle-all-notes` (`#launchdek-client-toggle-all-notes`), `.launchdek-client-step`, `.launchdek-client-step-settings-link` (compact deep-link icon beside step actions), `.launchdek-client-step-notes`, `.launchdek-client-step-notes-toggle`, `.launchdek-client-note-attachment`, `.launchdek-client-run-complete-summary`, `.launchdek-client-dismiss-run`. Layout modifiers on root/body: `.launchdek-client-layout-{sidebar|left_sidebar|split_panel|live_topbar|bottom_dock|floating_pill|toast|admin_menu|fullscreen|focus_mode|inline_metabox}`; `body.launchdek-client-has-panel`. Modifiers: `.is-collapsed` on panel root/panel/step notes; `.is-completed` on steps; `.is-admin-hidden` on `admin_menu` layout. Completed runs show summary + **Dismiss** (`POST /client/run/dismiss`).
+Key panel classes: `.launchdek-client-panel-root`, `.launchdek-client-panel`, `.launchdek-client-panel-tab`, `.launchdek-client-panel-toggle`, `.launchdek-client-panel-notes-toolbar`, `.launchdek-client-toggle-all-notes` (`#launchdek-client-toggle-all-notes`), `.launchdek-client-step`, `.launchdek-client-step-settings-link` (compact deep-link icon beside step actions; URL from snapshot `deep_link` or rebuilt from `admin_path`), `.launchdek-client-step-notes`, `.launchdek-client-step-notes-toggle`, `.launchdek-client-note-attachment`, `.launchdek-client-run-complete-summary`, `.launchdek-client-dismiss-run`. Layout modifiers on root/body: `.launchdek-client-layout-{sidebar|live_topbar|bottom_dock|floating_pill|toast|admin_menu|fullscreen|focus_mode|inline_metabox}` (legacy `left_sidebar` / `split_panel` fall back to `sidebar`); `body.launchdek-client-has-panel`. Modifiers: `.is-collapsed` on panel root/panel/step notes; `.is-completed` on steps; `.is-admin-hidden` on `admin_menu` layout. Completed runs show summary + **Dismiss** (`POST /client/run/dismiss`).
 
 ## Enqueuing
 

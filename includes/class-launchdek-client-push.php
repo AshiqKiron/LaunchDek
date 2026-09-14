@@ -124,10 +124,10 @@ class LAUNCHDEK_Client_Push {
 
 		foreach ( $run['steps'] as $step ) {
 			$def       = is_array( $checklist['steps'] ?? null ) ? ( $checklist['steps'][ $step['step_index'] ] ?? array() ) : array();
-			$deep_link  = '';
 			$admin_path = LAUNCHDEK_Admin_Deep_Links::resolve_path( $def );
+			$deep_link  = '';
 
-			if ( $remote && $admin_path ) {
+			if ( $admin_path && $remote ) {
 				$deep_link = $remote->admin_link( $admin_path );
 			}
 
@@ -151,6 +151,7 @@ class LAUNCHDEK_Client_Push {
 				'instructions'    => sanitize_textarea_field( $def['instructions'] ?? '' ),
 				'target_roles'    => array_values( array_map( 'sanitize_key', (array) ( $def['target_roles'] ?? array() ) ) ),
 				'deep_link'       => $deep_link ? esc_url_raw( $deep_link ) : '',
+				'admin_path'      => $admin_path ? sanitize_text_field( $admin_path ) : '',
 				'show_note_field' => $show_note_field,
 				'manual_checked'  => ! empty( $step['manual_checked'] ),
 				'notes'           => LAUNCHDEK_Run_Repository::filter_step_notes( $step['notes'] ?? null ),

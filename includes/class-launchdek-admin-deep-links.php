@@ -22,16 +22,211 @@ class LAUNCHDEK_Admin_Deep_Links {
 	 */
 	public static function resolve_path( array $step ) {
 		if ( ! empty( $step['deep_link'] ) ) {
-			return self::sanitize_admin_path( $step['deep_link'] );
+			return self::normalize_stored_path( $step['deep_link'] );
 		}
 
 		$type = sanitize_key( $step['type'] ?? 'manual' );
 
 		if ( 'api' === $type && ! empty( $step['api'] ) && is_array( $step['api'] ) ) {
-			return self::path_from_api_step( $step['api'] );
+			$path = self::path_from_api_step( $step['api'] );
+			if ( $path ) {
+				return $path;
+			}
+		}
+
+		return self::infer_path_from_text(
+			$step['title'] ?? '',
+			$step['instructions'] ?? ''
+		);
+	}
+
+	/**
+	 * Infer a wp-admin path from step title and instructions.
+	 *
+	 * @param string $title        Step title.
+	 * @param string $instructions Step instructions.
+	 * @return string
+	 */
+	public static function infer_path_from_text( $title, $instructions = '' ) {
+		$haystack = strtolower( wp_strip_all_tags( (string) $title . ' ' . (string) $instructions ) );
+
+		if ( '' === trim( $haystack ) ) {
+			return '';
+		}
+
+		foreach ( self::get_text_inference_rules() as $rule ) {
+			foreach ( $rule['patterns'] as $pattern ) {
+				if ( preg_match( $pattern, $haystack ) ) {
+					return $rule['path'];
+				}
+			}
 		}
 
 		return '';
+	}
+
+	/**
+	 * Ordered keyword rules for inferring admin paths from natural-language steps.
+	 *
+	 * @return array<int, array{path: string, patterns: string[]}>
+	 */
+	private static function get_text_inference_rules() {
+		return array(
+			array(
+				'path'     => 'options-permalink.php',
+				'patterns' => array(
+					'/settings\s*(?:→|>|\/|-)\s*permalinks?/',
+					'/\bpermalinks?\b/',
+					'/\bpost name\b/',
+					'/\/%postname%/',
+					'/\brewrite rules?\b/',
+				),
+			),
+			array(
+				'path'     => 'options-reading.php',
+				'patterns' => array(
+					'/settings\s*(?:→|>|\/|-)\s*reading/',
+					'/\bsearch engine visibility\b/',
+					'/\bhomepage displays\b/',
+					'/\bposts page\b/',
+					'/\bblog public\b/',
+				),
+			),
+			array(
+				'path'     => 'options-discussion.php',
+				'patterns' => array(
+					'/settings\s*(?:→|>|\/|-)\s*discussion/',
+					'/\bcomment settings\b/',
+					'/\bdefault comment status\b/',
+				),
+			),
+			array(
+				'path'     => 'options-media.php',
+				'patterns' => array(
+					'/settings\s*(?:→|>|\/|-)\s*media/',
+					'/\bmedia settings\b/',
+					'/\bthumbnail size\b/',
+				),
+			),
+			array(
+				'path'     => 'options-privacy.php',
+				'patterns' => array(
+					'/settings\s*(?:→|>|\/|-)\s*privacy/',
+					'/\bprivacy policy page\b/',
+				),
+			),
+			array(
+				'path'     => 'options-general.php',
+				'patterns' => array(
+					'/settings\s*(?:→|>|\/|-)\s*general/',
+					'/\bsite title\b/',
+					'/\btagline\b/',
+					'/\badmin(?:istration)? email\b/',
+					'/\btimezone\b/',
+					'/\bdate format\b/',
+					'/\btime format\b/',
+					'/\bsite language\b/',
+					'/\bwp_lang\b/',
+				),
+			),
+			array(
+				'path'     => 'plugins.php',
+				'patterns' => array(
+					'/\bplugins?\b/',
+					'/\bactivate (?:the )?plugin\b/',
+					'/\bdeactivate (?:the )?plugin\b/',
+				),
+			),
+			array(
+				'path'     => 'plugin-install.php',
+				'patterns' => array(
+					'/\binstall (?:a )?plugin\b/',
+					'/\badd new plugin\b/',
+					'/\bplugin install\b/',
+				),
+			),
+			array(
+				'path'     => 'users.php',
+				'patterns' => array(
+					'/\busers?\b/',
+					'/\buser roles?\b/',
+					'/\badmin user\b/',
+				),
+			),
+			array(
+				'path'     => 'profile.php',
+				'patterns' => array(
+					'/\bprofile\b/',
+					'/\baccount settings\b/',
+				),
+			),
+			array(
+				'path'     => 'upload.php',
+				'patterns' => array(
+					'/\bmedia library\b/',
+					'/\bupload(?:s|ed)? media\b/',
+					'/\bbroken images?\b/',
+				),
+			),
+			array(
+				'path'     => 'nav-menus.php',
+				'patterns' => array(
+					'/\bnav(?:igation)? menus?\b/',
+					'/\bmenu items?\b/',
+				),
+			),
+			array(
+				'path'     => 'edit-comments.php',
+				'patterns' => array(
+					'/\bcomments?\b/',
+					'/\bcomment spam\b/',
+					'/\bmoderate comments\b/',
+				),
+			),
+			array(
+				'path'     => 'themes.php',
+				'patterns' => array(
+					'/\bthemes?\b/',
+					'/\bswitch theme\b/',
+				),
+			),
+			array(
+				'path'     => 'customize.php',
+				'patterns' => array(
+					'/\bcustomizer\b/',
+					'/\bcustomize\b/',
+					'/\bsite identity\b/',
+				),
+			),
+			array(
+				'path'     => 'site-health.php',
+				'patterns' => array(
+					'/\bsite health\b/',
+				),
+			),
+			array(
+				'path'     => 'update-core.php',
+				'patterns' => array(
+					'/\bupdate core\b/',
+					'/\bwordpress updates?\b/',
+					'/\bcore updates?\b/',
+				),
+			),
+			array(
+				'path'     => 'edit.php',
+				'patterns' => array(
+					'/\b(?:edit|manage|create|add|new) (?:blog )?posts?\b/',
+					'/\bposts? list\b/',
+				),
+			),
+			array(
+				'path'     => 'edit.php?post_type=page',
+				'patterns' => array(
+					'/\b(?:edit|manage|create|add|new) pages?\b/',
+					'/\bpages? list\b/',
+				),
+			),
+		);
 	}
 
 	/**
@@ -192,7 +387,7 @@ class LAUNCHDEK_Admin_Deep_Links {
 	 * @param string $path Admin path or URL.
 	 * @return string
 	 */
-	private static function sanitize_admin_path( $path ) {
+	public static function normalize_stored_path( $path ) {
 		$path = trim( (string) $path );
 
 		if ( '' === $path ) {

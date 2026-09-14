@@ -30,6 +30,59 @@
 	var collapsedNoteSections = {};
 	var notesGloballyMinimized = false;
 	var STORAGE_KEY = 'launchdek_client_runner_prefs_v2';
+	var CLIENT_API = String(launchdekClient.restUrl || '').replace(/\/$/, '');
+
+	function buildClientApiUrl(path) {
+		path = path.charAt(0) === '/' ? path : '/' + path;
+
+		try {
+			var url = new URL(CLIENT_API, window.location.href);
+			if (url.searchParams.has('rest_route')) {
+				var restRoute = (url.searchParams.get('rest_route') || '').replace(/\/$/, '') + path;
+				url.searchParams.set('rest_route', restRoute);
+				return url.toString();
+			}
+		} catch (e) {
+			// Fall through.
+		}
+
+		return CLIENT_API + path;
+	}
+
+	function clientFetch(path, options) {
+		var primaryUrl = buildClientApiUrl(path);
+		return fetch(primaryUrl, options).then(function (response) {
+			return response.json().then(function (body) {
+				if (!response.ok) {
+					var err = new Error((body && body.message) || strings.error || 'Request failed.');
+					err.response = response;
+					err.body = body;
+					throw err;
+				}
+				return body;
+			});
+		}).catch(function (err) {
+			var match = CLIENT_API.match(/^(.*)\/wp-json\/([^?]+?)\/?$/);
+			if (!match || !(err && err.body && err.body.code === 'rest_no_route')) {
+				throw err;
+			}
+
+			try {
+				var fallback = new URL(match[1] + '/');
+				fallback.searchParams.set('rest_route', '/' + match[2].replace(/^\//, '') + path);
+				return fetch(fallback.toString(), options).then(function (response) {
+					return response.json().then(function (body) {
+						if (!response.ok) {
+							throw new Error((body && body.message) || strings.error || 'Request failed.');
+						}
+						return body;
+					});
+				});
+			} catch (fallbackErr) {
+				throw err;
+			}
+		});
+	}
 
 	function escHtml(value) {
 		if (value === null || value === undefined) {
@@ -445,6 +498,32 @@
 		return template.replace('%1$s', current).replace('%2$s', total);
 	}
 
+	function formatChecklistFraction(done, total) {
+		var template = strings.checklistProgress || 'Checklist %1$d/%2$d';
+		return template
+			.replace('%1$d', done)
+			.replace('%2$d', total)
+			.replace('%1$s', done)
+			.replace('%2$s', total);
+	}
+
+	function formatCompactProgress(done, total, percent, currentDisplay, allDone) {
+		if (allDone) {
+			return formatChecklistFraction(done, total) + ' · 100%';
+		}
+
+		return formatStepOf(currentDisplay, total) + ' · ' + percent + '%';
+	}
+
+	function syncAdminBarProgress(done, total) {
+		var link = document.querySelector('#wp-admin-bar-launchdek-client-checklist > a');
+		if (!link) {
+			return;
+		}
+
+		link.textContent = formatChecklistFraction(done, total);
+	}
+
 	function formatRunTimestamp(value) {
 		return formatCompletedAt(value);
 	}
@@ -568,6 +647,10 @@
 		return '<svg class="launchdek-client-icon" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
 	}
 
+	function renderDoubleTickIcon() {
+		return '<svg class="launchdek-client-icon launchdek-client-icon-double-tick" width="18" height="16" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 14 4 17 7 12"></polyline><polyline points="7 12 10.5 16 21 4"></polyline></svg>';
+	}
+
 	function renderNoteIcon() {
 		return '<svg class="launchdek-client-icon" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>';
 	}
@@ -589,7 +672,7 @@
 	}
 
 	function renderCompletedIndicator(step) {
-		var tick = '<span class="launchdek-client-step-done-icon" aria-hidden="true">' + renderTickIcon() + '</span>';
+		var tick = '<span class="launchdek-client-step-done-icon" aria-hidden="true">' + renderDoubleTickIcon() + '</span>';
 
 		if (!stepCanUndo(step)) {
 			return '<span class="launchdek-client-step-complete-state is-readonly" aria-label="' + escHtml(strings.completed || 'Completed') + '">' + tick + '</span>';
@@ -632,7 +715,11 @@
 
 		var label = strings.goToSettings || 'Go to settings';
 
-		return '<a class="launchdek-client-icon-btn launchdek-client-has-tooltip launchdek-client-tooltip-left launchdek-client-step-settings-link" href="' + escHtml(step.deep_link) + '" target="_blank" rel="noopener" data-tooltip="' + escHtml(label) + '" aria-label="' + escHtml(label) + '">' + renderExternalIcon() + '</a>';
+		return '<a class="launchdek-client-step-settings-link" href="' + escHtml(step.deep_link) + '" target="_blank" rel="noopener">' + escHtml(label) + '</a>';
+	}
+
+	function noteFormWillRender(step, index, activeIndex) {
+		return stepShowsNoteField(step) && stepCanComplete(step, index, activeIndex);
 	}
 
 	function isValidNote(note) {
@@ -722,7 +809,13 @@
 			'</div>';
 		}
 
+		var settingsLink = renderSettingsLink(step);
+		var settingsHtml = settingsLink
+			? '<div class="launchdek-client-note-form-settings">' + settingsLink + '</div>'
+			: '';
+
 		return '<div class="launchdek-client-note-form" data-step="' + escHtml(stepIndex) + '">' +
+			settingsHtml +
 			'<div class="launchdek-client-note-form-actions">' +
 				'<button type="button" class="launchdek-client-icon-btn launchdek-client-has-tooltip launchdek-client-note-action ' + actionClass + '" data-step="' + escHtml(stepIndex) + '" data-tooltip="' + escHtml(actionLabel) + '" aria-label="' + escHtml(actionLabel) + '">' + actionIcon + '</button>' +
 				renderIconButton('launchdek-client-attach-screenshot is-attach-action', strings.attachScreenshot || 'Attach screenshot', renderAttachIcon(), stepIndex, 'right') +
@@ -745,6 +838,9 @@
 		}
 		body += renderCompletionMeta(step);
 		body += renderNotes(step.notes, parseInt(step.step_index, 10));
+		if (step.deep_link && !noteFormWillRender(step, index, activeIndex)) {
+			body += '<div class="launchdek-client-step-settings">' + renderSettingsLink(step) + '</div>';
+		}
 		body += renderNoteForm(step, index, activeIndex);
 
 		return body;
@@ -773,7 +869,6 @@
 
 		var body = expanded ? renderStepBody(step, index, activeIndex) : '';
 		var completeButton = renderCompleteButton(step, index, activeIndex);
-		var settingsLink = renderSettingsLink(step);
 		var badgeLabel = statusLabel(step.status);
 		var badgeStatus = step.status === 'pending' ? 'awaiting_manual' : step.status;
 		var badgeHtml = badgeLabel
@@ -787,7 +882,6 @@
 				'</button>' +
 				'<h3 class="launchdek-client-step-title">' + escHtml(step.title) + '</h3>' +
 				'<div class="launchdek-client-step-head-actions">' +
-					settingsLink +
 					badgeHtml +
 					completeButton +
 				'</div>' +
@@ -875,14 +969,6 @@
 			return;
 		}
 
-		if ((panelLayout === 'left_sidebar' || panelLayout === 'split_panel') && !collapsed) {
-			document.body.classList.add('launchdek-client-rail-open');
-			document.body.style.setProperty(
-				'--launchdek-client-rail-offset',
-				panelLayout === 'split_panel' ? '400px' : '320px'
-			);
-		}
-
 		if (panelLayout === 'fullscreen' && !collapsed) {
 			document.body.classList.add('launchdek-client-fullscreen-open');
 		}
@@ -955,13 +1041,9 @@
 
 	function renderSidebarShell(steps, allDone, activeIndex, percent, currentDisplay, total, options) {
 		options = options || {};
-		var side = options.side || 'right';
 		var variant = options.variant || 'default';
 		var toggleLabel = options.toggleLabel || strings.collapse || 'Collapse';
-		var tabSide = side === 'left' ? ' is-left-tab' : '';
 		var panelClasses = 'launchdek-client-panel' +
-			(side === 'left' ? ' is-left' : '') +
-			(variant === 'split' ? ' is-split' : '') +
 			(variant === 'metabox' ? ' is-metabox' : '') +
 			(variant === 'focus' ? ' is-focus' : '') +
 			(collapsed ? ' is-collapsed' : '');
@@ -970,7 +1052,7 @@
 			: renderPanelBody(steps, allDone, activeIndex);
 
 		return (collapsed && variant !== 'metabox'
-			? '<button type="button" class="launchdek-client-panel-tab' + tabSide + '" id="launchdek-client-panel-expand">' + escHtml(strings.expand || 'Expand') + '</button>'
+			? '<button type="button" class="launchdek-client-panel-tab" id="launchdek-client-panel-expand">' + escHtml(formatCompactProgress(completedCount(steps), total, percent, currentDisplay, allDone)) + '</button>'
 			: '') +
 			'<aside class="' + panelClasses + '" aria-label="' + escHtml(strings.panelTitle || 'Agency Checklist') + '">' +
 				'<div class="launchdek-client-panel-header">' +
@@ -1028,7 +1110,7 @@
 		if (collapsed) {
 			return '<div class="launchdek-client-floating-pill is-collapsed">' +
 				'<button type="button" class="launchdek-client-pill-trigger" id="launchdek-client-panel-expand">' +
-					escHtml(formatStepOf(currentDisplay, total)) + ' · ' + percent + '%' +
+					escHtml(formatCompactProgress(completedCount(steps), total, percent, currentDisplay, allDone)) +
 				'</button>' +
 			'</div>';
 		}
@@ -1047,8 +1129,8 @@
 		if (collapsed) {
 			return '<div class="launchdek-client-toast is-collapsed">' +
 				'<button type="button" class="launchdek-client-toast-trigger" id="launchdek-client-panel-expand">' +
-					escHtml(formatStepOf(currentDisplay, total)) +
-					(currentTitle ? ' — ' + escHtml(currentTitle) : '') +
+					escHtml(formatCompactProgress(completedCount(steps), total, percent, currentDisplay, allDone)) +
+					(currentTitle && !allDone ? ' — ' + escHtml(currentTitle) : '') +
 				'</button>' +
 			'</div>';
 		}
@@ -1072,8 +1154,12 @@
 
 	function renderFullscreenLayout(steps, allDone, activeIndex, percent, currentDisplay, total) {
 		if (collapsed) {
+			var collapsedLabel = allDone
+				? (strings.runComplete || 'Checklist complete!')
+				: formatCompactProgress(completedCount(steps), total, percent, currentDisplay, allDone);
+
 			return '<button type="button" class="button launchdek-client-fullscreen-open" id="launchdek-client-panel-expand">' +
-				escHtml(strings.openChecklist || 'Open checklist') +
+				escHtml(collapsedLabel) +
 			'</button>';
 		}
 
@@ -1091,10 +1177,6 @@
 				return renderBarLayout('top', steps, allDone, activeIndex, percent, currentDisplay, total);
 			case 'bottom_dock':
 				return renderBarLayout('bottom', steps, allDone, activeIndex, percent, currentDisplay, total);
-			case 'left_sidebar':
-				return renderSidebarShell(steps, allDone, activeIndex, percent, currentDisplay, total, { side: 'left' });
-			case 'split_panel':
-				return renderSidebarShell(steps, allDone, activeIndex, percent, currentDisplay, total, { side: 'left', variant: 'split' });
 			case 'inline_metabox':
 				return renderSidebarShell(steps, allDone, activeIndex, percent, currentDisplay, total, { variant: 'metabox' });
 			case 'focus_mode':
@@ -1108,7 +1190,7 @@
 			case 'fullscreen':
 				return renderFullscreenLayout(steps, allDone, activeIndex, percent, currentDisplay, total);
 			default:
-				return renderSidebarShell(steps, allDone, activeIndex, percent, currentDisplay, total, { side: 'right' });
+				return renderSidebarShell(steps, allDone, activeIndex, percent, currentDisplay, total);
 		}
 	}
 
@@ -1137,6 +1219,7 @@
 		root.className = rootClasses;
 		root.innerHTML = renderLayoutMarkup(steps, allDone, activeIndex, percent, currentDisplay, total);
 
+		syncAdminBarProgress(done, total);
 		syncBodyClasses();
 		bindActions();
 		restoreNoteDrafts();
@@ -1363,8 +1446,7 @@
 
 		button.disabled = true;
 
-		var base = String(launchdekClient.restUrl || '').replace(/\/$/, '');
-		fetch(base + '/client/run/steps/' + stepIndex + '/notes', {
+		clientFetch('/client/run/steps/' + stepIndex + '/notes', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
@@ -1376,13 +1458,6 @@
 				attachment_id: attachmentId || 0,
 				created_at: createdAt
 			})
-		}).then(function (response) {
-			return response.json().then(function (body) {
-				if (!response.ok) {
-					throw new Error((body && body.message) || strings.error || 'Could not save note.');
-				}
-				return body;
-			});
 		}).then(function (response) {
 			pendingAttachment = null;
 			resetNoteComposer(stepIndex);
@@ -1462,8 +1537,7 @@
 		notice('', '');
 		render();
 
-		var base = String(launchdekClient.restUrl || '').replace(/\/$/, '');
-		fetch(base + '/client/run/steps/' + stepIndex + '/' + action, {
+		clientFetch('/client/run/steps/' + stepIndex + '/' + action, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
@@ -1471,13 +1545,6 @@
 			},
 			credentials: 'same-origin',
 			body: JSON.stringify({})
-		}).then(function (response) {
-			return response.json().then(function (body) {
-				if (!response.ok) {
-					throw new Error((body && body.message) || strings.error || 'Could not update this step.');
-				}
-				return body;
-			});
 		}).then(function (response) {
 			run = response.run || null;
 			if (!run) {
@@ -1506,8 +1573,7 @@
 	function dismissRun(button) {
 		button.disabled = true;
 
-		var base = String(launchdekClient.restUrl || '').replace(/\/$/, '');
-		fetch(base + '/client/run/dismiss', {
+		clientFetch('/client/run/dismiss', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
@@ -1515,13 +1581,6 @@
 			},
 			credentials: 'same-origin',
 			body: JSON.stringify({})
-		}).then(function (response) {
-			return response.json().then(function (body) {
-				if (!response.ok) {
-					throw new Error((body && body.message) || strings.dismissError || 'Could not dismiss this checklist.');
-				}
-				return body;
-			});
 		}).then(function () {
 			run = null;
 			launchdekClient.run = null;

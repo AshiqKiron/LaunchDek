@@ -37,6 +37,7 @@ Cross-cutting quality standards. See also: `launchdek-project.mdc` (architecture
 - Settings page uses WordPress Settings API (platform toggles, credential vault, exclude-options list, client panel layout picker, webhooks, role-permission matrix, onboarding preview button); all other pages use REST-driven JS UI.
 - Shared modals (`launchdek-onboarding-modal.php`, `launchdek-template-picker-modal.php`) are thin partials included via `require` — do not duplicate markup across pages. Built-in template grid and vault live on the Checklists → Templates tab (not a separate admin menu).
 - Modal close/dismiss: hide with `[hidden]` immediately; persist onboarding dismissal via REST in the background (do not block UI on network).
+- Onboarding wizard auto-opens only on the dashboard (`data-launchdek-page="dashboard"` + `onboarding.show`); Settings includes the modal for **Show onboarding wizard** preview but does not auto-open after save. `?onboarding=1` still forces open on any screen with the modal partial.
 
 ## Performance
 
@@ -44,7 +45,7 @@ Cross-cutting quality standards. See also: `launchdek-project.mdc` (architecture
 - Avoid expensive queries on every request; repositories should use indexed columns.
 - Remote API calls only on user action, checklist execution, connection tests, scheduled drift cron, client panel snapshot sync after hub-side run advances (`sync_run()` → `push_run( $id, false, false )`, no bundle reinstall), initial push / manual **Refresh Client Panel** (`push_run` with `$sync_bundle = true`), site save/test bundle deploy, or auto-capture sessions — never on every admin page load except Sites page background stale-connection refresh (30-minute threshold) and on-demand site run history (`GET /sites/{id}/runs` when a site row is expanded). Client step toggles do not trigger hub→client re-sync; hub returns `snapshot` for local apply.
 - Client panel assets (`wp_enqueue_media()`, panel JS/CSS) load only on remote wp-admin when an active run snapshot exists — not on every admin request.
-- Dashboard stats, connection ticker, and live log feed use `LAUNCHDEK_Dashboard_Cache` (`launchdek_dashboard_cache`, non-autoload); preloaded in PHP/`launchdekAdmin.dashboard` on dashboard load; cache invalidated on underlying data changes. Activity Logs page fetches via REST only when opened/filtered.
+- Dashboard stats, connection ticker, live log feed, and Quick Launch Bar picker options use `LAUNCHDEK_Dashboard_Cache` (`launchdek_dashboard_cache`, non-autoload); preloaded in PHP/`launchdekAdmin.dashboard` on dashboard load (Quick Launch selects also render server-side — no REST wait on first paint); cache invalidated on underlying data changes. Activity Logs page fetches via REST only when opened/filtered.
 - Avoid autoloading large options.
 
 ## Privacy & External Communication

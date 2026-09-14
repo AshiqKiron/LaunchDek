@@ -63,8 +63,16 @@ Yes, when enabled in Settings, application passwords are encrypted using your Wo
 
 == Changelog ==
 
+= 1.0.21 =
+* Client checklist panel: step completion now updates progress in every minimized layout (sidebar tab, floating pill, toast, top bar, bottom dock, fullscreen launcher, and admin bar badge)
+
+= 1.0.20 =
+* Settings: first-run onboarding wizard no longer auto-opens when saving settings (for example after changing the client panel layout); use **Show onboarding wizard** to preview it from Settings
+
 = 1.0.19 =
 * Client checklist panel: WordPress settings deep links are inferred from checklist steps when possible (manual paths and API settings routes) and shown as a compact icon aligned with step actions
+* Fix deep links not appearing — admin paths like options-general.php were stripped by URL sanitization when saving checklists; built-in templates are repaired automatically on next hub load
+* Deep links are now inferred from step titles and instructions (e.g. "Settings → Permalinks to Post name" opens Permalinks) for pasted SOP and manual steps without an explicit path
 
 = 1.0.18 =
 * Settings: Exclude Options list — block sensitive WordPress settings fields (site URL, admin email, environment type, etc.) from being pushed to remote sites via API checklist steps
@@ -77,6 +85,9 @@ Yes, when enabled in Settings, application passwords are encrypted using your Wo
 
 = 1.0.15 =
 * Sites page: expand each site row to view checklist run history (completed, running, and failed runs) with links to open the run on Automation
+
+= 1.0.15 =
+* Client checklist panel: removed Left sidebar and Split panel display layout options; sites using those layouts fall back to the right sidebar floater
 
 = 1.0.14 =
 * Client checklist panel: completed checklists show a summary with Started/Completed timestamps and a Dismiss button to close the panel
@@ -144,6 +155,9 @@ Yes, when enabled in Settings, application passwords are encrypted using your Wo
 * Client checklist panel: focused runner UX with progress bar, "Step X of Y", collapsed completed steps, and localStorage focus preference
 * Client panel step notes with optional screenshot attachments (media library); notes sync to hub and appear in Automation run tracker
 * Hub webhooks for client_step_completed and client_note_added; dashboard feed highlights client completions and notes with site name
+
+= 1.0.5 =
+* Dashboard Quick Launch Bar: site and checklist dropdowns preload on first paint (no REST wait)
 
 = 1.0.4 =
 * Dashboard API Connection Status: summary stat cards (All Sites, Healthy, Issues, Unknown) with Manage Sites link to the full sites list

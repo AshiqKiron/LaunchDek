@@ -8,16 +8,20 @@
  * @var string $page              Page identifier.
  * @var array  $dashboard_stats   Cached dashboard stat cards.
  * @var array  $connection_counts Cached connection health summary.
- * @var array  $log_feed          Cached dashboard live log feed entries.
+ * @var array  $log_feed            Cached dashboard live log feed entries.
+ * @var array  $quick_launch_picker Cached quick-launch site and checklist picker options.
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-$dashboard_stats   = isset( $dashboard_stats ) && is_array( $dashboard_stats ) ? $dashboard_stats : LAUNCHDEK_Dashboard_Cache::get_stats();
-$connection_counts = isset( $connection_counts ) && is_array( $connection_counts ) ? $connection_counts : LAUNCHDEK_Dashboard_Cache::get_connection_counts();
-$log_feed          = isset( $log_feed ) && is_array( $log_feed ) ? $log_feed : LAUNCHDEK_Dashboard_Cache::get_feed();
+$dashboard_stats     = isset( $dashboard_stats ) && is_array( $dashboard_stats ) ? $dashboard_stats : LAUNCHDEK_Dashboard_Cache::get_stats();
+$connection_counts   = isset( $connection_counts ) && is_array( $connection_counts ) ? $connection_counts : LAUNCHDEK_Dashboard_Cache::get_connection_counts();
+$log_feed            = isset( $log_feed ) && is_array( $log_feed ) ? $log_feed : LAUNCHDEK_Dashboard_Cache::get_feed();
+$quick_launch_picker = isset( $quick_launch_picker ) && is_array( $quick_launch_picker ) ? $quick_launch_picker : LAUNCHDEK_Dashboard_Cache::get_quick_launch_picker();
+$quick_launch_sites  = isset( $quick_launch_picker['sites'] ) && is_array( $quick_launch_picker['sites'] ) ? $quick_launch_picker['sites'] : array();
+$quick_launch_lists  = isset( $quick_launch_picker['checklists'] ) && is_array( $quick_launch_picker['checklists'] ) ? $quick_launch_picker['checklists'] : array();
 ?>
 <div class="wrap launchdek-admin" data-launchdek-page="dashboard">
 	<h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
@@ -94,8 +98,18 @@ $log_feed          = isset( $log_feed ) && is_array( $log_feed ) ? $log_feed : L
 	<div class="launchdek-quick-launch launchdek-card">
 		<h2><?php esc_html_e( 'Quick Launch Bar', LAUNCHDEK_TEXT_DOMAIN ); ?></h2>
 		<div class="launchdek-inline-form">
-			<select id="launchdek-quick-site" class="launchdek-select" aria-label="<?php esc_attr_e( 'Select site', LAUNCHDEK_TEXT_DOMAIN ); ?>"><option value=""><?php esc_html_e( 'Select site…', LAUNCHDEK_TEXT_DOMAIN ); ?></option></select>
-			<select id="launchdek-quick-checklist" class="launchdek-select" aria-label="<?php esc_attr_e( 'Select checklist', LAUNCHDEK_TEXT_DOMAIN ); ?>"><option value=""><?php esc_html_e( 'Select checklist…', LAUNCHDEK_TEXT_DOMAIN ); ?></option></select>
+			<select id="launchdek-quick-site" class="launchdek-select" aria-label="<?php esc_attr_e( 'Select site', LAUNCHDEK_TEXT_DOMAIN ); ?>" data-launchdek-preloaded="1">
+				<option value=""><?php esc_html_e( 'Select site…', LAUNCHDEK_TEXT_DOMAIN ); ?></option>
+				<?php foreach ( $quick_launch_sites as $site ) : ?>
+					<option value="<?php echo esc_attr( (string) ( $site['id'] ?? '' ) ); ?>"><?php echo esc_html( $site['name'] ?? '' ); ?></option>
+				<?php endforeach; ?>
+			</select>
+			<select id="launchdek-quick-checklist" class="launchdek-select" aria-label="<?php esc_attr_e( 'Select checklist', LAUNCHDEK_TEXT_DOMAIN ); ?>" data-launchdek-preloaded="1">
+				<option value=""><?php esc_html_e( 'Select checklist…', LAUNCHDEK_TEXT_DOMAIN ); ?></option>
+				<?php foreach ( $quick_launch_lists as $checklist ) : ?>
+					<option value="<?php echo esc_attr( (string) ( $checklist['id'] ?? '' ) ); ?>"><?php echo esc_html( $checklist['title'] ?? '' ); ?></option>
+				<?php endforeach; ?>
+			</select>
 			<button type="button" class="button button-primary" id="launchdek-quick-launch"><?php esc_html_e( 'Run Checklist', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
 		</div>
 		<div id="launchdek-quick-result" class="launchdek-notice-area"></div>

@@ -10,28 +10,127 @@
 	var strings = launchdekAdmin.strings || {};
 
 	/**
-	 * Build a REST path that works with plain permalinks (?rest_route=…) and pretty permalinks.
+	 * Split a REST path into route suffix and optional query string.
+	 *
+	 * @param {string} path Path such as "/sites" or "/checklists?is_template=0".
+	 * @return {{ routeSuffix: string, extraQuery: string }}
 	 */
-	function resolveApiPath(path) {
+	function splitApiPath(path) {
+		path = path.charAt(0) === '/' ? path : '/' + path;
 		var qPos = path.indexOf('?');
 		if (qPos === -1) {
-			return path;
+			return { routeSuffix: path, extraQuery: '' };
 		}
 
-		var routePath = path.substring(0, qPos);
-		var query = path.substring(qPos + 1);
-		if (!query) {
-			return routePath;
-		}
-
-		if (API.indexOf('?') !== -1) {
-			return routePath + '&' + query;
-		}
-
-		return path;
+		var extraQuery = path.substring(qPos + 1);
+		return {
+			routeSuffix: path.substring(0, qPos),
+			extraQuery: extraQuery
+		};
 	}
 
-	function request(method, path, body) {
+	/**
+	 * Merge extra query params into a URL object.
+	 *
+	 * @param {URL} url         Target URL.
+	 * @param {string} extraQuery Raw query string (no leading "?").
+	 */
+	function mergeExtraQuery(url, extraQuery) {
+		if (!extraQuery) {
+			return;
+		}
+
+		extraQuery.split('&').forEach(function (pair) {
+			if (!pair) {
+				return;
+			}
+			var eq = pair.indexOf('=');
+			if (eq === -1) {
+				url.searchParams.set(decodeURIComponent(pair), '');
+				return;
+			}
+			url.searchParams.set(
+				decodeURIComponent(pair.substring(0, eq)),
+				decodeURIComponent(pair.substring(eq + 1))
+			);
+		});
+	}
+
+	/**
+	 * Build a REST URL for plain (?rest_route=) and pretty (/wp-json/) permalinks.
+	 *
+	 * @param {string} path Path relative to the LaunchDek REST namespace.
+	 * @return {string}
+	 */
+	function buildApiUrl(path) {
+		var parts = splitApiPath(path);
+
+		try {
+			var url = new URL(API, window.location.href);
+			if (url.searchParams.has('rest_route')) {
+				var restRoute = (url.searchParams.get('rest_route') || '').replace(/\/$/, '') + parts.routeSuffix;
+				url.searchParams.set('rest_route', restRoute);
+				mergeExtraQuery(url, parts.extraQuery);
+				return url.toString();
+			}
+		} catch (e) {
+			// Fall through to string concat.
+		}
+
+		if (API.indexOf('?') !== -1 && parts.extraQuery) {
+			return API + parts.routeSuffix + '&' + parts.extraQuery;
+		}
+
+		return API + parts.routeSuffix + (parts.extraQuery ? '?' + parts.extraQuery : '');
+	}
+
+	/**
+	 * When permalinks are set to "pretty" but rewrites are broken (common on local MAMP),
+	 * retry the same route via ?rest_route=.
+	 *
+	 * @param {string} path Original REST path.
+	 * @return {string|null}
+	 */
+	function buildPlainPermalinkFallbackUrl(path) {
+		var parts = splitApiPath(path);
+		var match = API.match(/^(.*)\/wp-json\/([^?]+?)\/?$/);
+		if (!match) {
+			return null;
+		}
+
+		try {
+			var url = new URL(match[1] + '/');
+			url.searchParams.set('rest_route', '/' + match[2].replace(/^\//, '') + parts.routeSuffix);
+			mergeExtraQuery(url, parts.extraQuery);
+			return url.toString();
+		} catch (e) {
+			return null;
+		}
+	}
+
+	function parseResponse(res, text) {
+		var data = null;
+		if (text) {
+			try {
+				data = JSON.parse(text);
+			} catch (e) {
+				if (res.status === 404) {
+					throw new Error(strings.restUnavailable || 'REST API is unavailable. On the hub site, go to Settings → Permalinks, choose Post name, and save.');
+				}
+				throw new Error(strings.error || 'Something went wrong.');
+			}
+		}
+		if (!res.ok) {
+			var msg = (data && data.message) ? data.message : strings.error;
+			var err = new Error(msg);
+			err.status = res.status;
+			err.data = data;
+			throw err;
+		}
+		return data;
+	}
+
+	function fetchApi(method, url, body) {
 		var opts = {
 			method: method,
 			headers: {
@@ -43,25 +142,25 @@
 		if (body) {
 			opts.body = JSON.stringify(body);
 		}
-		return fetch(API + resolveApiPath(path), opts).then(function (res) {
+		return fetch(url, opts).then(function (res) {
 			return res.text().then(function (text) {
-				var data = null;
-				if (text) {
-					try {
-						data = JSON.parse(text);
-					} catch (e) {
-						if (res.status === 404) {
-							throw new Error(strings.restUnavailable || 'REST API is unavailable. On the hub site, go to Settings → Permalinks, choose Post name, and save.');
-						}
-						throw new Error(strings.error || 'Something went wrong.');
-					}
-				}
-				if (!res.ok) {
-					var msg = (data && data.message) ? data.message : strings.error;
-					throw new Error(msg);
-				}
-				return data;
+				return parseResponse(res, text);
 			});
+		});
+	}
+
+	function request(method, path, body) {
+		var primaryUrl = buildApiUrl(path);
+		return fetchApi(method, primaryUrl, body).catch(function (err) {
+			var fallbackUrl = buildPlainPermalinkFallbackUrl(path);
+			if (
+				!fallbackUrl ||
+				fallbackUrl === primaryUrl ||
+				!(err && err.data && err.data.code === 'rest_no_route')
+			) {
+				throw err;
+			}
+			return fetchApi(method, fallbackUrl, body);
 		});
 	}
 
@@ -481,7 +580,9 @@
 
 		var onboarding = launchdekAdmin.onboarding || {};
 		var params = new URLSearchParams(window.location.search);
-		var shouldShow = onboarding.show || params.get('onboarding') === '1';
+		var pageRoot = document.querySelector('[data-launchdek-page]');
+		var pageId = pageRoot ? pageRoot.getAttribute('data-launchdek-page') : '';
+		var shouldShow = (pageId === 'dashboard' && onboarding.show) || params.get('onboarding') === '1';
 
 		var step1 = document.getElementById('launchdek-onboarding-step-1');
 		var step2 = document.getElementById('launchdek-onboarding-step-2');
@@ -906,10 +1007,23 @@
 			refreshLogFeed().catch(function () {});
 		}
 
-		Promise.all([get('/sites'), get('/checklists?is_template=0')]).then(function (results) {
-			fillSelect(document.getElementById('launchdek-quick-site'), results[0], 'id', 'name', 'Select site…');
-			fillSelect(document.getElementById('launchdek-quick-checklist'), results[1], 'id', 'title', 'Select checklist…');
-		});
+		var quickSiteSelect = document.getElementById('launchdek-quick-site');
+		var quickChecklistSelect = document.getElementById('launchdek-quick-checklist');
+		var quickLaunch = launchdekAdmin.dashboard && launchdekAdmin.dashboard.quickLaunch;
+
+		if (quickLaunch) {
+			if (quickSiteSelect && quickSiteSelect.getAttribute('data-launchdek-preloaded') !== '1') {
+				fillSelect(quickSiteSelect, quickLaunch.sites || [], 'id', 'name', strings.onboardingSelectSite || 'Select site…');
+			}
+			if (quickChecklistSelect && quickChecklistSelect.getAttribute('data-launchdek-preloaded') !== '1') {
+				fillSelect(quickChecklistSelect, quickLaunch.checklists || [], 'id', 'title', 'Select checklist…');
+			}
+		} else if (quickSiteSelect && quickChecklistSelect) {
+			Promise.all([get('/sites'), get('/checklists?is_template=0')]).then(function (results) {
+				fillSelect(quickSiteSelect, results[0], 'id', 'name', strings.onboardingSelectSite || 'Select site…');
+				fillSelect(quickChecklistSelect, results[1], 'id', 'title', 'Select checklist…');
+			});
+		}
 
 		document.getElementById('launchdek-quick-launch').addEventListener('click', function () {
 			var siteId = document.getElementById('launchdek-quick-site').value;
@@ -2533,7 +2647,7 @@
 			if (step.status && step.status !== 'pending') {
 				html += ' — ' + escHtml(step.status);
 			}
-			if (step.manual_checked) html += ' ✓';
+			if (step.manual_checked) html += ' ✓✓';
 			html += '</div>';
 
 			if (step.error_message) {

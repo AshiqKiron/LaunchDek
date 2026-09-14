@@ -80,6 +80,35 @@ class LAUNCHDEK_Checklist_Repository {
 	}
 
 	/**
+	 * Lightweight id/title pairs for dashboard quick-launch pickers.
+	 *
+	 * @return array<int, array{id:int,title:string}>
+	 */
+	public static function picker_list() {
+		global $wpdb;
+
+		$table = self::table();
+		$rows  = $wpdb->get_results(
+			'SELECT id, title FROM ' . $table . ' WHERE is_template = 0 ORDER BY title ASC LIMIT 100', // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			ARRAY_A
+		);
+
+		if ( ! is_array( $rows ) ) {
+			return array();
+		}
+
+		return array_map(
+			static function ( $row ) {
+				return array(
+					'id'    => (int) $row['id'],
+					'title' => (string) $row['title'],
+				);
+			},
+			$rows
+		);
+	}
+
+	/**
 	 * Count active (non-template) checklists.
 	 *
 	 * @return int
@@ -127,6 +156,7 @@ class LAUNCHDEK_Checklist_Repository {
 		$id = (int) $wpdb->insert_id;
 		LAUNCHDEK_Audit_Log::log( 'checklist_created', array( 'checklist_id' => $id, 'title' => $data['title'] ?? '' ) );
 		LAUNCHDEK_Dashboard_Cache::invalidate_stats();
+		LAUNCHDEK_Dashboard_Cache::invalidate_quick_launch_picker();
 
 		return $id;
 	}
@@ -170,6 +200,7 @@ class LAUNCHDEK_Checklist_Repository {
 		if ( false !== $result ) {
 			LAUNCHDEK_Audit_Log::log( 'checklist_updated', array( 'checklist_id' => $id ) );
 			LAUNCHDEK_Dashboard_Cache::invalidate_stats();
+			LAUNCHDEK_Dashboard_Cache::invalidate_quick_launch_picker();
 		}
 
 		return false !== $result;
@@ -189,6 +220,7 @@ class LAUNCHDEK_Checklist_Repository {
 		if ( $result ) {
 			LAUNCHDEK_Audit_Log::log( 'checklist_deleted', array( 'checklist_id' => $id ) );
 			LAUNCHDEK_Dashboard_Cache::invalidate_stats();
+			LAUNCHDEK_Dashboard_Cache::invalidate_quick_launch_picker();
 		}
 
 		return (bool) $result;
@@ -270,11 +302,19 @@ class LAUNCHDEK_Checklist_Repository {
 				? ! empty( $step['show_note_field'] )
 				: ( 'manual' === $type );
 
+			$deep_link = LAUNCHDEK_Admin_Deep_Links::normalize_stored_path( $step['deep_link'] ?? '' );
+			if ( '' === $deep_link ) {
+				$deep_link = LAUNCHDEK_Admin_Deep_Links::infer_path_from_text(
+					$step['title'] ?? '',
+					$step['instructions'] ?? ''
+				);
+			}
+
 			$normalized[] = array(
 				'id'              => ! empty( $step['id'] ) ? sanitize_key( $step['id'] ) : 'step_' . ( $index + 1 ),
 				'title'           => sanitize_text_field( $step['title'] ?? sprintf( __( 'Step %d', LAUNCHDEK_TEXT_DOMAIN ), $index + 1 ) ),
 				'instructions'    => sanitize_textarea_field( $step['instructions'] ?? '' ),
-				'deep_link'       => esc_url_raw( $step['deep_link'] ?? '' ),
+				'deep_link'       => $deep_link,
 				'type'            => $type,
 				'target_roles'    => $target_roles,
 				'show_note_field' => $show_note_field,
