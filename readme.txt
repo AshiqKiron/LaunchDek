@@ -63,6 +63,9 @@ Yes, when enabled in Settings, application passwords are encrypted using your Wo
 
 == Changelog ==
 
+= 1.0.32 =
+* Automation: redesigned with Run Checklist / Batch Queue / Drift Monitor tabs and a 3-step run wizard (choose checklist → choose site → execute steps); step runner is now full-width with progress bar and contextual actions
+
 = 1.0.31 =
 * Automation: Target sites selector is now a multi-check dropdown (checkbox list) instead of a native multi-select
 

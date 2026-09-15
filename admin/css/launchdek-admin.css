@@ -1890,22 +1890,125 @@
 }
 
 .launchdek-run-controls {
+	margin-top: 12px;
+}
+
+.launchdek-automation-nav {
+	margin-bottom: 0;
+}
+
+.launchdek-automation-progress {
+	margin: 0 0 24px;
+}
+
+.launchdek-automation-progress-segments {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: 0;
+}
+
+.launchdek-automation-progress-segment {
+	cursor: pointer;
+}
+
+.launchdek-automation-progress-segment-bar {
+	height: 6px;
+	background: #dcdcde;
+	border-radius: 0;
+}
+
+.launchdek-automation-progress-segment:first-child .launchdek-automation-progress-segment-bar {
+	border-radius: 999px 0 0 999px;
+}
+
+.launchdek-automation-progress-segment:last-child .launchdek-automation-progress-segment-bar {
+	border-radius: 0 999px 999px 0;
+}
+
+.launchdek-automation-progress-segment.is-active .launchdek-automation-progress-segment-bar,
+.launchdek-automation-progress-segment.is-complete .launchdek-automation-progress-segment-bar {
+	background: #2271b1;
+}
+
+.launchdek-automation-progress-segment-text {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	gap: 0 6px;
+	padding: 10px 12px 0 0;
+	font-size: 12px;
+	line-height: 1.4;
+}
+
+.launchdek-automation-progress-segment:last-child .launchdek-automation-progress-segment-text {
+	padding-right: 0;
+}
+
+.launchdek-automation-progress-segment-label {
+	flex-shrink: 0;
+	color: #646970;
+}
+
+.launchdek-automation-progress-segment-hint {
+	color: #787c82;
+}
+
+.launchdek-automation-progress-segment-hint::before {
+	content: '—';
+	margin-right: 6px;
+	color: #c3c4c7;
+}
+
+.launchdek-automation-progress-segment.is-active .launchdek-automation-progress-segment-label {
+	color: #1d2327;
+	font-weight: 600;
+}
+
+.launchdek-automation-progress-segment.is-active .launchdek-automation-progress-segment-hint {
+	color: #50575e;
+}
+
+.launchdek-automation-progress-segment.is-complete .launchdek-automation-progress-segment-label {
+	color: #2271b1;
+}
+
+.launchdek-automation-step-panel {
+	margin-top: 8px;
+}
+
+.launchdek-automation-field-label {
+	display: block;
+	margin-bottom: 6px;
+	font-weight: 600;
+}
+
+.launchdek-automation-step-footer {
+	margin-top: 16px;
+	padding-top: 12px;
+	border-top: 1px solid #dcdcde;
+}
+
+.launchdek-automation-step-footer-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	justify-content: flex-end;
+}
+
+.launchdek-automation-run-hero {
 	margin-top: 4px;
 }
 
-.launchdek-automation-layout {
-	display: grid;
-	grid-template-columns: minmax(0, 1fr) 340px;
-	gap: 16px;
-	align-items: start;
-	margin-bottom: 16px;
+.launchdek-automation-run-hero-header {
+	margin-bottom: 8px;
 }
 
-.launchdek-automation-sidebar {
-	position: sticky;
-	top: 32px;
-	max-height: calc(100vh - 64px);
-	overflow-y: auto;
+#launchdek-run-progress-wrap {
+	margin: 12px 0;
+}
+
+.launchdek-automation-audit-intro {
+	margin-top: 0;
 }
 
 .launchdek-audit-filters {
@@ -1964,15 +2067,18 @@
 	margin-top: 12px;
 }
 
-@media (max-width: 1200px) {
-	.launchdek-automation-layout {
+@media (max-width: 782px) {
+	.launchdek-automation-progress-segments {
 		grid-template-columns: 1fr;
+		gap: 12px;
 	}
 
-	.launchdek-automation-sidebar {
-		position: static;
-		max-height: none;
-		order: -1;
+	.launchdek-automation-progress-segment-bar {
+		border-radius: 999px !important;
+	}
+
+	.launchdek-automation-progress-segment-text {
+		padding: 8px 0 0;
 	}
 }
 
