@@ -15,6 +15,20 @@ if ( ! defined( 'ABSPATH' ) ) {
 class LAUNCHDEK_Audit_Log {
 
 	/**
+	 * Default page size for activity log queries.
+	 *
+	 * @var int
+	 */
+	const LIST_DEFAULT_LIMIT = 50;
+
+	/**
+	 * Maximum page size for activity log queries.
+	 *
+	 * @var int
+	 */
+	const LIST_MAX_LIMIT = 100;
+
+	/**
 	 * Append an audit entry (immutable — no update/delete methods).
 	 *
 	 * @param string $action       Action identifier.
@@ -53,32 +67,59 @@ class LAUNCHDEK_Audit_Log {
 	}
 
 	/**
+	 * Find a single audit entry by ID.
+	 *
+	 * @param int  $id              Entry ID.
+	 * @param bool $include_details Include decoded details payload.
+	 * @return array|null
+	 */
+	public static function find( $id, $include_details = true ) {
+		$rows = self::query(
+			array(
+				'id'              => absint( $id ),
+				'limit'           => 1,
+				'include_details' => $include_details,
+			)
+		);
+
+		return ! empty( $rows ) ? $rows[0] : null;
+	}
+
+	/**
 	 * Query audit entries with filters.
 	 *
 	 * @param array $args Query arguments.
-	 * @return array
+	 * @return array Flat list of entries, or paginated shape when paginate is true.
 	 */
 	public static function query( $args = array() ) {
 		global $wpdb;
 
 		$defaults = array(
-			'user_id'   => 0,
-			'site_id'   => 0,
-			'run_id'    => 0,
-			'action'    => '',
-			'search'    => '',
-			'status'    => '',
-			'date_from' => '',
-			'date_to'   => '',
-			'limit'     => 50,
-			'offset'    => 0,
-			'order'     => 'DESC',
+			'id'              => 0,
+			'user_id'         => 0,
+			'site_id'         => 0,
+			'run_id'          => 0,
+			'action'          => '',
+			'search'          => '',
+			'status'          => '',
+			'date_from'       => '',
+			'date_to'         => '',
+			'limit'           => self::LIST_DEFAULT_LIMIT,
+			'offset'          => 0,
+			'order'           => 'DESC',
+			'include_details' => true,
+			'paginate'        => false,
 		);
 
 		$args  = wp_parse_args( $args, $defaults );
 		$table = $wpdb->prefix . 'launchdek_audit_log';
 		$where = array( '1=1' );
 		$vals  = array();
+
+		if ( $args['id'] ) {
+			$where[] = 'id = %d';
+			$vals[]  = absint( $args['id'] );
+		}
 
 		if ( $args['user_id'] ) {
 			$where[] = 'user_id = %d';
@@ -122,13 +163,16 @@ class LAUNCHDEK_Audit_Log {
 			}
 		}
 
-		$order   = 'ASC' === strtoupper( $args['order'] ) ? 'ASC' : 'DESC';
-		$limit   = max( 1, min( 200, absint( $args['limit'] ) ) );
-		$offset  = max( 0, absint( $args['offset'] ) );
-		$where_sql = implode( ' AND ', $where );
+		$order        = 'ASC' === strtoupper( $args['order'] ) ? 'ASC' : 'DESC';
+		$limit        = max( 1, min( self::LIST_MAX_LIMIT, absint( $args['limit'] ) ) );
+		$offset       = max( 0, absint( $args['offset'] ) );
+		$paginate     = ! empty( $args['paginate'] );
+		$fetch_limit  = $paginate ? $limit + 1 : $limit;
+		$where_sql    = implode( ' AND ', $where );
+		$include_details = ! empty( $args['include_details'] );
 
-		$sql = "SELECT * FROM {$table} WHERE {$where_sql} ORDER BY created_at {$order} LIMIT %d OFFSET %d";
-		$vals[] = $limit;
+		$sql = "SELECT id, user_id, site_id, run_id, action, details_json, payload_hash, created_at FROM {$table} WHERE {$where_sql} ORDER BY created_at {$order} LIMIT %d OFFSET %d";
+		$vals[] = $fetch_limit;
 		$vals[] = $offset;
 
 		if ( ! empty( $vals ) ) {
@@ -136,8 +180,182 @@ class LAUNCHDEK_Audit_Log {
 		}
 
 		$rows = $wpdb->get_results( $sql, ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		if ( ! is_array( $rows ) ) {
+			$rows = array();
+		}
 
-		return is_array( $rows ) ? array_map( array( __CLASS__, 'format_row' ), $rows ) : array();
+		$has_more = false;
+		if ( $paginate && count( $rows ) > $limit ) {
+			$has_more = true;
+			$rows     = array_slice( $rows, 0, $limit );
+		}
+
+		$context   = self::build_query_context( $rows );
+		$formatted = array();
+		foreach ( $rows as $row ) {
+			$formatted[] = self::format_row( $row, $context, $include_details );
+		}
+
+		if ( $paginate ) {
+			return array(
+				'logs'     => $formatted,
+				'has_more' => $has_more,
+				'offset'   => $offset,
+				'limit'    => $limit,
+			);
+		}
+
+		return $formatted;
+	}
+
+	/**
+	 * Build lookup maps for batch row formatting.
+	 *
+	 * @param array $rows Raw audit rows.
+	 * @return array{users:array,sites:array,runs:array}
+	 */
+	private static function build_query_context( array $rows ) {
+		$user_ids = array();
+		$site_ids = array();
+		$run_ids  = array();
+
+		foreach ( $rows as $row ) {
+			if ( ! empty( $row['user_id'] ) ) {
+				$user_ids[] = (int) $row['user_id'];
+			}
+			if ( ! empty( $row['site_id'] ) ) {
+				$site_ids[] = (int) $row['site_id'];
+			}
+			if ( ! empty( $row['run_id'] ) ) {
+				$run_ids[] = (int) $row['run_id'];
+			}
+		}
+
+		$unique_run_ids  = array_values( array_unique( $run_ids ) );
+		$runs            = self::load_runs_map( $unique_run_ids );
+		$linked_site_ids = array();
+
+		foreach ( $runs as $run ) {
+			if ( ! empty( $run['site_id'] ) ) {
+				$linked_site_ids[] = (int) $run['site_id'];
+			}
+		}
+
+		return array(
+			'users' => self::load_users_map( array_values( array_unique( $user_ids ) ) ),
+			'sites' => self::load_sites_map(
+				array_values(
+					array_unique(
+						array_merge( $site_ids, $linked_site_ids )
+					)
+				)
+			),
+			'runs'  => $runs,
+		);
+	}
+
+	/**
+	 * Batch-load user display names.
+	 *
+	 * @param array $user_ids User IDs.
+	 * @return array<int, string>
+	 */
+	private static function load_users_map( array $user_ids ) {
+		$map = array();
+		if ( empty( $user_ids ) ) {
+			return $map;
+		}
+
+		$users = get_users(
+			array(
+				'include' => $user_ids,
+				'fields'  => 'id=>name',
+			)
+		);
+
+		if ( ! is_array( $users ) ) {
+			return $map;
+		}
+
+		foreach ( $users as $user_id => $display_name ) {
+			$map[ (int) $user_id ] = (string) $display_name;
+		}
+
+		return $map;
+	}
+
+	/**
+	 * Batch-load site names.
+	 *
+	 * @param array $site_ids Site IDs.
+	 * @return array<int, array{name:string,url:string}>
+	 */
+	private static function load_sites_map( array $site_ids ) {
+		global $wpdb;
+
+		$map = array();
+		if ( empty( $site_ids ) ) {
+			return $map;
+		}
+
+		$table        = $wpdb->prefix . 'launchdek_sites';
+		$placeholders = implode( ',', array_fill( 0, count( $site_ids ), '%d' ) );
+		$sql          = "SELECT id, name, url FROM {$table} WHERE id IN ({$placeholders})";
+		$rows         = $wpdb->get_results( $wpdb->prepare( $sql, $site_ids ), ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+
+		if ( ! is_array( $rows ) ) {
+			return $map;
+		}
+
+		foreach ( $rows as $row ) {
+			$map[ (int) $row['id'] ] = array(
+				'name' => (string) $row['name'],
+				'url'  => (string) $row['url'],
+			);
+		}
+
+		return $map;
+	}
+
+	/**
+	 * Batch-load lightweight run summaries for message formatting.
+	 *
+	 * @param array $run_ids Run IDs.
+	 * @return array<int, array{status:string,checklist_title:string,site_name:string,site_id:int}>
+	 */
+	private static function load_runs_map( array $run_ids ) {
+		global $wpdb;
+
+		$map = array();
+		if ( empty( $run_ids ) ) {
+			return $map;
+		}
+
+		$runs_table       = $wpdb->prefix . 'launchdek_runs';
+		$checklists_table = $wpdb->prefix . 'launchdek_checklists';
+		$sites_table      = $wpdb->prefix . 'launchdek_sites';
+		$placeholders     = implode( ',', array_fill( 0, count( $run_ids ), '%d' ) );
+		$sql              = "SELECT r.id, r.status, r.site_id, c.title AS checklist_title, s.name AS site_name
+			FROM {$runs_table} r
+			LEFT JOIN {$checklists_table} c ON c.id = r.checklist_id
+			LEFT JOIN {$sites_table} s ON s.id = r.site_id
+			WHERE r.id IN ({$placeholders})";
+		$rows             = $wpdb->get_results( $wpdb->prepare( $sql, $run_ids ), ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+
+		if ( ! is_array( $rows ) ) {
+			return $map;
+		}
+
+		foreach ( $rows as $row ) {
+			$map[ (int) $row['id'] ] = array(
+				'status'          => (string) $row['status'],
+				'checklist_title' => (string) $row['checklist_title'],
+				'site_name'       => (string) $row['site_name'],
+				'site_id'         => (int) $row['site_id'],
+			);
+		}
+
+		return $map;
 	}
 
 	/**
@@ -224,7 +442,7 @@ class LAUNCHDEK_Audit_Log {
 
 			case 'run_status_changed':
 				$status = $details['status'] ?? '';
-				$run    = $entry['run_id'] ? LAUNCHDEK_Run_Repository::find( (int) $entry['run_id'] ) : null;
+				$run    = self::resolve_run_summary( $entry );
 
 				if ( $run && 'completed' === $status ) {
 					$title = $run['checklist_title'] ?: __( 'Checklist', LAUNCHDEK_TEXT_DOMAIN );
@@ -488,17 +706,63 @@ class LAUNCHDEK_Audit_Log {
 	}
 
 	/**
+	 * Resolve lightweight run context for feed formatting.
+	 *
+	 * @param array $entry Formatted audit entry.
+	 * @return array|null
+	 */
+	private static function resolve_run_summary( $entry ) {
+		if ( ! empty( $entry['run_summary'] ) && is_array( $entry['run_summary'] ) ) {
+			return $entry['run_summary'];
+		}
+
+		if ( empty( $entry['run_id'] ) ) {
+			return null;
+		}
+
+		$run = LAUNCHDEK_Run_Repository::find( (int) $entry['run_id'] );
+		if ( ! $run ) {
+			return null;
+		}
+
+		return array(
+			'status'          => (string) ( $run['status'] ?? '' ),
+			'checklist_title' => (string) ( $run['checklist_title'] ?? '' ),
+			'site_name'       => (string) ( $run['site_name'] ?? '' ),
+			'site_id'         => (int) ( $run['site_id'] ?? 0 ),
+		);
+	}
+
+	/**
 	 * Resolve a site display name from site or run context.
 	 *
 	 * @param int   $site_id Site ID.
 	 * @param int   $run_id  Run ID.
 	 * @param array $details Audit details fallback.
+	 * @param array $context Optional lookup maps.
 	 * @return string
 	 */
-	private static function resolve_site_name( $site_id, $run_id = 0, $details = array() ) {
+	private static function resolve_site_name( $site_id, $run_id = 0, $details = array(), $context = array() ) {
+		if ( $site_id && ! empty( $context['sites'][ $site_id ] ) ) {
+			$site = $context['sites'][ $site_id ];
+			return $site['name'] ?: $site['url'];
+		}
+
 		if ( $site_id ) {
 			$site = LAUNCHDEK_Site_Repository::find( $site_id );
 			if ( $site ) {
+				return $site['name'] ?: $site['url'];
+			}
+		}
+
+		if ( $run_id && ! empty( $context['runs'][ $run_id ]['site_name'] ) ) {
+			return (string) $context['runs'][ $run_id ]['site_name'];
+		}
+
+		if ( $run_id && ! empty( $context['runs'][ $run_id ]['site_id'] ) ) {
+			$linked_site_id = (int) $context['runs'][ $run_id ]['site_id'];
+			if ( ! empty( $context['sites'][ $linked_site_id ] ) ) {
+				$site = $context['sites'][ $linked_site_id ];
 				return $site['name'] ?: $site['url'];
 			}
 		}
@@ -595,6 +859,75 @@ class LAUNCHDEK_Audit_Log {
 		}
 
 		switch ( $action ) {
+			case 'run_started':
+				$title = $details['checklist'] ?? $details['workflow'] ?? '';
+				$id    = isset( $details['checklist_id'] ) ? absint( $details['checklist_id'] ) : 0;
+				if ( $title && $id ) {
+					return sprintf(
+						/* translators: 1: checklist title, 2: checklist ID */
+						__( 'Checklist: %1$s (ID %2$d)', LAUNCHDEK_TEXT_DOMAIN ),
+						$title,
+						$id
+					);
+				}
+				return $title ? sprintf(
+					/* translators: %s: checklist title */
+					__( 'Checklist: %s', LAUNCHDEK_TEXT_DOMAIN ),
+					$title
+				) : '';
+
+			case 'client_run_pushed':
+				return ! empty( $details['checklist'] ) ? sprintf(
+					/* translators: %s: checklist title */
+					__( 'Checklist: %s', LAUNCHDEK_TEXT_DOMAIN ),
+					$details['checklist']
+				) : '';
+
+			case 'api_step_executed':
+				return trim( sprintf(
+					'%s %s',
+					$details['method'] ?? 'GET',
+					$details['route'] ?? ''
+				) );
+
+			case 'manual_step_completed':
+			case 'manual_step_uncompleted':
+			case 'client_step_uncompleted':
+				return ! empty( $details['step_title'] ) ? sprintf(
+					/* translators: %s: step title */
+					__( 'Step: %s', LAUNCHDEK_TEXT_DOMAIN ),
+					$details['step_title']
+				) : '';
+
+			case 'site_created':
+			case 'site_updated':
+				return self::format_details_kv(
+					$details,
+					array( 'success', 'message' )
+				);
+
+			case 'site_deleted':
+				return ! empty( $details['name'] ) ? sprintf(
+					/* translators: %s: site name */
+					__( 'Site: %s', LAUNCHDEK_TEXT_DOMAIN ),
+					$details['name']
+				) : self::format_details_kv( $details );
+
+			case 'checklist_created':
+			case 'checklist_updated':
+			case 'checklist_deleted':
+			case 'workflow_created':
+			case 'workflow_updated':
+			case 'workflow_deleted':
+				return ! empty( $details['title'] ) ? sprintf(
+					/* translators: %s: checklist title */
+					__( 'Checklist: %s', LAUNCHDEK_TEXT_DOMAIN ),
+					$details['title']
+				) : '';
+
+			case 'integration_push':
+				return self::format_details_kv( $details );
+
 			case 'run_status_changed':
 				return sprintf(
 					/* translators: %s: run status */
@@ -644,9 +977,66 @@ class LAUNCHDEK_Audit_Log {
 				return $summary;
 
 			default:
-				$encoded = wp_json_encode( $details, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES );
-				return is_string( $encoded ) ? $encoded : '';
+				return self::format_details_kv( $details );
 		}
+	}
+
+	/**
+	 * Format audit details as readable key-value pairs.
+	 *
+	 * @param array $details Detail payload.
+	 * @param array $exclude Keys to omit.
+	 * @return string
+	 */
+	private static function format_details_kv( $details, $exclude = array() ) {
+		if ( ! is_array( $details ) || empty( $details ) ) {
+			return '';
+		}
+
+		$labels = array(
+			'checklist'     => __( 'Checklist', LAUNCHDEK_TEXT_DOMAIN ),
+			'checklist_id'  => __( 'Checklist ID', LAUNCHDEK_TEXT_DOMAIN ),
+			'workflow'      => __( 'Checklist', LAUNCHDEK_TEXT_DOMAIN ),
+			'workflow_id'   => __( 'Checklist ID', LAUNCHDEK_TEXT_DOMAIN ),
+			'run_id'        => __( 'Run ID', LAUNCHDEK_TEXT_DOMAIN ),
+			'site_id'       => __( 'Site ID', LAUNCHDEK_TEXT_DOMAIN ),
+			'site_name'     => __( 'Site', LAUNCHDEK_TEXT_DOMAIN ),
+			'name'          => __( 'Name', LAUNCHDEK_TEXT_DOMAIN ),
+			'url'           => __( 'URL', LAUNCHDEK_TEXT_DOMAIN ),
+			'title'         => __( 'Title', LAUNCHDEK_TEXT_DOMAIN ),
+			'status'        => __( 'Status', LAUNCHDEK_TEXT_DOMAIN ),
+			'message'       => __( 'Message', LAUNCHDEK_TEXT_DOMAIN ),
+			'method'        => __( 'Method', LAUNCHDEK_TEXT_DOMAIN ),
+			'route'         => __( 'Route', LAUNCHDEK_TEXT_DOMAIN ),
+			'step_title'    => __( 'Step', LAUNCHDEK_TEXT_DOMAIN ),
+			'step_index'    => __( 'Step #', LAUNCHDEK_TEXT_DOMAIN ),
+			'client_user'   => __( 'Client user', LAUNCHDEK_TEXT_DOMAIN ),
+			'note_preview'  => __( 'Note', LAUNCHDEK_TEXT_DOMAIN ),
+			'count'         => __( 'Count', LAUNCHDEK_TEXT_DOMAIN ),
+			'success'       => __( 'Success', LAUNCHDEK_TEXT_DOMAIN ),
+		);
+
+		$parts = array();
+		foreach ( $details as $key => $value ) {
+			if ( in_array( $key, $exclude, true ) ) {
+				continue;
+			}
+			if ( is_array( $value ) || is_object( $value ) ) {
+				continue;
+			}
+			if ( '' === $value || null === $value ) {
+				continue;
+			}
+
+			$label = $labels[ $key ] ?? ucwords( str_replace( '_', ' ', (string) $key ) );
+			if ( is_bool( $value ) ) {
+				$value = $value ? __( 'Yes', LAUNCHDEK_TEXT_DOMAIN ) : __( 'No', LAUNCHDEK_TEXT_DOMAIN );
+			}
+
+			$parts[] = $label . ': ' . $value;
+		}
+
+		return implode( ' · ', $parts );
 	}
 
 	/**
@@ -735,29 +1125,53 @@ class LAUNCHDEK_Audit_Log {
 	/**
 	 * Format a database row for API output.
 	 *
-	 * @param array $row Raw row.
+	 * @param array $row             Raw row.
+	 * @param array $context         Lookup maps from build_query_context().
+	 * @param bool  $include_details Include decoded details payload in the response.
 	 * @return array
 	 */
-	public static function format_row( $row ) {
-		$user     = get_userdata( (int) $row['user_id'] );
-		$details  = json_decode( (string) $row['details_json'], true );
-		$details  = is_array( $details ) ? $details : array();
-		$site_id  = (int) $row['site_id'];
+	public static function format_row( $row, $context = array(), $include_details = true ) {
+		$user_id = (int) $row['user_id'];
+		if ( $user_id && ! empty( $context['users'][ $user_id ] ) ) {
+			$user_name = (string) $context['users'][ $user_id ];
+		} else {
+			$user      = get_userdata( $user_id );
+			$user_name = $user ? $user->display_name : __( 'System', LAUNCHDEK_TEXT_DOMAIN );
+		}
 
-		return array(
+		$details = json_decode( (string) $row['details_json'], true );
+		$details = is_array( $details ) ? $details : array();
+		$site_id = (int) $row['site_id'];
+		$run_id  = (int) $row['run_id'];
+
+		$formatted = array(
 			'id'              => (int) $row['id'],
-			'user_id'         => (int) $row['user_id'],
-			'user_name'       => $user ? $user->display_name : __( 'System', LAUNCHDEK_TEXT_DOMAIN ),
+			'user_id'         => $user_id,
+			'user_name'       => $user_name,
 			'site_id'         => $site_id,
-			'site_name'       => self::resolve_site_name( $site_id, (int) $row['run_id'], $details ),
-			'run_id'          => (int) $row['run_id'],
+			'site_name'       => self::resolve_site_name( $site_id, $run_id, $details, $context ),
+			'run_id'          => $run_id,
 			'action'          => $row['action'],
 			'action_label'    => self::format_action_label( $row['action'] ),
-			'details'         => $details,
 			'details_summary' => self::format_details_summary( $row['action'], $details ),
 			'outcome_class'   => self::resolve_outcome_class( $row['action'], $details ),
 			'payload_hash'    => $row['payload_hash'],
 			'created_at'      => $row['created_at'],
+			'has_details'     => ! empty( $details ),
 		);
+
+		if ( $run_id && ! empty( $context['runs'][ $run_id ] ) ) {
+			$formatted['run_summary'] = $context['runs'][ $run_id ];
+		}
+
+		if ( $include_details ) {
+			$formatted['details'] = $details;
+		}
+
+		$formatted['message'] = self::format_feed_message( $formatted, false );
+
+		unset( $formatted['run_summary'] );
+
+		return $formatted;
 	}
 }

@@ -3869,6 +3869,8 @@
 
 	// ─── Automation ──────────────────────────────────────────
 	var activeRunId = null;
+	var activeRunSiteId = 0;
+	var RUN_ACTIVITY_FEED_LIMIT = 8;
 	var batchQueue = [];
 	var cachedSites = [];
 	var cachedChecklists = [];
@@ -4222,7 +4224,6 @@
 				}
 				renderRun(data.runs[0].run);
 			}
-			loadAudit();
 			batchNotice(strings.automationBatchProcessed || 'Batch queue processed.', 'success');
 		}).catch(function (e) {
 			queued.forEach(function (item) { item.status = 'failed'; });
@@ -4321,11 +4322,12 @@
 			list.appendChild(li);
 		});
 
+		updateRunActivityPanel(run);
+
 		document.querySelectorAll('.launchdek-complete-step').forEach(function (btn) {
 			btn.onclick = function () {
 				post('/runs/' + activeRunId + '/steps/' + btn.dataset.index + '/complete', {}).then(function (r) {
 					renderRun(r.run);
-					loadAudit();
 				});
 			};
 		});
@@ -4334,79 +4336,257 @@
 			btn.onclick = function () {
 				post('/runs/' + activeRunId + '/steps/' + btn.dataset.index + '/uncomplete', {}).then(function (r) {
 					renderRun(r.run);
-					loadAudit();
 				});
 			};
 		});
 	}
 
-	function formatAuditDiff(log) {
-		var summary = log.details_summary || '';
-		if (summary) return escHtml(summary);
-		return escHtml(JSON.stringify(log.details || {}, null, 2));
+	function formatAuditTimestamp(createdAt) {
+		if (!createdAt) {
+			return { date: '—', time: '', title: '' };
+		}
+
+		var normalized = String(createdAt).replace(' ', 'T');
+		var parsed = new Date(normalized);
+		if (isNaN(parsed.getTime())) {
+			return { date: createdAt, time: '', title: createdAt };
+		}
+
+		return {
+			date: parsed.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }),
+			time: parsed.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }),
+			title: createdAt
+		};
+	}
+
+	function auditHasRawDetails(log) {
+		if (log.details && typeof log.details === 'object' && Object.keys(log.details).length > 0) {
+			return true;
+		}
+		return !!log.has_details;
+	}
+
+	function buildAuditDetailsHtml(log) {
+		var summary = log.message || log.details_summary || '';
+		var extra = '';
+		if (log.details_summary && log.message && log.details_summary !== log.message) {
+			extra = log.details_summary;
+		}
+
+		var html = '<div class="launchdek-audit-cell">';
+		html += '<div class="launchdek-audit-action"><span class="launchdek-badge ' + escHtml(log.outcome_class || 'unknown') + '">' + escHtml(log.action_label || log.action) + '</span></div>';
+
+		if (summary) {
+			html += '<p class="launchdek-audit-summary">' + escHtml(summary) + '</p>';
+		}
+		if (extra) {
+			html += '<p class="launchdek-audit-extra">' + escHtml(extra) + '</p>';
+		}
+		if (!summary && !extra) {
+			html += '<p class="launchdek-audit-summary launchdek-muted">' + escHtml(strings.auditNoDetails || 'No additional details.') + '</p>';
+		}
+
+		if (auditHasRawDetails(log)) {
+			var rawBody = '';
+			if (log.details && typeof log.details === 'object' && Object.keys(log.details).length > 0) {
+				rawBody = escHtml(JSON.stringify(log.details, null, 2));
+			} else {
+				rawBody = escHtml(strings.loading || 'Loading…');
+			}
+			html += '<details class="launchdek-audit-raw">' +
+				'<summary>' + escHtml(strings.auditViewRawData || 'View raw data') + '</summary>' +
+				'<pre class="launchdek-audit-diff">' + rawBody + '</pre>' +
+			'</details>';
+		}
+
+		html += '</div>';
+		return html;
+	}
+
+	function appendAuditRows(tbody, logs) {
+		if (!tbody || !logs || !logs.length) return;
+		logs.forEach(function (log) {
+			appendAuditRow(tbody, log);
+		});
+	}
+
+	function appendAuditRow(tbody, log) {
+		var timestamp = formatAuditTimestamp(log.created_at);
+		var tr = el('tr', { 'data-log-id': String(log.id || '') });
+		tr.innerHTML =
+			'<td class="launchdek-audit-timestamp">' +
+				'<span class="launchdek-audit-date" title="' + escAttr(timestamp.title) + '">' + escHtml(timestamp.date) + '</span>' +
+				(timestamp.time ? '<span class="launchdek-audit-time">' + escHtml(timestamp.time) + '</span>' : '') +
+			'</td>' +
+			'<td class="launchdek-audit-user">' + escHtml(log.user_name) + '</td>' +
+			'<td class="launchdek-audit-site">' + escHtml(log.site_name || '—') + '</td>' +
+			'<td class="launchdek-audit-details">' + buildAuditDetailsHtml(log) + '</td>';
+		tbody.appendChild(tr);
 	}
 
 	function renderAuditRows(tbody, logs, emptyMessage) {
 		if (!tbody) return;
 		tbody.innerHTML = '';
 		if (!logs.length) {
-			tbody.innerHTML = '<tr><td colspan="4" class="launchdek-muted">' + escHtml(emptyMessage || 'No audit entries match these filters.') + '</td></tr>';
+			tbody.innerHTML = '<tr><td colspan="4" class="launchdek-muted">' + escHtml(emptyMessage || strings.auditEmpty || 'No audit entries match these filters.') + '</td></tr>';
 			return;
 		}
-		logs.forEach(function (log) {
-			var tr = el('tr');
-			tr.innerHTML =
-				'<td>' + escHtml(log.created_at) + '</td>' +
-				'<td>' + escHtml(log.user_name) + '</td>' +
-				'<td>' + escHtml(log.site_name || '—') + '</td>' +
-				'<td>' +
-					'<div class="launchdek-audit-action"><span class="launchdek-badge ' + escHtml(log.outcome_class || 'unknown') + '">' + escHtml(log.action_label || log.action) + '</span></div>' +
-					'<pre class="launchdek-audit-diff">' + formatAuditDiff(log) + '</pre>' +
-				'</td>';
-			tbody.appendChild(tr);
+		appendAuditRows(tbody, logs);
+	}
+
+	function normalizeActivityLogsResponse(data) {
+		if (Array.isArray(data)) {
+			return {
+				logs: data,
+				has_more: false,
+				offset: 0,
+				limit: data.length
+			};
+		}
+		return {
+			logs: (data && data.logs) || [],
+			has_more: !!(data && data.has_more),
+			offset: (data && data.offset) || 0,
+			limit: (data && data.limit) || 0
+		};
+	}
+
+	var ACTIVITY_LOGS_PAGE_SIZE = 50;
+	var activityLogsOffset = 0;
+	var activityLogsHasMore = false;
+	var activityLogsLoadingMore = false;
+	var activityLogDetailsPending = {};
+
+	function renderActivityLogsLoadMore() {
+		var wrap = document.getElementById('launchdek-activity-logs-load-more-wrap');
+		if (!wrap) return;
+		if (!activityLogsHasMore) {
+			wrap.hidden = true;
+			wrap.innerHTML = '';
+			return;
+		}
+		wrap.hidden = false;
+		wrap.innerHTML = '<button type="button" class="button launchdek-activity-logs-load-more" id="launchdek-activity-logs-load-more">' +
+			escHtml(strings.activityLogsLoadMore || 'Load more activity') +
+		'</button>';
+	}
+
+	function loadActivityLogDetails(logId, detailsEl) {
+		if (!logId || !detailsEl || detailsEl.dataset.loaded === '1') return;
+		if (activityLogDetailsPending[logId]) {
+			activityLogDetailsPending[logId].push(detailsEl);
+			return;
+		}
+
+		activityLogDetailsPending[logId] = [detailsEl];
+		get('/logs/' + encodeURIComponent(logId)).then(function (log) {
+			var targets = activityLogDetailsPending[logId] || [];
+			delete activityLogDetailsPending[logId];
+			var raw = log && log.details ? JSON.stringify(log.details, null, 2) : '{}';
+			targets.forEach(function (pre) {
+				pre.textContent = raw;
+				pre.dataset.loaded = '1';
+			});
+		}).catch(function () {
+			var targets = activityLogDetailsPending[logId] || [];
+			delete activityLogDetailsPending[logId];
+			targets.forEach(function (pre) {
+				pre.textContent = strings.error || 'Something went wrong.';
+				pre.dataset.loaded = '1';
+			});
 		});
 	}
 
-	function loadAuditMeta() {
-		return get('/audit/meta').then(function (meta) {
-			var userSelect = document.getElementById('launchdek-audit-user');
-			if (!userSelect) return;
-			fillSelect(userSelect, meta.users || [], 'id', 'name', 'All users');
+	function getActivityLogsUrl(siteId) {
+		var base = (launchdekAdmin.onboarding && launchdekAdmin.onboarding.activityLogsUrl) ||
+			(launchdekAdmin.adminUrl + '?page=' + launchdekAdmin.pageSlug + '-activity-logs');
+		if (siteId) {
+			return base + (base.indexOf('?') >= 0 ? '&' : '?') + 'site_id=' + encodeURIComponent(siteId);
+		}
+		return base;
+	}
+
+	function updateRunActivityViewAllLink(siteId) {
+		var link = document.getElementById('launchdek-run-activity-view-all');
+		if (link) {
+			link.href = getActivityLogsUrl(siteId || 0);
+		}
+	}
+
+	function loadRunActivityFeed(siteId) {
+		var feed = document.getElementById('launchdek-run-activity-feed');
+		if (!feed || !siteId) return;
+
+		var qs = '?detailed=1&include_details=0&limit=' + RUN_ACTIVITY_FEED_LIMIT + '&site_id=' + encodeURIComponent(siteId);
+		get('/logs/feed' + qs).then(function (data) {
+			var result = normalizeActivityLogsResponse(data);
+			var logs = (result.logs || []).map(function (log) {
+				return {
+					created_at: log.created_at,
+					message: log.message || log.details_summary || log.action_label || log.action,
+					action: log.action,
+					site_id: log.site_id,
+					site_name: log.site_name,
+					show_site_label: false
+				};
+			});
+			renderLogFeed(feed, logs);
+		}).catch(function () {
+			feed.innerHTML = '<p class="launchdek-muted">' + escHtml(strings.error || 'Something went wrong.') + '</p>';
 		});
 	}
 
-	function loadAudit() {
-		var search = document.getElementById('launchdek-audit-search').value;
-		var status = document.getElementById('launchdek-audit-status').value;
-		var userId = document.getElementById('launchdek-audit-user').value;
-		var dateFrom = document.getElementById('launchdek-audit-date-from').value;
-		var dateTo = document.getElementById('launchdek-audit-date-to').value;
-		var qs = '?limit=50';
-		if (search) qs += '&search=' + encodeURIComponent(search);
-		if (status) qs += '&status=' + encodeURIComponent(status);
-		if (userId) qs += '&user_id=' + encodeURIComponent(userId);
-		if (dateFrom) qs += '&date_from=' + encodeURIComponent(dateFrom);
-		if (dateTo) qs += '&date_to=' + encodeURIComponent(dateTo);
+	function refreshRunActivityFeed() {
+		if (activeRunSiteId) {
+			loadRunActivityFeed(activeRunSiteId);
+		}
+	}
 
-		get('/audit' + qs).then(function (logs) {
-			renderAuditRows(document.querySelector('#launchdek-audit-table tbody'), logs);
-		});
+	function updateRunActivityPanel(run) {
+		var feed = document.getElementById('launchdek-run-activity-feed');
+		var intro = document.getElementById('launchdek-run-activity-intro');
+		if (!feed || !intro) return;
+
+		var siteId = run && run.site_id ? parseInt(run.site_id, 10) : 0;
+		activeRunSiteId = siteId || 0;
+		updateRunActivityViewAllLink(siteId);
+
+		if (siteId) {
+			var siteName = run.site_name || ('Site #' + siteId);
+			var introTemplate = strings.automationRunActivityIntro || 'Recent activity for %s.';
+			intro.textContent = introTemplate.replace('%s', siteName);
+			feed.hidden = false;
+			loadRunActivityFeed(siteId);
+			return;
+		}
+
+		intro.textContent = strings.automationRunActivityIdle || 'Start a run to see site activity here, or open the full activity log.';
+		feed.hidden = true;
+		feed.innerHTML = '';
 	}
 
 	function loadActivityLogsSiteFilter() {
 		var select = document.getElementById('launchdek-activity-logs-site');
 		if (!select) return Promise.resolve();
-		return get('/sites').then(function (sites) {
+
+		function fillSites(sites) {
 			var current = select.value;
 			select.innerHTML = '<option value="">All sites</option>';
 			(sites || []).forEach(function (site) {
 				select.appendChild(el('option', { value: String(site.id), text: site.name || ('Site #' + site.id) }));
 			});
 			if (current) select.value = current;
-		}).catch(function () {});
+		}
+
+		if (launchdekAdmin.activityLogs && launchdekAdmin.activityLogs.preloaded) {
+			fillSites(launchdekAdmin.activityLogs.sites || []);
+			return Promise.resolve();
+		}
+
+		return get('/sites').then(fillSites).catch(function () {});
 	}
 
-	function loadActivityLogs() {
+	function loadActivityLogs(append) {
 		var searchEl = document.getElementById('launchdek-activity-logs-search');
 		var statusEl = document.getElementById('launchdek-activity-logs-status');
 		var siteEl = document.getElementById('launchdek-activity-logs-site');
@@ -4415,19 +4595,58 @@
 		var tbody = document.querySelector('#launchdek-activity-logs-table tbody');
 		if (!tbody) return;
 
-		var qs = '?detailed=1&limit=200';
+		var offset = append ? activityLogsOffset : 0;
+		var qs = '?detailed=1&include_details=0&limit=' + ACTIVITY_LOGS_PAGE_SIZE + '&offset=' + offset;
 		if (searchEl && searchEl.value) qs += '&search=' + encodeURIComponent(searchEl.value);
 		if (statusEl && statusEl.value) qs += '&status=' + encodeURIComponent(statusEl.value);
 		if (siteEl && siteEl.value) qs += '&site_id=' + encodeURIComponent(siteEl.value);
 		if (dateFromEl && dateFromEl.value) qs += '&date_from=' + encodeURIComponent(dateFromEl.value);
 		if (dateToEl && dateToEl.value) qs += '&date_to=' + encodeURIComponent(dateToEl.value);
 
-		tbody.innerHTML = '<tr><td colspan="4" class="launchdek-muted">' + escHtml(strings.loading || 'Loading…') + '</td></tr>';
-		get('/logs/feed' + qs).then(function (logs) {
-			renderAuditRows(tbody, logs);
+		if (append) {
+			if (activityLogsLoadingMore || !activityLogsHasMore) return;
+			activityLogsLoadingMore = true;
+			var loadMoreBtn = document.getElementById('launchdek-activity-logs-load-more');
+			if (loadMoreBtn) {
+				loadMoreBtn.disabled = true;
+				loadMoreBtn.textContent = strings.activityLogsLoadingMore || 'Loading more activity…';
+			}
+		} else {
+			tbody.innerHTML = '<tr><td colspan="4" class="launchdek-muted">' + escHtml(strings.loading || 'Loading…') + '</td></tr>';
+			renderActivityLogsLoadMore();
+		}
+
+		get('/logs/feed' + qs).then(function (data) {
+			var result = normalizeActivityLogsResponse(data);
+			activityLogsHasMore = result.has_more;
+			activityLogsOffset = result.offset + result.logs.length;
+
+			if (append) {
+				appendAuditRows(tbody, result.logs);
+			} else if (!result.logs.length) {
+				renderAuditRows(tbody, result.logs);
+			} else {
+				renderAuditRows(tbody, result.logs);
+			}
+
+			renderActivityLogsLoadMore();
 		}).catch(function () {
-			tbody.innerHTML = '<tr><td colspan="4" class="launchdek-muted">' + escHtml(strings.error || 'Something went wrong.') + '</td></tr>';
+			if (!append) {
+				tbody.innerHTML = '<tr><td colspan="4" class="launchdek-muted">' + escHtml(strings.error || 'Something went wrong.') + '</td></tr>';
+			}
+			renderActivityLogsLoadMore();
+		}).then(function () {
+			activityLogsLoadingMore = false;
+			var loadMoreBtn = document.getElementById('launchdek-activity-logs-load-more');
+			if (loadMoreBtn) {
+				loadMoreBtn.disabled = false;
+				loadMoreBtn.textContent = strings.activityLogsLoadMore || 'Load more activity';
+			}
 		});
+	}
+
+	function loadMoreActivityLogs() {
+		loadActivityLogs(true);
 	}
 
 	function initActivityLogs() {
@@ -4435,26 +4654,52 @@
 
 		var params = new URLSearchParams(window.location.search);
 		var siteId = params.get('site_id') || '';
+		var tbody = document.querySelector('#launchdek-activity-logs-table tbody');
+		var card = document.querySelector('[data-launchdek-page="activity-logs"] .launchdek-card');
 
 		loadActivityLogsSiteFilter().then(function () {
 			if (siteId) {
 				var siteSelect = document.getElementById('launchdek-activity-logs-site');
 				if (siteSelect) siteSelect.value = siteId;
 			}
-			loadActivityLogs();
+			loadActivityLogs(false);
 		});
 
 		var filterBtn = document.getElementById('launchdek-activity-logs-filter');
-		if (filterBtn) filterBtn.addEventListener('click', loadActivityLogs);
+		if (filterBtn) filterBtn.addEventListener('click', function () {
+			loadActivityLogs(false);
+		});
 
 		var searchEl = document.getElementById('launchdek-activity-logs-search');
 		if (searchEl) {
 			searchEl.addEventListener('keydown', function (e) {
 				if (e.key === 'Enter') {
 					e.preventDefault();
-					loadActivityLogs();
+					loadActivityLogs(false);
 				}
 			});
+		}
+
+		if (card) {
+			card.addEventListener('click', function (e) {
+				var loadMoreBtn = e.target.closest('#launchdek-activity-logs-load-more');
+				if (loadMoreBtn) {
+					e.preventDefault();
+					loadMoreActivityLogs();
+				}
+			});
+		}
+
+		if (tbody) {
+			tbody.addEventListener('toggle', function (e) {
+				var details = e.target;
+				if (!details || !details.matches || !details.matches('.launchdek-audit-raw') || !details.open) return;
+				var pre = details.querySelector('.launchdek-audit-diff');
+				if (!pre || pre.dataset.loaded === '1') return;
+				var row = details.closest('tr');
+				var logId = row ? row.getAttribute('data-log-id') : '';
+				loadActivityLogDetails(logId, pre);
+			}, true);
 		}
 	}
 
@@ -4530,7 +4775,7 @@
 		loadRunSelects().then(function () {
 			updateAutomationStepButtons();
 		});
-		loadAuditMeta().then(loadAudit);
+		updateRunActivityViewAllLink(0);
 		loadDriftStatus();
 
 		goToAutomationStep(runIdParam ? 3 : 1);
@@ -4613,7 +4858,6 @@
 				post('/runs', { site_id: siteIds[0], checklist_id: checklist.id })
 					.then(function (data) {
 						renderRun(data.run);
-						loadAudit();
 						runNotice((strings.automationRunStarted || 'Run #%d started.').replace('%d', String(data.run_id)), 'success');
 					})
 					.catch(function (e) {
@@ -4627,7 +4871,7 @@
 				runNotice(strings.automationStartRunFirst || 'Start a run first.', 'error');
 				return;
 			}
-			post('/runs/' + activeRunId + '/next', {}).then(function (r) { renderRun(r.run); loadAudit(); });
+			post('/runs/' + activeRunId + '/next', {}).then(function (r) { renderRun(r.run); });
 		};
 
 		document.getElementById('launchdek-run-auto').onclick = function () {
@@ -4635,7 +4879,7 @@
 				runNotice(strings.automationStartRunFirst || 'Start a run first.', 'error');
 				return;
 			}
-			post('/runs/' + activeRunId + '/auto', {}).then(function (r) { renderRun(r.run); loadAudit(); });
+			post('/runs/' + activeRunId + '/auto', {}).then(function (r) { renderRun(r.run); });
 		};
 
 		document.getElementById('launchdek-run-push-client').onclick = function () {
@@ -4647,8 +4891,9 @@
 				.then(function (data) {
 					if (data.run) {
 						renderRun(data.run);
+					} else {
+						refreshRunActivityFeed();
 					}
-					loadAudit();
 					runNotice(data.message || (strings.clientPushOk || 'Checklist pushed to client admin panel.'), 'success');
 				})
 				.catch(function (e) {
@@ -4662,11 +4907,10 @@
 			post(path, {}).then(function (results) {
 				renderDriftResults(results);
 				loadDriftStatus();
-				loadAudit();
+				refreshRunActivityFeed();
 			});
 		};
 
-		document.getElementById('launchdek-audit-filter').onclick = loadAudit;
 		renderBatchQueue();
 	}
 

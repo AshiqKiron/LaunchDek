@@ -1,6 +1,6 @@
 <?php
 /**
- * Automation & Audit admin page.
+ * Batch Run admin page (checklist execution, batch queue, drift monitor).
  *
  * @package LaunchDek
  *
@@ -17,7 +17,7 @@ $activity_logs_url = admin_url( 'admin.php?page=' . LAUNCHDEK_Admin::PAGE_SLUG .
 <div class="wrap launchdek-admin" data-launchdek-page="automation">
 	<h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
 
-	<nav class="launchdek-automation-nav nav-tab-wrapper" role="tablist" aria-label="<?php esc_attr_e( 'Automation sections', LAUNCHDEK_TEXT_DOMAIN ); ?>">
+	<nav class="launchdek-automation-nav nav-tab-wrapper" role="tablist" aria-label="<?php esc_attr_e( 'Batch run sections', LAUNCHDEK_TEXT_DOMAIN ); ?>">
 		<button type="button" class="nav-tab nav-tab-active" id="launchdek-tab-run" data-launchdek-automation-tab="run" role="tab" aria-selected="true" aria-controls="launchdek-panel-run"><?php esc_html_e( 'Run Checklist', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
 		<button type="button" class="nav-tab" id="launchdek-tab-batch" data-launchdek-automation-tab="batch" role="tab" aria-selected="false" aria-controls="launchdek-panel-batch"><?php esc_html_e( 'Batch Queue', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
 		<button type="button" class="nav-tab" id="launchdek-tab-drift" data-launchdek-automation-tab="drift" role="tab" aria-selected="false" aria-controls="launchdek-panel-drift"><?php esc_html_e( 'Drift Monitor', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
@@ -27,40 +27,47 @@ $activity_logs_url = admin_url( 'admin.php?page=' . LAUNCHDEK_Admin::PAGE_SLUG .
 		<div class="launchdek-card">
 			<p class="launchdek-muted"><?php esc_html_e( 'Choose a checklist and target site, then execute steps one at a time or run all automatic API steps.', LAUNCHDEK_TEXT_DOMAIN ); ?></p>
 
-			<div
-				id="launchdek-automation-progress"
-				class="launchdek-automation-progress"
-				role="progressbar"
-				aria-valuemin="1"
-				aria-valuemax="3"
-				aria-valuenow="1"
-				aria-label="<?php esc_attr_e( 'Run checklist progress', LAUNCHDEK_TEXT_DOMAIN ); ?>"
-			>
-				<div class="launchdek-automation-progress-segments">
-					<div class="launchdek-automation-progress-segment is-active" data-step="1">
-						<div class="launchdek-automation-progress-segment-bar" aria-hidden="true"></div>
-						<div class="launchdek-automation-progress-segment-text">
-							<span class="launchdek-automation-progress-segment-label"><?php esc_html_e( 'Step 1', LAUNCHDEK_TEXT_DOMAIN ); ?></span>
-							<span class="launchdek-automation-progress-segment-hint"><?php esc_html_e( 'Choose checklist', LAUNCHDEK_TEXT_DOMAIN ); ?></span>
+			<div class="launchdek-automation-wizard">
+				<nav
+					class="launchdek-automation-wizard-nav"
+					aria-label="<?php esc_attr_e( 'Run checklist steps', LAUNCHDEK_TEXT_DOMAIN ); ?>"
+				>
+					<div
+						id="launchdek-automation-progress"
+						class="launchdek-automation-progress"
+						role="progressbar"
+						aria-valuemin="1"
+						aria-valuemax="3"
+						aria-valuenow="1"
+						aria-label="<?php esc_attr_e( 'Run checklist progress', LAUNCHDEK_TEXT_DOMAIN ); ?>"
+					>
+						<div class="launchdek-automation-progress-segments">
+							<div class="launchdek-automation-progress-segment is-active" data-step="1">
+								<div class="launchdek-automation-progress-segment-bar" aria-hidden="true"></div>
+								<div class="launchdek-automation-progress-segment-text">
+									<span class="launchdek-automation-progress-segment-label"><?php esc_html_e( 'Step 1', LAUNCHDEK_TEXT_DOMAIN ); ?></span>
+									<span class="launchdek-automation-progress-segment-hint"><?php esc_html_e( 'Choose checklist', LAUNCHDEK_TEXT_DOMAIN ); ?></span>
+								</div>
+							</div>
+							<div class="launchdek-automation-progress-segment" data-step="2">
+								<div class="launchdek-automation-progress-segment-bar" aria-hidden="true"></div>
+								<div class="launchdek-automation-progress-segment-text">
+									<span class="launchdek-automation-progress-segment-label"><?php esc_html_e( 'Step 2', LAUNCHDEK_TEXT_DOMAIN ); ?></span>
+									<span class="launchdek-automation-progress-segment-hint"><?php esc_html_e( 'Choose site', LAUNCHDEK_TEXT_DOMAIN ); ?></span>
+								</div>
+							</div>
+							<div class="launchdek-automation-progress-segment" data-step="3">
+								<div class="launchdek-automation-progress-segment-bar" aria-hidden="true"></div>
+								<div class="launchdek-automation-progress-segment-text">
+									<span class="launchdek-automation-progress-segment-label"><?php esc_html_e( 'Step 3', LAUNCHDEK_TEXT_DOMAIN ); ?></span>
+									<span class="launchdek-automation-progress-segment-hint"><?php esc_html_e( 'Execute steps', LAUNCHDEK_TEXT_DOMAIN ); ?></span>
+								</div>
+							</div>
 						</div>
 					</div>
-					<div class="launchdek-automation-progress-segment" data-step="2">
-						<div class="launchdek-automation-progress-segment-bar" aria-hidden="true"></div>
-						<div class="launchdek-automation-progress-segment-text">
-							<span class="launchdek-automation-progress-segment-label"><?php esc_html_e( 'Step 2', LAUNCHDEK_TEXT_DOMAIN ); ?></span>
-							<span class="launchdek-automation-progress-segment-hint"><?php esc_html_e( 'Choose site', LAUNCHDEK_TEXT_DOMAIN ); ?></span>
-						</div>
-					</div>
-					<div class="launchdek-automation-progress-segment" data-step="3">
-						<div class="launchdek-automation-progress-segment-bar" aria-hidden="true"></div>
-						<div class="launchdek-automation-progress-segment-text">
-							<span class="launchdek-automation-progress-segment-label"><?php esc_html_e( 'Step 3', LAUNCHDEK_TEXT_DOMAIN ); ?></span>
-							<span class="launchdek-automation-progress-segment-hint"><?php esc_html_e( 'Execute steps', LAUNCHDEK_TEXT_DOMAIN ); ?></span>
-						</div>
-					</div>
-				</div>
-			</div>
+				</nav>
 
+				<div class="launchdek-automation-wizard-body">
 			<div id="launchdek-automation-step-1" class="launchdek-automation-step-panel">
 				<label for="launchdek-run-checklist" class="launchdek-automation-field-label"><?php esc_html_e( 'Checklist', LAUNCHDEK_TEXT_DOMAIN ); ?></label>
 				<select id="launchdek-run-checklist" class="launchdek-select" aria-label="<?php esc_attr_e( 'Checklist', LAUNCHDEK_TEXT_DOMAIN ); ?>">
@@ -102,51 +109,19 @@ $activity_logs_url = admin_url( 'admin.php?page=' . LAUNCHDEK_Admin::PAGE_SLUG .
 					<div id="launchdek-run-notice" class="launchdek-notice-area" aria-live="polite"></div>
 				</div>
 			</div>
+				</div>
+			</div>
 		</div>
 
-		<div class="launchdek-card">
-			<h2><?php esc_html_e( 'Immutable Audit Logs', LAUNCHDEK_TEXT_DOMAIN ); ?></h2>
-			<p class="launchdek-muted launchdek-automation-audit-intro">
-				<?php
-				printf(
-					/* translators: %s: link to activity logs page */
-					esc_html__( 'Filtered audit trail for this hub. %s', LAUNCHDEK_TEXT_DOMAIN ),
-					'<a href="' . esc_url( $activity_logs_url ) . '">' . esc_html__( 'View all activity logs', LAUNCHDEK_TEXT_DOMAIN ) . '</a>'
-				);
-				?>
-			</p>
-			<div class="launchdek-audit-filters launchdek-inline-form">
-				<select id="launchdek-audit-status" class="launchdek-select" aria-label="<?php esc_attr_e( 'Status', LAUNCHDEK_TEXT_DOMAIN ); ?>">
-					<option value=""><?php esc_html_e( 'All statuses', LAUNCHDEK_TEXT_DOMAIN ); ?></option>
-					<option value="success"><?php esc_html_e( 'Success', LAUNCHDEK_TEXT_DOMAIN ); ?></option>
-					<option value="failed"><?php esc_html_e( 'Failed', LAUNCHDEK_TEXT_DOMAIN ); ?></option>
-					<option value="warning"><?php esc_html_e( 'Drift / Warning', LAUNCHDEK_TEXT_DOMAIN ); ?></option>
-				</select>
-				<label class="launchdek-filter-date">
-					<span class="screen-reader-text"><?php esc_html_e( 'From date', LAUNCHDEK_TEXT_DOMAIN ); ?></span>
-					<input type="date" id="launchdek-audit-date-from" aria-label="<?php esc_attr_e( 'From date', LAUNCHDEK_TEXT_DOMAIN ); ?>" />
-				</label>
-				<label class="launchdek-filter-date">
-					<span class="screen-reader-text"><?php esc_html_e( 'To date', LAUNCHDEK_TEXT_DOMAIN ); ?></span>
-					<input type="date" id="launchdek-audit-date-to" aria-label="<?php esc_attr_e( 'To date', LAUNCHDEK_TEXT_DOMAIN ); ?>" />
-				</label>
-				<select id="launchdek-audit-user" class="launchdek-select" aria-label="<?php esc_attr_e( 'User', LAUNCHDEK_TEXT_DOMAIN ); ?>">
-					<option value=""><?php esc_html_e( 'All users', LAUNCHDEK_TEXT_DOMAIN ); ?></option>
-				</select>
-				<input type="search" id="launchdek-audit-search" class="regular-text" placeholder="<?php esc_attr_e( 'Search details…', LAUNCHDEK_TEXT_DOMAIN ); ?>" />
-				<button type="button" class="button" id="launchdek-audit-filter"><?php esc_html_e( 'Apply Filters', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
+		<div class="launchdek-card launchdek-automation-run-activity">
+			<div class="launchdek-card-heading-row">
+				<h2><?php esc_html_e( 'Recent Activity', LAUNCHDEK_TEXT_DOMAIN ); ?></h2>
+				<a href="<?php echo esc_url( $activity_logs_url ); ?>" class="button button-link" id="launchdek-run-activity-view-all"><?php esc_html_e( 'View all activity logs', LAUNCHDEK_TEXT_DOMAIN ); ?></a>
 			</div>
-			<table class="wp-list-table widefat fixed striped launchdek-audit-table" id="launchdek-audit-table">
-				<thead>
-					<tr>
-						<th><?php esc_html_e( 'Timestamp', LAUNCHDEK_TEXT_DOMAIN ); ?></th>
-						<th><?php esc_html_e( 'User', LAUNCHDEK_TEXT_DOMAIN ); ?></th>
-						<th><?php esc_html_e( 'Target Site', LAUNCHDEK_TEXT_DOMAIN ); ?></th>
-						<th><?php esc_html_e( 'Action & Data Diffs', LAUNCHDEK_TEXT_DOMAIN ); ?></th>
-					</tr>
-				</thead>
-				<tbody></tbody>
-			</table>
+			<p class="launchdek-muted launchdek-automation-run-activity-intro" id="launchdek-run-activity-intro">
+				<?php esc_html_e( 'Start a run to see site activity here, or open the full activity log.', LAUNCHDEK_TEXT_DOMAIN ); ?>
+			</p>
+			<div id="launchdek-run-activity-feed" class="launchdek-log-feed" hidden aria-live="polite"></div>
 		</div>
 	</div>
 
@@ -198,8 +173,8 @@ $activity_logs_url = admin_url( 'admin.php?page=' . LAUNCHDEK_Admin::PAGE_SLUG .
 
 	<div id="launchdek-panel-drift" class="launchdek-tab-panel" data-launchdek-automation-panel="drift" role="tabpanel" aria-labelledby="launchdek-tab-drift" hidden>
 		<div class="launchdek-card">
-			<h2><?php esc_html_e( 'Automated Drift & State Verifier', LAUNCHDEK_TEXT_DOMAIN ); ?></h2>
-			<p><?php esc_html_e( 'Background REST checks monitor permalink structure, search visibility, and environment type on registered sites.', LAUNCHDEK_TEXT_DOMAIN ); ?></p>
+			<h2><?php esc_html_e( 'Catch unexpected site changes', LAUNCHDEK_TEXT_DOMAIN ); ?></h2>
+			<p><?php esc_html_e( 'LaunchDek watches your connected sites for changes to permalinks, search engine visibility, and environment labels (production, staging, and so on). The first check saves a baseline; later scans alert you when something drifts.', LAUNCHDEK_TEXT_DOMAIN ); ?></p>
 			<div id="launchdek-drift-status" class="launchdek-drift-status launchdek-muted" role="status" aria-live="polite">
 				<?php esc_html_e( 'Loading drift monitor status…', LAUNCHDEK_TEXT_DOMAIN ); ?>
 			</div>

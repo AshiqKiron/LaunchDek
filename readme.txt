@@ -19,7 +19,7 @@ LaunchDek is a master-site plugin for WordPress agencies to manage remote client
 * **Dashboard** — Live stats, API connection ticker, activity log feed, quick launch bar
 * **Sites** — Register remote sites, connection tester, tagging and grouping, per-site checklist run history
 * **Checklists** — Drag-and-drop builder, step configuration, API payload mapper, import/export, plus 86 built-in templates and agency vault
-* **Automation & Audit** — Run control, live step tracker, immutable audit logs, drift verifier
+* **Batch Run** — Run checklists on single or multiple sites, live step tracker, drift monitor
 * **Integrations** — MainWP, ManageWP, WP Umbrella, WP Engine, WPvibe adapters
 * **Settings** — Encrypted credential vault, Slack/Discord/Teams webhooks, role guardrails
 
@@ -62,6 +62,14 @@ The client panel is a bundled must-use plugin included with LaunchDek — not a 
 Yes, when enabled in Settings, application passwords are encrypted using your WordPress salt keys.
 
 == Changelog ==
+
+= 1.0.34 =
+* Activity Logs: faster page load — paginated results (50 per page with Load more), preloaded site filter, lean API responses, batch database lookups, and lazy raw-data fetch on demand
+* Automation: removed duplicate full activity log table; Run tab now shows a compact site-scoped recent activity feed with a link to the dedicated Activity Logs page
+* Renamed **Automation & Audit** menu page to **Batch Run** (run wizard, batch queue, drift monitor)
+
+= 1.0.33 =
+* Activity Log: human-readable summaries replace raw JSON in audit tables; timestamps, filters, and column labels are easier to scan; raw payload data is available on demand via "View raw data"
 
 = 1.0.32 =
 * Automation: redesigned with Run Checklist / Batch Queue / Drift Monitor tabs and a 3-step run wizard (choose checklist → choose site → execute steps); step runner is now full-width with progress bar and contextual actions

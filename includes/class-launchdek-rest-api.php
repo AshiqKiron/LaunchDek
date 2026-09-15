@@ -50,6 +50,12 @@ class LAUNCHDEK_REST_API {
 			'permission_callback' => array( __CLASS__, 'can_view_dashboard' ),
 		) );
 
+		register_rest_route( self::NAMESPACE, '/logs/(?P<id>\d+)', array(
+			'methods'             => 'GET',
+			'callback'            => array( __CLASS__, 'get_log_entry' ),
+			'permission_callback' => array( __CLASS__, 'can_view_dashboard' ),
+		) );
+
 		register_rest_route( self::NAMESPACE, '/onboarding/dismiss', array(
 			'methods'             => 'POST',
 			'callback'            => array( __CLASS__, 'dismiss_onboarding' ),
@@ -447,21 +453,47 @@ class LAUNCHDEK_REST_API {
 		$detailed = filter_var( $request->get_param( 'detailed' ), FILTER_VALIDATE_BOOLEAN );
 
 		if ( $detailed ) {
-			return rest_ensure_response( LAUNCHDEK_Audit_Log::query( array(
-				'user_id'   => absint( $request->get_param( 'user_id' ) ?: 0 ),
-				'site_id'   => absint( $request->get_param( 'site_id' ) ?: 0 ),
-				'action'    => sanitize_key( $request->get_param( 'action' ) ?: '' ),
-				'search'    => sanitize_text_field( $request->get_param( 'search' ) ?: '' ),
-				'status'    => sanitize_key( $request->get_param( 'status' ) ?: '' ),
-				'date_from' => sanitize_text_field( $request->get_param( 'date_from' ) ?: '' ),
-				'date_to'   => sanitize_text_field( $request->get_param( 'date_to' ) ?: '' ),
-				'limit'     => absint( $request->get_param( 'limit' ) ?: 200 ),
-				'offset'    => absint( $request->get_param( 'offset' ) ?: 0 ),
-			) ) );
+			$include_details = filter_var( $request->get_param( 'include_details' ), FILTER_VALIDATE_BOOLEAN );
+			if ( null === $request->get_param( 'include_details' ) ) {
+				$include_details = false;
+			}
+
+			return rest_ensure_response(
+				LAUNCHDEK_Audit_Log::query(
+					array(
+						'user_id'         => absint( $request->get_param( 'user_id' ) ?: 0 ),
+						'site_id'         => absint( $request->get_param( 'site_id' ) ?: 0 ),
+						'action'          => sanitize_key( $request->get_param( 'action' ) ?: '' ),
+						'search'          => sanitize_text_field( $request->get_param( 'search' ) ?: '' ),
+						'status'          => sanitize_key( $request->get_param( 'status' ) ?: '' ),
+						'date_from'       => sanitize_text_field( $request->get_param( 'date_from' ) ?: '' ),
+						'date_to'         => sanitize_text_field( $request->get_param( 'date_to' ) ?: '' ),
+						'limit'           => absint( $request->get_param( 'limit' ) ?: LAUNCHDEK_Audit_Log::LIST_DEFAULT_LIMIT ),
+						'offset'          => absint( $request->get_param( 'offset' ) ?: 0 ),
+						'include_details' => $include_details,
+						'paginate'        => true,
+					)
+				)
+			);
 		}
 
 		$limit = min( LAUNCHDEK_Dashboard_Cache::FEED_LIMIT, max( 1, absint( $request->get_param( 'limit' ) ?: LAUNCHDEK_Dashboard_Cache::FEED_LIMIT ) ) );
 		return rest_ensure_response( LAUNCHDEK_Dashboard_Cache::get_feed( $limit ) );
+	}
+
+	/**
+	 * Fetch a single audit log entry (includes raw details).
+	 *
+	 * @param WP_REST_Request $request Request.
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public static function get_log_entry( $request ) {
+		$entry = LAUNCHDEK_Audit_Log::find( absint( $request['id'] ), true );
+		if ( ! $entry ) {
+			return new WP_Error( 'not_found', __( 'Activity log entry not found.', LAUNCHDEK_TEXT_DOMAIN ), array( 'status' => 404 ) );
+		}
+
+		return rest_ensure_response( $entry );
 	}
 
 	/**

@@ -38,7 +38,7 @@ class LAUNCHDEK_Admin {
 			self::PAGE_SLUG              => array( __( 'LaunchDek Overview', LAUNCHDEK_TEXT_DOMAIN ), 'render_admin_page', __( 'Dashboard', LAUNCHDEK_TEXT_DOMAIN ) ),
 			self::PAGE_SLUG . '-sites'   => array( __( 'Sites', LAUNCHDEK_TEXT_DOMAIN ), 'render_sites_page' ),
 			self::PAGE_SLUG . '-checklists' => array( __( 'Checklists', LAUNCHDEK_TEXT_DOMAIN ), 'render_checklists_page' ),
-			self::PAGE_SLUG . '-automation' => array( __( 'Automation & Audit', LAUNCHDEK_TEXT_DOMAIN ), 'render_automation_page' ),
+			self::PAGE_SLUG . '-automation' => array( __( 'Batch Run', LAUNCHDEK_TEXT_DOMAIN ), 'render_automation_page' ),
 			self::PAGE_SLUG . '-integrations' => array( __( 'Integrations', LAUNCHDEK_TEXT_DOMAIN ), 'render_integrations_page' ),
 			self::PAGE_SLUG . '-settings' => array( __( 'Settings', LAUNCHDEK_TEXT_DOMAIN ), 'render_settings_page' ),
 		);
@@ -328,6 +328,13 @@ class LAUNCHDEK_Admin {
 					'automationBatchProcessed'    => __( 'Batch queue processed.', LAUNCHDEK_TEXT_DOMAIN ),
 					'automationRunStarted'        => __( 'Run #%d started.', LAUNCHDEK_TEXT_DOMAIN ),
 					'automationExecuteEmpty'      => __( 'Complete steps 1–2 to start a run, or open an existing run from Sites.', LAUNCHDEK_TEXT_DOMAIN ),
+					'automationRunActivityIntro'  => __( 'Recent activity for %s.', LAUNCHDEK_TEXT_DOMAIN ),
+					'automationRunActivityIdle'   => __( 'Start a run to see site activity here, or open the full activity log.', LAUNCHDEK_TEXT_DOMAIN ),
+					'auditViewRawData'            => __( 'View raw data', LAUNCHDEK_TEXT_DOMAIN ),
+					'auditNoDetails'              => __( 'No additional details.', LAUNCHDEK_TEXT_DOMAIN ),
+					'auditEmpty'                  => __( 'No activity matches these filters.', LAUNCHDEK_TEXT_DOMAIN ),
+					'activityLogsLoadMore'        => __( 'Load more activity', LAUNCHDEK_TEXT_DOMAIN ),
+					'activityLogsLoadingMore'     => __( 'Loading more activity…', LAUNCHDEK_TEXT_DOMAIN ),
 					'automationTabRun'            => __( 'Run Checklist', LAUNCHDEK_TEXT_DOMAIN ),
 					'automationTabBatch'          => __( 'Batch Queue', LAUNCHDEK_TEXT_DOMAIN ),
 					'automationTabDrift'          => __( 'Drift Monitor', LAUNCHDEK_TEXT_DOMAIN ),
@@ -369,6 +376,13 @@ class LAUNCHDEK_Admin {
 				'preloaded'  => true,
 				'builtin'    => LAUNCHDEK_Templates::get_catalog(),
 				'categories' => LAUNCHDEK_Templates::get_categories(),
+			);
+		}
+
+		if ( self::PAGE_SLUG . '_page_' . self::PAGE_SLUG . '-activity-logs' === $hook ) {
+			$localize['activityLogs'] = array(
+				'preloaded' => true,
+				'sites'     => LAUNCHDEK_Site_Repository::picker_list(),
 			);
 		}
 
