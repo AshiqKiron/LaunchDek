@@ -23,7 +23,15 @@ class LAUNCHDEK_Integration_WP_Engine implements LAUNCHDEK_Integration_Interface
 	}
 
 	public function is_available() {
-		return defined( 'WPE_PLUGIN_BASE' ) || class_exists( 'WpeCommon' ) || getenv( 'IS_WPE' );
+		if ( defined( 'WPE_PLUGIN_BASE' ) ) {
+			return true;
+		}
+
+		if ( class_exists( 'WpeCommon', false ) ) {
+			return true;
+		}
+
+		return (bool) getenv( 'IS_WPE' );
 	}
 
 	public function supports_site_sync() {

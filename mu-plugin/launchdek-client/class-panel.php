@@ -172,6 +172,7 @@ class LAUNCHDEK_Client_Panel {
 					'email' => sanitize_email( wp_get_current_user()->user_email ),
 				),
 				'strings' => array(
+					'brandName'   => __( 'LaunchDek', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
 					'panelTitle'  => LAUNCHDEK_Client_Run_Store::get_panel_title( $run ),
 					'collapse'    => __( 'Collapse', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
 					'expand'      => __( 'Expand', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),

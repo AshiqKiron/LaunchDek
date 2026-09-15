@@ -255,6 +255,33 @@ class LAUNCHDEK_Site_Repository {
 		return is_array( $rows ) ? array_map( array( __CLASS__, 'format' ), $rows ) : array();
 	}
 
+	/**
+	 * Count LaunchDek sites grouped by integration_source.
+	 *
+	 * @return array<string,int> Integration slug => site count.
+	 */
+	public static function count_by_integration_sources() {
+		global $wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared
+		$rows = $wpdb->get_results(
+			'SELECT integration_source, COUNT(*) AS site_count FROM ' . self::table() . " WHERE integration_source IS NOT NULL AND integration_source <> '' GROUP BY integration_source",
+			ARRAY_A
+		);
+
+		$counts = array();
+		if ( is_array( $rows ) ) {
+			foreach ( $rows as $row ) {
+				$source = sanitize_key( (string) ( $row['integration_source'] ?? '' ) );
+				if ( '' !== $source ) {
+					$counts[ $source ] = (int) ( $row['site_count'] ?? 0 );
+				}
+			}
+		}
+
+		return $counts;
+	}
+
 	public static function find( $id ) {
 		global $wpdb;
 
@@ -602,10 +629,22 @@ class LAUNCHDEK_Site_Repository {
 	public static function delete( $id ) {
 		global $wpdb;
 
+		$id   = absint( $id );
 		$site = self::find( $id );
 
-		$wpdb->delete( self::tags_table(), array( 'site_id' => absint( $id ) ), array( '%d' ) );
-		$result = $wpdb->delete( self::table(), array( 'id' => absint( $id ) ), array( '%d' ) );
+		if ( ! $site ) {
+			return false;
+		}
+
+		LAUNCHDEK_Run_Repository::delete_for_site( $id );
+
+		$wpdb->delete( self::tags_table(), array( 'site_id' => $id ), array( '%d' ) );
+		$wpdb->delete(
+			$wpdb->prefix . 'launchdek_connection_events',
+			array( 'site_id' => $id ),
+			array( '%d' )
+		);
+		$result = $wpdb->delete( self::table(), array( 'id' => $id ), array( '%d' ) );
 
 		if ( $result ) {
 			LAUNCHDEK_Audit_Log::log(

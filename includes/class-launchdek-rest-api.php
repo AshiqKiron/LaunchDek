@@ -375,9 +375,16 @@ class LAUNCHDEK_REST_API {
 		) );
 
 		register_rest_route( self::NAMESPACE, '/integrations/(?P<slug>[a-z0-9\-_]+)/preview', array(
-			'methods'             => 'GET',
-			'callback'            => array( __CLASS__, 'preview_integration_sync' ),
-			'permission_callback' => array( __CLASS__, 'can_manage_settings' ),
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( __CLASS__, 'preview_integration_sync' ),
+				'permission_callback' => array( __CLASS__, 'can_manage_settings' ),
+			),
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( __CLASS__, 'preview_integration_sync' ),
+				'permission_callback' => array( __CLASS__, 'can_manage_settings' ),
+			),
 		) );
 
 		register_rest_route( self::NAMESPACE, '/integrations/(?P<slug>[a-z0-9\-_]+)/push', array(
@@ -650,9 +657,15 @@ class LAUNCHDEK_REST_API {
 
 	public static function delete_site( $request ) {
 		$id = absint( $request['id'] );
+
+		if ( ! LAUNCHDEK_Site_Repository::find( $id ) ) {
+			return new WP_Error( 'not_found', __( 'Site not found.', LAUNCHDEK_TEXT_DOMAIN ), array( 'status' => 404 ) );
+		}
+
 		if ( ! LAUNCHDEK_Site_Repository::delete( $id ) ) {
 			return new WP_Error( 'delete_failed', __( 'Failed to delete site.', LAUNCHDEK_TEXT_DOMAIN ), array( 'status' => 500 ) );
 		}
+
 		return rest_ensure_response( array( 'deleted' => true ) );
 	}
 
@@ -1314,7 +1327,14 @@ class LAUNCHDEK_REST_API {
 
 	public static function sync_integration( $request ) {
 		$slug = sanitize_key( $request['slug'] );
-		$result = LAUNCHDEK_Integration_Sync::sync( $slug );
+		$data = $request->get_json_params();
+		if ( ! is_array( $data ) ) {
+			$data = array();
+		}
+
+		$result = ! empty( $data['dry_run'] )
+			? LAUNCHDEK_Integration_Sync::preview( $slug )
+			: LAUNCHDEK_Integration_Sync::sync( $slug );
 
 		if ( is_wp_error( $result ) ) {
 			return $result;

@@ -52,6 +52,39 @@
 	gap: 0 16px;
 }
 
+.launchdek-billing-layout > .launchdek-card {
+	margin-top: 0;
+}
+
+.launchdek-billing-plan-name {
+	margin: 0 0 8px;
+	font-size: 1.5em;
+	font-weight: 600;
+	color: #1d2327;
+}
+
+.launchdek-billing-plan-badge {
+	display: inline-block;
+	margin: 0 0 12px;
+	padding: 4px 10px;
+	border-radius: 999px;
+	background: #f0f6fc;
+	border: 1px solid #c5d9ed;
+	color: #135e96;
+	font-size: 12px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.4px;
+}
+
+.launchdek-billing-usage-grid {
+	margin-top: 0;
+}
+
+.launchdek-billing-actions {
+	margin: 16px 0 0;
+}
+
 .launchdek-builder-layout {
 	grid-template-columns: minmax(240px, 320px) minmax(0, 1fr);
 	align-items: start;
@@ -638,25 +671,6 @@
 	display: flex;
 	gap: 8px;
 	flex-wrap: wrap;
-}
-
-.launchdek-confirm-modal {
-	z-index: 100101;
-}
-
-.launchdek-confirm-modal .launchdek-confirm-message {
-	margin: 0 0 1em;
-}
-
-.launchdek-confirm-modal .launchdek-confirm-actions {
-	justify-content: flex-end;
-}
-
-.launchdek-confirm-modal .launchdek-confirm-actions .button-link-delete {
-	margin: 0;
-	padding: 0 12px;
-	height: 30px;
-	line-height: 2.15384615;
 }
 
 /* Template picker modal */
@@ -2633,6 +2647,28 @@
 	flex-shrink: 0;
 }
 
+.launchdek-connector-config {
+	margin: 16px 0 0;
+	padding-top: 16px;
+	border-top: 1px solid #dcdcde;
+}
+
+.launchdek-connector-config-panel label {
+	display: block;
+	font-weight: 600;
+	margin-bottom: 6px;
+}
+
+.launchdek-connector-config-panel .regular-text {
+	width: 100%;
+	max-width: 480px;
+}
+
+.launchdek-connector-config-status {
+	margin: 0 0 10px;
+	color: #1d2327;
+}
+
 #launchdek-telemetry-rules-table .check-column {
 	width: 2.2em;
 }
@@ -2862,6 +2898,26 @@
 	margin-top: 8px;
 }
 
+.launchdek-settings-exclude-hints-label {
+	margin-bottom: 4px;
+}
+
+.launchdek-settings-exclude-common-fields {
+	margin: 0 0 0 18px;
+	padding: 0;
+	list-style: disc;
+	font-size: 13px;
+	color: #50575e;
+}
+
+.launchdek-settings-exclude-common-fields li {
+	margin: 2px 0;
+}
+
+.launchdek-settings-exclude-common-fields code {
+	font-size: 12px;
+}
+
 .launchdek-settings-toggles {
 	display: flex;
 	flex-wrap: wrap;
@@ -2913,6 +2969,45 @@
 	display: grid;
 	grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
 	gap: 8px 16px;
+}
+
+.launchdek-settings-email-events {
+	display: grid;
+	gap: 14px;
+	margin-bottom: 20px;
+}
+
+.launchdek-settings-email-event {
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+	padding: 12px 14px;
+	background: #fafafa;
+}
+
+.launchdek-settings-email-event-label {
+	display: inline-flex;
+	align-items: flex-start;
+	gap: 8px;
+	margin: 0;
+	font-weight: 600;
+}
+
+.launchdek-settings-email-event-label input {
+	margin-top: 2px;
+}
+
+.launchdek-settings-email-event-description {
+	margin: 6px 0 0 26px;
+	font-size: 12px;
+}
+
+.launchdek-settings-email-address label {
+	display: block;
+	margin-bottom: 8px;
+}
+
+.launchdek-settings-email-address input {
+	max-width: 420px;
 }
 
 .launchdek-settings-role-presets {

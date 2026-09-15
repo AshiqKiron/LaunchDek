@@ -94,6 +94,7 @@ function launchdek_sites_actions_html( $site ) {
 	$html .= '<div class="launchdek-site-actions-menu" role="menu" hidden>';
 	$html .= '<button type="button" role="menuitem" class="launchdek-push-checklist" data-id="' . esc_attr( (string) $site_id ) . '" data-name="' . esc_attr( $site['name'] ?? '' ) . '"' . disabled( $connection_blocked, true, false ) . '>' . esc_html__( 'Push Checklist', LAUNCHDEK_TEXT_DOMAIN ) . '</button>';
 	$html .= '<button type="button" role="menuitem" class="launchdek-test-site" data-id="' . esc_attr( (string) $site_id ) . '">' . esc_html__( 'Test', LAUNCHDEK_TEXT_DOMAIN ) . '</button>';
+	$html .= '<button type="button" role="menuitem" class="launchdek-delete-site" data-id="' . esc_attr( (string) $site_id ) . '">' . esc_html__( 'Delete', LAUNCHDEK_TEXT_DOMAIN ) . '</button>';
 	$html .= '</div>';
 	$html .= '</div>';
 

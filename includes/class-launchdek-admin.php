@@ -40,6 +40,7 @@ class LAUNCHDEK_Admin {
 			self::PAGE_SLUG . '-checklists' => array( __( 'Checklists', LAUNCHDEK_TEXT_DOMAIN ), 'render_checklists_page' ),
 			self::PAGE_SLUG . '-automation' => array( __( 'Batch Run', LAUNCHDEK_TEXT_DOMAIN ), 'render_automation_page' ),
 			self::PAGE_SLUG . '-integrations' => array( __( 'Integrations', LAUNCHDEK_TEXT_DOMAIN ), 'render_integrations_page' ),
+			self::PAGE_SLUG . '-billing'   => array( __( 'Billing', LAUNCHDEK_TEXT_DOMAIN ), 'render_billing_page' ),
 			self::PAGE_SLUG . '-settings' => array( __( 'Settings', LAUNCHDEK_TEXT_DOMAIN ), 'render_settings_page' ),
 		);
 
@@ -125,7 +126,8 @@ class LAUNCHDEK_Admin {
 			return;
 		}
 		$path = LAUNCHDEK_PLUGIN_DIR . 'admin/css/launchdek-admin.css';
-		wp_enqueue_style( 'launchdek-admin', LAUNCHDEK_PLUGIN_URL . 'admin/css/launchdek-admin.css', array(), file_exists( $path ) ? (string) filemtime( $path ) : LAUNCHDEK_VERSION );
+		wp_enqueue_style( 'wp-components' );
+		wp_enqueue_style( 'launchdek-admin', LAUNCHDEK_PLUGIN_URL . 'admin/css/launchdek-admin.css', array( 'wp-components' ), file_exists( $path ) ? (string) filemtime( $path ) : LAUNCHDEK_VERSION );
 
 		if ( self::PAGE_SLUG . '_page_' . self::PAGE_SLUG . '-checklists' === $hook ) {
 			$client_css_path = LAUNCHDEK_PLUGIN_DIR . 'mu-plugin/launchdek-client/css/launchdek-client-admin.css';
@@ -143,7 +145,14 @@ class LAUNCHDEK_Admin {
 			return;
 		}
 		$path = LAUNCHDEK_PLUGIN_DIR . 'admin/js/launchdek-admin.js';
-		wp_enqueue_script( 'launchdek-admin', LAUNCHDEK_PLUGIN_URL . 'admin/js/launchdek-admin.js', array(), file_exists( $path ) ? (string) filemtime( $path ) : LAUNCHDEK_VERSION, true );
+		wp_enqueue_script( 'wp-components' );
+		wp_enqueue_script(
+			'launchdek-admin',
+			LAUNCHDEK_PLUGIN_URL . 'admin/js/launchdek-admin.js',
+			array( 'wp-components' ),
+			file_exists( $path ) ? (string) filemtime( $path ) : LAUNCHDEK_VERSION,
+			true
+		);
 		$wp_roles = array();
 		if ( function_exists( 'wp_roles' ) && wp_roles() ) {
 			foreach ( wp_roles()->get_names() as $role_slug => $role_name ) {
@@ -153,6 +162,7 @@ class LAUNCHDEK_Admin {
 
 		$localize = array(
 				'restUrl'   => esc_url_raw( rest_url( LAUNCHDEK_REST_NAMESPACE ) ),
+				'ajaxUrl'   => admin_url( 'admin-ajax.php' ),
 				'nonce'     => wp_create_nonce( 'wp_rest' ),
 				'adminUrl'  => admin_url( 'admin.php' ),
 				'pageSlug'  => self::PAGE_SLUG,
@@ -166,7 +176,8 @@ class LAUNCHDEK_Admin {
 				),
 				'strings'   => array(
 					'confirmDelete'  => __( 'Are you sure you want to delete this?', LAUNCHDEK_TEXT_DOMAIN ),
-					'confirmDeleteSite' => __( 'Are you sure you want to delete this site?', LAUNCHDEK_TEXT_DOMAIN ),
+					'confirmDeleteSite' => __( 'Delete this site permanently? All checklist runs for this site will also be removed.', LAUNCHDEK_TEXT_DOMAIN ),
+					'siteDeleted'       => __( 'Site deleted.', LAUNCHDEK_TEXT_DOMAIN ),
 					'saved'          => __( 'Saved successfully.', LAUNCHDEK_TEXT_DOMAIN ),
 					'error'          => __( 'Something went wrong.', LAUNCHDEK_TEXT_DOMAIN ),
 					'loading'        => __( 'Loading…', LAUNCHDEK_TEXT_DOMAIN ),
@@ -289,10 +300,15 @@ class LAUNCHDEK_Admin {
 					'integrationPreviewSync' => __( 'Preview Sync', LAUNCHDEK_TEXT_DOMAIN ),
 					'integrationPushPanel' => __( 'Push Client Panel', LAUNCHDEK_TEXT_DOMAIN ),
 					'integrationSyncSummary' => __( 'Sync complete: %1$s created, %2$s updated, %3$s skipped. %4$s need credentials on the Sites page.', LAUNCHDEK_TEXT_DOMAIN ),
-					'integrationPreviewSummary' => __( 'Preview: %1$s would be created, %2$s updated, %3$s skipped out of %4$s MainWP sites.', LAUNCHDEK_TEXT_DOMAIN ),
+					'integrationPreviewSummary' => __( 'Preview: %1$s would be created, %2$s updated, %3$s skipped out of %4$s platform sites.', LAUNCHDEK_TEXT_DOMAIN ),
 					'integrationPushSummary' => __( 'Client panel push finished: %1$s succeeded, %2$s failed, %3$s skipped.', LAUNCHDEK_TEXT_DOMAIN ),
 					'integrationSyncedSites' => __( '%s synced sites', LAUNCHDEK_TEXT_DOMAIN ),
 					'integrationSyncUnsupported' => __( 'Site sync is not available for this connector yet.', LAUNCHDEK_TEXT_DOMAIN ),
+					'integrationSyncEmptyHint' => __( 'No sites were available to sync. See the hint below, then try Preview Sync again.', LAUNCHDEK_TEXT_DOMAIN ),
+					'integrationApiTokenConfigured' => __( 'API token saved.', LAUNCHDEK_TEXT_DOMAIN ),
+					'integrationApiTokenRemoved' => __( 'API token removed.', LAUNCHDEK_TEXT_DOMAIN ),
+					'integrationApiTokenRequired' => __( 'Save your API token before syncing sites.', LAUNCHDEK_TEXT_DOMAIN ),
+					'integrationApiTokenPlaceholder' => __( 'Paste a new token to replace the saved token', LAUNCHDEK_TEXT_DOMAIN ),
 					'onboardingTitle' => __( 'LaunchDek Onboarding', LAUNCHDEK_TEXT_DOMAIN ),
 					'onboardingProgressLabel' => __( 'Onboarding progress', LAUNCHDEK_TEXT_DOMAIN ),
 					'onboardingStep1'         => __( 'Step 1', LAUNCHDEK_TEXT_DOMAIN ),
@@ -394,6 +410,13 @@ class LAUNCHDEK_Admin {
 			);
 		}
 
+		if ( self::PAGE_SLUG . '_page_' . self::PAGE_SLUG . '-integrations' === $hook ) {
+			$localize['integrations'] = array_merge(
+				array( 'preloaded' => true ),
+				LAUNCHDEK_Integrations::get_page_bootstrap()
+			);
+		}
+
 		if ( self::PAGE_SLUG . '_page_' . self::PAGE_SLUG . '-checklists' === $hook ) {
 			$localize['customChecklists'] = array(
 				'preloaded' => true,
@@ -406,6 +429,7 @@ class LAUNCHDEK_Admin {
 			$localize['clientPreview'] = array(
 				'panelTitle'        => LAUNCHDEK_Settings::get_client_panel_title(),
 				'defaultPanelTitle' => LAUNCHDEK_Settings::get_default_client_panel_title(),
+				'brandName'         => __( 'LaunchDek', LAUNCHDEK_TEXT_DOMAIN ),
 				'strings'    => array(
 					'collapse'         => __( 'Collapse', LAUNCHDEK_TEXT_DOMAIN ),
 					'stepOf'           => __( 'Step %1$s of %2$s', LAUNCHDEK_TEXT_DOMAIN ),
@@ -484,7 +508,29 @@ class LAUNCHDEK_Admin {
 	}
 
 	public function render_integrations_page() {
-		$this->render_page( 'launchdek-integrations-page.php', array( 'page' => 'integrations' ) );
+		if ( ! LAUNCHDEK_Capabilities::current_user_can( LAUNCHDEK_Capabilities::MANAGE_SETTINGS ) ) {
+			wp_die( esc_html__( 'You do not have sufficient permissions.', LAUNCHDEK_TEXT_DOMAIN ) );
+		}
+		$this->render_page(
+			'launchdek-integrations-page.php',
+			array(
+				'page'                   => 'integrations',
+				'integrations_bootstrap' => LAUNCHDEK_Integrations::get_page_bootstrap(),
+			)
+		);
+	}
+
+	public function render_billing_page() {
+		if ( ! LAUNCHDEK_Capabilities::current_user_can( LAUNCHDEK_Capabilities::MANAGE_SETTINGS ) ) {
+			wp_die( esc_html__( 'You do not have sufficient permissions.', LAUNCHDEK_TEXT_DOMAIN ) );
+		}
+		$this->render_page(
+			'launchdek-billing-page.php',
+			array(
+				'page'            => 'billing',
+				'dashboard_stats' => LAUNCHDEK_Dashboard_Cache::get_stats(),
+			)
+		);
 	}
 
 	public function render_settings_page() {
@@ -502,7 +548,6 @@ class LAUNCHDEK_Admin {
 		$settings = LAUNCHDEK_Settings::get();
 		extract( $vars, EXTR_SKIP ); // phpcs:ignore WordPress.PHP.DontExtract.extract_extract
 		require LAUNCHDEK_PLUGIN_DIR . 'admin/partials/' . $partial;
-		require LAUNCHDEK_PLUGIN_DIR . 'admin/partials/launchdek-confirm-modal.php';
 	}
 
 

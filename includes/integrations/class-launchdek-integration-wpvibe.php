@@ -23,7 +23,11 @@ class LAUNCHDEK_Integration_WPvibe implements LAUNCHDEK_Integration_Interface {
 	}
 
 	public function is_available() {
-		return defined( 'WPVIBE_VERSION' ) || class_exists( 'WPVibe\Core' );
+		if ( defined( 'WPVIBE_VERSION' ) ) {
+			return true;
+		}
+
+		return class_exists( 'WPVibe\Core', false );
 	}
 
 	public function supports_site_sync() {

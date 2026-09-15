@@ -20,8 +20,8 @@ LaunchDek is a master-site plugin for WordPress agencies to manage remote client
 * **Sites** — Register remote sites, connection tester, tagging and grouping, per-site checklist run history
 * **Checklists** — Drag-and-drop builder, step configuration, API payload mapper, import/export, plus 86 built-in templates and agency vault
 * **Batch Run** — Run checklists on single or multiple sites, live step tracker, drift monitor
-* **Integrations** — MainWP site sync and client panel push; ManageWP, WP Umbrella, WP Engine, WPvibe connector stubs
-* **Settings** — Encrypted credential vault, Slack/Discord/Teams webhooks, role guardrails
+* **Integrations** — MainWP and WP Umbrella site sync with client panel push; ManageWP, WP Engine, WPvibe connector stubs
+* **Settings** — Encrypted credential vault, email notifications, Slack/Discord/Teams webhooks, role guardrails
 
 == Installation ==
 
@@ -55,13 +55,34 @@ The client panel is a bundled must-use plugin included with LaunchDek — not a 
 * User-registered remote WordPress sites (Application Password REST calls)
 * Optional client panel deploy and checklist sync (user-initiated when connecting or pushing a run)
 * User-configured webhook URLs (Slack, Discord, Teams)
-* User-initiated integration sync and client panel pushes (MainWP child sites when configured)
+* Optional email alerts for checklist events (Settings → Email Notifications; uses wp_mail)
+* User-initiated integration sync and client panel pushes (MainWP child sites or WP Umbrella Public API when configured)
 
 = Are credentials encrypted? =
 
 Yes, when enabled in Settings, application passwords are encrypted using your WordPress salt keys.
 
 == Changelog ==
+
+= 1.0.42 =
+* WP Umbrella integration: import connected projects via the Public API, encrypted API token storage in connector setup, client panel push for synced sites with Application Passwords, and sync diagnostics when no sites import
+
+= 1.0.41 =
+* Integrations: use admin-ajax for sync, preview, push, and telemetry rule saves so connector actions work on memory-constrained local installs where the REST API cannot bootstrap
+* Sites: load expandable checklist run history via admin-ajax so the history panel works on the same memory-constrained installs
+
+= 1.0.40 =
+* Integrations: server-render connector list and telemetry rules on first paint (no REST wait); batch synced-site counts in one query; cache MainWP table detection per request
+* Integrations: fix Preview Sync "No route was found" on some local/MAMP installs by using the POST sync route with dry_run instead of a separate GET preview route
+
+= 1.0.39 =
+* MainWP integration: fix site sync SQL that referenced sync_errors on the wrong table, which could break the REST response and show "Something went wrong"
+
+= 1.0.38 =
+* Settings: email notifications for checklist events (completed, started, failed, step failed, drift, client step, client note) with comma-separated recipient addresses
+
+= 1.0.37 =
+* Admin: new Billing page in the LaunchDek sidebar (plan overview, hub usage, invoices placeholder)
 
 = 1.0.36 =
 * MainWP integration: sync child sites into LaunchDek with telemetry mapping rules (name, URL, WP version, PHP version)
@@ -78,6 +99,9 @@ Yes, when enabled in Settings, application passwords are encrypted using your Wo
 
 = 1.0.33 =
 * Activity Log: human-readable summaries replace raw JSON in audit tables; timestamps, filters, and column labels are easier to scan; raw payload data is available on demand via "View raw data"
+
+= 1.0.33 =
+* Sites: delete a site from the row actions menu or the edit modal — removes the site, its tags, connection history, and all checklist runs
 
 = 1.0.32 =
 * Automation: redesigned with Run Checklist / Batch Queue / Drift Monitor tabs and a 3-step run wizard (choose checklist → choose site → execute steps); step runner is now full-width with progress bar and contextual actions
@@ -151,6 +175,9 @@ Yes, when enabled in Settings, application passwords are encrypted using your Wo
 
 = 1.0.15 =
 * Client checklist panel: removed Left sidebar and Split panel display layout options; sites using those layouts fall back to the right sidebar floater
+
+= 1.0.15 =
+* Client checklist panel: LaunchDek branding bar at the top of the panel across all display layouts; builder preview mirrors the branded header
 
 = 1.0.14 =
 * Client checklist panel: completed checklists show a summary with Started/Completed timestamps and a Dismiss button to close the panel

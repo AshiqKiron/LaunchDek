@@ -38,6 +38,7 @@ class LAUNCHDEK_Plugin {
 		add_filter( 'plugin_row_meta', array( $this->admin, 'add_plugin_row_meta' ), 10, 2 );
 
 		LAUNCHDEK_REST_API::register();
+		LAUNCHDEK_Admin_Ajax::register();
 		LAUNCHDEK_Drift_Cron::register();
 	}
 

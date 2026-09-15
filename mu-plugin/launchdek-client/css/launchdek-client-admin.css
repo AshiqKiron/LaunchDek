@@ -152,6 +152,40 @@ body.launchdek-client-layout-live_topbar #wpadminbar #wp-admin-bar-launchdek-cli
 	box-shadow: -2px 0 8px rgba(0, 0, 0, 0.06);
 }
 
+.launchdek-client-panel-brand {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 7px 14px;
+	background: linear-gradient(90deg, #135e96, #2271b1);
+	color: #fff;
+}
+
+.launchdek-client-topbar .launchdek-client-panel-brand,
+.launchdek-client-bottom-dock .launchdek-client-panel-brand {
+	padding: 5px 12px;
+}
+
+.launchdek-client-panel-brand-mark {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	line-height: 0;
+}
+
+.launchdek-client-panel-brand-icon {
+	display: block;
+}
+
+.launchdek-client-panel-brand-name {
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	line-height: 1.2;
+}
+
 .launchdek-client-panel-header {
 	display: flex;
 	align-items: flex-start;

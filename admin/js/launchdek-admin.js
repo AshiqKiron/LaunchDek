@@ -169,6 +169,56 @@
 	function put(path, body) { return request('PUT', path, body); }
 	function del(path) { return request('DELETE', path); }
 
+	/**
+	 * Admin-ajax helper for lightweight handlers that avoid full REST bootstrap.
+	 *
+	 * @param {string} action WordPress admin-ajax action name.
+	 * @param {Object} data   POST fields.
+	 * @return {Promise<*>}
+	 */
+	function postAjax(action, data) {
+		if (!launchdekAdmin.ajaxUrl) {
+			return Promise.reject(new Error(strings.error || 'Something went wrong.'));
+		}
+
+		var body = new URLSearchParams();
+		body.append('action', action);
+		body.append('nonce', nonce);
+
+		if (data) {
+			Object.keys(data).forEach(function (key) {
+				var value = data[key];
+				if (value === undefined || value === null) {
+					return;
+				}
+				body.append(key, typeof value === 'object' ? JSON.stringify(value) : String(value));
+			});
+		}
+
+		return fetch(launchdekAdmin.ajaxUrl, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+			},
+			credentials: 'same-origin',
+			body: body.toString()
+		}).then(function (res) {
+			return res.text().then(function (text) {
+				var parsed = null;
+				try {
+					parsed = JSON.parse(text);
+				} catch (e) {
+					throw new Error(strings.error || 'Something went wrong.');
+				}
+				if (!parsed || !parsed.success) {
+					var msg = (parsed && parsed.data && parsed.data.message) ? parsed.data.message : (strings.error || 'Something went wrong.');
+					throw new Error(msg);
+				}
+				return parsed.data;
+			});
+		});
+	}
+
 	function el(tag, attrs, children) {
 		var node = document.createElement(tag);
 		if (attrs) {
@@ -623,6 +673,7 @@
 		var pasteInput = document.getElementById('launchdek-onboarding-paste');
 		var preview = document.getElementById('launchdek-onboarding-preview');
 		var siteSelect = document.getElementById('launchdek-onboarding-site');
+		var existingSitesWrap = document.getElementById('launchdek-onboarding-existing-sites');
 		var step1Notice = document.getElementById('launchdek-onboarding-step1-notice');
 		var step2Notice = document.getElementById('launchdek-onboarding-step2-notice');
 		var connectPanel = document.getElementById('launchdek-onboarding-connect-panel');
@@ -633,6 +684,7 @@
 		var savedChecklistId = null;
 		var selectedSiteId = '';
 		var connectionVerified = false;
+		var hasExistingSites = false;
 
 		function dismissOnboarding() {
 			return post('/onboarding/dismiss', {}).catch(function () {});
@@ -658,6 +710,9 @@
 			document.getElementById('launchdek-onboarding-site-username').value = '';
 			document.getElementById('launchdek-onboarding-site-password').value = '';
 			connectPanel.hidden = false;
+			if (existingSitesWrap) {
+				existingSitesWrap.hidden = !hasExistingSites;
+			}
 			existingSiteNotice.hidden = true;
 			existingSiteNotice.textContent = '';
 			savedChecklistId = null;
@@ -831,6 +886,10 @@
 		}
 
 		get('/sites').then(function (sites) {
+			hasExistingSites = Array.isArray(sites) && sites.length > 0;
+			if (existingSitesWrap) {
+				existingSitesWrap.hidden = !hasExistingSites;
+			}
 			fillSelect(siteSelect, sites, 'id', 'name', strings.onboardingSelectSite || 'Select site…');
 		}).catch(function () {});
 
@@ -1219,8 +1278,29 @@
 		html += '<div class="launchdek-site-actions-menu" role="menu" hidden>';
 		html += '<button type="button" role="menuitem" class="launchdek-push-checklist" data-id="' + escAttr(site.id) + '" data-name="' + escAttr(site.name) + '"' + (connectionBlocked ? ' disabled' : '') + '>' + escHtml(strings.pushChecklist || 'Push Checklist') + '</button>';
 		html += '<button type="button" role="menuitem" class="launchdek-test-site" data-id="' + escAttr(site.id) + '">' + escHtml(strings.testSite || 'Test') + '</button>';
+		html += '<button type="button" role="menuitem" class="launchdek-delete-site" data-id="' + escAttr(site.id) + '">' + escHtml(strings.delete || 'Delete') + '</button>';
 		html += '</div></div>';
 		return html;
+	}
+
+	function confirmAndDeleteSite(siteId) {
+		siteId = parseInt(siteId, 10);
+		if (!siteId) {
+			return;
+		}
+
+		openConfirmModal({
+			title: strings.delete || 'Delete',
+			message: strings.confirmDeleteSite || strings.confirmDelete || 'Are you sure you want to delete this site?',
+			confirmText: strings.deletePermanently || strings.delete || 'Delete permanently',
+			destructive: true,
+			onConfirm: function () {
+				return del('/sites/' + siteId).then(function () {
+					currentSiteId = null;
+					loadSites({ forceFetch: true });
+				});
+			}
+		});
 	}
 
 	function closeAllSiteActionMenus() {
@@ -1623,7 +1703,11 @@
 
 		panel.innerHTML = '<p class="launchdek-muted">' + escHtml(strings.loading || 'Loading…') + '</p>';
 
-		siteRunsPending[siteId] = get('/sites/' + siteId + '/runs?limit=' + siteRunsHistoryLimit + '&offset=0').then(function (data) {
+		siteRunsPending[siteId] = postAjax('launchdek_get_site_runs', {
+			site_id: siteId,
+			limit: siteRunsHistoryLimit,
+			offset: 0
+		}).then(function (data) {
 			siteRunsCache[siteId] = normalizeSiteRunsResponse(data);
 			renderSiteRunsPanel(panel, siteRunsCache[siteId]);
 			return siteRunsCache[siteId];
@@ -1652,7 +1736,11 @@
 
 		var offset = siteRunsCache[siteId].runs.length;
 
-		siteRunsMorePending[siteId] = get('/sites/' + siteId + '/runs?limit=' + siteRunsHistoryLimit + '&offset=' + offset).then(function (data) {
+		siteRunsMorePending[siteId] = postAjax('launchdek_get_site_runs', {
+			site_id: siteId,
+			limit: siteRunsHistoryLimit,
+			offset: offset
+		}).then(function (data) {
 			var entry = normalizeSiteRunsResponse(data);
 			siteRunsCache[siteId].runs = siteRunsCache[siteId].runs.concat(entry.runs);
 			siteRunsCache[siteId].hasMore = entry.hasMore;
@@ -1946,6 +2034,12 @@
 				openPushChecklistModal(parseInt(btn.dataset.id, 10), btn.dataset.name || '');
 			};
 		});
+		document.querySelectorAll('.launchdek-delete-site').forEach(function (btn) {
+			btn.onclick = function () {
+				closeAllSiteActionMenus();
+				confirmAndDeleteSite(parseInt(btn.dataset.id, 10));
+			};
+		});
 	}
 
 	function ensurePushChecklistsLoaded() {
@@ -2011,38 +2105,158 @@
 
 	var confirmModalState = {
 		onConfirm: null,
-		previousFocus: null
+		previousFocus: null,
+		pausedModals: [],
+		openOptions: null
 	};
+	var wpConfirmRoot = null;
+	var wpConfirmRootEl = null;
 
-	function resetConfirmModal(modal) {
-		var okBtn = document.getElementById('launchdek-confirm-ok');
-		if (!modal || !okBtn) {
-			return;
-		}
-
-		okBtn.disabled = false;
-		okBtn.classList.remove('button-link-delete');
-		okBtn.classList.add('button-primary');
-		confirmModalState.onConfirm = null;
+	function getWpConfirmDialog() {
+		return window.wp && wp.components && wp.components.__experimentalConfirmDialog
+			? wp.components.__experimentalConfirmDialog
+			: null;
 	}
 
-	function closeConfirmModal() {
-		var modal = document.getElementById('launchdek-confirm-modal');
-		if (!modal) {
+	function ensureWpConfirmRoot() {
+		if (wpConfirmRootEl) {
 			return;
 		}
 
-		modal.hidden = true;
-		resetConfirmModal(modal);
+		wpConfirmRootEl = document.createElement('div');
+		wpConfirmRootEl.id = 'launchdek-wp-confirm-root';
+		document.body.appendChild(wpConfirmRootEl);
+
+		if (wp.element && typeof wp.element.createRoot === 'function') {
+			wpConfirmRoot = wp.element.createRoot(wpConfirmRootEl);
+		}
+	}
+
+	function renderWpConfirmDialog(props) {
+		var ConfirmDialog = getWpConfirmDialog();
+		if (!ConfirmDialog || !wp.element || typeof wp.element.createElement !== 'function') {
+			return false;
+		}
+
+		ensureWpConfirmRoot();
+		var element = wp.element.createElement(ConfirmDialog, props);
+		if (wpConfirmRoot) {
+			wpConfirmRoot.render(element);
+		} else if (typeof wp.element.render === 'function') {
+			wp.element.render(element, wpConfirmRootEl);
+		} else {
+			return false;
+		}
+
+		return true;
+	}
+
+	function unmountWpConfirmDialog() {
+		if (!wpConfirmRootEl) {
+			return;
+		}
+
+		if (wpConfirmRoot) {
+			wpConfirmRoot.render(null);
+		} else if (wp.element && typeof wp.element.render === 'function') {
+			wp.element.render(null, wpConfirmRootEl);
+		}
+	}
+
+	function pauseLaunchdekModals() {
+		confirmModalState.pausedModals = [];
+		document.querySelectorAll('.launchdek-modal').forEach(function (node) {
+			if (node.hidden) {
+				return;
+			}
+			confirmModalState.pausedModals.push(node);
+			node.hidden = true;
+		});
+	}
+
+	function resumeLaunchdekModals() {
+		confirmModalState.pausedModals.forEach(function (node) {
+			node.hidden = false;
+		});
+		confirmModalState.pausedModals = [];
+	}
+
+	function finishConfirmModal(resumeModals) {
+		unmountWpConfirmDialog();
+
+		if (resumeModals !== false) {
+			resumeLaunchdekModals();
+		} else {
+			confirmModalState.pausedModals = [];
+		}
 
 		if (confirmModalState.previousFocus && typeof confirmModalState.previousFocus.focus === 'function') {
 			confirmModalState.previousFocus.focus();
 		}
+
 		confirmModalState.previousFocus = null;
+		confirmModalState.onConfirm = null;
+		confirmModalState.openOptions = null;
+	}
+
+	function buildWpConfirmDialogProps(isBusy) {
+		var options = confirmModalState.openOptions || {};
+		var createElement = wp.element.createElement;
+		var message = options.message || '';
+		var children = message;
+
+		if (options.title && options.title !== message) {
+			children = createElement(
+				wp.element.Fragment,
+				null,
+				createElement('strong', null, options.title),
+				createElement('br', null),
+				createElement('br', null),
+				message
+			);
+		}
+
+		return {
+			isOpen: true,
+			onCancel: function () {
+				finishConfirmModal(true);
+			},
+			onConfirm: function () {
+				if (!confirmModalState.onConfirm) {
+					finishConfirmModal(true);
+					return;
+				}
+
+				var result;
+				try {
+					result = confirmModalState.onConfirm();
+				} catch (err) {
+					window.alert(err.message || strings.error || 'Something went wrong.');
+					return;
+				}
+
+				if (result && typeof result.then === 'function') {
+					renderWpConfirmDialog(buildWpConfirmDialogProps(true));
+					result.then(function () {
+						finishConfirmModal(false);
+					}).catch(function (err) {
+						renderWpConfirmDialog(buildWpConfirmDialogProps(false));
+						window.alert(err.message || strings.error || 'Something went wrong.');
+					});
+					return;
+				}
+
+				finishConfirmModal(false);
+			},
+			confirmButtonText: options.confirmText || strings.confirm || 'Confirm',
+			cancelButtonText: strings.cancel || 'Cancel',
+			isBusy: !!isBusy,
+			children: children
+		};
 	}
 
 	/**
-	 * Open the shared WordPress-style confirmation modal.
+	 * Open the shared WordPress ConfirmDialog modal.
 	 *
 	 * @param {Object} options
 	 * @param {string} options.message
@@ -2052,88 +2266,26 @@
 	 * @param {Function} options.onConfirm Called when confirmed; may return a Promise.
 	 */
 	function openConfirmModal(options) {
-		var modal = document.getElementById('launchdek-confirm-modal');
-		if (!modal) {
-			return;
-		}
-
 		options = options || {};
-		var titleEl = document.getElementById('launchdek-confirm-title');
-		var messageEl = document.getElementById('launchdek-confirm-message');
-		var okBtn = document.getElementById('launchdek-confirm-ok');
-		if (!titleEl || !messageEl || !okBtn) {
+
+		if (!getWpConfirmDialog()) {
+			if (window.confirm(options.message || strings.confirmDelete || 'Are you sure?')) {
+				if (typeof options.onConfirm === 'function') {
+					options.onConfirm();
+				}
+			}
 			return;
 		}
 
-		titleEl.textContent = options.title || strings.confirmActionTitle || 'Confirm action';
-		messageEl.textContent = options.message || '';
-		okBtn.textContent = options.confirmText || strings.confirm || 'Confirm';
-
-		if (options.destructive) {
-			okBtn.classList.remove('button-primary');
-			okBtn.classList.add('button-link-delete');
-		} else {
-			okBtn.classList.remove('button-link-delete');
-			okBtn.classList.add('button-primary');
-		}
-
+		pauseLaunchdekModals();
 		confirmModalState.previousFocus = document.activeElement;
 		confirmModalState.onConfirm = typeof options.onConfirm === 'function' ? options.onConfirm : null;
-		modal.hidden = false;
-		document.getElementById('launchdek-confirm-cancel').focus();
+		confirmModalState.openOptions = options;
+		renderWpConfirmDialog(buildWpConfirmDialogProps(false));
 	}
 
 	function initConfirmModal() {
-		var modal = document.getElementById('launchdek-confirm-modal');
-		if (!modal) {
-			return;
-		}
-
-		var okBtn = document.getElementById('launchdek-confirm-ok');
-		var cancelBtn = document.getElementById('launchdek-confirm-cancel');
-		if (!okBtn || !cancelBtn) {
-			return;
-		}
-
-		modal.querySelectorAll('[data-launchdek-confirm-close], #launchdek-confirm-cancel').forEach(function (node) {
-			node.addEventListener('click', closeConfirmModal);
-		});
-
-		okBtn.addEventListener('click', function () {
-			if (!confirmModalState.onConfirm) {
-				closeConfirmModal();
-				return;
-			}
-
-			okBtn.disabled = true;
-			var result;
-			try {
-				result = confirmModalState.onConfirm();
-			} catch (err) {
-				okBtn.disabled = false;
-				window.alert(err.message || strings.error || 'Something went wrong.');
-				return;
-			}
-
-			if (result && typeof result.then === 'function') {
-				result.then(function () {
-					closeConfirmModal();
-				}).catch(function (err) {
-					okBtn.disabled = false;
-					window.alert(err.message || strings.error || 'Something went wrong.');
-				});
-				return;
-			}
-
-			closeConfirmModal();
-		});
-
-		modal.addEventListener('keydown', function (e) {
-			if (e.key === 'Escape' && !modal.hidden) {
-				e.preventDefault();
-				closeConfirmModal();
-			}
-		});
+		ensureWpConfirmRoot();
 	}
 
 	function parseTagsInput() {
@@ -2330,18 +2482,7 @@
 			if (!currentSiteId) {
 				return;
 			}
-			openConfirmModal({
-				title: strings.delete || 'Delete',
-				message: strings.confirmDeleteSite || strings.confirmDelete || 'Are you sure you want to delete this site?',
-				confirmText: strings.deletePermanently || strings.delete || 'Delete permanently',
-				destructive: true,
-				onConfirm: function () {
-					return del('/sites/' + currentSiteId).then(function () {
-						closeModal(document.getElementById('launchdek-site-modal'));
-						loadSites({ forceFetch: true });
-					});
-				}
-			});
+			confirmAndDeleteSite(currentSiteId);
 		});
 
 		document.getElementById('launchdek-connection-tester-form').addEventListener('submit', function (e) {
@@ -2568,6 +2709,19 @@
 		return config.panelTitle || getDefaultClientPanelTitle();
 	}
 
+	function renderClientPreviewBrand(brandName) {
+		return '<div class="launchdek-client-panel-brand">' +
+			'<span class="launchdek-client-panel-brand-mark" aria-hidden="true">' +
+				'<svg class="launchdek-client-panel-brand-icon" width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">' +
+					'<rect x="1.25" y="1.25" width="11.5" height="11.5" rx="2" stroke="currentColor" stroke-width="1.5"/>' +
+					'<path d="M4.25 4.75L6.1 6.6L9.75 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>' +
+					'<path d="M4.25 9.25h5.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>' +
+				'</svg>' +
+			'</span>' +
+			'<span class="launchdek-client-panel-brand-name">' + escHtml(brandName || 'LaunchDek') + '</span>' +
+		'</div>';
+	}
+
 	var clientPanelTitleSaveTimer = null;
 	var clientPanelTitleSavePending = false;
 
@@ -2784,6 +2938,7 @@
 	function renderClientPreviewPanel(checklistTitle, steps, activeIndex) {
 		var previewStrings = getClientPreviewStrings();
 		var panelTitle = getClientPanelTitle();
+		var brandName = (launchdekAdmin.clientPreview && launchdekAdmin.clientPreview.brandName) || 'LaunchDek';
 		var stepList = steps.map(function (step, index) {
 			return renderClientPreviewStep(step, index, activeIndex, previewStrings);
 		}).join('');
@@ -2791,6 +2946,7 @@
 		return '<div class="launchdek-checklist-preview-shell">' +
 			'<div class="launchdek-client-panel-root launchdek-client-layout-sidebar">' +
 				'<aside class="launchdek-client-panel" aria-label="' + escHtml(panelTitle) + '">' +
+					renderClientPreviewBrand(brandName) +
 					'<div class="launchdek-client-panel-header">' +
 						'<div>' +
 							'<h2 class="launchdek-client-panel-title">' + escHtml(panelTitle) + '</h2>' +
@@ -5234,6 +5390,7 @@
 		if (!page) return;
 
 		var connectorList = document.getElementById('launchdek-connectors-list');
+		var connectorNotice = document.getElementById('launchdek-connectors-notice');
 		var telemetryBody = document.querySelector('#launchdek-telemetry-rules-table tbody');
 		var telemetryNotice = document.getElementById('launchdek-telemetry-notice');
 		var connectorModal = document.getElementById('launchdek-connector-modal');
@@ -5244,8 +5401,24 @@
 		var connectorPush = document.getElementById('launchdek-connector-push');
 		var connectorSync = document.getElementById('launchdek-connector-sync');
 		var connectorPreview = document.getElementById('launchdek-connector-preview');
+		var connectorConfig = document.getElementById('launchdek-connector-config');
+		var wpUmbrellaConfig = document.getElementById('launchdek-connector-wp-umbrella-config');
+		var wpUmbrellaTokenInput = document.getElementById('launchdek-wp-umbrella-api-token');
+		var wpUmbrellaTokenStatus = document.getElementById('launchdek-wp-umbrella-token-status');
+		var wpUmbrellaSaveToken = document.getElementById('launchdek-wp-umbrella-save-token');
+		var wpUmbrellaClearToken = document.getElementById('launchdek-wp-umbrella-clear-token');
 		var activeConnector = null;
 		var fieldLabels = {};
+		var integrationsPreload = launchdekAdmin.integrations || {};
+		var cachedConnectors = integrationsPreload.preloaded && Array.isArray(integrationsPreload.connectors)
+			? integrationsPreload.connectors
+			: null;
+		var cachedTelemetry = integrationsPreload.preloaded && integrationsPreload.telemetry
+			? integrationsPreload.telemetry
+			: null;
+		if (cachedTelemetry && cachedTelemetry.fields) {
+			fieldLabels = cachedTelemetry.fields;
+		}
 
 		function formatIntegrationSyncSummary(data, preview) {
 			var summary = data.summary || {};
@@ -5253,11 +5426,19 @@
 			if (!template) {
 				return strings.saved;
 			}
-			return template
+			var message = template
 				.replace('%1$s', summary.created || 0)
 				.replace('%2$s', summary.updated || 0)
 				.replace('%3$s', summary.skipped || 0)
 				.replace('%4$s', preview ? (summary.total || 0) : (summary.needs_credentials || 0));
+			if ((summary.total || 0) === 0) {
+				if (data.diagnostics && data.diagnostics.hint) {
+					message += ' ' + data.diagnostics.hint;
+				} else if (strings.integrationSyncEmptyHint) {
+					message += ' ' + strings.integrationSyncEmptyHint;
+				}
+			}
+			return message;
 		}
 
 		function formatIntegrationPushSummary(data) {
@@ -5274,12 +5455,43 @@
 
 		function setConnectorModalActions(item) {
 			var supportsSync = !!item.supports_sync;
+			var tokenReady = !item.requires_api_token || !!item.available || !!item.api_token_configured;
 			connectorSync.hidden = !supportsSync;
 			connectorPreview.hidden = !supportsSync;
-			connectorSync.disabled = !item.available || !supportsSync;
-			connectorPreview.disabled = !item.available || !supportsSync;
-			connectorPush.disabled = !item.available;
+			connectorSync.disabled = !supportsSync || !tokenReady;
+			connectorPreview.disabled = !supportsSync || !tokenReady;
+			connectorPush.disabled = !tokenReady;
 			connectorPush.textContent = strings.integrationPushPanel || 'Push Client Panel';
+		}
+
+		function renderConnectorConfig(item) {
+			if (!connectorConfig) {
+				return;
+			}
+			var showUmbrella = item && item.slug === 'wp-umbrella';
+			connectorConfig.hidden = !showUmbrella;
+			if (wpUmbrellaConfig) {
+				wpUmbrellaConfig.hidden = !showUmbrella;
+			}
+			if (!showUmbrella) {
+				return;
+			}
+			var configured = !!item.api_token_configured;
+			if (wpUmbrellaTokenInput) {
+				wpUmbrellaTokenInput.value = '';
+				wpUmbrellaTokenInput.placeholder = configured
+					? (strings.integrationApiTokenPlaceholder || 'Paste a new token to replace the saved token')
+					: 'Paste your WP Umbrella Public API token';
+			}
+			if (wpUmbrellaTokenStatus) {
+				wpUmbrellaTokenStatus.hidden = !configured;
+				wpUmbrellaTokenStatus.textContent = configured
+					? (strings.integrationApiTokenConfigured || 'API token saved.')
+					: '';
+			}
+			if (wpUmbrellaClearToken) {
+				wpUmbrellaClearToken.hidden = !configured;
+			}
 		}
 
 		function openConnectorModal(item) {
@@ -5287,6 +5499,7 @@
 			connectorTitle.textContent = item.name;
 			connectorDescription.textContent = item.description || '';
 			connectorNotice.innerHTML = '';
+			renderConnectorConfig(item);
 			setConnectorModalActions(item);
 			if (item.docs_url) {
 				connectorDocs.href = item.docs_url;
@@ -5304,9 +5517,9 @@
 		connectorSync.addEventListener('click', function () {
 			if (!activeConnector) return;
 			connectorSync.disabled = true;
-			post('/integrations/' + activeConnector.slug + '/sync', {}).then(function (r) {
+			postAjax('launchdek_integration_sync', { slug: activeConnector.slug }).then(function (r) {
 				notice(connectorNotice, formatIntegrationSyncSummary(r, false), 'success');
-				loadConnectors();
+				loadConnectors(true);
 			}).catch(function (e) {
 				notice(connectorNotice, e.message, 'error');
 			}).finally(function () {
@@ -5317,9 +5530,9 @@
 		});
 
 		connectorPreview.addEventListener('click', function () {
-			if (!activeConnector) return;
+			if (!activeConnector || !activeConnector.slug) return;
 			connectorPreview.disabled = true;
-			get('/integrations/' + activeConnector.slug + '/preview').then(function (r) {
+			postAjax('launchdek_integration_sync', { slug: activeConnector.slug, dry_run: 1 }).then(function (r) {
 				notice(connectorNotice, formatIntegrationSyncSummary(r, true), 'success');
 			}).catch(function (e) {
 				notice(connectorNotice, e.message, 'error');
@@ -5330,10 +5543,55 @@
 			});
 		});
 
+		if (wpUmbrellaSaveToken) {
+			wpUmbrellaSaveToken.addEventListener('click', function () {
+				var token = wpUmbrellaTokenInput ? wpUmbrellaTokenInput.value.trim() : '';
+				if (!token) {
+					notice(connectorNotice, strings.integrationApiTokenRequired || 'Save your API token before syncing sites.', 'error');
+					return;
+				}
+				wpUmbrellaSaveToken.disabled = true;
+				postAjax('launchdek_save_wp_umbrella_token', { token: token }).then(function (r) {
+					if (activeConnector) {
+						activeConnector.api_token_configured = !!r.api_token_configured;
+						activeConnector.available = !!r.api_token_configured;
+					}
+					renderConnectorConfig(activeConnector);
+					setConnectorModalActions(activeConnector || {});
+					notice(connectorNotice, r.message || strings.saved, 'success');
+					loadConnectors(true);
+				}).catch(function (e) {
+					notice(connectorNotice, e.message, 'error');
+				}).finally(function () {
+					wpUmbrellaSaveToken.disabled = false;
+				});
+			});
+		}
+
+		if (wpUmbrellaClearToken) {
+			wpUmbrellaClearToken.addEventListener('click', function () {
+				wpUmbrellaClearToken.disabled = true;
+				postAjax('launchdek_save_wp_umbrella_token', { clear: 1 }).then(function (r) {
+					if (activeConnector) {
+						activeConnector.api_token_configured = false;
+						activeConnector.available = false;
+					}
+					renderConnectorConfig(activeConnector);
+					setConnectorModalActions(activeConnector || {});
+					notice(connectorNotice, r.message || strings.integrationApiTokenRemoved || strings.saved, 'success');
+					loadConnectors(true);
+				}).catch(function (e) {
+					notice(connectorNotice, e.message, 'error');
+				}).finally(function () {
+					wpUmbrellaClearToken.disabled = false;
+				});
+			});
+		}
+
 		connectorPush.addEventListener('click', function () {
 			if (!activeConnector) return;
 			connectorPush.disabled = true;
-			post('/integrations/' + activeConnector.slug + '/push', {}).then(function (r) {
+			postAjax('launchdek_integration_push', { slug: activeConnector.slug }).then(function (r) {
 				var msg = r.summary ? formatIntegrationPushSummary(r) : (r.message || r.error || strings.saved);
 				notice(connectorNotice, msg, r.error ? 'error' : 'success');
 			}).catch(function (e) {
@@ -5345,40 +5603,61 @@
 			});
 		});
 
-		function loadConnectors() {
-			get('/integrations').then(function (items) {
-				connectorList.innerHTML = '';
-				items.forEach(function (item) {
-					var row = el('li', { className: 'launchdek-connector-row ' + (item.available ? 'available' : 'unavailable') });
-					var meta = el('div', { className: 'launchdek-connector-meta' });
-					meta.appendChild(el('span', { className: 'launchdek-connector-name', text: item.name }));
-					if (item.supports_sync && item.synced_sites) {
-						var syncedLabel = strings.integrationSyncedSites || '%s synced sites';
-						meta.appendChild(el('span', {
-							className: 'launchdek-connector-sync-count launchdek-muted',
-							text: syncedLabel.replace('%s', item.synced_sites)
-						}));
-					}
-					var actions = el('div', { className: 'launchdek-connector-actions' });
-					actions.appendChild(el('span', {
-						className: 'launchdek-badge ' + (item.available ? 'healthy' : 'unknown'),
-						text: item.available ? (strings.connected || 'Connected') : (strings.notDetected || 'Not Detected')
+		function findConnectorBySlug(slug) {
+			var items = cachedConnectors || [];
+			for (var i = 0; i < items.length; i++) {
+				if (items[i].slug === slug) {
+					return items[i];
+				}
+			}
+			return null;
+		}
+
+		function renderConnectors(items) {
+			if (!connectorList) {
+				return;
+			}
+			if (!Array.isArray(items)) {
+				items = [];
+			}
+			connectorList.innerHTML = '';
+			connectorList.removeAttribute('data-launchdek-preloaded');
+			items.forEach(function (item) {
+				var row = el('li', { className: 'launchdek-connector-row ' + (item.available ? 'available' : 'unavailable') });
+				var meta = el('div', { className: 'launchdek-connector-meta' });
+				meta.appendChild(el('span', { className: 'launchdek-connector-name', text: item.name }));
+				if (item.supports_sync && item.synced_sites) {
+					var syncedLabel = strings.integrationSyncedSites || '%s synced sites';
+					meta.appendChild(el('span', {
+						className: 'launchdek-connector-sync-count launchdek-muted',
+						text: syncedLabel.replace('%s', item.synced_sites)
 					}));
-					var setupBtn = el('button', { className: 'button', text: strings.setup || 'Setup' });
-					setupBtn.addEventListener('click', function () { openConnectorModal(item); });
-					actions.appendChild(setupBtn);
-					row.appendChild(meta);
-					row.appendChild(actions);
-					connectorList.appendChild(row);
+				}
+				var actions = el('div', { className: 'launchdek-connector-actions' });
+				actions.appendChild(el('span', {
+					className: 'launchdek-badge ' + (item.available ? 'healthy' : 'unknown'),
+					text: item.available ? (strings.connected || 'Connected') : (strings.notDetected || 'Not Detected')
+				}));
+				var setupBtn = el('button', {
+					className: 'button',
+					text: strings.setup || 'Setup',
+					'data-launchdek-connector-setup': '1',
+					'data-connector-slug': item.slug
 				});
+				actions.appendChild(setupBtn);
+				row.appendChild(meta);
+				row.appendChild(actions);
+				connectorList.appendChild(row);
 			});
 		}
 
-		loadConnectors();
-
-		get('/integrations/telemetry-rules').then(function (data) {
-			fieldLabels = data.fields || {};
+		function renderTelemetryRules(data) {
+			if (!telemetryBody || !data) {
+				return;
+			}
+			fieldLabels = data.fields || fieldLabels;
 			telemetryBody.innerHTML = '';
+			telemetryBody.removeAttribute('data-launchdek-preloaded');
 			(data.rules || []).forEach(function (rule) {
 				var tr = el('tr');
 				var checkbox = el('input', { type: 'checkbox', 'data-rule-id': rule.id });
@@ -5389,7 +5668,70 @@
 				tr.appendChild(el('td', { text: fieldLabels[rule.launchdek_field] || rule.launchdek_field }));
 				telemetryBody.appendChild(tr);
 			});
-		});
+		}
+
+		function loadConnectors(forceRefresh) {
+			if (!forceRefresh && connectorList && connectorList.getAttribute('data-launchdek-preloaded') === '1' && connectorList.children.length) {
+				return Promise.resolve(cachedConnectors || []);
+			}
+			if (!forceRefresh && cachedConnectors) {
+				renderConnectors(cachedConnectors);
+				return Promise.resolve(cachedConnectors);
+			}
+			return postAjax('launchdek_get_integrations', {}).then(function (items) {
+				if (!Array.isArray(items)) {
+					items = [];
+				}
+				cachedConnectors = items;
+				renderConnectors(items);
+				return items;
+			}).catch(function (err) {
+				if (connectorNotice) {
+					notice(connectorNotice, err.message, 'error');
+				}
+				if (cachedConnectors) {
+					renderConnectors(cachedConnectors);
+				}
+			});
+		}
+
+		function loadTelemetryRules(forceRefresh) {
+			if (!forceRefresh && telemetryBody && telemetryBody.getAttribute('data-launchdek-preloaded') === '1' && telemetryBody.children.length) {
+				return Promise.resolve(cachedTelemetry || null);
+			}
+			if (!forceRefresh && cachedTelemetry) {
+				renderTelemetryRules(cachedTelemetry);
+				return Promise.resolve(cachedTelemetry);
+			}
+			return postAjax('launchdek_get_telemetry_rules', {}).then(function (data) {
+				cachedTelemetry = data;
+				renderTelemetryRules(data);
+				return data;
+			}).catch(function (err) {
+				if (telemetryNotice) {
+					notice(telemetryNotice, err.message, 'error');
+				}
+				if (cachedTelemetry) {
+					renderTelemetryRules(cachedTelemetry);
+				}
+			});
+		}
+
+		if (connectorList) {
+			connectorList.addEventListener('click', function (event) {
+				var setupBtn = event.target.closest('[data-launchdek-connector-setup]');
+				if (!setupBtn) {
+					return;
+				}
+				var connector = findConnectorBySlug(setupBtn.getAttribute('data-connector-slug'));
+				if (connector) {
+					openConnectorModal(connector);
+				}
+			});
+		}
+
+		loadConnectors(false);
+		loadTelemetryRules(false);
 
 		document.getElementById('launchdek-save-telemetry-rules').addEventListener('click', function () {
 			var rules = [];
@@ -5399,7 +5741,7 @@
 					enabled: checkbox.checked
 				});
 			});
-			put('/integrations/telemetry-rules', { rules: rules }).then(function () {
+			postAjax('launchdek_save_telemetry_rules', { rules: rules }).then(function () {
 				notice(telemetryNotice, strings.saved, 'success');
 			}).catch(function (e) {
 				notice(telemetryNotice, e.message, 'error');

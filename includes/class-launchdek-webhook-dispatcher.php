@@ -22,6 +22,8 @@ class LAUNCHDEK_Webhook_Dispatcher {
 	 * @return void
 	 */
 	public static function dispatch( $event, $data = array() ) {
+		LAUNCHDEK_Email_Notifier::dispatch( $event, $data );
+
 		$settings = LAUNCHDEK_Settings::get();
 		$enabled  = $settings['notification_events'] ?? array();
 

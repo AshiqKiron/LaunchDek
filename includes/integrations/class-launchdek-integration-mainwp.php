@@ -23,7 +23,11 @@ class LAUNCHDEK_Integration_MainWP implements LAUNCHDEK_Integration_Interface {
 	}
 
 	public function is_available() {
-		return defined( 'MAINWP_PLUGIN_URL' ) || class_exists( 'MainWP\Dashboard\MainWP' );
+		if ( defined( 'MAINWP_PLUGIN_URL' ) ) {
+			return true;
+		}
+
+		return class_exists( 'MainWP\Dashboard\MainWP', false );
 	}
 
 	public function supports_site_sync() {
@@ -40,20 +44,19 @@ class LAUNCHDEK_Integration_MainWP implements LAUNCHDEK_Integration_Interface {
 		}
 
 		if ( class_exists( 'MainWP\Dashboard\MainWP_DB' ) ) {
-			$websites = \MainWP\Dashboard\MainWP_DB::instance()->get_websites_for_current_user();
+			$websites = \MainWP\Dashboard\MainWP_DB::instance()->get_websites_for_current_user(
+				array(
+					'format'      => 'array',
+					'select_data' => array( 'id', 'url', 'name', 'sync_errors', 'phpversion', 'wpversion' ),
+				)
+			);
 
-			if ( is_array( $websites ) ) {
-				$rows = array();
+			if ( is_array( $websites ) && ! empty( $websites ) ) {
+				$rows = $this->normalize_website_rows( $websites );
 
-				foreach ( $websites as $website ) {
-					$row = $this->normalize_website_row( $website );
-
-					if ( $row ) {
-						$rows[] = $row;
-					}
+				if ( ! empty( $rows ) ) {
+					return $rows;
 				}
-
-				return $rows;
 			}
 		}
 
@@ -116,14 +119,10 @@ class LAUNCHDEK_Integration_MainWP implements LAUNCHDEK_Integration_Interface {
 	}
 
 	public function get_status() {
-		$sync_supported = $this->supports_site_sync();
-		$synced_count   = $sync_supported ? count( LAUNCHDEK_Site_Repository::list_by_integration( 'mainwp' ) ) : 0;
-
 		return array(
-			'description'    => __( 'Import child sites from MainWP and deploy the LaunchDek client checklist panel through the MainWP connection.', LAUNCHDEK_TEXT_DOMAIN ),
-			'docs_url'       => 'https://mainwp.com/kb/',
-			'supports_sync'  => $sync_supported,
-			'synced_sites'   => $synced_count,
+			'description'   => __( 'Import child sites from MainWP and deploy the LaunchDek client checklist panel through the MainWP connection.', LAUNCHDEK_TEXT_DOMAIN ),
+			'docs_url'      => 'https://mainwp.com/kb/',
+			'supports_sync' => $this->supports_site_sync(),
 		);
 	}
 
@@ -217,12 +216,91 @@ class LAUNCHDEK_Integration_MainWP implements LAUNCHDEK_Integration_Interface {
 	}
 
 	/**
+	 * Build sync diagnostics for empty MainWP inventories.
+	 *
+	 * @return array
+	 */
+	public function get_sync_diagnostics() {
+		global $wpdb;
+
+		$diagnostics = array(
+			'mainwp_detected'     => $this->is_available(),
+			'mainwp_table_exists' => $this->mainwp_table_exists(),
+			'supports_sync'       => $this->supports_site_sync(),
+		);
+
+		if ( ! $diagnostics['mainwp_table_exists'] ) {
+			$diagnostics['hint'] = __( 'MainWP must be installed and activated on this same WordPress site as LaunchDek.', LAUNCHDEK_TEXT_DOMAIN );
+			return $diagnostics;
+		}
+
+		$wp_table = $wpdb->prefix . 'mainwp_wp';
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared
+		$diagnostics['mainwp_total_sites'] = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wp_table}" );
+
+		$sync_table = $wpdb->prefix . 'mainwp_wp_sync';
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$sync_exists = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $sync_table ) ) === $sync_table;
+
+		if ( $sync_exists ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared
+			$diagnostics['mainwp_connected_sites'] = (int) $wpdb->get_var(
+				"SELECT COUNT(*) FROM {$wp_table} wp LEFT JOIN {$sync_table} wp_sync ON wp.id = wp_sync.wpid WHERE (wp_sync.sync_errors IS NULL OR wp_sync.sync_errors = '')"
+			);
+
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared
+			$diagnostics['mainwp_disconnected_sites'] = (int) $wpdb->get_var(
+				"SELECT COUNT(*) FROM {$wp_table} wp INNER JOIN {$sync_table} wp_sync ON wp.id = wp_sync.wpid WHERE wp_sync.sync_errors IS NOT NULL AND wp_sync.sync_errors <> ''"
+			);
+		} else {
+			$diagnostics['mainwp_connected_sites']    = $diagnostics['mainwp_total_sites'];
+			$diagnostics['mainwp_disconnected_sites'] = 0;
+		}
+
+		if ( 0 === $diagnostics['mainwp_total_sites'] ) {
+			$diagnostics['hint'] = __( 'Add your child site in MainWP first (MainWP → Sites → Add New Site), then return here and click Sync Sites.', LAUNCHDEK_TEXT_DOMAIN );
+		} elseif ( 0 === $diagnostics['mainwp_connected_sites'] ) {
+			$diagnostics['hint'] = __( 'MainWP child sites exist but all are disconnected. Reconnect them in MainWP, then sync again.', LAUNCHDEK_TEXT_DOMAIN );
+		} else {
+			$diagnostics['hint'] = __( 'MainWP has connected child sites. Open Setup and click Sync Sites to import them into LaunchDek → Sites.', LAUNCHDEK_TEXT_DOMAIN );
+		}
+
+		return $diagnostics;
+	}
+
+	/**
+	 * Normalize multiple MainWP website rows.
+	 *
+	 * @param array $websites MainWP website objects.
+	 * @return array
+	 */
+	protected function normalize_website_rows( $websites ) {
+		$rows = array();
+
+		foreach ( $websites as $website ) {
+			$row = $this->normalize_website_row( $website );
+
+			if ( $row ) {
+				$rows[] = $row;
+			}
+		}
+
+		return $rows;
+	}
+
+	/**
 	 * Normalize a MainWP website object into telemetry field keys.
 	 *
 	 * @param object $website MainWP website object.
 	 * @return array|null
 	 */
 	protected function normalize_website_row( $website ) {
+		if ( is_array( $website ) ) {
+			$website = (object) $website;
+		}
+
 		if ( ! is_object( $website ) ) {
 			return null;
 		}
@@ -277,15 +355,30 @@ class LAUNCHDEK_Integration_MainWP implements LAUNCHDEK_Integration_Interface {
 			(SELECT wpversion.value FROM {$opts_table} wpversion WHERE wpversion.wpid = wp.id AND wpversion.name = 'wpversion' LIMIT 1) AS wpversion";
 		}
 
-		$from_sql = "FROM {$wp_table} wp";
+		$from_sql  = "FROM {$wp_table} wp";
+		$where_sql = '1=1';
+
 		if ( $sync_exists ) {
-			$from_sql .= " INNER JOIN {$sync_table} wp_sync ON wp.id = wp_sync.wpid";
+			$from_sql .= " LEFT JOIN {$sync_table} wp_sync ON wp.id = wp_sync.wpid";
+			$where_sql = '(wp_sync.sync_errors IS NULL OR wp_sync.sync_errors = \'\')';
 		}
 
-		$sql = "SELECT wp.id, wp.url, wp.name{$version_select} {$from_sql} WHERE (wp.sync_errors IS NULL OR wp.sync_errors = '') ORDER BY wp.name ASC";
+		$sql = "SELECT wp.id, wp.url, wp.name{$version_select} {$from_sql} WHERE {$where_sql} ORDER BY wp.name ASC";
+
+		$suppress_errors = $wpdb->suppress_errors( true );
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared
 		$rows = $wpdb->get_results( $sql, ARRAY_A );
+
+		$wpdb->suppress_errors( $suppress_errors );
+
+		if ( $wpdb->last_error ) {
+			return new WP_Error(
+				'launchdek_mainwp_query_failed',
+				__( 'Could not read MainWP child sites. Verify MainWP is installed and its site tables are intact.', LAUNCHDEK_TEXT_DOMAIN ),
+				array( 'status' => 500 )
+			);
+		}
 
 		if ( ! is_array( $rows ) ) {
 			return array();
@@ -318,11 +411,19 @@ class LAUNCHDEK_Integration_MainWP implements LAUNCHDEK_Integration_Interface {
 	 * @return bool
 	 */
 	protected function mainwp_table_exists() {
+		static $exists = null;
+
+		if ( null !== $exists ) {
+			return $exists;
+		}
+
 		global $wpdb;
 
 		$wp_table = $wpdb->prefix . 'mainwp_wp';
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		return $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $wp_table ) ) === $wp_table;
+		$exists = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $wp_table ) ) === $wp_table;
+
+		return $exists;
 	}
 }

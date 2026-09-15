@@ -13,13 +13,14 @@ See `launchdek-project.mdc` (architecture), `launchdek-standards.mdc` (quality),
 
 - Sanitize on input, escape on output, authorize before action.
 - REST: every route has `permission_callback`; use `LAUNCHDEK_Capabilities::current_user_can()`.
-- Admin UI auth: `X-WP-Nonce` with `wp_rest` nonce on all `fetch` calls.
+- Admin UI auth: `X-WP-Nonce` with `wp_rest` nonce on all REST `fetch` calls; admin-ajax requests use `postAjax()` with the same `wp_rest` nonce in POST (`check_ajax_referer( 'wp_rest', 'nonce' )` server-side).
 - Never expose decrypted Application Passwords in REST responses, logs, or audit entries.
 - Store credentials via `LAUNCHDEK_Credential_Vault::encrypt()`; decrypt only at request time in `LAUNCHDEK_Remote_Client`.
 - Settings API: `sanitize_callback`, `show_in_rest => false`.
 - Remote requests: validate URLs with `esc_url_raw()`; use `wp_remote_*` with timeouts; handle `WP_Error`.
 - SQL: `$wpdb->prepare()` only; no user input in table names.
 - Webhook URLs: sanitize with `esc_url_raw()`; only POST on configured user events.
+- Email notification addresses: sanitize via `LAUNCHDEK_Settings::sanitize_email_notification_addresses()` (`sanitize_email` per comma-separated entry); recipients resolved by `get_email_notification_addresses()` (falls back to site admin email when unset).
 
 ## Remote Site Access
 
@@ -33,14 +34,15 @@ See `launchdek-project.mdc` (architecture), `launchdek-standards.mdc` (quality),
 - Client step notes require non-empty text; save locally on the remote site first, then sync to hub. Hub note storage uses `filter_step_notes()` to drop empty/duplicate entries. Optional screenshot attachments are gated by per-step `show_screenshot_field` (requires `show_note_field`); use existing remote media library attachment IDs only (`wp.media` on the client site) — not arbitrary file uploads to the hub.
 - Client panel **Dismiss** clears the local completed-run snapshot on the remote site only; it does not delete hub run records.
 - Auto-capture is user-initiated (`can_edit_checklists` on hub, logged-in client admin on remote); records only whitelisted admin actions (REST settings mutations, plugin activate/deactivate) into ephemeral client option data — not background telemetry.
+- Notifications: `LAUNCHDEK_Webhook_Dispatcher::dispatch( $event, $data )` calls `LAUNCHDEK_Email_Notifier::dispatch()` first (wp_mail when event is in `email_notification_events`; recipients via `get_email_notification_addresses()`), then Slack/Discord/Teams webhooks when URLs are set and event passes `notification_events` filter.
 - Legacy audit actions (`workflow_created`, `workflow_updated`) and webhook `details.workflow` are read-only backward-compat shims — new code must use `checklist_*` keys and `details.checklist`.
 
 ## Directory & Privacy
 
 - No obfuscated code or undisclosed telemetry.
-- Outbound requests are limited to: user-registered remote sites (including mu-plugin deploy/push), user-configured webhook URLs, and integration adapters (user-initiated site sync and client panel push — MainWP uses MainWP Connect to child sites when hub Application Passwords are not configured).
+- Outbound requests are limited to: user-registered remote sites (including mu-plugin deploy/push), user-configured webhook URLs, WordPress `wp_mail()` for opt-in email notifications (no third-party mail API unless the site configures SMTP), and integration adapters (user-initiated site sync and client panel push — MainWP uses MainWP Connect to child sites when hub Application Passwords are not configured).
 - Integrations **Telemetry Sync Mapping Rules** store field-mapping preferences only (`telemetry_sync_rules`); they do not emit tracking data.
-- Webhook and integration behavior must be documented in `readme.txt`.
+- Webhook and integration behavior must be documented in `readme.txt`. Email notification behavior (opt-in events, `wp_mail`, recipient fallback) must also be documented in `readme.txt`.
 - No spammy readme or deceptive behavior.
 
 ## Code Quality
@@ -62,7 +64,7 @@ See `launchdek-project.mdc` (architecture), `launchdek-standards.mdc` (quality),
 - [ ] Input sanitized; output escaped
 - [ ] SQL prepared in repositories
 - [ ] Remote calls use timeouts and error handling
-- [ ] Webhooks opt-in and user-configured
+- [ ] Webhooks and email notifications opt-in and user-configured
 - [ ] Uninstall drops all tables, options, and capabilities
 - [ ] Unique `LAUNCHDEK_` / `launchdek_` prefix
 - [ ] Would survive WordPress.org review

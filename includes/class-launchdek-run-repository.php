@@ -347,6 +347,44 @@ class LAUNCHDEK_Run_Repository {
 	}
 
 	/**
+	 * Permanently delete all runs (and step rows) for a site.
+	 *
+	 * @param int $site_id Site ID.
+	 * @return void
+	 */
+	public static function delete_for_site( $site_id ) {
+		global $wpdb;
+
+		$site_id = absint( $site_id );
+		if ( ! $site_id ) {
+			return;
+		}
+
+		$run_ids = $wpdb->get_col(
+			$wpdb->prepare(
+				'SELECT id FROM ' . self::table() . ' WHERE site_id = %d',
+				$site_id
+			)
+		);
+
+		if ( ! empty( $run_ids ) ) {
+			$run_ids      = array_map( 'absint', $run_ids );
+			$placeholders = implode( ', ', array_fill( 0, count( $run_ids ), '%d' ) );
+
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+			$wpdb->query(
+				$wpdb->prepare(
+					'DELETE FROM ' . self::steps_table() . ' WHERE run_id IN (' . $placeholders . ')',
+					$run_ids
+				)
+			);
+		}
+
+		$wpdb->delete( self::table(), array( 'site_id' => $site_id ), array( '%d' ) );
+		LAUNCHDEK_Dashboard_Cache::invalidate_stats();
+	}
+
+	/**
 	 * Calculate completion rate percentage.
 	 *
 	 * @return float

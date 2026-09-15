@@ -111,11 +111,17 @@ class LAUNCHDEK_Integration_Sync {
 			);
 		}
 
-		return array(
+		$response = array(
 			'integration' => $slug,
 			'dry_run'     => $dry_run,
 			'summary'     => $summary,
 			'items'       => $items,
 		);
+
+		if ( 0 === $summary['total'] && method_exists( $integration, 'get_sync_diagnostics' ) ) {
+			$response['diagnostics'] = $integration->get_sync_diagnostics();
+		}
+
+		return $response;
 	}
 }

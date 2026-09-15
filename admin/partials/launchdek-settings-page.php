@@ -12,7 +12,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 $option_name   = LAUNCHDEK_Settings::OPTION_NAME;
-$active_events = (array) ( $settings['notification_events'] ?? array() );
+$active_events       = (array) ( $settings['notification_events'] ?? array() );
+$active_email_events = (array) ( $settings['email_notification_events'] ?? array() );
+$email_address       = (string) ( $settings['email_notification_address'] ?? '' );
+$default_admin_email = sanitize_email( get_option( 'admin_email' ) );
 $role_perms    = (array) ( $settings['role_permissions'] ?? array() );
 $wp_roles      = wp_roles() ? wp_roles()->get_names() : array();
 $cap_labels    = LAUNCHDEK_Capabilities::get_capability_labels();
@@ -49,6 +52,10 @@ $section_tooltips = array(
 	),
 	'access_guardrails' => __(
 		'Map WordPress roles to LaunchDek capabilities using agency presets. Administrators always retain full access regardless of this matrix.',
+		LAUNCHDEK_TEXT_DOMAIN
+	),
+	'email_notifications' => __(
+		'Send email alerts for key checklist events on this hub. Choose which events trigger a message and enter one or more comma-separated recipient addresses.',
 		LAUNCHDEK_TEXT_DOMAIN
 	),
 	'onboarding'      => __(
@@ -187,28 +194,27 @@ $channels        = array(
 				class="large-text code launchdek-settings-exclude-options"
 				id="launchdek-exclude-options"
 				name="<?php echo esc_attr( $option_name ); ?>[exclude_options]"
-				rows="6"
-				placeholder="<?php echo esc_attr( implode( "\n", LAUNCHDEK_Settings::get_default_exclude_options() ) ); ?>"
-			><?php echo esc_textarea( implode( "\n", $exclude_options ) ); ?></textarea>
+				rows="8"
+				spellcheck="false"
+				placeholder="<?php echo esc_attr( LAUNCHDEK_Settings::format_exclude_options_textarea( LAUNCHDEK_Settings::get_default_exclude_options() ) ); ?>"
+			><?php echo esc_textarea( LAUNCHDEK_Settings::format_exclude_options_textarea( $exclude_options ) ); ?></textarea>
 			<p class="launchdek-muted launchdek-settings-note">
 				<?php esc_html_e( 'One field per line. Use WordPress REST settings names (url, email, title) or legacy option names (siteurl, admin_email). Matching fields are removed from /wp/v2/settings API step payloads before they run on client sites.', LAUNCHDEK_TEXT_DOMAIN ); ?>
 			</p>
 			<?php if ( ! empty( $exclude_labels ) ) : ?>
-				<p class="launchdek-muted launchdek-settings-note launchdek-settings-exclude-hints">
-					<?php
-					$hints = array();
-					foreach ( $exclude_labels as $key => $label ) {
-						$hints[] = sprintf( '%s (%s)', $label, $key );
-					}
-					echo esc_html(
-						sprintf(
-							/* translators: %s: comma-separated field hints */
-							__( 'Common fields: %s', LAUNCHDEK_TEXT_DOMAIN ),
-							implode( ', ', $hints )
-						)
-					);
-					?>
-				</p>
+				<div class="launchdek-settings-exclude-hints">
+					<p class="launchdek-muted launchdek-settings-note launchdek-settings-exclude-hints-label">
+						<?php esc_html_e( 'Common fields:', LAUNCHDEK_TEXT_DOMAIN ); ?>
+					</p>
+					<ul class="launchdek-settings-exclude-common-fields">
+						<?php foreach ( $exclude_labels as $key => $label ) : ?>
+							<li>
+								<?php echo esc_html( $label ); ?>
+								(<code><?php echo esc_html( $key ); ?></code>)
+							</li>
+						<?php endforeach; ?>
+					</ul>
+				</div>
 			<?php endif; ?>
 		</div>
 
@@ -333,6 +339,52 @@ $channels        = array(
 						</tbody>
 					</table>
 				</div>
+			</div>
+		</div>
+
+		<div class="launchdek-card launchdek-settings-card">
+			<div class="launchdek-card-heading-row launchdek-card-heading-row--info-first">
+				<button type="button" class="launchdek-field-info launchdek-has-tooltip" data-tooltip="<?php echo esc_attr( $section_tooltips['email_notifications'] ); ?>" aria-label="<?php echo esc_attr( $section_tooltips['email_notifications'] ); ?>">
+					<span class="dashicons dashicons-info-outline" aria-hidden="true"></span>
+				</button>
+				<h2><?php esc_html_e( 'Email Notifications', LAUNCHDEK_TEXT_DOMAIN ); ?></h2>
+			</div>
+			<p class="launchdek-settings-lead"><?php esc_html_e( 'Send email alerts for key checklist events on this site.', LAUNCHDEK_TEXT_DOMAIN ); ?></p>
+
+			<div class="launchdek-settings-email-events" role="group" aria-label="<?php esc_attr_e( 'Email notification events', LAUNCHDEK_TEXT_DOMAIN ); ?>">
+				<?php foreach ( LAUNCHDEK_Settings::get_email_notification_events() as $event_key => $event ) : ?>
+					<div class="launchdek-settings-email-event">
+						<label class="launchdek-settings-email-event-label">
+							<input
+								type="checkbox"
+								name="<?php echo esc_attr( $option_name ); ?>[email_notification_events][]"
+								value="<?php echo esc_attr( $event_key ); ?>"
+								<?php checked( in_array( $event_key, $active_email_events, true ) ); ?>
+							/>
+							<span><?php echo esc_html( $event['label'] ); ?></span>
+						</label>
+						<p class="launchdek-muted launchdek-settings-email-event-description"><?php echo esc_html( $event['description'] ); ?></p>
+					</div>
+				<?php endforeach; ?>
+			</div>
+
+			<div class="launchdek-settings-email-address">
+				<label for="launchdek-email-notification-address">
+					<strong><?php esc_html_e( 'Notification email addresses', LAUNCHDEK_TEXT_DOMAIN ); ?></strong>
+				</label>
+				<input
+					type="text"
+					class="regular-text"
+					id="launchdek-email-notification-address"
+					name="<?php echo esc_attr( $option_name ); ?>[email_notification_address]"
+					value="<?php echo esc_attr( $email_address ); ?>"
+					placeholder="<?php echo esc_attr( $default_admin_email ); ?>"
+					autocomplete="email"
+					inputmode="email"
+				/>
+				<p class="launchdek-muted launchdek-settings-note">
+					<?php esc_html_e( 'Where these emails are sent. Separate multiple addresses with commas. Defaults to the site admin email.', LAUNCHDEK_TEXT_DOMAIN ); ?>
+				</p>
 			</div>
 		</div>
 

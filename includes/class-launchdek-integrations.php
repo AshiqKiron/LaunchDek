@@ -65,20 +65,51 @@ class LAUNCHDEK_Integrations {
 	 * @return array
 	 */
 	public static function get_statuses() {
-		$statuses = array();
+		$synced_counts = LAUNCHDEK_Site_Repository::count_by_integration_sources();
+		$statuses      = array();
 
 		foreach ( self::get_all() as $integration ) {
-			$statuses[] = array_merge(
+			$slug   = $integration->get_slug();
+			$status = array_merge(
 				array(
-					'slug'      => $integration->get_slug(),
+					'slug'      => $slug,
 					'name'      => $integration->get_name(),
 					'available' => $integration->is_available(),
 				),
 				$integration->get_status()
 			);
+
+			if ( ! empty( $status['supports_sync'] ) ) {
+				$status['synced_sites'] = $synced_counts[ $slug ] ?? 0;
+			}
+
+			$statuses[] = $status;
 		}
 
 		return $statuses;
+	}
+
+	/**
+	 * Integrations page bootstrap payload (connectors + telemetry rules).
+	 *
+	 * @return array
+	 */
+	public static function get_page_bootstrap() {
+		static $bootstrap = null;
+
+		if ( null !== $bootstrap ) {
+			return $bootstrap;
+		}
+
+		$bootstrap = array(
+			'connectors' => self::get_statuses(),
+			'telemetry'  => array(
+				'rules'  => self::get_telemetry_rules(),
+				'fields' => self::get_launchdek_fields(),
+			),
+		);
+
+		return $bootstrap;
 	}
 
 	/**

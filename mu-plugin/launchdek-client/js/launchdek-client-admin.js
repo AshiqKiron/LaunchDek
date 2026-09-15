@@ -908,6 +908,23 @@
 		'</div>';
 	}
 
+	function renderPanelBrandMark() {
+		return '<svg class="launchdek-client-panel-brand-icon" width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">' +
+			'<rect x="1.25" y="1.25" width="11.5" height="11.5" rx="2" stroke="currentColor" stroke-width="1.5"/>' +
+			'<path d="M4.25 4.75L6.1 6.6L9.75 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>' +
+			'<path d="M4.25 9.25h5.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>' +
+		'</svg>';
+	}
+
+	function renderPanelBrand() {
+		var brandName = strings.brandName || 'LaunchDek';
+
+		return '<div class="launchdek-client-panel-brand">' +
+			'<span class="launchdek-client-panel-brand-mark" aria-hidden="true">' + renderPanelBrandMark() + '</span>' +
+			'<span class="launchdek-client-panel-brand-name">' + escHtml(brandName) + '</span>' +
+		'</div>';
+	}
+
 	function renderPanelBody(steps, allDone, activeIndex) {
 		return (allDone ? renderRunCompleteSummary(steps) : '') +
 			'<ol class="launchdek-client-step-list">' + steps.map(function (step, index) {
@@ -925,7 +942,8 @@
 	}
 
 	function renderPanelChrome(steps, allDone, activeIndex, percent, currentDisplay, total, toggleLabel) {
-		return '<div class="launchdek-client-panel-header">' +
+		return renderPanelBrand() +
+			'<div class="launchdek-client-panel-header">' +
 				'<div>' +
 					'<h2 class="launchdek-client-panel-title">' + escHtml(resolvePanelTitle()) + '</h2>' +
 					'<p class="launchdek-client-panel-subtitle">' + escHtml(run.checklist_title || '') + '</p>' +
@@ -979,6 +997,7 @@
 			? '<button type="button" class="launchdek-client-panel-tab" id="launchdek-client-panel-expand">' + escHtml(formatCompactProgress(completedCount(steps), total, percent, currentDisplay, allDone)) + '</button>'
 			: '') +
 			'<aside class="' + panelClasses + '" aria-label="' + escHtml(resolvePanelTitle()) + '">' +
+				renderPanelBrand() +
 				'<div class="launchdek-client-panel-header">' +
 					'<div>' +
 						'<h2 class="launchdek-client-panel-title">' + escHtml(resolvePanelTitle()) + '</h2>' +
@@ -1011,6 +1030,7 @@
 			: (strings.hideSteps || 'Hide steps');
 
 		return '<div class="' + shellClass + (collapsed ? ' is-collapsed' : ' is-expanded') + '" role="region" aria-label="' + escHtml(resolvePanelTitle()) + '">' +
+			renderPanelBrand() +
 			'<div class="' + shellClass + '-inner">' +
 				'<div class="' + shellClass + '-copy">' +
 					'<span class="' + shellClass + '-kicker">' + escHtml(resolvePanelTitle()) + '</span>' +

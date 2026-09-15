@@ -72,7 +72,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 		<div id="launchdek-onboarding-step-2" hidden>
 			<p class="launchdek-onboarding-intro"><?php esc_html_e( 'Connect your first remote client site using WordPress App Passwords.', LAUNCHDEK_TEXT_DOMAIN ); ?></p>
 
-			<div class="launchdek-onboarding-optional">
+			<div id="launchdek-onboarding-existing-sites" class="launchdek-onboarding-optional" hidden>
 				<label for="launchdek-onboarding-site"><?php esc_html_e( 'Test workflow immediately on:', LAUNCHDEK_TEXT_DOMAIN ); ?></label>
 				<select id="launchdek-onboarding-site" class="launchdek-select" aria-label="<?php esc_attr_e( 'Select site for optional test run', LAUNCHDEK_TEXT_DOMAIN ); ?>">
 					<option value=""><?php esc_html_e( 'Select site…', LAUNCHDEK_TEXT_DOMAIN ); ?></option>

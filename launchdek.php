@@ -58,6 +58,7 @@ require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-client-push.php';
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-mu-plugin-installer.php';
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-auto-capture.php';
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-drift-verifier.php';
+require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-email-notifier.php';
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-webhook-dispatcher.php';
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-templates.php';
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-integration-sync.php';
@@ -68,6 +69,7 @@ require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-rest-api.php';
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-activator.php';
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-deactivator.php';
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-admin.php';
+require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-admin-ajax.php';
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-plugin.php';
 
 register_activation_hook( __FILE__, array( 'LAUNCHDEK_Activator', 'activate' ) );

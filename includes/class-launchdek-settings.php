@@ -34,11 +34,14 @@ class LAUNCHDEK_Settings {
 			'discord_webhook'              => '',
 			'teams_webhook'                => '',
 			'notification_events'          => array( 'run_started', 'run_completed', 'run_failed', 'step_failed' ),
+			'email_notification_events'    => array( 'run_completed' ),
+			'email_notification_address'   => '',
 			'role_permissions'             => array(),
 			'telemetry_sync_rules'         => array(),
 			'exclude_options'              => self::get_default_exclude_options(),
 			'client_panel_layout'          => 'sidebar',
 			'client_panel_title'           => self::get_default_client_panel_title(),
+			'wp_umbrella_api_token_enc'    => '',
 		);
 
 		return apply_filters( 'launchdek_settings_defaults', $defaults );
@@ -94,6 +97,18 @@ class LAUNCHDEK_Settings {
 			$output['notification_events'] = array_map( 'sanitize_key', $input['notification_events'] );
 		}
 
+		if ( isset( $_POST['option_page'] ) && self::SETTINGS_GROUP === $_POST['option_page'] ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+			if ( isset( $input['email_notification_events'] ) && is_array( $input['email_notification_events'] ) ) {
+				$output['email_notification_events'] = array_map( 'sanitize_key', $input['email_notification_events'] );
+			} else {
+				$output['email_notification_events'] = array();
+			}
+		}
+
+		if ( isset( $input['email_notification_address'] ) ) {
+			$output['email_notification_address'] = self::sanitize_email_notification_addresses( $input['email_notification_address'] );
+		}
+
 		if ( isset( $input['role_permissions'] ) && is_array( $input['role_permissions'] ) ) {
 			$clean = array();
 			foreach ( $input['role_permissions'] as $cap => $roles ) {
@@ -133,11 +148,6 @@ class LAUNCHDEK_Settings {
 		return apply_filters( 'launchdek_settings_sanitize', $output, $input, $defaults );
 	}
 
-	/**
-	 * Available notification events.
-	 *
-	 * @return array
-	 */
 	/**
 	 * Default sensitive settings excluded from remote API steps.
 	 *
@@ -230,9 +240,9 @@ class LAUNCHDEK_Settings {
 	}
 
 	/**
-	 * Human-readable labels for common excluded settings fields.
+	 * Human-readable labels for common excluded settings fields (display order).
 	 *
-	 * @return array
+	 * @return array<string, string>
 	 */
 	public static function get_exclude_option_labels() {
 		return array(
@@ -245,6 +255,20 @@ class LAUNCHDEK_Settings {
 			'site_logo'           => __( 'Site Logo', LAUNCHDEK_TEXT_DOMAIN ),
 			'site_icon'           => __( 'Site Icon', LAUNCHDEK_TEXT_DOMAIN ),
 		);
+	}
+
+	/**
+	 * Format exclude-options textarea value (one REST field name per line).
+	 *
+	 * @param array $options Normalized exclude option keys.
+	 * @return string
+	 */
+	public static function format_exclude_options_textarea( $options ) {
+		if ( ! is_array( $options ) ) {
+			$options = self::sanitize_exclude_options( $options );
+		}
+
+		return implode( "\n", $options );
 	}
 
 	/**
@@ -381,5 +405,131 @@ class LAUNCHDEK_Settings {
 			'client_step_completed' => __( 'Client completed a checklist step', LAUNCHDEK_TEXT_DOMAIN ),
 			'client_note_added'     => __( 'Client added a step note', LAUNCHDEK_TEXT_DOMAIN ),
 		);
+	}
+
+	/**
+	 * Email notification events with labels and descriptions for the Settings UI.
+	 *
+	 * @return array<string, array{label: string, description: string}>
+	 */
+	public static function get_email_notification_events() {
+		return array(
+			'run_completed'         => array(
+				'label'       => __( 'Notify when checklist completed', LAUNCHDEK_TEXT_DOMAIN ),
+				'description' => __( 'Email admin when a user finishes all steps of a checklist.', LAUNCHDEK_TEXT_DOMAIN ),
+			),
+			'run_started'           => array(
+				'label'       => __( 'Notify when checklist run starts', LAUNCHDEK_TEXT_DOMAIN ),
+				'description' => __( 'Email when a new checklist run begins on a connected site.', LAUNCHDEK_TEXT_DOMAIN ),
+			),
+			'run_failed'            => array(
+				'label'       => __( 'Notify when checklist run fails', LAUNCHDEK_TEXT_DOMAIN ),
+				'description' => __( 'Email when a run stops with a failed status.', LAUNCHDEK_TEXT_DOMAIN ),
+			),
+			'step_failed'           => array(
+				'label'       => __( 'Notify when a step fails', LAUNCHDEK_TEXT_DOMAIN ),
+				'description' => __( 'Email when an automated API step fails during a run.', LAUNCHDEK_TEXT_DOMAIN ),
+			),
+			'drift_detected'        => array(
+				'label'       => __( 'Notify when drift is detected', LAUNCHDEK_TEXT_DOMAIN ),
+				'description' => __( 'Email when scheduled drift verification finds configuration changes.', LAUNCHDEK_TEXT_DOMAIN ),
+			),
+			'client_step_completed' => array(
+				'label'       => __( 'Notify when client completes a step', LAUNCHDEK_TEXT_DOMAIN ),
+				'description' => __( 'Email when someone marks a manual step complete on the client panel.', LAUNCHDEK_TEXT_DOMAIN ),
+			),
+			'client_note_added'     => array(
+				'label'       => __( 'Notify when client adds a note', LAUNCHDEK_TEXT_DOMAIN ),
+				'description' => __( 'Email when a note is saved on a client checklist step.', LAUNCHDEK_TEXT_DOMAIN ),
+			),
+		);
+	}
+
+	/**
+	 * Sanitize comma-separated email notification addresses.
+	 *
+	 * @param mixed $input Raw address input.
+	 * @return string Comma-separated valid email addresses.
+	 */
+	public static function sanitize_email_notification_addresses( $input ) {
+		$parts = preg_split( '/\s*,\s*/', (string) $input );
+		$clean = array();
+
+		foreach ( (array) $parts as $part ) {
+			$email = sanitize_email( trim( (string) $part ) );
+			if ( '' !== $email && is_email( $email ) ) {
+				$clean[] = $email;
+			}
+		}
+
+		return implode( ', ', array_values( array_unique( $clean ) ) );
+	}
+
+	/**
+	 * Get configured email notification recipients.
+	 *
+	 * Falls back to the WordPress admin email when unset.
+	 *
+	 * @return string[] Valid email addresses.
+	 */
+	/**
+	 * Whether a WP Umbrella Public API token is stored.
+	 *
+	 * @return bool
+	 */
+	public static function has_wp_umbrella_api_token() {
+		$settings = self::get();
+
+		return '' !== trim( (string) ( $settings['wp_umbrella_api_token_enc'] ?? '' ) );
+	}
+
+	/**
+	 * Get the decrypted WP Umbrella Public API token.
+	 *
+	 * @return string
+	 */
+	public static function get_wp_umbrella_api_token() {
+		$settings = self::get();
+
+		return LAUNCHDEK_Credential_Vault::decrypt( $settings['wp_umbrella_api_token_enc'] ?? '' );
+	}
+
+	/**
+	 * Save or clear the WP Umbrella Public API token.
+	 *
+	 * @param string $token Plaintext token. Empty string clears the stored token.
+	 * @return bool Whether a token remains configured after save.
+	 */
+	public static function save_wp_umbrella_api_token( $token ) {
+		$settings = self::get();
+		$token    = trim( (string) $token );
+
+		if ( '' === $token ) {
+			$settings['wp_umbrella_api_token_enc'] = '';
+		} else {
+			$settings['wp_umbrella_api_token_enc'] = LAUNCHDEK_Credential_Vault::encrypt( $token );
+		}
+
+		update_option( self::OPTION_NAME, $settings );
+
+		return self::has_wp_umbrella_api_token();
+	}
+
+	public static function get_email_notification_addresses() {
+		$settings = self::get();
+		$stored   = self::sanitize_email_notification_addresses( $settings['email_notification_address'] ?? '' );
+
+		if ( '' !== $stored ) {
+			return array_values(
+				array_filter(
+					array_map( 'trim', explode( ',', $stored ) ),
+					'is_email'
+				)
+			);
+		}
+
+		$admin_email = sanitize_email( get_option( 'admin_email' ) );
+
+		return ( '' !== $admin_email && is_email( $admin_email ) ) ? array( $admin_email ) : array();
 	}
 }
