@@ -50,10 +50,6 @@ $quick_launch_lists  = isset( $quick_launch_picker['checklists'] ) && is_array( 
 				<span class="launchdek-stat-value"><?php echo esc_html( number_format_i18n( (int) ( $connection_counts['unhealthy'] ?? 0 ) ) ); ?></span>
 				<span class="launchdek-stat-label"><?php esc_html_e( 'Issues', LAUNCHDEK_TEXT_DOMAIN ); ?></span>
 			</div>
-			<div class="launchdek-stat-card launchdek-connection-stat-card is-unknown">
-				<span class="launchdek-stat-value"><?php echo esc_html( number_format_i18n( (int) ( $connection_counts['unknown'] ?? 0 ) ) ); ?></span>
-				<span class="launchdek-stat-label"><?php esc_html_e( 'Unknown', LAUNCHDEK_TEXT_DOMAIN ); ?></span>
-			</div>
 		</div>
 	</div>
 

@@ -14,20 +14,51 @@ if ( ! defined( 'ABSPATH' ) ) {
 ?>
 <div class="wrap launchdek-admin" data-launchdek-page="checklists">
 	<h1><?php echo esc_html( get_admin_page_title() ); ?>
-		<button type="button" class="page-title-action" id="launchdek-new-checklist"><?php esc_html_e( 'New Checklist', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
-		<button type="button" class="page-title-action" id="launchdek-auto-capture"><?php esc_html_e( 'Auto-Capture', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
+		<button type="button" class="page-title-action" id="launchdek-new-checklist" hidden><?php esc_html_e( 'New Checklist', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
+		<button type="button" class="page-title-action" id="launchdek-auto-capture" hidden><?php esc_html_e( 'Auto-Capture', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
 	</h1>
 
 	<nav class="launchdek-page-tabs" role="tablist" aria-label="<?php esc_attr_e( 'Checklists sections', LAUNCHDEK_TEXT_DOMAIN ); ?>">
-		<button type="button" class="launchdek-page-tab is-active" role="tab" id="launchdek-tab-builder" data-tab="builder" aria-selected="true" aria-controls="launchdek-panel-builder">
-			<?php esc_html_e( 'My Checklists', LAUNCHDEK_TEXT_DOMAIN ); ?>
-		</button>
-		<button type="button" class="launchdek-page-tab" role="tab" id="launchdek-tab-templates" data-tab="templates" aria-selected="false" aria-controls="launchdek-panel-templates">
+		<button type="button" class="launchdek-page-tab is-active" role="tab" id="launchdek-tab-templates" data-tab="templates" aria-selected="true" aria-controls="launchdek-panel-templates">
 			<?php esc_html_e( 'Templates', LAUNCHDEK_TEXT_DOMAIN ); ?>
+		</button>
+		<button type="button" class="launchdek-page-tab" role="tab" id="launchdek-tab-builder" data-tab="builder" aria-selected="false" aria-controls="launchdek-panel-builder">
+			<?php esc_html_e( 'My Checklists', LAUNCHDEK_TEXT_DOMAIN ); ?>
 		</button>
 	</nav>
 
-	<div id="launchdek-panel-builder" class="launchdek-tab-panel" data-launchdek-tab-panel="builder" role="tabpanel" aria-labelledby="launchdek-tab-builder">
+	<div id="launchdek-panel-templates" class="launchdek-tab-panel" data-launchdek-tab-panel="templates" role="tabpanel" aria-labelledby="launchdek-tab-templates">
+		<div class="launchdek-card">
+			<h2><?php esc_html_e( 'Built-In Standard Stacks', LAUNCHDEK_TEXT_DOMAIN ); ?></h2>
+			<p class="launchdek-muted" id="launchdek-category-description"></p>
+			<div id="launchdek-category-tabs" class="launchdek-category-tabs" role="tablist" aria-label="<?php esc_attr_e( 'Template categories', LAUNCHDEK_TEXT_DOMAIN ); ?>"></div>
+			<div id="launchdek-builtin-templates" class="launchdek-template-grid"></div>
+			<div id="launchdek-builtin-notice" class="launchdek-notice-area"></div>
+		</div>
+
+		<div class="launchdek-card">
+			<h2><?php esc_html_e( 'Your Custom Checklists', LAUNCHDEK_TEXT_DOMAIN ); ?></h2>
+			<p class="launchdek-muted"><?php esc_html_e( 'Checklists you create and save here appear below for reuse and cloning.', LAUNCHDEK_TEXT_DOMAIN ); ?></p>
+			<div id="launchdek-custom-checklists" class="launchdek-template-grid"></div>
+			<div id="launchdek-custom-notice" class="launchdek-notice-area"></div>
+		</div>
+
+		<div class="launchdek-card">
+			<h2><?php esc_html_e( 'Private Agency Vault', LAUNCHDEK_TEXT_DOMAIN ); ?></h2>
+			<p><?php esc_html_e( 'Secure local repository for proprietary agency checklists.', LAUNCHDEK_TEXT_DOMAIN ); ?></p>
+			<div class="launchdek-inline-form">
+				<label class="screen-reader-text" for="launchdek-vault-checklist"><?php esc_html_e( 'Select checklist to vault', LAUNCHDEK_TEXT_DOMAIN ); ?></label>
+				<select id="launchdek-vault-checklist" class="launchdek-select">
+					<option value=""><?php esc_html_e( 'Select checklist to vault…', LAUNCHDEK_TEXT_DOMAIN ); ?></option>
+				</select>
+				<button type="button" class="button button-primary" id="launchdek-save-vault"><?php esc_html_e( 'Save to Vault', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
+			</div>
+			<div id="launchdek-vault-notice" class="launchdek-notice-area"></div>
+			<div id="launchdek-vault-list" class="launchdek-template-grid"></div>
+		</div>
+	</div>
+
+	<div id="launchdek-panel-builder" class="launchdek-tab-panel" data-launchdek-tab-panel="builder" role="tabpanel" aria-labelledby="launchdek-tab-builder" hidden>
 		<div id="launchdek-checklist-notice" class="launchdek-notice-area" aria-live="polite"></div>
 
 		<div class="launchdek-grid-2 launchdek-builder-layout">
@@ -85,37 +116,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 				<input type="url" id="launchdek-import-url" class="regular-text" placeholder="<?php esc_attr_e( 'Or paste JSON URL…', LAUNCHDEK_TEXT_DOMAIN ); ?>" />
 				<button type="button" class="button" id="launchdek-import-checklist"><?php esc_html_e( 'Import', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
 			</div>
-		</div>
-	</div>
-
-	<div id="launchdek-panel-templates" class="launchdek-tab-panel" data-launchdek-tab-panel="templates" role="tabpanel" aria-labelledby="launchdek-tab-templates" hidden>
-		<div class="launchdek-card">
-			<h2><?php esc_html_e( 'Built-In Standard Stacks', LAUNCHDEK_TEXT_DOMAIN ); ?></h2>
-			<p class="launchdek-muted" id="launchdek-category-description"></p>
-			<div id="launchdek-category-tabs" class="launchdek-category-tabs" role="tablist" aria-label="<?php esc_attr_e( 'Template categories', LAUNCHDEK_TEXT_DOMAIN ); ?>"></div>
-			<div id="launchdek-builtin-templates" class="launchdek-template-grid"></div>
-			<div id="launchdek-builtin-notice" class="launchdek-notice-area"></div>
-		</div>
-
-		<div class="launchdek-card">
-			<h2><?php esc_html_e( 'Your Custom Checklists', LAUNCHDEK_TEXT_DOMAIN ); ?></h2>
-			<p class="launchdek-muted"><?php esc_html_e( 'Checklists you create and save here appear below for reuse and cloning.', LAUNCHDEK_TEXT_DOMAIN ); ?></p>
-			<div id="launchdek-custom-checklists" class="launchdek-template-grid"></div>
-			<div id="launchdek-custom-notice" class="launchdek-notice-area"></div>
-		</div>
-
-		<div class="launchdek-card">
-			<h2><?php esc_html_e( 'Private Agency Vault', LAUNCHDEK_TEXT_DOMAIN ); ?></h2>
-			<p><?php esc_html_e( 'Secure local repository for proprietary agency checklists.', LAUNCHDEK_TEXT_DOMAIN ); ?></p>
-			<div class="launchdek-inline-form">
-				<label class="screen-reader-text" for="launchdek-vault-checklist"><?php esc_html_e( 'Select checklist to vault', LAUNCHDEK_TEXT_DOMAIN ); ?></label>
-				<select id="launchdek-vault-checklist" class="launchdek-select">
-					<option value=""><?php esc_html_e( 'Select checklist to vault…', LAUNCHDEK_TEXT_DOMAIN ); ?></option>
-				</select>
-				<button type="button" class="button button-primary" id="launchdek-save-vault"><?php esc_html_e( 'Save to Vault', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
-			</div>
-			<div id="launchdek-vault-notice" class="launchdek-notice-area"></div>
-			<div id="launchdek-vault-list" class="launchdek-template-grid"></div>
 		</div>
 	</div>
 

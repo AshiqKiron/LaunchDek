@@ -286,24 +286,41 @@
 	var pickerLoadingPromise = null;
 	var pickerCallbacks = null;
 
-	function loadPickerTemplates() {
+	function applyTemplatesPayload(data) {
+		data = data || {};
+		pickerTemplates = data.builtin || [];
+		pickerCategories = data.categories || {};
+		builtinTemplates = pickerTemplates;
+		templateCategories = pickerCategories;
+		pickerLoaded = true;
+	}
+
+	function loadTemplatesData() {
 		if (pickerLoaded) {
-			return Promise.resolve();
+			return Promise.resolve({ builtin: pickerTemplates, categories: pickerCategories });
 		}
 		if (pickerLoadingPromise) {
 			return pickerLoadingPromise;
 		}
 
+		if (launchdekAdmin.templates && launchdekAdmin.templates.preloaded) {
+			applyTemplatesPayload(launchdekAdmin.templates);
+			return Promise.resolve(launchdekAdmin.templates);
+		}
+
 		pickerLoadingPromise = get('/templates').then(function (data) {
-			pickerTemplates = data.builtin || [];
-			pickerCategories = data.categories || {};
-			pickerLoaded = true;
+			applyTemplatesPayload(data);
+			return data;
 		}).catch(function (err) {
 			pickerLoadingPromise = null;
 			throw err;
 		});
 
 		return pickerLoadingPromise;
+	}
+
+	function loadPickerTemplates() {
+		return loadTemplatesData();
 	}
 
 	function getPickerFilteredTemplates() {
@@ -492,7 +509,7 @@
 		renderPickerStepsPreview();
 
 		var listEl = document.getElementById('launchdek-template-picker-list');
-		if (listEl) {
+		if (listEl && !pickerLoaded) {
 			listEl.innerHTML = '<p class="launchdek-muted launchdek-template-picker-loading">' + escHtml(strings.loading || 'Loading…') + '</p>';
 		}
 
@@ -1099,7 +1116,10 @@
 	var pushChecklistSiteId = null;
 	var pushChecklistCache = null;
 	var siteRunsCache = {};
-	var siteTableColspan = 7;
+	var siteRunsPending = {};
+	var siteRunsMorePending = {};
+	var siteRunsHistoryLimit = 25;
+	var siteTableColspan = 6;
 	var siteConnectionStaleMs = 30 * 60 * 1000;
 
 	function healthLabel(status) {
@@ -1123,7 +1143,6 @@
 		summaryEl.appendChild(connectionStatCard('is-total', summary.total, strings.connectionAllStatuses || 'All Sites'));
 		summaryEl.appendChild(connectionStatCard('is-healthy', summary.healthy, strings.connectionSummaryHealthy || 'Healthy'));
 		summaryEl.appendChild(connectionStatCard('is-unhealthy', summary.unhealthy, strings.connectionSummaryUnhealthy || 'Issues'));
-		summaryEl.appendChild(connectionStatCard('is-unknown', summary.unknown, strings.connectionSummaryUnknown || 'Unknown'));
 	}
 
 	function initConnectionPanel(preloadedSummary) {
@@ -1161,13 +1180,72 @@
 	function connectionStatusHtml(site, statusOverride) {
 		var status = statusOverride || site.health_status || 'unknown';
 		var label = connectionStatusLabel(status, site.last_error || '');
-		var html = '<span class="launchdek-site-connection" title="' + escAttr(label) + '">';
-		html += '<span class="launchdek-connection-dot ' + escAttr(status) + '" aria-hidden="true"></span>';
+		var html = '<div class="launchdek-site-status" title="' + escAttr(label) + '">';
+		html += '<span class="launchdek-site-connection" aria-hidden="true">';
+		html += '<span class="launchdek-connection-dot ' + escAttr(status) + '"></span>';
 		if (status === 'unhealthy') {
-			html += '<span class="dashicons dashicons-warning launchdek-connection-warning" aria-hidden="true"></span>';
+			html += '<span class="dashicons dashicons-warning launchdek-connection-warning"></span>';
 		}
-		html += '<span class="screen-reader-text">' + escHtml(label) + '</span></span>';
+		html += '</span>';
+		html += '<span class="launchdek-badge launchdek-site-health-badge ' + escAttr(status) + '">' + escHtml(healthLabel(status)) + '</span>';
+		html += '<span class="screen-reader-text">' + escHtml(label) + '</span></div>';
 		return html;
+	}
+
+	function siteActionsHtml(site) {
+		var siteId = String(site.id);
+		var connectionBlocked = site.health_status === 'unhealthy';
+		var menuLabel = strings.siteActionsMenu || 'More site actions';
+		var html = '<div class="launchdek-site-actions-dropdown">';
+		html += '<div class="launchdek-site-actions-split">';
+		html += '<button type="button" class="button button-small launchdek-edit-site" data-id="' + escAttr(site.id) + '">' + escHtml(strings.editSite || 'Edit') + '</button>';
+		html += '<button type="button" class="button button-small launchdek-site-actions-toggle" data-id="' + escAttr(site.id) + '" aria-haspopup="true" aria-expanded="false" aria-label="' + escAttr(menuLabel) + '">';
+		html += '<span class="dashicons dashicons-arrow-down-alt2" aria-hidden="true"></span>';
+		html += '</button>';
+		html += '</div>';
+		html += '<div class="launchdek-site-actions-menu" role="menu" hidden>';
+		html += '<button type="button" role="menuitem" class="launchdek-push-checklist" data-id="' + escAttr(site.id) + '" data-name="' + escAttr(site.name) + '"' + (connectionBlocked ? ' disabled' : '') + '>' + escHtml(strings.pushChecklist || 'Push Checklist') + '</button>';
+		html += '<button type="button" role="menuitem" class="launchdek-test-site" data-id="' + escAttr(site.id) + '">' + escHtml(strings.testSite || 'Test') + '</button>';
+		html += '</div></div>';
+		return html;
+	}
+
+	function closeAllSiteActionMenus() {
+		document.querySelectorAll('.launchdek-site-actions-menu:not([hidden]), .launchdek-run-actions-menu:not([hidden])').forEach(function (menu) {
+			menu.setAttribute('hidden', 'hidden');
+			var toggle = menu.closest('.launchdek-site-actions-dropdown, .launchdek-run-actions-dropdown');
+			if (toggle) {
+				var btn = toggle.querySelector('.launchdek-site-actions-toggle, .launchdek-run-actions-toggle');
+				if (btn) {
+					btn.setAttribute('aria-expanded', 'false');
+				}
+			}
+		});
+	}
+
+	function toggleActionMenu(toggleBtn, menuSelector) {
+		if (!toggleBtn) {
+			return;
+		}
+		var dropdown = toggleBtn.closest('.launchdek-site-actions-dropdown, .launchdek-run-actions-dropdown');
+		var menu = dropdown ? dropdown.querySelector(menuSelector) : null;
+		if (!menu) {
+			return;
+		}
+		var open = menu.hasAttribute('hidden');
+		closeAllSiteActionMenus();
+		if (open) {
+			menu.removeAttribute('hidden');
+			toggleBtn.setAttribute('aria-expanded', 'true');
+		}
+	}
+
+	function toggleSiteActionMenu(toggleBtn) {
+		toggleActionMenu(toggleBtn, '.launchdek-site-actions-menu');
+	}
+
+	function toggleRunActionMenu(toggleBtn) {
+		toggleActionMenu(toggleBtn, '.launchdek-run-actions-menu');
 	}
 
 	function getSiteRow(siteId) {
@@ -1205,16 +1283,284 @@
 		return escHtml(new Date(parsed).toLocaleString());
 	}
 
+	function runStepsProgressHtml(run) {
+		var total = parseInt(run.steps_total, 10) || 0;
+		var completed = parseInt(run.steps_completed, 10) || 0;
+		var percent = total > 0 ? Math.round((completed / total) * 100) : 0;
+		var status = run.status || 'unknown';
+		var progressLabel = (strings.runStepsProgress || '%1$d of %2$d steps completed')
+			.replace('%1$d', String(completed))
+			.replace('%2$d', String(total));
+		var statusLabel = runStatusLabel(status);
+
+		return '<div class="launchdek-run-progress">' +
+			'<div class="launchdek-run-progress-meta">' +
+				'<span class="launchdek-run-progress-label">' + escHtml(completed + '/' + total) + '</span>' +
+				'<span class="launchdek-badge ' + escAttr(status) + '">' + escHtml(statusLabel) + '</span>' +
+			'</div>' +
+			'<div class="launchdek-run-progress-bar" role="progressbar" aria-valuenow="' + percent + '" aria-valuemin="0" aria-valuemax="100" aria-label="' + escAttr(progressLabel) + '">' +
+				'<span class="launchdek-run-progress-fill is-' + escAttr(status) + '" style="width:' + percent + '%"></span>' +
+			'</div>' +
+			'</div>';
+	}
+
 	function automationRunUrl(runId) {
 		return launchdekAdmin.adminUrl + '?page=' + launchdekAdmin.pageSlug + '-automation&run_id=' + encodeURIComponent(String(runId));
 	}
 
-	function renderSiteRunsPanel(panel, runs) {
+	function checklistEditorUrl(checklistId) {
+		return launchdekAdmin.adminUrl + '?page=' + launchdekAdmin.pageSlug + '-checklists&checklist_id=' + encodeURIComponent(String(checklistId));
+	}
+
+	function isBuiltinTemplateRun(run) {
+		return !!(run.checklist_is_template && run.checklist_template_slug);
+	}
+
+	function runActionsHtml(run) {
+		var runId = String(run.id);
+		var checklistId = String(run.checklist_id || '');
+		var isBuiltin = isBuiltinTemplateRun(run);
+		var menuLabel = strings.runActionsMenu || 'More run actions';
+		var editDisabled = isBuiltin ? ' disabled title="' + escAttr(strings.templateEditBlocked || 'Built-in templates cannot be edited. Duplicate instead.') + '"' : '';
+		var html = '<div class="launchdek-run-actions-dropdown">';
+		html += '<div class="launchdek-site-actions-split">';
+		html += '<a class="button button-small launchdek-view-run" href="' + escAttr(automationRunUrl(run.id)) + '">' + escHtml(strings.viewRun || 'View run') + '</a>';
+		html += '<button type="button" class="button button-small launchdek-run-actions-toggle" data-run-id="' + escAttr(runId) + '" data-site-id="' + escAttr(String(run.site_id || '')) + '" data-checklist-id="' + escAttr(checklistId) + '" data-template-slug="' + escAttr(run.checklist_template_slug || '') + '" data-builtin-template="' + (isBuiltin ? '1' : '0') + '" aria-haspopup="true" aria-expanded="false" aria-label="' + escAttr(menuLabel) + '">';
+		html += '<span class="dashicons dashicons-arrow-down-alt2" aria-hidden="true"></span>';
+		html += '</button>';
+		html += '</div>';
+		html += '<div class="launchdek-run-actions-menu launchdek-site-actions-menu" role="menu" hidden>';
+		html += '<button type="button" role="menuitem" class="launchdek-run-action-edit" data-checklist-id="' + escAttr(checklistId) + '"' + editDisabled + '>' + escHtml(strings.editChecklist || strings.editSite || 'Edit') + '</button>';
+		html += '<button type="button" role="menuitem" class="launchdek-run-action-duplicate" data-run-id="' + escAttr(runId) + '" data-checklist-id="' + escAttr(checklistId) + '" data-template-slug="' + escAttr(run.checklist_template_slug || '') + '" data-builtin-template="' + (isBuiltin ? '1' : '0') + '">' + escHtml(strings.duplicate || 'Duplicate') + '</button>';
+		html += '<button type="button" role="menuitem" class="launchdek-run-action-export" data-checklist-id="' + escAttr(checklistId) + '">' + escHtml(strings.export || 'Export') + '</button>';
+		html += '<button type="button" role="menuitem" class="launchdek-run-action-archive" data-run-id="' + escAttr(runId) + '" data-site-id="' + escAttr(String(run.site_id || '')) + '">' + escHtml(strings.archive || 'Archive') + '</button>';
+		html += '<button type="button" role="menuitem" class="launchdek-run-action-delete" data-run-id="' + escAttr(runId) + '" data-site-id="' + escAttr(String(run.site_id || '')) + '">' + escHtml(strings.delete || 'Delete') + '</button>';
+		html += '</div></div>';
+		return html;
+	}
+
+	function duplicateRunChecklist(run) {
+		if (isBuiltinTemplateRun(run)) {
+			return post('/templates/' + run.checklist_template_slug + '/clone', {});
+		}
+		return get('/checklists/' + run.checklist_id).then(function (checklist) {
+			return post('/checklists', {
+				title: (checklist.title || 'Checklist') + ' (Copy)',
+				description: checklist.description || '',
+				steps: checklist.steps || [],
+				is_template: false
+			});
+		});
+	}
+
+	function exportRunChecklist(checklistId) {
+		return get('/checklists/' + checklistId + '/export').then(function (data) {
+			var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+			var a = document.createElement('a');
+			a.href = URL.createObjectURL(blob);
+			a.download = (data.title || 'checklist') + '.json';
+			a.click();
+			URL.revokeObjectURL(a.href);
+		});
+	}
+
+	function bindRunActions(panel) {
 		if (!panel) {
 			return;
 		}
 
-		if (!runs || !runs.length) {
+		panel.querySelectorAll('.launchdek-run-actions-toggle').forEach(function (btn) {
+			btn.onclick = function (e) {
+				e.preventDefault();
+				e.stopPropagation();
+				toggleRunActionMenu(btn);
+			};
+		});
+
+		panel.querySelectorAll('.launchdek-run-action-edit').forEach(function (btn) {
+			btn.onclick = function () {
+				closeAllSiteActionMenus();
+				if (btn.disabled) {
+					return;
+				}
+				var checklistId = parseInt(btn.dataset.checklistId, 10);
+				if (checklistId) {
+					window.location.href = checklistEditorUrl(checklistId);
+				}
+			};
+		});
+
+		panel.querySelectorAll('.launchdek-run-action-duplicate').forEach(function (btn) {
+			btn.onclick = function () {
+				closeAllSiteActionMenus();
+				var run = {
+					id: parseInt(btn.dataset.runId, 10),
+					checklist_id: parseInt(btn.dataset.checklistId, 10),
+					checklist_template_slug: btn.dataset.templateSlug || '',
+					checklist_is_template: btn.dataset.builtinTemplate === '1'
+				};
+				duplicateRunChecklist(run).then(function (checklist) {
+					if (checklist && checklist.id) {
+						window.location.href = checklistEditorUrl(checklist.id);
+					}
+				}).catch(function (err) {
+					window.alert(err.message || strings.error || 'Something went wrong.');
+				});
+			};
+		});
+
+		panel.querySelectorAll('.launchdek-run-action-export').forEach(function (btn) {
+			btn.onclick = function () {
+				closeAllSiteActionMenus();
+				var checklistId = parseInt(btn.dataset.checklistId, 10);
+				if (!checklistId) {
+					return;
+				}
+				exportRunChecklist(checklistId).catch(function (err) {
+					window.alert(err.message || strings.error || 'Something went wrong.');
+				});
+			};
+		});
+
+		panel.querySelectorAll('.launchdek-run-action-archive').forEach(function (btn) {
+			btn.onclick = function () {
+				closeAllSiteActionMenus();
+				var runId = parseInt(btn.dataset.runId, 10);
+				var siteId = parseInt(btn.dataset.siteId, 10);
+				if (!runId) {
+					return;
+				}
+				openConfirmModal({
+					title: strings.archive || 'Archive',
+					message: strings.confirmArchiveRun || 'Archive this run? It will be hidden from checklist history.',
+					confirmText: strings.archive || 'Archive',
+					onConfirm: function () {
+						return post('/runs/' + runId + '/archive', {}).then(function () {
+							invalidateSiteRunsCache(siteId);
+						});
+					}
+				});
+			};
+		});
+
+		panel.querySelectorAll('.launchdek-run-action-delete').forEach(function (btn) {
+			btn.onclick = function () {
+				closeAllSiteActionMenus();
+				var runId = parseInt(btn.dataset.runId, 10);
+				var siteId = parseInt(btn.dataset.siteId, 10);
+				if (!runId) {
+					return;
+				}
+				openConfirmModal({
+					title: strings.delete || 'Delete',
+					message: strings.confirmDeleteRun || 'Delete this checklist run permanently?',
+					confirmText: strings.deletePermanently || strings.delete || 'Delete permanently',
+					destructive: true,
+					onConfirm: function () {
+						return del('/runs/' + runId).then(function () {
+							invalidateSiteRunsCache(siteId);
+						});
+					}
+				});
+			};
+		});
+	}
+
+	function normalizeSiteRunsResponse(data) {
+		if (Array.isArray(data)) {
+			return {
+				runs: data,
+				hasMore: false
+			};
+		}
+
+		return {
+			runs: Array.isArray(data && data.runs) ? data.runs : [],
+			hasMore: !!(data && data.has_more)
+		};
+	}
+
+	function siteRunRowHtml(run) {
+		return '<tr>' +
+			'<td>' + escHtml(run.checklist_title || ('#' + run.checklist_id)) + '</td>' +
+			'<td>' + runStepsProgressHtml(run) + '</td>' +
+			'<td>' + formatRunTimestamp(run.started_at) + '</td>' +
+			'<td>' + formatRunTimestamp(run.completed_at) + '</td>' +
+			'<td>' + escHtml(run.started_by_name || '—') + '</td>' +
+			'<td class="launchdek-actions">' + runActionsHtml(run) + '</td>' +
+			'</tr>';
+	}
+
+	function siteRunsLoadMoreHtml(siteId) {
+		return '<div class="launchdek-site-runs-more">' +
+			'<button type="button" class="button button-link launchdek-site-runs-load-more" data-site-id="' + escAttr(String(siteId)) + '">' +
+			escHtml(strings.siteRunsLoadMore || 'Load more') +
+			'</button></div>';
+	}
+
+	function bindSiteRunsLoadMore(panel) {
+		if (!panel) {
+			return;
+		}
+
+		panel.querySelectorAll('.launchdek-site-runs-load-more').forEach(function (btn) {
+			btn.onclick = function () {
+				loadMoreSiteRuns(parseInt(btn.dataset.siteId, 10), panel, btn);
+			};
+		});
+	}
+
+	function updateSiteRunsLoadMore(panel, siteId, hasMore) {
+		if (!panel) {
+			return;
+		}
+
+		var moreWrap = panel.querySelector('.launchdek-site-runs-more');
+		if (hasMore) {
+			if (!moreWrap) {
+				panel.insertAdjacentHTML('beforeend', siteRunsLoadMoreHtml(siteId));
+				bindSiteRunsLoadMore(panel);
+			} else {
+				var btn = moreWrap.querySelector('.launchdek-site-runs-load-more');
+				if (btn) {
+					btn.disabled = false;
+					btn.textContent = strings.siteRunsLoadMore || 'Load more';
+				}
+			}
+			return;
+		}
+
+		if (moreWrap) {
+			moreWrap.remove();
+		}
+	}
+
+	function appendSiteRunsRows(panel, runs, siteId, hasMore) {
+		var tbody = panel.querySelector('.launchdek-site-runs-table tbody');
+		if (!tbody || !runs || !runs.length) {
+			updateSiteRunsLoadMore(panel, siteId, hasMore);
+			return;
+		}
+
+		var html = '';
+		runs.forEach(function (run) {
+			html += siteRunRowHtml(run);
+		});
+		tbody.insertAdjacentHTML('beforeend', html);
+		bindRunActions(panel);
+		updateSiteRunsLoadMore(panel, siteId, hasMore);
+	}
+
+	function renderSiteRunsPanel(panel, cacheEntry) {
+		if (!panel) {
+			return;
+		}
+
+		cacheEntry = normalizeSiteRunsResponse(cacheEntry);
+		var runs = cacheEntry.runs;
+		var siteId = panel.getAttribute('data-site-id') || '';
+
+		if (!runs.length) {
 			panel.innerHTML = '<p class="launchdek-muted launchdek-site-runs-empty">' + escHtml(strings.siteNoChecklistRuns || 'No checklist runs recorded for this site yet.') + '</p>';
 			return;
 		}
@@ -1222,7 +1568,7 @@
 		var html = '<div class="launchdek-site-runs-heading">' + escHtml(strings.siteChecklistHistory || 'Checklist history') + '</div>';
 		html += '<table class="launchdek-site-runs-table"><thead><tr>';
 		html += '<th scope="col">' + escHtml(strings.runChecklist || 'Checklist') + '</th>';
-		html += '<th scope="col">' + escHtml(strings.runStatus || 'Status') + '</th>';
+		html += '<th scope="col">' + escHtml(strings.runSteps || 'Steps') + '</th>';
 		html += '<th scope="col">' + escHtml(strings.runStartedAt || 'Started') + '</th>';
 		html += '<th scope="col">' + escHtml(strings.runCompletedAt || 'Completed') + '</th>';
 		html += '<th scope="col">' + escHtml(strings.runStartedBy || 'By') + '</th>';
@@ -1230,18 +1576,16 @@
 		html += '</tr></thead><tbody>';
 
 		runs.forEach(function (run) {
-			html += '<tr>' +
-				'<td>' + escHtml(run.checklist_title || ('#' + run.checklist_id)) + '</td>' +
-				'<td><span class="launchdek-badge ' + escAttr(run.status || 'unknown') + '">' + escHtml(runStatusLabel(run.status)) + '</span></td>' +
-				'<td>' + formatRunTimestamp(run.started_at) + '</td>' +
-				'<td>' + formatRunTimestamp(run.completed_at) + '</td>' +
-				'<td>' + escHtml(run.started_by_name || '—') + '</td>' +
-				'<td class="launchdek-actions"><a class="button button-small" href="' + escAttr(automationRunUrl(run.id)) + '">' + escHtml(strings.viewRun || 'View run') + '</a></td>' +
-				'</tr>';
+			html += siteRunRowHtml(run);
 		});
 
 		html += '</tbody></table>';
+		if (cacheEntry.hasMore) {
+			html += siteRunsLoadMoreHtml(siteId);
+		}
 		panel.innerHTML = html;
+		bindRunActions(panel);
+		bindSiteRunsLoadMore(panel);
 	}
 
 	function loadSiteRuns(siteId, panel) {
@@ -1249,19 +1593,70 @@
 			panel = document.querySelector('.launchdek-site-runs-panel[data-site-id="' + siteId + '"]');
 		}
 		if (!panel) {
-			return Promise.resolve([]);
+			return Promise.resolve({ runs: [], hasMore: false });
+		}
+
+		if (siteRunsCache[siteId]) {
+			renderSiteRunsPanel(panel, siteRunsCache[siteId]);
+			return Promise.resolve(siteRunsCache[siteId]);
+		}
+
+		if (siteRunsPending[siteId]) {
+			return siteRunsPending[siteId].then(function (entry) {
+				renderSiteRunsPanel(panel, entry);
+				return entry;
+			});
 		}
 
 		panel.innerHTML = '<p class="launchdek-muted">' + escHtml(strings.loading || 'Loading…') + '</p>';
 
-		return get('/sites/' + siteId + '/runs').then(function (runs) {
-			siteRunsCache[siteId] = runs || [];
+		siteRunsPending[siteId] = get('/sites/' + siteId + '/runs?limit=' + siteRunsHistoryLimit + '&offset=0').then(function (data) {
+			siteRunsCache[siteId] = normalizeSiteRunsResponse(data);
 			renderSiteRunsPanel(panel, siteRunsCache[siteId]);
 			return siteRunsCache[siteId];
 		}).catch(function (err) {
 			panel.innerHTML = '<div class="notice-inline error">' + escHtml(err.message || strings.error || 'Something went wrong.') + '</div>';
 			throw err;
+		}).finally(function () {
+			delete siteRunsPending[siteId];
 		});
+
+		return siteRunsPending[siteId];
+	}
+
+	function loadMoreSiteRuns(siteId, panel, btn) {
+		if (!panel) {
+			panel = document.querySelector('.launchdek-site-runs-panel[data-site-id="' + siteId + '"]');
+		}
+		if (!panel || !siteRunsCache[siteId] || !siteRunsCache[siteId].hasMore || siteRunsMorePending[siteId]) {
+			return Promise.resolve(siteRunsCache[siteId] || { runs: [], hasMore: false });
+		}
+
+		if (btn) {
+			btn.disabled = true;
+			btn.textContent = strings.siteRunsLoadingMore || 'Loading more…';
+		}
+
+		var offset = siteRunsCache[siteId].runs.length;
+
+		siteRunsMorePending[siteId] = get('/sites/' + siteId + '/runs?limit=' + siteRunsHistoryLimit + '&offset=' + offset).then(function (data) {
+			var entry = normalizeSiteRunsResponse(data);
+			siteRunsCache[siteId].runs = siteRunsCache[siteId].runs.concat(entry.runs);
+			siteRunsCache[siteId].hasMore = entry.hasMore;
+			appendSiteRunsRows(panel, entry.runs, siteId, entry.hasMore);
+			return siteRunsCache[siteId];
+		}).catch(function (err) {
+			window.alert(err.message || strings.error || 'Something went wrong.');
+			if (btn) {
+				btn.disabled = false;
+				btn.textContent = strings.siteRunsLoadMore || 'Load more';
+			}
+			throw err;
+		}).finally(function () {
+			delete siteRunsMorePending[siteId];
+		});
+
+		return siteRunsMorePending[siteId];
 	}
 
 	function setSiteHistoryOpen(siteId, open) {
@@ -1312,6 +1707,8 @@
 
 	function invalidateSiteRunsCache(siteId) {
 		delete siteRunsCache[siteId];
+		delete siteRunsPending[siteId];
+		delete siteRunsMorePending[siteId];
 		var runsRow = getSiteRunsRow(siteId);
 		if (runsRow && !runsRow.hasAttribute('hidden')) {
 			loadSiteRuns(siteId, runsRow.querySelector('.launchdek-site-runs-panel'));
@@ -1320,21 +1717,14 @@
 
 	function appendSiteRowPair(tbody, site) {
 		var siteId = String(site.id);
-		var connectionBlocked = site.health_status === 'unhealthy';
 		var tr = el('tr', { className: 'launchdek-site-row', 'data-site-id': siteId });
 		tr.innerHTML =
 			'<td>' + siteHistoryToggleHtml(siteId) + escHtml(site.name) + (site.client_agent ? ' <span class="launchdek-badge healthy launchdek-client-agent-badge">' + escHtml(strings.clientPanelBadge || 'Client panel') + '</span>' : '') + '</td>' +
 			'<td><a href="' + escAttr(site.url) + '" target="_blank" rel="noopener">' + escHtml(site.url) + '</a></td>' +
-			'<td class="launchdek-site-connection-cell">' + connectionStatusHtml(site) + '</td>' +
+			'<td class="launchdek-site-status-cell">' + connectionStatusHtml(site) + '</td>' +
 			'<td class="launchdek-site-wp-version">' + escHtml(site.wp_version || '—') + '</td>' +
 			'<td class="launchdek-site-php-version">' + escHtml(site.php_version || '—') + '</td>' +
-			'<td><span class="launchdek-badge launchdek-site-health-badge ' + escAttr(site.health_status) + '">' + escHtml(healthLabel(site.health_status)) + '</span></td>' +
-			'<td class="launchdek-actions">' +
-			'<div class="launchdek-actions-wrap">' +
-			'<button type="button" class="button button-small launchdek-push-checklist" data-id="' + escAttr(site.id) + '" data-name="' + escAttr(site.name) + '"' + (connectionBlocked ? ' disabled' : '') + '>' + escHtml(strings.pushChecklist || 'Push Checklist') + '</button>' +
-			'<button type="button" class="button button-small launchdek-edit-site" data-id="' + escAttr(site.id) + '">Edit</button>' +
-			'<button type="button" class="button button-small launchdek-test-site" data-id="' + escAttr(site.id) + '">Test</button>' +
-			'</div></td>';
+			'<td class="launchdek-actions">' + siteActionsHtml(site) + '</td>';
 		tbody.appendChild(tr);
 
 		var runsRow = el('tr', { className: 'launchdek-site-runs-row', 'data-site-id': siteId, hidden: 'hidden' });
@@ -1346,18 +1736,24 @@
 		var row = getSiteRow(siteId);
 		if (!row) return;
 
-		var connCell = row.querySelector('.launchdek-site-connection-cell');
-		if (connCell) {
-			connCell.innerHTML = connectionStatusHtml({
-				health_status: status,
-				last_error: details && details.message ? details.message : ''
-			}, status);
-		}
-
-		var healthBadge = row.querySelector('.launchdek-site-health-badge');
-		if (healthBadge && status !== 'checking') {
-			healthBadge.className = 'launchdek-badge launchdek-site-health-badge ' + status;
-			healthBadge.textContent = healthLabel(status);
+		var statusCell = row.querySelector('.launchdek-site-status-cell');
+		if (statusCell) {
+			if (status === 'checking') {
+				var dot = statusCell.querySelector('.launchdek-connection-dot');
+				if (dot) {
+					dot.className = 'launchdek-connection-dot checking';
+				}
+				var warning = statusCell.querySelector('.launchdek-connection-warning');
+				if (warning) {
+					warning.remove();
+				}
+				statusCell.setAttribute('title', connectionStatusLabel('checking'));
+			} else {
+				statusCell.innerHTML = connectionStatusHtml({
+					health_status: status,
+					last_error: details && details.message ? details.message : ''
+				}, status);
+			}
 		}
 
 		if (details && details.wp_version) {
@@ -1447,6 +1843,8 @@
 		}
 
 		siteRunsCache = {};
+		siteRunsPending = {};
+		siteRunsMorePending = {};
 		tbody.innerHTML = '';
 		if (!sites || !sites.length) {
 			var emptyMsg = strings.noSites || 'No sites registered yet.';
@@ -1511,15 +1909,27 @@
 			};
 		});
 		document.querySelectorAll('.launchdek-edit-site').forEach(function (btn) {
-			btn.onclick = function () { openSiteModal(parseInt(btn.dataset.id, 10)); };
+			btn.onclick = function () {
+				closeAllSiteActionMenus();
+				openSiteModal(parseInt(btn.dataset.id, 10));
+			};
+		});
+		document.querySelectorAll('.launchdek-site-actions-toggle').forEach(function (btn) {
+			btn.onclick = function (e) {
+				e.preventDefault();
+				e.stopPropagation();
+				toggleSiteActionMenu(btn);
+			};
 		});
 		document.querySelectorAll('.launchdek-test-site').forEach(function (btn) {
 			btn.onclick = function () {
+				closeAllSiteActionMenus();
 				testSiteConnection(parseInt(btn.dataset.id, 10), { silent: false });
 			};
 		});
 		document.querySelectorAll('.launchdek-push-checklist').forEach(function (btn) {
 			btn.onclick = function () {
+				closeAllSiteActionMenus();
 				openPushChecklistModal(parseInt(btn.dataset.id, 10), btn.dataset.name || '');
 			};
 		});
@@ -1591,6 +2001,133 @@
 	}
 
 	function closeModal(modal) { modal.hidden = true; }
+
+	var confirmModalState = {
+		onConfirm: null,
+		previousFocus: null
+	};
+
+	function resetConfirmModal(modal) {
+		var okBtn = document.getElementById('launchdek-confirm-ok');
+		if (!modal || !okBtn) {
+			return;
+		}
+
+		okBtn.disabled = false;
+		okBtn.classList.remove('button-link-delete');
+		okBtn.classList.add('button-primary');
+		confirmModalState.onConfirm = null;
+	}
+
+	function closeConfirmModal() {
+		var modal = document.getElementById('launchdek-confirm-modal');
+		if (!modal) {
+			return;
+		}
+
+		modal.hidden = true;
+		resetConfirmModal(modal);
+
+		if (confirmModalState.previousFocus && typeof confirmModalState.previousFocus.focus === 'function') {
+			confirmModalState.previousFocus.focus();
+		}
+		confirmModalState.previousFocus = null;
+	}
+
+	/**
+	 * Open the shared WordPress-style confirmation modal.
+	 *
+	 * @param {Object} options
+	 * @param {string} options.message
+	 * @param {string} [options.title]
+	 * @param {string} [options.confirmText]
+	 * @param {boolean} [options.destructive]
+	 * @param {Function} options.onConfirm Called when confirmed; may return a Promise.
+	 */
+	function openConfirmModal(options) {
+		var modal = document.getElementById('launchdek-confirm-modal');
+		if (!modal) {
+			return;
+		}
+
+		options = options || {};
+		var titleEl = document.getElementById('launchdek-confirm-title');
+		var messageEl = document.getElementById('launchdek-confirm-message');
+		var okBtn = document.getElementById('launchdek-confirm-ok');
+		if (!titleEl || !messageEl || !okBtn) {
+			return;
+		}
+
+		titleEl.textContent = options.title || strings.confirmActionTitle || 'Confirm action';
+		messageEl.textContent = options.message || '';
+		okBtn.textContent = options.confirmText || strings.confirm || 'Confirm';
+
+		if (options.destructive) {
+			okBtn.classList.remove('button-primary');
+			okBtn.classList.add('button-link-delete');
+		} else {
+			okBtn.classList.remove('button-link-delete');
+			okBtn.classList.add('button-primary');
+		}
+
+		confirmModalState.previousFocus = document.activeElement;
+		confirmModalState.onConfirm = typeof options.onConfirm === 'function' ? options.onConfirm : null;
+		modal.hidden = false;
+		document.getElementById('launchdek-confirm-cancel').focus();
+	}
+
+	function initConfirmModal() {
+		var modal = document.getElementById('launchdek-confirm-modal');
+		if (!modal) {
+			return;
+		}
+
+		var okBtn = document.getElementById('launchdek-confirm-ok');
+		var cancelBtn = document.getElementById('launchdek-confirm-cancel');
+		if (!okBtn || !cancelBtn) {
+			return;
+		}
+
+		modal.querySelectorAll('[data-launchdek-confirm-close], #launchdek-confirm-cancel').forEach(function (node) {
+			node.addEventListener('click', closeConfirmModal);
+		});
+
+		okBtn.addEventListener('click', function () {
+			if (!confirmModalState.onConfirm) {
+				closeConfirmModal();
+				return;
+			}
+
+			okBtn.disabled = true;
+			var result;
+			try {
+				result = confirmModalState.onConfirm();
+			} catch (err) {
+				okBtn.disabled = false;
+				window.alert(err.message || strings.error || 'Something went wrong.');
+				return;
+			}
+
+			if (result && typeof result.then === 'function') {
+				result.then(function () {
+					closeConfirmModal();
+				}).catch(function (err) {
+					okBtn.disabled = false;
+					window.alert(err.message || strings.error || 'Something went wrong.');
+				});
+				return;
+			}
+
+			closeConfirmModal();
+		});
+
+		modal.addEventListener('keydown', function (e) {
+			if (e.key === 'Escape' && !modal.hidden) {
+				e.preventDefault();
+				closeConfirmModal();
+			}
+		});
+	}
 
 	function parseTagsInput() {
 		var raw = document.getElementById('launchdek-site-tags').value;
@@ -1691,6 +2228,20 @@
 	function initSites() {
 		if (!document.querySelector('[data-launchdek-page="sites"]')) return;
 
+		if (!window.launchdekSiteActionsMenuBound) {
+			window.launchdekSiteActionsMenuBound = true;
+			document.addEventListener('click', function (e) {
+				if (!e.target.closest('.launchdek-site-actions-dropdown') && !e.target.closest('.launchdek-run-actions-dropdown')) {
+					closeAllSiteActionMenus();
+				}
+			});
+			document.addEventListener('keydown', function (e) {
+				if (e.key === 'Escape') {
+					closeAllSiteActionMenus();
+				}
+			});
+		}
+
 		var tbody = document.querySelector('#launchdek-sites-table tbody');
 		if (launchdekAdmin.sites && launchdekAdmin.sites.list) {
 			if (tbody && tbody.getAttribute('data-launchdek-preloaded') !== '1') {
@@ -1769,11 +2320,21 @@
 		});
 
 		document.getElementById('launchdek-site-delete').addEventListener('click', function () {
-			if (!currentSiteId || !confirm(strings.confirmDeleteSite || strings.confirmDelete)) return;
-			del('/sites/' + currentSiteId).then(function () {
-				closeModal(document.getElementById('launchdek-site-modal'));
-				loadSites({ forceFetch: true });
-			}).catch(function (e) { alert(e.message); });
+			if (!currentSiteId) {
+				return;
+			}
+			openConfirmModal({
+				title: strings.delete || 'Delete',
+				message: strings.confirmDeleteSite || strings.confirmDelete || 'Are you sure you want to delete this site?',
+				confirmText: strings.deletePermanently || strings.delete || 'Delete permanently',
+				destructive: true,
+				onConfirm: function () {
+					return del('/sites/' + currentSiteId).then(function () {
+						closeModal(document.getElementById('launchdek-site-modal'));
+						loadSites({ forceFetch: true });
+					});
+				}
+			});
 		});
 
 		document.getElementById('launchdek-connection-tester-form').addEventListener('submit', function (e) {
@@ -2160,7 +2721,7 @@
 		var showTab = initChecklistTabs();
 		var params = new URLSearchParams(window.location.search);
 		var openId = parseInt(params.get('checklist_id') || '0', 10);
-		var initialTab = openId ? 'builder' : (params.get('tab') === 'templates' ? 'templates' : 'builder');
+		var initialTab = openId ? 'builder' : (params.get('tab') === 'builder' ? 'builder' : 'templates');
 		if (showTab) {
 			showTab(initialTab, false);
 		}
@@ -2236,15 +2797,26 @@
 
 		document.getElementById('launchdek-delete-checklist').onclick = function () {
 			var noticeEl = document.getElementById('launchdek-checklist-notice');
-			if (!currentChecklistId || !confirm(strings.confirmDeleteChecklist || strings.confirmDelete)) return;
-			del('/checklists/' + currentChecklistId).then(function () {
-				currentChecklistId = null;
-				document.getElementById('launchdek-checklist-editor').hidden = true;
-				notice(noticeEl, '', '');
-				loadChecklistList();
-				updateChecklistActions();
-			}).catch(function (e) {
-				notice(noticeEl, e.message, 'error');
+			if (!currentChecklistId) {
+				return;
+			}
+			openConfirmModal({
+				title: strings.delete || 'Delete',
+				message: strings.confirmDeleteChecklist || strings.confirmDelete || 'Are you sure you want to delete this checklist?',
+				confirmText: strings.deletePermanently || strings.delete || 'Delete permanently',
+				destructive: true,
+				onConfirm: function () {
+					return del('/checklists/' + currentChecklistId).then(function () {
+						currentChecklistId = null;
+						document.getElementById('launchdek-checklist-editor').hidden = true;
+						notice(noticeEl, '', '');
+						loadChecklistList();
+						updateChecklistActions();
+					}).catch(function (e) {
+						notice(noticeEl, e.message, 'error');
+						throw e;
+					});
+				}
 			});
 		};
 
@@ -3277,7 +3849,7 @@
 	function initTemplates() {
 		if (!document.getElementById('launchdek-builtin-templates')) return;
 
-		get('/templates').then(function (data) {
+		loadTemplatesData().then(function (data) {
 			renderBuiltinCategories(data.builtin || [], data.categories || {});
 		});
 
@@ -3406,6 +3978,7 @@
 
 		initTemplatePicker();
 		initOnboarding();
+		initConfirmModal();
 		initDashboard();
 		initSites();
 		initActivityLogs();

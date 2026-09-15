@@ -26,6 +26,7 @@ $exclude_options   = LAUNCHDEK_Settings::get_exclude_options();
 $exclude_labels    = LAUNCHDEK_Settings::get_exclude_option_labels();
 $panel_layouts     = LAUNCHDEK_Settings::get_client_panel_layouts();
 $panel_layout      = LAUNCHDEK_Settings::get_client_panel_layout();
+$panel_title       = LAUNCHDEK_Settings::get_client_panel_title();
 $channels        = array(
 	'slack'   => array(
 		'label'       => __( 'Slack', LAUNCHDEK_TEXT_DOMAIN ),
@@ -78,6 +79,19 @@ $channels        = array(
 			<p class="launchdek-settings-lead"><?php esc_html_e( 'Choose how the optional checklist panel appears on connected client sites.', LAUNCHDEK_TEXT_DOMAIN ); ?></p>
 			<div class="launchdek-settings-panel-layout-picker">
 				<div class="launchdek-settings-panel-layout-controls">
+					<label for="launchdek-panel-title"><?php esc_html_e( 'Panel title', LAUNCHDEK_TEXT_DOMAIN ); ?></label>
+					<input
+						type="text"
+						class="regular-text"
+						id="launchdek-panel-title"
+						name="<?php echo esc_attr( $option_name ); ?>[client_panel_title]"
+						value="<?php echo esc_attr( $panel_title ); ?>"
+						maxlength="80"
+						placeholder="<?php echo esc_attr( LAUNCHDEK_Settings::get_default_client_panel_title() ); ?>"
+					/>
+					<p class="launchdek-muted launchdek-settings-note">
+						<?php esc_html_e( 'Heading shown on the client checklist panel. Syncs on the next checklist push or client panel refresh.', LAUNCHDEK_TEXT_DOMAIN ); ?>
+					</p>
 					<label for="launchdek-panel-layout"><?php esc_html_e( 'Panel layout', LAUNCHDEK_TEXT_DOMAIN ); ?></label>
 					<select
 						id="launchdek-panel-layout"

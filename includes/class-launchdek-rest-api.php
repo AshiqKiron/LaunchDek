@@ -219,9 +219,22 @@ class LAUNCHDEK_REST_API {
 		) );
 
 		register_rest_route( self::NAMESPACE, '/runs/(?P<id>\d+)', array(
-			'methods'             => 'GET',
-			'callback'            => array( __CLASS__, 'get_run' ),
-			'permission_callback' => array( __CLASS__, 'can_execute' ),
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( __CLASS__, 'get_run' ),
+				'permission_callback' => array( __CLASS__, 'can_execute' ),
+			),
+			array(
+				'methods'             => 'DELETE',
+				'callback'            => array( __CLASS__, 'delete_run' ),
+				'permission_callback' => array( __CLASS__, 'can_manage_sites' ),
+			),
+		) );
+
+		register_rest_route( self::NAMESPACE, '/runs/(?P<id>\d+)/archive', array(
+			'methods'             => 'POST',
+			'callback'            => array( __CLASS__, 'archive_run' ),
+			'permission_callback' => array( __CLASS__, 'can_manage_sites' ),
 		) );
 
 		register_rest_route( self::NAMESPACE, '/runs/(?P<id>\d+)/next', array(
@@ -498,17 +511,20 @@ class LAUNCHDEK_REST_API {
 			return new WP_Error( 'not_found', __( 'Site not found.', LAUNCHDEK_TEXT_DOMAIN ), array( 'status' => 404 ) );
 		}
 
-		$limit = absint( $request->get_param( 'limit' ) );
+		$limit  = absint( $request->get_param( 'limit' ) );
+		$offset = absint( $request->get_param( 'offset' ) );
+
 		if ( $limit < 1 ) {
-			$limit = 50;
+			$limit = 25;
 		}
 
 		return rest_ensure_response(
-			LAUNCHDEK_Run_Repository::all(
+			LAUNCHDEK_Run_Repository::list_for_site_history(
+				$site_id,
 				array(
-					'site_id' => $site_id,
-					'status'  => sanitize_key( $request->get_param( 'status' ) ?: '' ),
-					'limit'   => min( 200, $limit ),
+					'status' => sanitize_key( $request->get_param( 'status' ) ?: '' ),
+					'limit'  => min( 200, $limit ),
+					'offset' => $offset,
 				)
 			)
 		);
@@ -902,6 +918,48 @@ class LAUNCHDEK_REST_API {
 		return rest_ensure_response( $run );
 	}
 
+	/**
+	 * Archive a checklist run (hide from default site history).
+	 *
+	 * @param WP_REST_Request $request Request.
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public static function archive_run( $request ) {
+		$id  = absint( $request['id'] );
+		$run = LAUNCHDEK_Run_Repository::find( $id );
+
+		if ( ! $run ) {
+			return new WP_Error( 'not_found', __( 'Run not found.', LAUNCHDEK_TEXT_DOMAIN ), array( 'status' => 404 ) );
+		}
+
+		if ( ! LAUNCHDEK_Run_Repository::archive( $id ) ) {
+			return new WP_Error( 'archive_failed', __( 'Failed to archive run.', LAUNCHDEK_TEXT_DOMAIN ), array( 'status' => 500 ) );
+		}
+
+		return rest_ensure_response( array( 'archived' => true, 'id' => $id ) );
+	}
+
+	/**
+	 * Permanently delete a checklist run.
+	 *
+	 * @param WP_REST_Request $request Request.
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public static function delete_run( $request ) {
+		$id  = absint( $request['id'] );
+		$run = LAUNCHDEK_Run_Repository::find( $id );
+
+		if ( ! $run ) {
+			return new WP_Error( 'not_found', __( 'Run not found.', LAUNCHDEK_TEXT_DOMAIN ), array( 'status' => 404 ) );
+		}
+
+		if ( ! LAUNCHDEK_Run_Repository::delete( $id ) ) {
+			return new WP_Error( 'delete_failed', __( 'Failed to delete run.', LAUNCHDEK_TEXT_DOMAIN ), array( 'status' => 500 ) );
+		}
+
+		return rest_ensure_response( array( 'deleted' => true, 'id' => $id ) );
+	}
+
 	public static function start_run( $request ) {
 		$data   = $request->get_json_params();
 		$result = LAUNCHDEK_Checklist_Runner::start(
@@ -1108,12 +1166,9 @@ class LAUNCHDEK_REST_API {
 
 	// Template handlers.
 	public static function get_templates() {
-		$builtin = LAUNCHDEK_Templates::get_builtin();
-		$db      = LAUNCHDEK_Checklist_Repository::all( array( 'is_template' => true ) );
 		return rest_ensure_response( array(
-			'builtin'    => $builtin,
+			'builtin'    => LAUNCHDEK_Templates::get_catalog(),
 			'categories' => LAUNCHDEK_Templates::get_categories(),
-			'stored'     => $db,
 		) );
 	}
 
@@ -1132,16 +1187,19 @@ class LAUNCHDEK_REST_API {
 	}
 
 	public static function clone_template( $request ) {
-		$slug = sanitize_key( $request['slug'] );
+		$slug     = sanitize_key( $request['slug'] );
+		$template = LAUNCHDEK_Templates::get_builtin_by_slug( $slug );
 
-		foreach ( LAUNCHDEK_Templates::get_builtin() as $template ) {
-			if ( ( $template['template_slug'] ?? '' ) === $slug ) {
-				$id = LAUNCHDEK_Templates::clone_template( $template );
-				return rest_ensure_response( LAUNCHDEK_Checklist_Repository::find( $id ) );
-			}
+		if ( ! $template ) {
+			return new WP_Error( 'not_found', __( 'Template not found.', LAUNCHDEK_TEXT_DOMAIN ), array( 'status' => 404 ) );
 		}
 
-		return new WP_Error( 'not_found', __( 'Template not found.', LAUNCHDEK_TEXT_DOMAIN ), array( 'status' => 404 ) );
+		$id = LAUNCHDEK_Templates::clone_template( $template );
+		if ( ! $id ) {
+			return new WP_Error( 'clone_failed', __( 'Could not clone template.', LAUNCHDEK_TEXT_DOMAIN ), array( 'status' => 500 ) );
+		}
+
+		return rest_ensure_response( LAUNCHDEK_Checklist_Repository::find( $id ) );
 	}
 
 	// Integration handlers.

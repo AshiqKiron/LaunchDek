@@ -98,7 +98,7 @@ class LAUNCHDEK_Admin {
 		$page = sanitize_key( wp_unslash( $_GET['page'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 
 		if ( self::PAGE_SLUG . '-templates' === $page ) {
-			wp_safe_redirect( admin_url( 'admin.php?page=' . self::PAGE_SLUG . '-checklists&tab=templates' ) );
+			wp_safe_redirect( admin_url( 'admin.php?page=' . self::PAGE_SLUG . '-checklists' ) );
 			exit;
 		}
 
@@ -149,8 +149,8 @@ class LAUNCHDEK_Admin {
 				'roles'     => $wp_roles,
 				'onboarding' => array(
 					'show'           => empty( LAUNCHDEK_Settings::get()['onboarding_dismissed'] ),
-					'templatesUrl'   => admin_url( 'admin.php?page=' . self::PAGE_SLUG . '-checklists&tab=templates' ),
-					'checklistsUrl'  => admin_url( 'admin.php?page=' . self::PAGE_SLUG . '-checklists' ),
+					'templatesUrl'   => admin_url( 'admin.php?page=' . self::PAGE_SLUG . '-checklists' ),
+					'checklistsUrl'  => admin_url( 'admin.php?page=' . self::PAGE_SLUG . '-checklists&tab=builder' ),
 					'automationUrl'  => admin_url( 'admin.php?page=' . self::PAGE_SLUG . '-automation' ),
 					'activityLogsUrl' => admin_url( 'admin.php?page=' . self::PAGE_SLUG . '-activity-logs' ),
 				),
@@ -174,6 +174,9 @@ class LAUNCHDEK_Admin {
 					'connectionSummaryHealthy' => __( 'Healthy', LAUNCHDEK_TEXT_DOMAIN ),
 					'connectionSummaryUnhealthy' => __( 'Issues', LAUNCHDEK_TEXT_DOMAIN ),
 					'connectionSummaryUnknown' => __( 'Unknown', LAUNCHDEK_TEXT_DOMAIN ),
+					'editSite'       => __( 'Edit', LAUNCHDEK_TEXT_DOMAIN ),
+					'testSite'       => __( 'Test', LAUNCHDEK_TEXT_DOMAIN ),
+					'siteActionsMenu' => __( 'More site actions', LAUNCHDEK_TEXT_DOMAIN ),
 					'pushChecklist'  => __( 'Push Checklist', LAUNCHDEK_TEXT_DOMAIN ),
 					'pushChecklistSelect' => __( 'Select checklist…', LAUNCHDEK_TEXT_DOMAIN ),
 					'pushChecklistNeed' => __( 'Select a checklist to push.', LAUNCHDEK_TEXT_DOMAIN ),
@@ -183,7 +186,11 @@ class LAUNCHDEK_Admin {
 					'siteChecklistHistoryShow' => __( 'Show checklist history', LAUNCHDEK_TEXT_DOMAIN ),
 					'siteChecklistHistoryHide' => __( 'Hide checklist history', LAUNCHDEK_TEXT_DOMAIN ),
 					'siteNoChecklistRuns' => __( 'No checklist runs recorded for this site yet.', LAUNCHDEK_TEXT_DOMAIN ),
+					'siteRunsLoadMore'   => __( 'Load more', LAUNCHDEK_TEXT_DOMAIN ),
+					'siteRunsLoadingMore' => __( 'Loading more…', LAUNCHDEK_TEXT_DOMAIN ),
 					'runChecklist'       => __( 'Checklist', LAUNCHDEK_TEXT_DOMAIN ),
+					'runSteps'           => __( 'Steps', LAUNCHDEK_TEXT_DOMAIN ),
+					'runStepsProgress'   => __( '%1$d of %2$d steps completed', LAUNCHDEK_TEXT_DOMAIN ),
 					'runStatus'          => __( 'Status', LAUNCHDEK_TEXT_DOMAIN ),
 					'runStatusCompleted' => __( 'Completed', LAUNCHDEK_TEXT_DOMAIN ),
 					'runStatusRunning'   => __( 'Running', LAUNCHDEK_TEXT_DOMAIN ),
@@ -193,6 +200,19 @@ class LAUNCHDEK_Admin {
 					'runCompletedAt'     => __( 'Completed', LAUNCHDEK_TEXT_DOMAIN ),
 					'runStartedBy'       => __( 'By', LAUNCHDEK_TEXT_DOMAIN ),
 					'viewRun'            => __( 'View run', LAUNCHDEK_TEXT_DOMAIN ),
+					'runActionsMenu'     => __( 'More run actions', LAUNCHDEK_TEXT_DOMAIN ),
+					'duplicate'          => __( 'Duplicate', LAUNCHDEK_TEXT_DOMAIN ),
+					'export'             => __( 'Export', LAUNCHDEK_TEXT_DOMAIN ),
+					'archive'            => __( 'Archive', LAUNCHDEK_TEXT_DOMAIN ),
+					'delete'             => __( 'Delete', LAUNCHDEK_TEXT_DOMAIN ),
+					'confirmArchiveRun'  => __( 'Archive this run? It will be hidden from checklist history.', LAUNCHDEK_TEXT_DOMAIN ),
+					'confirmDeleteRun'   => __( 'Delete this checklist run permanently?', LAUNCHDEK_TEXT_DOMAIN ),
+					'confirmActionTitle' => __( 'Confirm action', LAUNCHDEK_TEXT_DOMAIN ),
+					'confirm'            => __( 'Confirm', LAUNCHDEK_TEXT_DOMAIN ),
+					'deletePermanently'  => __( 'Delete permanently', LAUNCHDEK_TEXT_DOMAIN ),
+					'runArchived'        => __( 'Run archived.', LAUNCHDEK_TEXT_DOMAIN ),
+					'runDeleted'         => __( 'Run deleted.', LAUNCHDEK_TEXT_DOMAIN ),
+					'templateEditBlocked' => __( 'Built-in templates cannot be edited. Duplicate instead.', LAUNCHDEK_TEXT_DOMAIN ),
 					'openRunner'     => __( 'Open runner →', LAUNCHDEK_TEXT_DOMAIN ),
 					'clientPanelBadge' => __( 'Client panel', LAUNCHDEK_TEXT_DOMAIN ),
 					'clientPushOk'   => __( 'Checklist pushed to client admin panel.', LAUNCHDEK_TEXT_DOMAIN ),
@@ -292,6 +312,19 @@ class LAUNCHDEK_Admin {
 			);
 		}
 
+		$template_screens = array(
+			'toplevel_page_' . self::PAGE_SLUG,
+			self::PAGE_SLUG . '_page_' . self::PAGE_SLUG . '-checklists',
+			self::PAGE_SLUG . '_page_' . self::PAGE_SLUG . '-settings',
+		);
+		if ( in_array( $hook, $template_screens, true ) ) {
+			$localize['templates'] = array(
+				'preloaded'  => true,
+				'builtin'    => LAUNCHDEK_Templates::get_catalog(),
+				'categories' => LAUNCHDEK_Templates::get_categories(),
+			);
+		}
+
 		wp_localize_script( 'launchdek-admin', 'launchdekAdmin', $localize );
 	}
 
@@ -373,6 +406,7 @@ class LAUNCHDEK_Admin {
 		$settings = LAUNCHDEK_Settings::get();
 		extract( $vars, EXTR_SKIP ); // phpcs:ignore WordPress.PHP.DontExtract.extract_extract
 		require LAUNCHDEK_PLUGIN_DIR . 'admin/partials/' . $partial;
+		require LAUNCHDEK_PLUGIN_DIR . 'admin/partials/launchdek-confirm-modal.php';
 	}
 
 

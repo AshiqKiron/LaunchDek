@@ -14,10 +14,12 @@ require_once plugin_dir_path( __FILE__ ) . 'includes/class-launchdek-installer.p
 require_once plugin_dir_path( __FILE__ ) . 'includes/class-launchdek-capabilities.php';
 
 require_once plugin_dir_path( __FILE__ ) . 'includes/class-launchdek-dashboard-cache.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/class-launchdek-templates.php';
 
 delete_option( LAUNCHDEK_Settings::OPTION_NAME );
 delete_option( LAUNCHDEK_Settings::VERSION_OPTION );
 delete_option( 'launchdek_templates_seeded' );
+delete_option( LAUNCHDEK_Templates::CATALOG_OPTION );
 delete_option( 'launchdek_drift_status' );
 delete_option( LAUNCHDEK_Installer::DB_VERSION_OPTION );
 LAUNCHDEK_Dashboard_Cache::clear();

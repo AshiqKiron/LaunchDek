@@ -14,6 +14,8 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class LAUNCHDEK_Templates {
 
+	const CATALOG_OPTION = 'launchdek_templates_catalog';
+
 	/**
 	 * Built-in template category definitions (display order).
 	 *
@@ -83,33 +85,213 @@ class LAUNCHDEK_Templates {
 	}
 
 	/**
+	 * Lightweight built-in template catalog for admin UI (metadata + step titles only).
+	 *
+	 * @return array
+	 */
+	public static function get_catalog() {
+		$cache_key = self::get_catalog_cache_key();
+		$stored    = get_option( self::CATALOG_OPTION, null );
+
+		if (
+			is_array( $stored )
+			&& isset( $stored['key'], $stored['catalog'] )
+			&& is_array( $stored['catalog'] )
+			&& $stored['key'] === $cache_key
+		) {
+			return $stored['catalog'];
+		}
+
+		$catalog = self::build_catalog();
+
+		update_option(
+			self::CATALOG_OPTION,
+			array(
+				'key'     => $cache_key,
+				'catalog' => $catalog,
+			),
+			false
+		);
+
+		return $catalog;
+	}
+
+	/**
+	 * Drop cached built-in template catalog.
+	 *
+	 * @return void
+	 */
+	public static function clear_catalog_cache() {
+		delete_option( self::CATALOG_OPTION );
+	}
+
+	/**
+	 * Get a single built-in template definition from JSON.
+	 *
+	 * @param string $slug Template slug.
+	 * @return array|null
+	 */
+	public static function get_builtin_by_slug( $slug ) {
+		$slug = sanitize_key( $slug );
+		if ( ! $slug ) {
+			return null;
+		}
+
+		$file = self::templates_dir() . $slug . '.json';
+		if ( ! is_readable( $file ) ) {
+			return null;
+		}
+
+		return self::load_template_from_file( $file );
+	}
+
+	/**
 	 * Get built-in template definitions from JSON files.
 	 *
 	 * @return array
 	 */
 	public static function get_builtin() {
-		$templates = array();
-		$dir       = self::templates_dir();
+		static $cache = null;
 
-		if ( ! is_dir( $dir ) ) {
-			return $templates;
+		if ( null !== $cache ) {
+			return $cache;
 		}
 
-		foreach ( glob( $dir . '*.json' ) as $file ) {
-			$contents = file_get_contents( $file ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
-			$data     = json_decode( $contents, true );
+		$templates = array();
 
-			if ( ! is_array( $data ) ) {
+		foreach ( self::template_json_files() as $file ) {
+			$data = self::load_template_from_file( $file );
+			if ( ! $data ) {
 				continue;
 			}
 
-			$data['template_slug'] = basename( $file, '.json' );
-			$data['category']      = self::normalize_category( $data['category'] ?? '' );
-			$data['is_template']   = true;
-			$data['source']        = 'builtin';
-			$templates[]           = $data;
+			$templates[] = $data;
 		}
 
+		self::sort_templates( $templates );
+		$cache = $templates;
+
+		return $cache;
+	}
+
+	/**
+	 * List built-in template JSON files.
+	 *
+	 * @return array<int, string>
+	 */
+	private static function template_json_files() {
+		$dir = self::templates_dir();
+		if ( ! is_dir( $dir ) ) {
+			return array();
+		}
+
+		$files = glob( $dir . '*.json' );
+
+		return is_array( $files ) ? $files : array();
+	}
+
+	/**
+	 * Cache-busting key for the built-in template catalog.
+	 *
+	 * @return string
+	 */
+	private static function get_catalog_cache_key() {
+		$files     = self::template_json_files();
+		$max_mtime = 0;
+
+		foreach ( $files as $file ) {
+			$mtime = filemtime( $file );
+			if ( false !== $mtime && $mtime > $max_mtime ) {
+				$max_mtime = $mtime;
+			}
+		}
+
+		return LAUNCHDEK_VERSION . ':' . count( $files ) . ':' . $max_mtime;
+	}
+
+	/**
+	 * Build lightweight catalog entries from JSON files.
+	 *
+	 * @return array
+	 */
+	private static function build_catalog() {
+		$templates = array();
+
+		foreach ( self::template_json_files() as $file ) {
+			$data = self::load_template_from_file( $file );
+			if ( ! $data ) {
+				continue;
+			}
+
+			$templates[] = self::template_to_catalog_entry( $data );
+		}
+
+		self::sort_templates( $templates );
+
+		return $templates;
+	}
+
+	/**
+	 * Parse and normalize a built-in template JSON file.
+	 *
+	 * @param string $file Absolute file path.
+	 * @return array|null
+	 */
+	private static function load_template_from_file( $file ) {
+		$contents = file_get_contents( $file ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+		$data     = json_decode( $contents, true );
+
+		if ( ! is_array( $data ) ) {
+			return null;
+		}
+
+		$data['template_slug'] = basename( $file, '.json' );
+		$data['category']      = self::normalize_category( $data['category'] ?? '' );
+		$data['is_template']   = true;
+		$data['source']        = 'builtin';
+
+		return $data;
+	}
+
+	/**
+	 * Reduce a full template to catalog metadata and step titles.
+	 *
+	 * @param array $data Full template data.
+	 * @return array
+	 */
+	private static function template_to_catalog_entry( $data ) {
+		$steps          = is_array( $data['steps'] ?? null ) ? $data['steps'] : array();
+		$step_summaries = array();
+
+		foreach ( $steps as $step ) {
+			if ( ! is_array( $step ) ) {
+				continue;
+			}
+
+			$step_summaries[] = array(
+				'title' => sanitize_text_field( $step['title'] ?? '' ),
+			);
+		}
+
+		return array(
+			'template_slug' => $data['template_slug'] ?? '',
+			'title'         => sanitize_text_field( $data['title'] ?? '' ),
+			'description'   => sanitize_textarea_field( $data['description'] ?? '' ),
+			'category'      => $data['category'] ?? self::normalize_category( '' ),
+			'version'       => sanitize_text_field( $data['version'] ?? '' ),
+			'is_template'   => true,
+			'source'        => 'builtin',
+			'steps'         => $step_summaries,
+		);
+	}
+
+	/**
+	 * Sort templates by category order then title.
+	 *
+	 * @param array $templates Template list (passed by reference).
+	 * @return void
+	 */
+	private static function sort_templates( array &$templates ) {
 		$category_order = array_keys( self::get_categories() );
 
 		usort(
@@ -132,8 +314,6 @@ class LAUNCHDEK_Templates {
 				return strcasecmp( $a['title'] ?? '', $b['title'] ?? '' );
 			}
 		);
-
-		return $templates;
 	}
 
 	/**

@@ -63,7 +63,24 @@ Yes, when enabled in Settings, application passwords are encrypted using your Wo
 
 == Changelog ==
 
+= 1.0.26 =
+* Templates: built-in template catalog is cached and preloaded on dashboard, checklists, and settings screens — category tabs and the template picker render on first paint without waiting for a REST fetch
+
+= 1.0.25 =
+* Admin: archive run, delete run, delete site, and delete checklist confirmations now use a WordPress-style modal instead of browser confirm dialogs
+
+= 1.0.24 =
+* Sites: checklist history **View run** is now a split button with a dropdown for Edit, Duplicate, Export, Archive, and Delete (archive hides the run from history; delete removes it permanently)
+* Sites: checklist history loads faster with a lean API query (single JOIN + batched step progress), smaller default page size (25), in-flight request deduplication, and **Load more** pagination for long histories
+
+= 1.0.23 =
+* Sites: checklist history now includes a Steps column with step fraction, status badge, and progress bar (replaces the separate Status column)
+
+= 1.0.22 =
+* Dashboard: API Connection Status summary no longer shows an Unknown card — only All Sites, Healthy, and Issues (per-site untested state remains on the Sites page)
+
 = 1.0.21 =
+* Settings: customize the client checklist panel heading (default "Agency Checklist"); syncs on the next checklist push or client panel refresh
 * Client checklist panel: step completion now updates progress in every minimized layout (sidebar tab, floating pill, toast, top bar, bottom dock, fullscreen launcher, and admin bar badge)
 
 = 1.0.20 =
@@ -117,6 +134,10 @@ Yes, when enabled in Settings, application passwords are encrypted using your Wo
 * Client checklist panel: 11 display layouts selectable from Settings with a live wireframe preview
 * Layouts include right/left sidebar, split panel, live top bar, bottom dock, floating pill, toast, admin bar flyout, fullscreen overlay, focus mode, and inline metabox
 * Layout choice syncs to client sites on the next checklist push or client panel refresh
+
+= 1.0.11 =
+* Sites page: combined connection dot and health badge into a single Status column
+* Sites page: Edit split-button with dropdown for Push Checklist and Test actions
 
 = 1.0.10 =
 * Dashboard live log feed limited to the latest 15 entries (with site name labels) and a link to view all activity logs

@@ -101,6 +101,7 @@ class LAUNCHDEK_Client_Run_Store {
 			'hub_rest_url'    => esc_url_raw( untrailingslashit( $snapshot['hub_rest_url'] ?? '' ) ),
 			'client_token'    => sanitize_text_field( $snapshot['client_token'] ?? '' ),
 			'panel_layout'    => self::sanitize_panel_layout( $snapshot['panel_layout'] ?? ( $existing['panel_layout'] ?? 'sidebar' ) ),
+			'panel_title'     => self::sanitize_panel_title( $snapshot['panel_title'] ?? ( $existing['panel_title'] ?? '' ) ),
 			'steps'           => $steps,
 			'pushed_at'       => sanitize_text_field( $snapshot['pushed_at'] ?? '' ),
 		);
@@ -513,6 +514,53 @@ class LAUNCHDEK_Client_Run_Store {
 		}
 
 		return self::sanitize_panel_layout( $run['panel_layout'] ?? 'sidebar' );
+	}
+
+	/**
+	 * Default panel heading when the hub does not supply one.
+	 *
+	 * @return string
+	 */
+	public static function get_default_panel_title() {
+		return __( 'Agency Checklist', LAUNCHDEK_CLIENT_TEXT_DOMAIN );
+	}
+
+	/**
+	 * Sanitize a panel heading from a run snapshot.
+	 *
+	 * @param mixed $title Raw title value.
+	 * @return string
+	 */
+	public static function sanitize_panel_title( $title ) {
+		$title = sanitize_text_field( (string) $title );
+
+		if ( '' === $title ) {
+			return self::get_default_panel_title();
+		}
+
+		if ( function_exists( 'mb_substr' ) ) {
+			return mb_substr( $title, 0, 80 );
+		}
+
+		return substr( $title, 0, 80 );
+	}
+
+	/**
+	 * Get the panel heading for a run snapshot.
+	 *
+	 * @param array|null $run Run snapshot.
+	 * @return string
+	 */
+	public static function get_panel_title( $run = null ) {
+		if ( null === $run ) {
+			$run = self::get();
+		}
+
+		if ( ! is_array( $run ) ) {
+			return self::get_default_panel_title();
+		}
+
+		return self::sanitize_panel_title( $run['panel_title'] ?? '' );
 	}
 
 	/**

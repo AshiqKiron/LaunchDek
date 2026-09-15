@@ -170,6 +170,7 @@ class LAUNCHDEK_Client_Push {
 			'hub_rest_url'    => esc_url_raw( rest_url( LAUNCHDEK_REST_NAMESPACE ) ),
 			'client_token'    => $token,
 			'panel_layout'    => LAUNCHDEK_Settings::get_client_panel_layout(),
+			'panel_title'     => LAUNCHDEK_Settings::get_client_panel_title(),
 			'steps'           => $steps,
 			'pushed_at'       => current_time( 'mysql', true ),
 		);

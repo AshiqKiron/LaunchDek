@@ -19,7 +19,7 @@ class LAUNCHDEK_Installer {
 	 *
 	 * @var string
 	 */
-	const DB_VERSION = '1.3.0';
+	const DB_VERSION = '1.4.0';
 
 	/**
 	 * Option key storing installed DB version.
@@ -62,6 +62,28 @@ class LAUNCHDEK_Installer {
 
 		if ( '' === $installed || version_compare( $installed, '1.3.0', '<' ) ) {
 			self::migrate_step_notes_column();
+		}
+
+		if ( '' === $installed || version_compare( $installed, '1.4.0', '<' ) ) {
+			self::migrate_run_archive_column();
+		}
+	}
+
+	/**
+	 * Add archived flag for checklist run history.
+	 *
+	 * @return void
+	 */
+	protected static function migrate_run_archive_column() {
+		global $wpdb;
+
+		$runs_table = $wpdb->prefix . 'launchdek_runs';
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$archived_col = $wpdb->get_results( "SHOW COLUMNS FROM `{$runs_table}` LIKE 'is_archived'" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		if ( empty( $archived_col ) ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.NotPrepared
+			$wpdb->query( "ALTER TABLE `{$runs_table}` ADD `is_archived` tinyint(1) NOT NULL DEFAULT 0 AFTER `client_run_token`" );
 		}
 	}
 
@@ -219,11 +241,13 @@ class LAUNCHDEK_Installer {
 			completed_at datetime DEFAULT NULL,
 			notes text,
 			client_run_token varchar(64) NOT NULL DEFAULT '',
+			is_archived tinyint(1) NOT NULL DEFAULT 0,
 			PRIMARY KEY  (id),
 			KEY checklist_id (checklist_id),
 			KEY site_id (site_id),
 			KEY status (status),
-			KEY started_at (started_at)
+			KEY started_at (started_at),
+			KEY is_archived (is_archived)
 		) {$charset_collate};
 
 		CREATE TABLE {$run_steps} (

@@ -38,6 +38,7 @@ class LAUNCHDEK_Settings {
 			'telemetry_sync_rules'         => array(),
 			'exclude_options'              => self::get_default_exclude_options(),
 			'client_panel_layout'          => 'sidebar',
+			'client_panel_title'           => self::get_default_client_panel_title(),
 		);
 
 		return apply_filters( 'launchdek_settings_defaults', $defaults );
@@ -123,6 +124,10 @@ class LAUNCHDEK_Settings {
 
 		if ( isset( $input['client_panel_layout'] ) ) {
 			$output['client_panel_layout'] = self::sanitize_client_panel_layout( $input['client_panel_layout'] );
+		}
+
+		if ( isset( $input['client_panel_title'] ) ) {
+			$output['client_panel_title'] = self::sanitize_client_panel_title( $input['client_panel_title'] );
 		}
 
 		return apply_filters( 'launchdek_settings_sanitize', $output, $input, $defaults );
@@ -310,6 +315,46 @@ class LAUNCHDEK_Settings {
 		$settings = self::get();
 
 		return self::sanitize_client_panel_layout( $settings['client_panel_layout'] ?? 'sidebar' );
+	}
+
+	/**
+	 * Default client checklist panel heading.
+	 *
+	 * @return string
+	 */
+	public static function get_default_client_panel_title() {
+		return 'Agency Checklist';
+	}
+
+	/**
+	 * Sanitize the client checklist panel heading.
+	 *
+	 * @param mixed $title Raw title input.
+	 * @return string
+	 */
+	public static function sanitize_client_panel_title( $title ) {
+		$title = sanitize_text_field( (string) $title );
+
+		if ( '' === $title ) {
+			return self::get_default_client_panel_title();
+		}
+
+		if ( function_exists( 'mb_substr' ) ) {
+			return mb_substr( $title, 0, 80 );
+		}
+
+		return substr( $title, 0, 80 );
+	}
+
+	/**
+	 * Get the configured client checklist panel heading.
+	 *
+	 * @return string
+	 */
+	public static function get_client_panel_title() {
+		$settings = self::get();
+
+		return self::sanitize_client_panel_title( $settings['client_panel_title'] ?? self::get_default_client_panel_title() );
 	}
 
 	public static function get_notification_events() {

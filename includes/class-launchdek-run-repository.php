@@ -68,9 +68,10 @@ class LAUNCHDEK_Run_Repository {
 		global $wpdb;
 
 		$defaults = array(
-			'status'  => '',
-			'site_id' => 0,
-			'limit'   => 50,
+			'status'           => '',
+			'site_id'          => 0,
+			'limit'            => 50,
+			'include_archived' => false,
 		);
 
 		$args  = wp_parse_args( $args, $defaults );
@@ -87,12 +88,197 @@ class LAUNCHDEK_Run_Repository {
 			$vals[]  = absint( $args['site_id'] );
 		}
 
+		if ( empty( $args['include_archived'] ) ) {
+			$where[] = 'is_archived = 0';
+		}
+
 		$sql = 'SELECT * FROM ' . self::table() . ' WHERE ' . implode( ' AND ', $where ) . ' ORDER BY started_at DESC LIMIT %d';
 		$vals[] = max( 1, absint( $args['limit'] ) );
 
 		$rows = $wpdb->get_results( $wpdb->prepare( $sql, $vals ), ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 
-		return is_array( $rows ) ? array_map( array( __CLASS__, 'format' ), $rows ) : array();
+		if ( ! is_array( $rows ) || empty( $rows ) ) {
+			return array();
+		}
+
+		$formatted   = array_map( array( __CLASS__, 'format' ), $rows );
+		$progress_map = self::get_step_progress_map( wp_list_pluck( $formatted, 'id' ) );
+
+		foreach ( $formatted as &$run ) {
+			$run = array_merge( $run, $progress_map[ $run['id'] ] ?? self::empty_step_progress() );
+		}
+		unset( $run );
+
+		return $formatted;
+	}
+
+	/**
+	 * List checklist runs for a site history panel (lean query, no N+1 lookups).
+	 *
+	 * @param int   $site_id Site ID.
+	 * @param array $args    Optional status, limit, and offset filters.
+	 * @return array{runs:array,has_more:bool,offset:int,limit:int}
+	 */
+	public static function list_for_site_history( $site_id, $args = array() ) {
+		global $wpdb;
+
+		$site_id = absint( $site_id );
+		$empty   = array(
+			'runs'     => array(),
+			'has_more' => false,
+			'offset'   => 0,
+			'limit'    => 25,
+		);
+
+		if ( ! $site_id ) {
+			return $empty;
+		}
+
+		$defaults = array(
+			'status' => '',
+			'limit'  => 25,
+			'offset' => 0,
+		);
+
+		$args   = wp_parse_args( $args, $defaults );
+		$where  = array( 'r.site_id = %d', 'r.is_archived = 0' );
+		$vals   = array( $site_id );
+		$offset = max( 0, absint( $args['offset'] ) );
+		$limit  = min( 200, max( 1, absint( $args['limit'] ) ) );
+		$runs   = self::table();
+		$checks = LAUNCHDEK_Checklist_Repository::table();
+		$users  = $wpdb->users;
+
+		if ( $args['status'] ) {
+			$where[] = 'r.status = %s';
+			$vals[]  = sanitize_key( $args['status'] );
+		}
+
+		$sql = 'SELECT r.id, r.checklist_id, r.site_id, r.status, r.started_at, r.completed_at,
+				c.title AS checklist_title, c.is_template AS checklist_is_template, c.template_slug AS checklist_template_slug,
+				u.display_name AS started_by_name
+			FROM ' . $runs . ' r
+			LEFT JOIN ' . $checks . ' c ON c.id = r.checklist_id
+			LEFT JOIN ' . $users . ' u ON u.ID = r.started_by
+			WHERE ' . implode( ' AND ', $where ) . '
+			ORDER BY r.started_at DESC
+			LIMIT %d OFFSET %d';
+
+		$vals[] = $limit + 1;
+		$vals[] = $offset;
+
+		$rows = $wpdb->get_results( $wpdb->prepare( $sql, $vals ), ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+
+		if ( ! is_array( $rows ) || empty( $rows ) ) {
+			return array_merge(
+				$empty,
+				array(
+					'offset' => $offset,
+					'limit'  => $limit,
+				)
+			);
+		}
+
+		$has_more = count( $rows ) > $limit;
+		if ( $has_more ) {
+			$rows = array_slice( $rows, 0, $limit );
+		}
+
+		$run_ids      = array_map( 'intval', wp_list_pluck( $rows, 'id' ) );
+		$progress_map = self::get_step_progress_map( $run_ids );
+		$formatted    = array();
+
+		foreach ( $rows as $row ) {
+			$run_id = (int) $row['id'];
+
+			$formatted[] = array_merge(
+				array(
+					'id'                      => $run_id,
+					'checklist_id'            => (int) $row['checklist_id'],
+					'checklist_title'         => (string) ( $row['checklist_title'] ?? '' ),
+					'checklist_is_template'   => ! empty( $row['checklist_is_template'] ),
+					'checklist_template_slug' => (string) ( $row['checklist_template_slug'] ?? '' ),
+					'site_id'                 => (int) $row['site_id'],
+					'status'                  => (string) ( $row['status'] ?? '' ),
+					'started_by_name'         => (string) ( $row['started_by_name'] ?? '' ),
+					'started_at'              => $row['started_at'],
+					'completed_at'            => $row['completed_at'],
+				),
+				$progress_map[ $run_id ] ?? self::empty_step_progress()
+			);
+		}
+
+		return array(
+			'runs'     => $formatted,
+			'has_more' => $has_more,
+			'offset'   => $offset,
+			'limit'    => $limit,
+		);
+	}
+
+	/**
+	 * Default step progress shape for runs with no step rows.
+	 *
+	 * @return array{steps_total:int,steps_completed:int,steps_failed:int,progress_percent:float}
+	 */
+	public static function empty_step_progress() {
+		return array(
+			'steps_total'      => 0,
+			'steps_completed'  => 0,
+			'steps_failed'     => 0,
+			'progress_percent' => 0.0,
+		);
+	}
+
+	/**
+	 * Batch-fetch step progress for multiple runs.
+	 *
+	 * @param int[] $run_ids Run IDs.
+	 * @return array<int, array{steps_total:int,steps_completed:int,steps_failed:int,progress_percent:float}>
+	 */
+	public static function get_step_progress_map( $run_ids ) {
+		$run_ids = array_values( array_filter( array_map( 'absint', (array) $run_ids ) ) );
+
+		if ( empty( $run_ids ) ) {
+			return array();
+		}
+
+		global $wpdb;
+
+		$placeholders = implode( ', ', array_fill( 0, count( $run_ids ), '%d' ) );
+		$sql          = 'SELECT run_id,
+				COUNT(*) AS steps_total,
+				SUM( CASE WHEN status = %s THEN 1 ELSE 0 END ) AS steps_completed,
+				SUM( CASE WHEN status = %s THEN 1 ELSE 0 END ) AS steps_failed
+			FROM ' . self::steps_table() . '
+			WHERE run_id IN (' . $placeholders . ')
+			GROUP BY run_id';
+
+		$params = array_merge(
+			array( 'completed', 'failed' ),
+			$run_ids
+		);
+
+		$rows = $wpdb->get_results( $wpdb->prepare( $sql, $params ), ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+
+		$map = array();
+
+		if ( is_array( $rows ) ) {
+			foreach ( $rows as $row ) {
+				$run_id    = (int) $row['run_id'];
+				$total     = (int) $row['steps_total'];
+				$completed = (int) $row['steps_completed'];
+
+				$map[ $run_id ] = array(
+					'steps_total'      => $total,
+					'steps_completed'  => $completed,
+					'steps_failed'     => (int) $row['steps_failed'],
+					'progress_percent' => $total > 0 ? round( ( $completed / $total ) * 100, 1 ) : 0.0,
+				);
+			}
+		}
+
+		return $map;
 	}
 
 	/**
@@ -106,11 +292,58 @@ class LAUNCHDEK_Run_Repository {
 
 		if ( $status ) {
 			return (int) $wpdb->get_var(
-				$wpdb->prepare( 'SELECT COUNT(*) FROM ' . self::table() . ' WHERE status = %s', sanitize_key( $status ) )
+				$wpdb->prepare( 'SELECT COUNT(*) FROM ' . self::table() . ' WHERE status = %s AND is_archived = 0', sanitize_key( $status ) )
 			);
 		}
 
-		return (int) $wpdb->get_var( 'SELECT COUNT(*) FROM ' . self::table() ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		return (int) $wpdb->get_var( 'SELECT COUNT(*) FROM ' . self::table() . ' WHERE is_archived = 0' ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+	}
+
+	/**
+	 * Archive a run (hide from default checklist history).
+	 *
+	 * @param int $id Run ID.
+	 * @return bool
+	 */
+	public static function archive( $id ) {
+		global $wpdb;
+
+		$result = $wpdb->update(
+			self::table(),
+			array( 'is_archived' => 1 ),
+			array( 'id' => absint( $id ) ),
+			array( '%d' ),
+			array( '%d' )
+		);
+
+		if ( false !== $result ) {
+			LAUNCHDEK_Audit_Log::log( 'run_archived', array( 'run_id' => absint( $id ) ) );
+			LAUNCHDEK_Dashboard_Cache::invalidate_stats();
+		}
+
+		return false !== $result;
+	}
+
+	/**
+	 * Permanently delete a run and its step records.
+	 *
+	 * @param int $id Run ID.
+	 * @return bool
+	 */
+	public static function delete( $id ) {
+		global $wpdb;
+
+		$id = absint( $id );
+
+		$wpdb->delete( self::steps_table(), array( 'run_id' => $id ), array( '%d' ) );
+		$result = $wpdb->delete( self::table(), array( 'id' => $id ), array( '%d' ) );
+
+		if ( $result ) {
+			LAUNCHDEK_Audit_Log::log( 'run_deleted', array( 'run_id' => $id ) );
+			LAUNCHDEK_Dashboard_Cache::invalidate_stats();
+		}
+
+		return (bool) $result;
 	}
 
 	/**
@@ -580,18 +813,21 @@ class LAUNCHDEK_Run_Repository {
 		$user      = get_userdata( (int) $row['started_by'] );
 
 		return array(
-			'id'              => (int) $row['id'],
-			'checklist_id'    => (int) $row['checklist_id'],
-			'checklist_title' => $checklist ? $checklist['title'] : '',
-			'site_id'       => (int) $row['site_id'],
-			'site_name'     => $site ? $site['name'] : '',
-			'site_url'      => $site ? $site['url'] : '',
-			'status'        => $row['status'],
-			'started_by'    => (int) $row['started_by'],
-			'started_by_name' => $user ? $user->display_name : '',
-			'started_at'    => $row['started_at'],
-			'completed_at'  => $row['completed_at'],
-			'notes'         => $row['notes'],
+			'id'                      => (int) $row['id'],
+			'checklist_id'            => (int) $row['checklist_id'],
+			'checklist_title'         => $checklist ? $checklist['title'] : '',
+			'checklist_is_template'   => $checklist ? ! empty( $checklist['is_template'] ) : false,
+			'checklist_template_slug' => $checklist ? (string) ( $checklist['template_slug'] ?? '' ) : '',
+			'site_id'                 => (int) $row['site_id'],
+			'site_name'               => $site ? $site['name'] : '',
+			'site_url'                => $site ? $site['url'] : '',
+			'status'                  => $row['status'],
+			'started_by'              => (int) $row['started_by'],
+			'started_by_name'         => $user ? $user->display_name : '',
+			'started_at'              => $row['started_at'],
+			'completed_at'            => $row['completed_at'],
+			'notes'                   => $row['notes'],
+			'is_archived'             => ! empty( $row['is_archived'] ),
 		);
 	}
 }

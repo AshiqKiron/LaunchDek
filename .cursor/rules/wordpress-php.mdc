@@ -49,12 +49,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 - `LAUNCHDEK_Plugin` constructor: `LAUNCHDEK_Admin` only.
 - Data layer: `LAUNCHDEK_{Site,Checklist,Run}_Repository` — no direct `$wpdb` in REST handlers or admin.
 - Remote: `LAUNCHDEK_Remote_Client::from_site( $id )` for authenticated requests (returns `null` if credentials missing). `request()` tries `/wp-json{route}` then `?rest_route=` when `is_rest_no_route_response()` (404 + `rest_no_route` code).
-- Client panel: `LAUNCHDEK_Mu_Plugin_Installer::ensure_installed( $site_id )` on site create/update/test and when `push_run( $id, $prepare, $sync_bundle )` is called with `$sync_bundle = true` (defaults to `$prepare`; manual refresh uses `push_run( $id, false, true )`); `::sync_run()` → `push_run( $id, false, false )` (snapshot only, no bundle reinstall); token callbacks pass `$skip_client_sync = true` on `complete_client_step()` / `uncomplete_client_step()` / `add_client_step_note()` and return `snapshot` for client local apply; `LAUNCHDEK_Run_Repository::ensure_client_token()` backfills legacy runs; `::filter_step_notes()` / `::step_notes_match()` dedupe hub notes; `LAUNCHDEK_Step_Executor::mark_manual_incomplete()` for hub-side manual uncomplete; `LAUNCHDEK_Auto_Capture::{get_status,start,stop,clear}()` proxies capture sessions to remote panel; `LAUNCHDEK_Settings::get_client_panel_layout()` / `::get_client_panel_layouts()` configure snapshot `panel_layout` (legacy `left_sidebar` / `split_panel` sanitize to `sidebar`); `LAUNCHDEK_Admin_Deep_Links::{resolve_path,normalize_stored_path,infer_path_from_text,path_from_api_step}()` resolve wp-admin paths for step deep links; snapshots include both `deep_link` (remote full URL) and `admin_path` (path only for client `admin_url()` rebuild).
+- Client panel: `LAUNCHDEK_Mu_Plugin_Installer::ensure_installed( $site_id )` on site create/update/test and when `push_run( $id, $prepare, $sync_bundle )` is called with `$sync_bundle = true` (defaults to `$prepare`; manual refresh uses `push_run( $id, false, true )`); `::sync_run()` → `push_run( $id, false, false )` (snapshot only, no bundle reinstall); token callbacks pass `$skip_client_sync = true` on `complete_client_step()` / `uncomplete_client_step()` / `add_client_step_note()` and return `snapshot` for client local apply; `LAUNCHDEK_Run_Repository::ensure_client_token()` backfills legacy runs; `::filter_step_notes()` / `::step_notes_match()` dedupe hub notes; `::archive()` / `::delete()` for run history (`is_archived` soft-hide); `::list_for_site_history()` for paginated lean site history with batched step progress; `LAUNCHDEK_Step_Executor::mark_manual_incomplete()` for hub-side manual uncomplete; `LAUNCHDEK_Auto_Capture::{get_status,start,stop,clear}()` proxies capture sessions to remote panel; `LAUNCHDEK_Settings::get_client_panel_layout()` / `::get_client_panel_layouts()` configure snapshot `panel_layout` (legacy `left_sidebar` / `split_panel` sanitize to `sidebar`); `::get_client_panel_title()` / `::sanitize_client_panel_title()` configure snapshot `panel_title`; `LAUNCHDEK_Admin_Deep_Links::{resolve_path,normalize_stored_path,infer_path_from_text,path_from_api_step}()` resolve wp-admin paths for step deep links; snapshots include both `deep_link` (remote full URL) and `admin_path` (path only for client `admin_url()` rebuild). Client `LAUNCHDEK_Client_Run_Store::get_panel_title()` reads snapshot `panel_title`.
 - Credentials: `LAUNCHDEK_Credential_Vault::encrypt()` / `::decrypt()` on save/read.
 - Audit: `LAUNCHDEK_Audit_Log::log()` for privileged actions; `::feed_entry_show_site_label()` / `::format_feed_message( $entry, $embed_site )` shape dashboard feed copy; `::log()` invalidates `LAUNCHDEK_Dashboard_Cache::invalidate_feed()`.
 - Dashboard cache: `LAUNCHDEK_Dashboard_Cache::{get_stats,get_connection_counts,get_feed,get_quick_launch_picker}()` read from `launchdek_dashboard_cache`; `::refresh_quick_launch_picker()` delegates to `LAUNCHDEK_Site_Repository::picker_list()` and `LAUNCHDEK_Checklist_Repository::picker_list()`; repositories call `invalidate_stats()` / `invalidate_connections()` / `invalidate_quick_launch_picker()` on mutations. `::clear()` on uninstall.
 - Activation: `LAUNCHDEK_Activator` (sets redirect transient); `LAUNCHDEK_Admin::maybe_activation_redirect()` sends new installs to dashboard with `?onboarding=1`. Deactivation: `LAUNCHDEK_Deactivator` (clears drift cron).
-- Legacy redirects (`LAUNCHDEK_Admin::maybe_redirect_legacy_templates_page()` on `admin_init`): `?page={slug}-templates` → Checklists with `?tab=templates`; `?page={slug}-sites&activity_logs` → Activity Logs page.
+- Legacy redirects (`LAUNCHDEK_Admin::maybe_redirect_legacy_templates_page()` on `admin_init`): `?page={slug}-templates` → Checklists (Templates default tab); `?page={slug}-sites&activity_logs` → Activity Logs page.
 
 ## Settings Option Shape
 
@@ -72,6 +72,7 @@ array(
 	'telemetry_sync_rules'       => array(), // array of { id, enabled } — see LAUNCHDEK_Integrations::get_default_telemetry_rules()
 	'exclude_options'            => array( 'url', 'email', 'wp_environment_type' ), // REST field names; legacy option names normalized on save — see LAUNCHDEK_Settings::get_exclude_options()
 	'client_panel_layout'        => 'sidebar', // panel display mode on remote wp-admin — see LAUNCHDEK_Settings::get_client_panel_layouts()
+	'client_panel_title'         => 'Agency Checklist', // panel heading on remote wp-admin — see LAUNCHDEK_Settings::get_client_panel_title()
 )
 ```
 
@@ -131,7 +132,7 @@ Unknown categories fall back to `maintenance`. New JSON files are picked up by `
 
 ## DB Upgrades
 
-`LAUNCHDEK_Installer::DB_VERSION` is `1.3.0`. `maybe_install()` calls `migrate_from_previous()` before `install()`. Do not reference `launchdek_workflows` or `workflow_id` in new code — use `launchdek_checklists` and `checklist_id`. Migration to 1.2.0 adds `launchdek_sites.client_agent` and `launchdek_runs.client_run_token`. Migration to 1.3.0 adds `launchdek_run_steps.notes_json` (JSON array of step notes). Hub notes persist via `LAUNCHDEK_Run_Repository::add_step_note()` / `update_step( …, [ 'notes' => … ] )`. Audit log and webhooks accept legacy `workflow_*` action keys and `details.workflow` for pre-migration entries. Client panel audit actions: `client_run_pushed`, `client_step_completed`, `client_step_uncompleted`, `client_step_note_added`, `manual_step_uncompleted`.
+`LAUNCHDEK_Installer::DB_VERSION` is `1.4.0`. `maybe_install()` calls `migrate_from_previous()` before `install()`. Do not reference `launchdek_workflows` or `workflow_id` in new code — use `launchdek_checklists` and `checklist_id`. Migration to 1.2.0 adds `launchdek_sites.client_agent` and `launchdek_runs.client_run_token`. Migration to 1.3.0 adds `launchdek_run_steps.notes_json` (JSON array of step notes). Migration to 1.4.0 adds `launchdek_runs.is_archived` (indexed tinyint; archive hides from default history). Hub notes persist via `LAUNCHDEK_Run_Repository::add_step_note()` / `update_step( …, [ 'notes' => … ] )`. `LAUNCHDEK_Run_Repository::all()` excludes archived runs unless `include_archived` is true. Audit log and webhooks accept legacy `workflow_*` action keys and `details.workflow` for pre-migration entries. Client panel audit actions: `client_run_pushed`, `client_step_completed`, `client_step_uncompleted`, `client_step_note_added`, `manual_step_uncompleted`, `run_archived`, `run_deleted`.
 
 ## Partials
 
@@ -153,6 +154,7 @@ Shared modal partials (included via `require`, not `$page`-routed):
 |---------|-------------|
 | `launchdek-onboarding-modal.php` | dashboard, settings |
 | `launchdek-template-picker-modal.php` | dashboard, checklists, settings |
+| `launchdek-confirm-modal.php` | sites |
 
 Document `@var` annotations at the top of page partials.
 
@@ -162,7 +164,7 @@ Settings partial (`launchdek-settings-page.php`) uses Settings API form with car
 - **Platform** — `enabled`, `drift_verification_enabled`
 - **Credential Vault Security** — `encrypt_credentials` toggle
 - **Exclude Options** — `#launchdek-exclude-options` textarea (`exclude_options`; one REST field or legacy option name per line; defaults `url`, `email`, `wp_environment_type`; aliases via `get_exclude_option_aliases()` / `normalize_exclude_option()`)
-- **Client Checklist Panel** — `#launchdek-panel-layout` select (`client_panel_layout`; layouts from `get_client_panel_layouts()` — `sidebar`, `live_topbar`, `bottom_dock`, `floating_pill`, `toast`, `admin_menu`, `fullscreen`, `focus_mode`, `inline_metabox`; legacy `left_sidebar` / `split_panel` sanitize to `sidebar`); live preview via `#launchdek-panel-layout-preview` (`initPanelLayoutPreview()`)
+- **Client Checklist Panel** — `#launchdek-panel-layout` select (`client_panel_layout`; layouts from `get_client_panel_layouts()` — `sidebar`, `live_topbar`, `bottom_dock`, `floating_pill`, `toast`, `admin_menu`, `fullscreen`, `focus_mode`, `inline_metabox`; legacy `left_sidebar` / `split_panel` sanitize to `sidebar`); live preview via `#launchdek-panel-layout-preview` (`initPanelLayoutPreview()`); `#launchdek-client-panel-title` text input (`client_panel_title`, default `Agency Checklist`, max 80 chars — syncs on next push or panel refresh)
 - **Notification Channels** — Slack/Teams/Discord webhooks + event checkboxes (`LAUNCHDEK_Settings::get_notification_events()`)
 - **Agency Role Guardrails** — preset cards (`get_agency_role_presets()`) + role-permission matrix (`role_permissions`)
 - **Onboarding** — `#launchdek-show-onboarding` button; requires shared onboarding + template-picker modal partials below the form
@@ -176,7 +178,9 @@ Onboarding REST handlers in `LAUNCHDEK_REST_API`:
 Client panel REST handlers in `LAUNCHDEK_REST_API`:
 - `GET /panel/bootstrap` → `get_panel_bootstrap()` (`can_manage_sites`) — returns mu-plugin loader file for manual download
 - `POST /sites/{id}/panel/install` → `install_site_panel()` (`can_manage_sites`) — retries `LAUNCHDEK_Mu_Plugin_Installer::ensure_installed()` (Sites modal **Retry panel install**)
-- `GET /sites/{id}/runs` → `get_site_runs()` (`can_manage_sites`) — checklist run history for expandable Sites page rows (optional `status`, `limit` default 50 max 200)
+- `GET /sites/{id}/runs` → `get_site_runs()` (`can_manage_sites`) — checklist run history for expandable Sites page rows via `list_for_site_history()` (optional `status`, `limit` default 25 max 200, `offset`; returns `{ runs, has_more, offset, limit }`)
+- `POST /runs/{id}/archive` → `archive_run()` (`can_manage_sites`) — soft-hide run from default history (`LAUNCHDEK_Run_Repository::archive()`)
+- `DELETE /runs/{id}` → `delete_run()` (`can_manage_sites`) — permanently delete run and step rows (`LAUNCHDEK_Run_Repository::delete()`)
 - `GET|POST|DELETE /sites/{id}/capture` → `get_site_capture()` / `update_site_capture()` / `clear_site_capture()` (`can_edit_checklists`) — proxies to `LAUNCHDEK_Auto_Capture`
 - `POST /runs` → optional `push_to_client` (bool, default `true`); when set, calls `LAUNCHDEK_Client_Push::push_run()` after start
 - `POST /runs/{id}/steps/{step}/uncomplete` → `uncomplete_manual_step()` (`can_execute`) — `LAUNCHDEK_Step_Executor::mark_manual_incomplete()` then `sync_run()`
