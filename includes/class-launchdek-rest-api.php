@@ -62,6 +62,12 @@ class LAUNCHDEK_REST_API {
 			'permission_callback' => array( __CLASS__, 'can_manage_settings' ),
 		) );
 
+		register_rest_route( self::NAMESPACE, '/settings/client-panel-title', array(
+			'methods'             => 'POST',
+			'callback'            => array( __CLASS__, 'update_client_panel_title' ),
+			'permission_callback' => array( __CLASS__, 'can_edit_checklists' ),
+		) );
+
 		// Sites.
 		register_rest_route( self::NAMESPACE, '/sites', array(
 			array(
@@ -482,6 +488,23 @@ class LAUNCHDEK_REST_API {
 		update_option( LAUNCHDEK_Settings::OPTION_NAME, $settings );
 
 		return rest_ensure_response( array( 'dismissed' => false ) );
+	}
+
+	/**
+	 * Update the client checklist panel heading from the Checklists builder.
+	 *
+	 * @param WP_REST_Request $request REST request.
+	 * @return WP_REST_Response
+	 */
+	public static function update_client_panel_title( $request ) {
+		$data  = $request->get_json_params();
+		$title = isset( $data['title'] ) ? $data['title'] : '';
+
+		return rest_ensure_response(
+			array(
+				'title' => LAUNCHDEK_Settings::save_client_panel_title( $title ),
+			)
+		);
 	}
 
 	// Sites handlers.

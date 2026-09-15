@@ -83,14 +83,6 @@
 	cursor: pointer;
 }
 
-.launchdek-new-checklist-actions {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 8px;
-	align-items: center;
-	margin: 16px 0 0;
-}
-
 .launchdek-auto-capture-panel .launchdek-auto-capture-actions {
 	margin-top: 16px;
 }
@@ -485,21 +477,12 @@
 	margin: 8px 0;
 }
 
-.launchdek-notice-area .notice-inline {
-	padding: 8px 12px;
-	border-left: 4px solid #72aee6;
-	background: #f0f6fc;
+.launchdek-notice-area .notice {
 	margin: 4px 0;
 }
 
-.launchdek-notice-area .notice-inline.error {
-	border-color: #d63638;
-	background: #fcf0f1;
-}
-
-.launchdek-notice-area .notice-inline.success {
-	border-color: #00a32a;
-	background: #edfaef;
+.launchdek-notice-area .notice p {
+	margin: 0.5em 0;
 }
 
 /* Connection status panel (dashboard) */
@@ -1281,13 +1264,14 @@
 /* Checklist builder */
 .launchdek-builder-workspace {
 	display: grid;
-	grid-template-columns: minmax(0, 1fr) 320px;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
 	gap: 16px;
 	margin: 16px 0;
 	min-width: 0;
+	align-items: start;
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 1280px) {
 	.launchdek-builder-workspace {
 		grid-template-columns: 1fr;
 	}
@@ -1455,21 +1439,101 @@
 	line-height: 1;
 }
 
-.launchdek-step-config-sidebar {
+.launchdek-step-config-sidebar,
+.launchdek-checklist-preview-sidebar {
 	background: #fff;
 	border: 1px solid #c3c4c7;
 	border-radius: 4px;
 	padding: 16px;
+	min-width: 0;
 }
 
-.launchdek-step-config-sidebar h3 {
+.launchdek-step-config-sidebar {
+	max-height: 640px;
+	overflow-y: auto;
+}
+
+.launchdek-step-config-sidebar h3,
+.launchdek-checklist-preview-sidebar h3 {
 	margin: 0 0 12px;
 	font-size: 1em;
+}
+
+.launchdek-checklist-panel-title-field {
+	margin: 0 0 16px;
+	padding-bottom: 16px;
+	border-bottom: 1px solid #dcdcde;
+}
+
+.launchdek-step-config {
+	margin-top: 0;
+}
+
+.launchdek-checklist-panel-title-field label {
+	display: block;
+	margin-bottom: 4px;
+	font-weight: 600;
+}
+
+.launchdek-checklist-panel-title-field input {
+	width: 100%;
+	max-width: none;
+	box-sizing: border-box;
+}
+
+.launchdek-checklist-panel-title-help {
+	display: block;
+	margin-top: 6px;
+	font-size: 12px;
+	line-height: 1.45;
+}
+
+.launchdek-checklist-preview {
+	min-height: 180px;
+	max-height: 560px;
+	overflow: auto;
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+	background: #f6f7f7;
+	padding: 0;
+	box-sizing: border-box;
+}
+
+.launchdek-checklist-preview > .launchdek-muted {
+	margin: 0;
+	padding: 16px;
+}
+
+.launchdek-checklist-preview-shell {
+	pointer-events: none;
+}
+
+.launchdek-checklist-preview-shell .launchdek-client-panel-root {
+	position: relative;
+	z-index: 0;
+}
+
+.launchdek-checklist-preview-shell .launchdek-client-panel {
+	position: relative;
+	top: auto;
+	right: auto;
+	width: 100%;
+	max-height: none;
+	border-right: 1px solid #c3c4c7;
+	box-shadow: none;
 }
 
 .launchdek-config-subheading {
 	margin: 12px 0 8px;
 	font-size: 0.95em;
+}
+
+.launchdek-config-subheading-row {
+	margin: 12px 0 8px;
+}
+
+.launchdek-config-subheading-row .launchdek-config-subheading {
+	margin: 0;
 }
 
 .launchdek-multicheck-dropdown {
@@ -1563,6 +1627,17 @@
 .launchdek-multicheck-label.launchdek-field-label-row {
 	display: flex;
 	margin-bottom: 4px;
+}
+
+.launchdek-card-heading-row {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	margin-bottom: 8px;
+}
+
+.launchdek-card-heading-row h2 {
+	margin: 0;
 }
 
 .launchdek-field-info {
@@ -1666,6 +1741,15 @@
 
 .launchdek-cl-meta {
 	margin-bottom: 4px;
+}
+
+.launchdek-cl-meta label {
+	display: block;
+	margin-bottom: 4px;
+}
+
+.launchdek-cl-meta .launchdek-field-label-row {
+	display: inline-flex;
 }
 
 .launchdek-list {
@@ -1778,20 +1862,19 @@
 	max-width: 480px;
 }
 
-.launchdek-target-sites label {
-	font-weight: 600;
-}
-
-.launchdek-field-hint {
+.launchdek-target-sites .launchdek-multicheck-label {
 	margin: 0;
-	font-size: 12px;
-	font-style: normal;
 }
 
-.launchdek-select-multi {
-	min-width: 220px;
-	max-width: 100%;
+.launchdek-target-sites-picker {
+	margin: 0;
 	width: 100%;
+}
+
+.launchdek-multicheck-empty {
+	margin: 0;
+	padding: 6px 12px;
+	font-size: 12px;
 }
 
 .launchdek-target-actions {
@@ -2073,9 +2156,10 @@
 	position: relative;
 	display: flex;
 	flex-direction: column;
+	min-height: 248px;
 	border: 1px solid #c3c4c7;
 	border-radius: 4px;
-	padding: 16px;
+	padding: 16px 16px 52px;
 	background: #fafafa;
 	overflow: hidden;
 }
@@ -2118,56 +2202,58 @@
 }
 
 .launchdek-template-card-actions {
+	position: absolute;
+	right: 16px;
+	bottom: 16px;
+	left: 16px;
+	z-index: 3;
 	display: flex;
-	flex-wrap: wrap;
+	flex-wrap: nowrap;
 	align-items: center;
 	gap: 8px 12px;
-	margin-top: auto;
-	padding-top: 12px;
+	margin-top: 0;
+	padding-top: 0;
 	flex-shrink: 0;
 }
 
 #launchdek-panel-templates .launchdek-template-card-actions {
-	max-height: 0;
-	margin-top: 0;
-	padding-top: 0;
 	opacity: 0;
-	overflow: hidden;
 	visibility: hidden;
 	pointer-events: none;
-	transition: opacity 0.15s ease, visibility 0.15s ease, max-height 0.2s ease, padding-top 0.2s ease, margin-top 0.2s ease;
+	transition: opacity 0.15s ease, visibility 0.15s ease;
 }
 
 #launchdek-panel-templates .launchdek-template-card:hover .launchdek-template-card-actions,
 #launchdek-panel-templates .launchdek-template-card.is-steps-open .launchdek-template-card-actions,
 #launchdek-panel-templates .launchdek-template-card:focus-within .launchdek-template-card-actions {
-	max-height: 4rem;
-	margin-top: auto;
-	padding-top: 12px;
 	opacity: 1;
 	visibility: visible;
 	pointer-events: auto;
 }
 
+.launchdek-template-card:hover .launchdek-template-card-actions,
+.launchdek-template-card.is-steps-open .launchdek-template-card-actions {
+	background: #fff;
+}
+
 @media (hover: none) {
 	#launchdek-panel-templates .launchdek-template-card-actions {
-		max-height: none;
-		margin-top: auto;
-		padding-top: 12px;
 		opacity: 1;
 		visibility: visible;
 		pointer-events: auto;
 	}
 }
 
-.launchdek-template-card-actions:not(:has(.launchdek-template-steps-toggle)) {
-	flex-wrap: nowrap;
-}
-
-.launchdek-template-card-actions > .launchdek-template-edit-checklist,
-.launchdek-template-card-actions > .launchdek-template-use-checklist {
+.launchdek-template-card-actions:not(:has(.launchdek-template-steps-toggle)) > .launchdek-template-edit-checklist,
+.launchdek-template-card-actions:not(:has(.launchdek-template-steps-toggle)) > .launchdek-template-use-checklist {
 	flex: 1 1 0;
 	min-width: 0;
+}
+
+.launchdek-template-card-actions:has(.launchdek-template-steps-toggle) > .launchdek-template-use-checklist {
+	flex: 0 0 auto;
+	min-width: auto;
+	margin-left: auto;
 }
 
 .launchdek-template-steps-toggle {
@@ -2193,11 +2279,10 @@
 
 .launchdek-template-card-actions .launchdek-template-steps-toggle {
 	flex: 0 0 auto;
+	white-space: nowrap;
 }
 
 .launchdek-template-use-checklist {
-	flex: 1 1 auto;
-	min-width: 0;
 	justify-content: center;
 	text-align: center;
 	font-weight: 500;
@@ -2221,7 +2306,7 @@
 	z-index: 2;
 	background: #fff;
 	border-radius: 4px;
-	padding: 16px;
+	padding: 16px 16px 48px;
 	overflow-y: auto;
 	opacity: 0;
 	visibility: hidden;

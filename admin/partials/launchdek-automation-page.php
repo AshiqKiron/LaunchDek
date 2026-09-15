@@ -33,9 +33,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 					</div>
 				</div>
 				<div class="launchdek-target-sites">
-					<label for="launchdek-run-site"><?php esc_html_e( 'Target sites', LAUNCHDEK_TEXT_DOMAIN ); ?></label>
-					<select id="launchdek-run-site" class="launchdek-select launchdek-select-multi" multiple size="5" aria-label="<?php esc_attr_e( 'Target sites', LAUNCHDEK_TEXT_DOMAIN ); ?>"></select>
-					<p class="launchdek-muted launchdek-field-hint"><?php esc_html_e( 'Hold Ctrl or Cmd to select multiple sites.', LAUNCHDEK_TEXT_DOMAIN ); ?></p>
+					<span class="launchdek-multicheck-label" id="launchdek-run-site-label"><?php esc_html_e( 'Target sites', LAUNCHDEK_TEXT_DOMAIN ); ?></span>
+					<div id="launchdek-run-site-picker" class="launchdek-multicheck-dropdown launchdek-target-sites-picker" aria-labelledby="launchdek-run-site-label"></div>
 				</div>
 			</div>
 

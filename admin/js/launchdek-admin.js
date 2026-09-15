@@ -188,8 +188,20 @@
 	}
 
 	function notice(container, message, type) {
-		if (!container) return;
-		container.innerHTML = '<div class="notice-inline ' + (type || '') + '">' + message + '</div>';
+		if (!container) {
+			return;
+		}
+		if (!message) {
+			container.innerHTML = '';
+			return;
+		}
+		var classes = ['notice'];
+		if (type === 'error') {
+			classes.push('notice-error');
+		} else if (type === 'success') {
+			classes.push('notice-success');
+		}
+		container.innerHTML = '<div class="' + classes.join(' ') + '"><p>' + message + '</p></div>';
 	}
 
 	function escHtml(value) {
@@ -1616,7 +1628,7 @@
 			renderSiteRunsPanel(panel, siteRunsCache[siteId]);
 			return siteRunsCache[siteId];
 		}).catch(function (err) {
-			panel.innerHTML = '<div class="notice-inline error">' + escHtml(err.message || strings.error || 'Something went wrong.') + '</div>';
+			panel.innerHTML = '<div class="notice notice-error"><p>' + escHtml(err.message || strings.error || 'Something went wrong.') + '</p></div>';
 			throw err;
 		}).finally(function () {
 			delete siteRunsPending[siteId];
@@ -1898,7 +1910,7 @@
 		get('/sites' + qs).then(function (sites) {
 			renderSitesTable(sites, { filtered: hasFilters });
 		}).catch(function (err) {
-			tbody.innerHTML = '<tr><td colspan="' + siteTableColspan + '"><div class="notice-inline error">' + escHtml(err.message || strings.error || 'Could not load sites.') + '</div></td></tr>';
+			tbody.innerHTML = '<tr><td colspan="' + siteTableColspan + '"><div class="notice notice-error"><p>' + escHtml(err.message || strings.error || 'Could not load sites.') + '</p></div></td></tr>';
 		});
 	}
 
@@ -2477,36 +2489,8 @@
 		select.value = currentChecklistId ? String(currentChecklistId) : '';
 	}
 
-	function renderCustomChecklistsGrid(checklists) {
-		var grid = document.getElementById('launchdek-custom-checklists');
-		if (!grid) {
-			return;
-		}
-
-		grid.innerHTML = '';
-		if (!checklists.length) {
-			grid.innerHTML = '<p class="launchdek-muted">' + escHtml(strings.noCustomTemplates || 'No custom checklists saved yet. Create one under Checklists.') + '</p>';
-			return;
-		}
-
-		checklists.forEach(function (tpl) {
-			grid.appendChild(createTemplateCard(tpl, {
-				badge: strings.customChecklistBadge || 'Custom',
-				cardClass: 'launchdek-template-card--custom',
-				showStepsPreview: false,
-				onEdit: function () {
-					openChecklistEditor(tpl.id);
-				},
-				onChecklist: function () {
-					duplicateChecklist(tpl);
-				}
-			}));
-		});
-	}
-
 	function refreshCustomChecklistUi(forceRefresh) {
 		return fetchCustomChecklistSummaries(forceRefresh).then(function (checklists) {
-			renderCustomChecklistsGrid(checklists);
 			fillCustomChecklistSelect(document.getElementById('launchdek-checklist-select'), checklists);
 			fillSelect(
 				document.getElementById('launchdek-vault-checklist'),
@@ -2533,6 +2517,7 @@
 			selectedStepIndex = null;
 			renderSteps();
 			renderStepConfig();
+			renderChecklistPreview();
 			updateChecklistActions();
 			loadChecklistList();
 		});
@@ -2551,8 +2536,302 @@
 		document.getElementById('launchdek-cl-description').value = '';
 		renderSteps();
 		renderStepConfig();
+		renderChecklistPreview();
 		updateChecklistActions();
 		document.getElementById('launchdek-cl-title').focus();
+	}
+
+	function getClientPreviewConfig() {
+		return launchdekAdmin.clientPreview || {};
+	}
+
+	function getClientPreviewStrings() {
+		var config = getClientPreviewConfig();
+		return config.strings || {};
+	}
+
+	function getDefaultClientPanelTitle() {
+		var config = getClientPreviewConfig();
+		return config.defaultPanelTitle || 'Agency Checklist';
+	}
+
+	function getClientPanelTitle() {
+		var input = document.getElementById('launchdek-cl-panel-title');
+		if (input) {
+			var value = input.value.trim();
+			if (value) {
+				return value.length > 80 ? value.slice(0, 80) : value;
+			}
+		}
+
+		var config = getClientPreviewConfig();
+		return config.panelTitle || getDefaultClientPanelTitle();
+	}
+
+	var clientPanelTitleSaveTimer = null;
+	var clientPanelTitleSavePending = false;
+
+	function scheduleClientPanelTitleSave() {
+		if (clientPanelTitleSaveTimer) {
+			clearTimeout(clientPanelTitleSaveTimer);
+		}
+		clientPanelTitleSaveTimer = setTimeout(saveClientPanelTitle, 600);
+	}
+
+	function saveClientPanelTitle() {
+		var input = document.getElementById('launchdek-cl-panel-title');
+		if (!input || clientPanelTitleSavePending) {
+			return;
+		}
+
+		var title = getClientPanelTitle();
+		if (input.value !== title) {
+			input.value = title;
+		}
+
+		var config = getClientPreviewConfig();
+		if (title === (config.panelTitle || getDefaultClientPanelTitle())) {
+			return;
+		}
+
+		clientPanelTitleSavePending = true;
+		post('/settings/client-panel-title', { title: title })
+			.then(function (data) {
+				config.panelTitle = data.title || title;
+				clientPanelTitleSavePending = false;
+			})
+			.catch(function () {
+				clientPanelTitleSavePending = false;
+			});
+	}
+
+	function renderClientPreviewChevron(expanded) {
+		var path = expanded ? 'M2 6.5 5 3.5 8 6.5z' : 'M2 3.5 5 6.5 8 3.5z';
+		return '<svg class="launchdek-client-step-chevron" width="10" height="10" viewBox="0 0 10 10" aria-hidden="true" focusable="false"><path fill="currentColor" d="' + path + '"/></svg>';
+	}
+
+	function renderClientPreviewTickIcon() {
+		return '<svg class="launchdek-client-icon" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+	}
+
+	function renderClientPreviewNoteIcon() {
+		return '<svg class="launchdek-client-icon" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>';
+	}
+
+	function renderClientPreviewAttachIcon() {
+		return '<svg class="launchdek-client-icon" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>';
+	}
+
+	function buildClientPreviewSteps(activeIndex) {
+		return currentSteps.map(function (step, index) {
+			var isManual = !step.type || step.type === 'manual';
+			var status = 'pending';
+
+			if (index === activeIndex) {
+				status = isManual ? 'awaiting_manual' : 'running';
+			}
+
+			return {
+				step_index: index,
+				title: step.title || ('Step ' + (index + 1)),
+				type: step.type || 'manual',
+				status: status,
+				instructions: step.instructions || '',
+				deep_link: (step.deep_link || '').trim() ? '#' : '',
+				show_note_field: step.show_note_field !== false,
+				show_screenshot_field: step.show_screenshot_field !== false && step.show_note_field !== false,
+				can_complete: isManual,
+				notes: []
+			};
+		});
+	}
+
+	function previewStepShowsNoteField(step) {
+		return step.show_note_field !== false;
+	}
+
+	function previewStepShowsScreenshotField(step) {
+		return step.show_screenshot_field !== false && previewStepShowsNoteField(step);
+	}
+
+	function previewStepIsManual(step) {
+		return step.type === 'manual' || !step.type;
+	}
+
+	function previewStepIsUpcoming(step, index, activeIndex) {
+		if (step.status === 'completed' || step.status === 'failed') {
+			return false;
+		}
+		return index > activeIndex;
+	}
+
+	function previewStepCanComplete(step, index, activeIndex) {
+		if (index !== activeIndex) {
+			return false;
+		}
+		if (!previewStepIsManual(step) || !step.can_complete) {
+			return false;
+		}
+		return step.status === 'pending' || step.status === 'awaiting_manual' || step.status === 'running';
+	}
+
+	function previewStatusLabel(status, previewStrings) {
+		if (status === 'failed') {
+			return strings.error || 'Failed';
+		}
+		if (status === 'running') {
+			return previewStrings.waiting || 'Waiting on agency';
+		}
+		return '';
+	}
+
+	function renderClientPreviewSettingsLink(step, previewStrings) {
+		if (!step.deep_link) {
+			return '';
+		}
+
+		return '<a class="launchdek-client-step-settings-link" href="#">' + escHtml(previewStrings.goToSettings || 'Go to settings') + '</a>';
+	}
+
+	function renderClientPreviewNoteForm(step, index, activeIndex, previewStrings) {
+		if (!previewStepShowsNoteField(step) || !previewStepCanComplete(step, index, activeIndex)) {
+			return '';
+		}
+
+		var addLabel = previewStrings.addNotes || 'Add notes';
+		var settingsLink = renderClientPreviewSettingsLink(step, previewStrings);
+		var settingsHtml = settingsLink
+			? '<div class="launchdek-client-note-form-settings">' + settingsLink + '</div>'
+			: '';
+		var screenshotBtn = previewStepShowsScreenshotField(step)
+			? '<button type="button" class="launchdek-client-icon-btn launchdek-client-has-tooltip launchdek-client-attach-screenshot is-attach-action" data-tooltip="' + escHtml(previewStrings.attachScreenshot || 'Attach screenshot') + '" aria-label="' + escHtml(previewStrings.attachScreenshot || 'Attach screenshot') + '">' + renderClientPreviewAttachIcon() + '</button>'
+			: '';
+
+		return '<div class="launchdek-client-note-form" data-step="' + escHtml(index) + '">' +
+			settingsHtml +
+			'<div class="launchdek-client-note-form-actions">' +
+				'<button type="button" class="launchdek-client-icon-btn launchdek-client-has-tooltip launchdek-client-note-action is-note-action" data-tooltip="' + escHtml(addLabel) + '" aria-label="' + escHtml(addLabel) + '">' + renderClientPreviewNoteIcon() + '</button>' +
+				screenshotBtn +
+			'</div>' +
+			'<div class="launchdek-client-note-composer">' +
+				'<div class="launchdek-client-note-composer-inner">' +
+					'<textarea class="launchdek-client-note-input" rows="2" placeholder="' + escHtml(previewStrings.notePlaceholder || 'Add a note about this step…') + '" readonly></textarea>' +
+				'</div>' +
+			'</div>' +
+		'</div>';
+	}
+
+	function renderClientPreviewStepBody(step, index, activeIndex, previewStrings) {
+		var body = '';
+
+		if (step.instructions) {
+			body += '<p class="launchdek-client-step-instructions">' + escHtml(step.instructions) + '</p>';
+		}
+		if (step.deep_link && (!previewStepShowsNoteField(step) || !previewStepCanComplete(step, index, activeIndex))) {
+			body += '<div class="launchdek-client-step-settings">' + renderClientPreviewSettingsLink(step, previewStrings) + '</div>';
+		}
+		body += renderClientPreviewNoteForm(step, index, activeIndex, previewStrings);
+
+		return body;
+	}
+
+	function renderClientPreviewStep(step, index, activeIndex, previewStrings) {
+		var expanded = index === activeIndex;
+		var upcoming = previewStepIsUpcoming(step, index, activeIndex);
+		var classes = ['launchdek-client-step'];
+
+		if (step.status === 'awaiting_manual' && !upcoming) {
+			classes.push('is-active');
+		}
+		if (index === activeIndex) {
+			classes.push('is-current');
+		}
+		if (upcoming) {
+			classes.push('is-upcoming');
+		}
+		if (!expanded) {
+			classes.push('is-collapsed');
+		}
+
+		var completeButton = '';
+		if (previewStepCanComplete(step, index, activeIndex)) {
+			var markLabel = previewStrings.markComplete || 'Mark complete';
+			completeButton = '<button type="button" class="launchdek-client-icon-btn launchdek-client-has-tooltip launchdek-client-complete-step is-complete-action" data-tooltip="' + escHtml(markLabel) + '" aria-label="' + escHtml(markLabel) + '">' + renderClientPreviewTickIcon() + '</button>';
+		}
+
+		var badgeLabel = previewStatusLabel(step.status, previewStrings);
+		var badgeHtml = badgeLabel
+			? '<span class="launchdek-client-step-badge ' + escHtml(step.status === 'pending' ? 'awaiting_manual' : step.status) + '">' + escHtml(badgeLabel) + '</span>'
+			: '';
+		var body = expanded ? renderClientPreviewStepBody(step, index, activeIndex, previewStrings) : '';
+		var toggleLabel = previewStrings.toggleStep || 'Toggle step details';
+
+		return '<li class="' + classes.join(' ') + '" data-step-index="' + escHtml(index) + '"' + (upcoming ? ' aria-disabled="true"' : '') + '>' +
+			'<div class="launchdek-client-step-head">' +
+				'<button type="button" class="launchdek-client-step-toggle" aria-expanded="' + (expanded ? 'true' : 'false') + '" aria-label="' + escHtml(toggleLabel) + '">' +
+					renderClientPreviewChevron(expanded) +
+				'</button>' +
+				'<h3 class="launchdek-client-step-title">' + escHtml(step.title) + '</h3>' +
+				'<div class="launchdek-client-step-head-actions">' +
+					badgeHtml +
+					completeButton +
+				'</div>' +
+			'</div>' +
+			(body ? '<div class="launchdek-client-step-body">' + body + '</div>' : '') +
+		'</li>';
+	}
+
+	function renderClientPreviewPanel(checklistTitle, steps, activeIndex) {
+		var previewStrings = getClientPreviewStrings();
+		var panelTitle = getClientPanelTitle();
+		var stepList = steps.map(function (step, index) {
+			return renderClientPreviewStep(step, index, activeIndex, previewStrings);
+		}).join('');
+
+		return '<div class="launchdek-checklist-preview-shell">' +
+			'<div class="launchdek-client-panel-root launchdek-client-layout-sidebar">' +
+				'<aside class="launchdek-client-panel" aria-label="' + escHtml(panelTitle) + '">' +
+					'<div class="launchdek-client-panel-header">' +
+						'<div>' +
+							'<h2 class="launchdek-client-panel-title">' + escHtml(panelTitle) + '</h2>' +
+							'<p class="launchdek-client-panel-subtitle">' + escHtml(checklistTitle) + '</p>' +
+						'</div>' +
+						'<button type="button" class="button button-small launchdek-client-panel-toggle" disabled>' + escHtml(previewStrings.collapse || 'Collapse') + '</button>' +
+					'</div>' +
+					'<div class="launchdek-client-panel-body">' +
+						'<ol class="launchdek-client-step-list">' + stepList + '</ol>' +
+					'</div>' +
+				'</aside>' +
+			'</div>' +
+		'</div>';
+	}
+
+	function renderChecklistPreview() {
+		var box = document.getElementById('launchdek-checklist-preview');
+		if (!box) {
+			return;
+		}
+
+		var titleInput = document.getElementById('launchdek-cl-title');
+		var title = titleInput ? titleInput.value.trim() : '';
+		var previewStrings = getClientPreviewStrings();
+
+		if (!title && !currentSteps.length) {
+			box.innerHTML = '<p class="launchdek-muted">' + escHtml(previewStrings.previewEmpty || strings.onboardingPreviewEmpty || 'Add a title and steps to preview the client panel.') + '</p>';
+			return;
+		}
+
+		var activeIndex = selectedStepIndex !== null ? selectedStepIndex : 0;
+		if (!currentSteps.length) {
+			activeIndex = 0;
+		} else if (activeIndex >= currentSteps.length) {
+			activeIndex = currentSteps.length - 1;
+		}
+
+		var checklistTitle = title || strings.checklistTitleRequired || 'Checklist';
+		var steps = buildClientPreviewSteps(activeIndex);
+
+		box.innerHTML = renderClientPreviewPanel(checklistTitle, steps, activeIndex);
 	}
 
 	function renderSteps() {
@@ -2565,6 +2844,7 @@
 				className: 'launchdek-muted launchdek-canvas-empty',
 				text: 'Add a step to begin building your checklist.'
 			}));
+			renderChecklistPreview();
 			return;
 		}
 
@@ -2640,17 +2920,42 @@
 			flow.appendChild(node);
 		});
 		canvas.appendChild(flow);
+		renderChecklistPreview();
 	}
 
-	function renderFieldInfo(tooltipText) {
+	function renderFieldInfo(tooltipText, extraClass) {
 		if (!tooltipText) {
 			return '';
 		}
-		return '<button type="button" class="launchdek-field-info launchdek-has-tooltip" data-tooltip="' + escAttr(tooltipText) + '" aria-label="' + escAttr(tooltipText) + '"><span class="dashicons dashicons-info-outline" aria-hidden="true"></span></button>';
+		var infoClass = 'launchdek-field-info launchdek-has-tooltip';
+		if (extraClass) {
+			infoClass += ' ' + extraClass;
+		}
+		return '<button type="button" class="' + infoClass + '" data-tooltip="' + escAttr(tooltipText) + '" aria-label="' + escAttr(tooltipText) + '"><span class="dashicons dashicons-info-outline" aria-hidden="true"></span></button>';
 	}
 
-	function renderFieldLabel(text, tooltipText) {
-		return '<span class="launchdek-field-label-row">' + renderFieldInfo(tooltipText) + '<span>' + escHtml(text) + '</span></span>';
+	function renderFieldLabel(text, tooltipText, infoClass) {
+		return '<span class="launchdek-field-label-row">' + renderFieldInfo(tooltipText, infoClass) + '<span>' + escHtml(text) + '</span></span>';
+	}
+
+	function getStepTypeHelp(type) {
+		if (type === 'api') {
+			return strings.stepTypeApiHelp || 'API steps run automatically when the checklist reaches this step. LaunchDek sends an authenticated REST request to the remote WordPress site using its saved Application Password—no client panel action required.';
+		}
+		if (type === 'manual') {
+			return strings.stepTypeManualHelp || 'Manual steps pause the run until someone marks them complete in the hub run tracker or the client checklist panel. Use for tasks that need human verification.';
+		}
+		return strings.stepTypeHelp || 'Choose how this step completes during a run. Manual steps wait for a person; API steps run automatically on the remote site.';
+	}
+
+	function updateStepTypeHelpTooltip(type) {
+		var helpText = getStepTypeHelp(type);
+		var infoBtn = document.querySelector('#launchdek-step-config .launchdek-step-type-help');
+		if (!infoBtn) {
+			return;
+		}
+		infoBtn.setAttribute('data-tooltip', helpText);
+		infoBtn.setAttribute('aria-label', helpText);
 	}
 
 	function getDeepLinkInferenceRules() {
@@ -2887,10 +3192,14 @@
 		});
 	}
 
-	function bindMulticheckDropdown(container) {
+	function bindMulticheckDropdown(container, options) {
 		if (!container) {
 			return;
 		}
+
+		options = options || {};
+		var checkboxSelector = options.checkboxSelector || '.ld-target-role';
+		var updateSummary = options.updateSummary || updateRoleMappingSummary;
 
 		var toggle = container.querySelector('.launchdek-multicheck-toggle');
 		var menu = container.querySelector('.launchdek-multicheck-menu');
@@ -2910,14 +3219,18 @@
 			}
 		});
 
-		container.querySelectorAll('.ld-target-role').forEach(function (input) {
+		container.querySelectorAll(checkboxSelector).forEach(function (input) {
 			input.addEventListener('change', function () {
-				updateRoleMappingSummary(container);
-				saveStepFromForm();
+				updateSummary(container);
+				if (options.onChange) {
+					options.onChange();
+				} else if (checkboxSelector === '.ld-target-role') {
+					saveStepFromForm();
+				}
 			});
 		});
 
-		updateRoleMappingSummary(container);
+		updateSummary(container);
 	}
 
 	function ensureMulticheckDropdownCloseHandler() {
@@ -2993,6 +3306,7 @@
 		var box = document.getElementById('launchdek-step-config');
 		if (selectedStepIndex === null || !currentSteps[selectedStepIndex]) {
 			box.innerHTML = '<p class="launchdek-muted">Select a step on the canvas to configure.</p>';
+			renderChecklistPreview();
 			return;
 		}
 		var step = currentSteps[selectedStepIndex];
@@ -3004,27 +3318,29 @@
 			'<label>' + renderFieldLabel('Instructions', '') + '<textarea id="ld-step-instructions" rows="3">' + escHtml(step.instructions || '') + '</textarea></label>' +
 			renderRoleMapping(step) +
 			'<label>' + renderFieldLabel('Deep Link (admin path)', strings.deepLinkHelp || 'Optional wp-admin path (e.g. options-permalink.php). LaunchDek auto-fills this from the step title, instructions, or API route when possible.') + '<input type="text" id="ld-step-deeplink" value="' + escAttr(step.deep_link || '') + '" placeholder="options-permalink.php"' + (showDeepLinkHint ? ' data-auto-filled="1"' : '') + ' /><span class="launchdek-muted launchdek-deeplink-hint" id="ld-step-deeplink-hint"' + (showDeepLinkHint ? '' : ' hidden') + '>' + escHtml(strings.deepLinkAuto || 'Auto-detected from step content.') + '</span></label>' +
-			'<label>' + renderFieldLabel('Step Type', strings.stepTypeHelp || 'Manual steps are completed by a person on the client panel or in the hub run tracker. API steps run automatically against the remote site using the WordPress REST API.') + '<select id="ld-step-type"><option value="manual"' + (step.type === 'manual' ? ' selected' : '') + '>Manual</option><option value="api"' + (step.type === 'api' ? ' selected' : '') + '>API</option></select></label>' +
+			'<label>' + renderFieldLabel('Step Type', getStepTypeHelp(step.type || 'manual'), 'launchdek-step-type-help') + '<select id="ld-step-type"><option value="manual"' + (step.type === 'manual' ? ' selected' : '') + '>Manual</option><option value="api"' + (step.type === 'api' ? ' selected' : '') + '>API</option></select></label>' +
 			'<div class="launchdek-step-client-options" id="ld-step-client-options">' +
 			'<label class="launchdek-step-note-field-option" id="ld-step-show-note-wrap"><input type="checkbox" id="ld-step-show-note"' + (showNoteField ? ' checked' : '') + ' /><span class="launchdek-step-option-label">' + renderFieldInfo(strings.showNoteFieldHelp || 'When enabled, clients can add text notes as evidence when completing this manual step.') + escHtml(strings.showNoteField || 'Show note field on client panel') + '</span></label>' +
 			'<label class="launchdek-step-note-field-option" id="ld-step-show-screenshot-wrap"><input type="checkbox" id="ld-step-show-screenshot"' + (showScreenshotField ? ' checked' : '') + ' /><span class="launchdek-step-option-label">' + renderFieldInfo(strings.showScreenshotFieldHelp || 'When enabled, clients can attach a screenshot from the media library when saving a step note.') + escHtml(strings.showScreenshotField || 'Allow screenshot attachment on client panel') + '</span></label>' +
 			'</div>' +
 			'<div id="ld-api-config"' + (step.type === 'api' ? '' : ' style="display:none"') + '>' +
-			'<h4 class="launchdek-config-subheading">API Payload Mapper</h4>' +
-			'<label>HTTP Method<select id="ld-api-method"><option' + sel(step.api && step.api.method, 'GET') + '>GET</option><option' + sel(step.api && step.api.method, 'POST') + '>POST</option><option' + sel(step.api && step.api.method, 'PUT') + '>PUT</option><option' + sel(step.api && step.api.method, 'PATCH') + '>PATCH</option><option' + sel(step.api && step.api.method, 'DELETE') + '>DELETE</option></select></label>' +
-			'<label>REST Route<input type="text" id="ld-api-route" value="' + escAttr((step.api && step.api.route) || '') + '" placeholder="/wp/v2/settings" /></label>' +
-			'<label>JSON Payload<textarea id="ld-api-payload" rows="4">' + escHtml(JSON.stringify((step.api && step.api.payload) || {}, null, 2)) + '</textarea></label>' +
+			'<div class="launchdek-card-heading-row launchdek-config-subheading-row"><h4 class="launchdek-config-subheading">' + escHtml('API Payload Mapper') + '</h4>' + renderFieldInfo(strings.apiMapperHelp || 'Configure the REST call LaunchDek makes on the client site. Use Validate API Step to dry-run checks before saving. Fields listed under Settings → Exclude Options are stripped from /wp/v2/settings payloads.') + '</div>' +
+			'<label>' + renderFieldLabel('HTTP Method', strings.apiMethodHelp || 'HTTP verb for the request. GET reads data without changes. POST, PUT, PATCH, and DELETE send the JSON payload to create, update, or remove resources.') + '<select id="ld-api-method"><option' + sel(step.api && step.api.method, 'GET') + '>GET</option><option' + sel(step.api && step.api.method, 'POST') + '>POST</option><option' + sel(step.api && step.api.method, 'PUT') + '>PUT</option><option' + sel(step.api && step.api.method, 'PATCH') + '>PATCH</option><option' + sel(step.api && step.api.method, 'DELETE') + '>DELETE</option></select></label>' +
+			'<label>' + renderFieldLabel('REST Route', strings.apiRouteHelp || 'WordPress REST API path on the remote site. Must start with / (for example, /wp/v2/settings for site options).') + '<input type="text" id="ld-api-route" value="' + escAttr((step.api && step.api.route) || '') + '" placeholder="/wp/v2/settings" /></label>' +
+			'<label>' + renderFieldLabel('JSON Payload', strings.apiPayloadHelp || 'Request body for mutating methods. For /wp/v2/settings, use WordPress setting field names (for example, {"title":"My Site"}). Use {} for GET requests.') + '<textarea id="ld-api-payload" rows="4">' + escHtml(JSON.stringify((step.api && step.api.payload) || {}, null, 2)) + '</textarea></label>' +
 			'<button type="button" class="button" id="ld-validate-api">Validate API Step</button>' +
 			'</div>' +
 			'<button type="button" class="button" id="ld-remove-step" style="margin-top:8px">Remove Step</button>';
 
 		function syncStepTypeFields() {
-			var isManual = document.getElementById('ld-step-type').value === 'manual';
+			var stepType = document.getElementById('ld-step-type').value;
+			var isManual = stepType === 'manual';
 			document.getElementById('ld-api-config').style.display = isManual ? 'none' : '';
 			var clientOptions = document.getElementById('ld-step-client-options');
 			if (clientOptions) {
 				clientOptions.style.display = isManual ? '' : 'none';
 			}
+			updateStepTypeHelpTooltip(stepType);
 		}
 
 		function syncScreenshotFieldState() {
@@ -3157,7 +3473,13 @@
 	}
 
 	function normalizeChecklistTabId(tabId) {
-		return tabId === 'builder' ? 'my-checklists' : tabId;
+		if (tabId === 'builder') {
+			return 'my-checklists';
+		}
+		if (tabId === 'new-checklist') {
+			return 'templates';
+		}
+		return tabId;
 	}
 
 	function initChecklistTabs() {
@@ -3217,6 +3539,22 @@
 		loadChecklistList();
 		updateChecklistActions();
 
+		['launchdek-cl-title', 'launchdek-cl-description'].forEach(function (id) {
+			var field = document.getElementById(id);
+			if (field) {
+				field.addEventListener('input', renderChecklistPreview);
+			}
+		});
+
+		var panelTitleInput = document.getElementById('launchdek-cl-panel-title');
+		if (panelTitleInput) {
+			panelTitleInput.addEventListener('input', function () {
+				renderChecklistPreview();
+				scheduleClientPanelTitleSave();
+			});
+			panelTitleInput.addEventListener('blur', saveClientPanelTitle);
+		}
+
 		var checklistSelect = document.getElementById('launchdek-checklist-select');
 		if (checklistSelect) {
 			checklistSelect.addEventListener('change', function () {
@@ -3235,44 +3573,13 @@
 			loadChecklistEditor(openId);
 		}
 
-		var newFromTemplateBtn = document.getElementById('launchdek-new-from-template');
-		if (newFromTemplateBtn) {
-			newFromTemplateBtn.onclick = function () {
-				openTemplatePicker({
-					onImport: function (checklist) {
-						if (showChecklistTab) {
-							showChecklistTab('my-checklists', true);
-						}
-						loadChecklistEditor(checklist.id);
-					},
-					onBlank: function () {
-						newChecklist();
-						if (showChecklistTab) {
-							showChecklistTab('my-checklists', true);
-						}
-					}
-				});
-			};
-		}
-
-		var newBlankBtn = document.getElementById('launchdek-new-blank');
-		if (newBlankBtn) {
-			newBlankBtn.onclick = function () {
+		var canvasStartBlankBtn = document.getElementById('launchdek-canvas-start-blank');
+		if (canvasStartBlankBtn) {
+			canvasStartBlankBtn.onclick = function () {
 				newChecklist();
-				if (showChecklistTab) {
-					showChecklistTab('my-checklists', true);
-				}
 			};
 		}
 
-		var browseTemplatesBtn = document.getElementById('launchdek-new-browse-templates');
-		if (browseTemplatesBtn) {
-			browseTemplatesBtn.onclick = function () {
-				if (showChecklistTab) {
-					showChecklistTab('templates', true);
-				}
-			};
-		}
 		document.getElementById('launchdek-add-step').onclick = function () {
 			currentSteps.push({
 				id: 'step_' + (currentSteps.length + 1),
@@ -3566,21 +3873,78 @@
 	var cachedSites = [];
 	var cachedChecklists = [];
 
+	function formatTargetSitesSummary(selectedIds) {
+		if (!selectedIds || !selectedIds.length) {
+			return strings.selectTargetSites || 'Select sites…';
+		}
+
+		var labels = selectedIds.map(function (siteId) {
+			var site = cachedSites.find(function (s) { return s.id === siteId; });
+			return site ? (site.name || site.url) : ('Site #' + siteId);
+		});
+
+		if (labels.length <= 2) {
+			return labels.join(', ');
+		}
+
+		return (strings.targetSitesSelected || '%d sites selected').replace('%d', String(labels.length));
+	}
+
+	function updateTargetSitesSummary(container) {
+		if (!container) {
+			return;
+		}
+
+		var summary = container.querySelector('.launchdek-multicheck-summary');
+		if (!summary) {
+			return;
+		}
+
+		var selected = [];
+		container.querySelectorAll('.ld-target-site:checked').forEach(function (input) {
+			selected.push(parseInt(input.value, 10));
+		});
+		summary.textContent = formatTargetSitesSummary(selected);
+	}
+
+	function renderTargetSitesPicker(preserveSelected) {
+		var container = document.getElementById('launchdek-run-site-picker');
+		if (!container) {
+			return;
+		}
+
+		var selected = preserveSelected ? getSelectedSiteIds() : [];
+		var summary = formatTargetSitesSummary(selected);
+		var html = '<button type="button" class="launchdek-multicheck-toggle" aria-haspopup="listbox" aria-expanded="false">';
+		html += '<span class="launchdek-multicheck-summary">' + escHtml(summary) + '</span>';
+		html += '<span class="dashicons dashicons-arrow-down-alt2" aria-hidden="true"></span>';
+		html += '</button>';
+		html += '<div class="launchdek-multicheck-menu" role="listbox" hidden>';
+
+		if (!cachedSites.length) {
+			html += '<p class="launchdek-muted launchdek-multicheck-empty">' + escHtml(strings.noSites || 'No sites registered yet.') + '</p>';
+		} else {
+			cachedSites.forEach(function (site) {
+				var checked = selected.indexOf(site.id) >= 0 ? ' checked' : '';
+				html += '<label class="launchdek-multicheck-option" role="option"><input type="checkbox" class="ld-target-site" value="' + escAttr(String(site.id)) + '"' + checked + ' /> ' + escHtml(site.name || site.url) + '</label>';
+			});
+		}
+
+		html += '</div>';
+		container.innerHTML = html;
+		ensureMulticheckDropdownCloseHandler();
+		bindMulticheckDropdown(container, {
+			checkboxSelector: '.ld-target-site',
+			updateSummary: updateTargetSitesSummary
+		});
+	}
+
 	function loadRunSelects() {
 		return Promise.all([get('/sites'), fetchCustomChecklistSummaries()]).then(function (r) {
 			cachedSites = r[0] || [];
 			cachedChecklists = r[1] || [];
 
-			var siteSelect = document.getElementById('launchdek-run-site');
-			if (siteSelect) {
-				siteSelect.innerHTML = '';
-				cachedSites.forEach(function (site) {
-					siteSelect.appendChild(el('option', {
-						value: String(site.id),
-						text: site.name || site.url
-					}));
-				});
-			}
+			renderTargetSitesPicker(true);
 
 			fillSelect(document.getElementById('launchdek-drift-site'), cachedSites, 'id', 'name', 'All sites');
 			fillSelect(document.getElementById('launchdek-run-checklist'), cachedChecklists, 'id', 'title', 'Select checklist…');
@@ -3588,11 +3952,19 @@
 	}
 
 	function getSelectedSiteIds() {
-		var select = document.getElementById('launchdek-run-site');
-		if (!select) return [];
-		return Array.prototype.slice.call(select.selectedOptions).map(function (opt) {
-			return parseInt(opt.value, 10);
-		}).filter(function (id) { return id > 0; });
+		var picker = document.getElementById('launchdek-run-site-picker');
+		if (!picker) {
+			return [];
+		}
+
+		var selected = [];
+		picker.querySelectorAll('.ld-target-site:checked').forEach(function (input) {
+			var id = parseInt(input.value, 10);
+			if (id > 0) {
+				selected.push(id);
+			}
+		});
+		return selected;
 	}
 
 	function getSelectedChecklist() {
@@ -3602,6 +3974,10 @@
 			if (cachedChecklists[i].id === wfId) return cachedChecklists[i];
 		}
 		return { id: wfId, title: 'Checklist #' + wfId };
+	}
+
+	function runNotice(message, type) {
+		notice(document.getElementById('launchdek-run-notice'), message, type);
 	}
 
 	function renderBatchQueue() {
@@ -3640,7 +4016,7 @@
 		var checklist = getSelectedChecklist();
 		var siteIds = getSelectedSiteIds();
 		if (!checklist || !siteIds.length) {
-			alert('Select a checklist and at least one target site.');
+			runNotice(strings.automationNeedSiteChecklist || 'Select at least one site and a checklist.', 'error');
 			return;
 		}
 
@@ -3666,7 +4042,7 @@
 	function processBatchQueue() {
 		var queued = batchQueue.filter(function (item) { return item.status === 'queued'; });
 		if (!queued.length) {
-			alert('No queued items to process.');
+			runNotice(strings.automationBatchQueueEmpty || 'No queued items to process.', 'error');
 			return;
 		}
 
@@ -3698,11 +4074,11 @@
 				renderRun(data.runs[0].run);
 			}
 			loadAudit();
-			notice(document.getElementById('launchdek-run-notice'), 'Batch queue processed.', 'success');
+			runNotice(strings.automationBatchProcessed || 'Batch queue processed.', 'success');
 		}).catch(function (e) {
 			queued.forEach(function (item) { item.status = 'failed'; });
 			renderBatchQueue();
-			notice(document.getElementById('launchdek-run-notice'), e.message, 'error');
+			runNotice(e.message, 'error');
 		});
 	}
 
@@ -3989,10 +4365,7 @@
 			get('/runs/' + runIdParam).then(function (run) {
 				renderRun(run);
 			}).catch(function (err) {
-				var noticeEl = document.getElementById('launchdek-run-notice');
-				if (noticeEl) {
-					notice(noticeEl, err.message, 'error');
-				}
+				runNotice(err.message, 'error');
 			});
 		}
 
@@ -4006,7 +4379,10 @@
 		document.getElementById('launchdek-start-run').onclick = function () {
 			var siteIds = getSelectedSiteIds();
 			var checklist = getSelectedChecklist();
-			if (!siteIds.length || !checklist) return alert('Select at least one site and a checklist.');
+			if (!siteIds.length || !checklist) {
+				runNotice(strings.automationNeedSiteChecklist || 'Select at least one site and a checklist.', 'error');
+				return;
+			}
 			if (siteIds.length > 1) {
 				addToBatchQueue();
 				processBatchQueue();
@@ -4016,36 +4392,44 @@
 				.then(function (data) {
 					renderRun(data.run);
 					loadAudit();
-					notice(document.getElementById('launchdek-run-notice'), 'Run #' + data.run_id + ' started.', 'success');
+					runNotice((strings.automationRunStarted || 'Run #%d started.').replace('%d', String(data.run_id)), 'success');
 				})
 				.catch(function (e) {
-					notice(document.getElementById('launchdek-run-notice'), e.message, 'error');
+					runNotice(e.message, 'error');
 				});
 		};
 
 		document.getElementById('launchdek-run-next').onclick = function () {
-			if (!activeRunId) return alert('Start a run first.');
+			if (!activeRunId) {
+				runNotice(strings.automationStartRunFirst || 'Start a run first.', 'error');
+				return;
+			}
 			post('/runs/' + activeRunId + '/next', {}).then(function (r) { renderRun(r.run); loadAudit(); });
 		};
 
 		document.getElementById('launchdek-run-auto').onclick = function () {
-			if (!activeRunId) return alert('Start a run first.');
+			if (!activeRunId) {
+				runNotice(strings.automationStartRunFirst || 'Start a run first.', 'error');
+				return;
+			}
 			post('/runs/' + activeRunId + '/auto', {}).then(function (r) { renderRun(r.run); loadAudit(); });
 		};
 
 		document.getElementById('launchdek-run-push-client').onclick = function () {
-			if (!activeRunId) return alert('Start a run first.');
-			var noticeEl = document.getElementById('launchdek-run-notice');
+			if (!activeRunId) {
+				runNotice(strings.automationStartRunFirst || 'Start a run first.', 'error');
+				return;
+			}
 			post('/runs/' + activeRunId + '/push-client', {})
 				.then(function (data) {
 					if (data.run) {
 						renderRun(data.run);
 					}
 					loadAudit();
-					notice(noticeEl, data.message || (strings.clientPushOk || 'Checklist pushed to client admin panel.'), 'success');
+					runNotice(data.message || (strings.clientPushOk || 'Checklist pushed to client admin panel.'), 'success');
 				})
 				.catch(function (e) {
-					notice(noticeEl, e.message, 'error');
+					runNotice(e.message, 'error');
 				});
 		};
 

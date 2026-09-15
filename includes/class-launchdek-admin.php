@@ -126,6 +126,16 @@ class LAUNCHDEK_Admin {
 		}
 		$path = LAUNCHDEK_PLUGIN_DIR . 'admin/css/launchdek-admin.css';
 		wp_enqueue_style( 'launchdek-admin', LAUNCHDEK_PLUGIN_URL . 'admin/css/launchdek-admin.css', array(), file_exists( $path ) ? (string) filemtime( $path ) : LAUNCHDEK_VERSION );
+
+		if ( self::PAGE_SLUG . '_page_' . self::PAGE_SLUG . '-checklists' === $hook ) {
+			$client_css_path = LAUNCHDEK_PLUGIN_DIR . 'mu-plugin/launchdek-client/css/launchdek-client-admin.css';
+			wp_enqueue_style(
+				'launchdek-client-admin-preview',
+				LAUNCHDEK_PLUGIN_URL . 'mu-plugin/launchdek-client/css/launchdek-client-admin.css',
+				array( 'launchdek-admin' ),
+				file_exists( $client_css_path ) ? (string) filemtime( $client_css_path ) : LAUNCHDEK_VERSION
+			);
+		}
 	}
 
 	public function enqueue_scripts( $hook ) {
@@ -228,7 +238,7 @@ class LAUNCHDEK_Admin {
 					'useChecklist'    => __( 'Use Checklist', LAUNCHDEK_TEXT_DOMAIN ),
 					'checklistCreated' => __( 'Checklist created.', LAUNCHDEK_TEXT_DOMAIN ),
 					'checklistTitleRequired' => __( 'Checklist title is required.', LAUNCHDEK_TEXT_DOMAIN ),
-					'noCustomChecklists' => __( 'No custom checklists yet. Click New Checklist to create one.', LAUNCHDEK_TEXT_DOMAIN ),
+					'noCustomChecklists' => __( 'No custom checklists yet. Use a template or Start Blank in My Checklists.', LAUNCHDEK_TEXT_DOMAIN ),
 					'noCustomTemplates' => __( 'No custom checklists saved yet. Create one under Checklists.', LAUNCHDEK_TEXT_DOMAIN ),
 					'editChecklist' => __( 'Edit Checklist', LAUNCHDEK_TEXT_DOMAIN ),
 					'customChecklistBadge' => __( 'Custom', LAUNCHDEK_TEXT_DOMAIN ),
@@ -256,9 +266,17 @@ class LAUNCHDEK_Admin {
 					'roleTargetMapping' => __( 'Role Target Mapping', LAUNCHDEK_TEXT_DOMAIN ),
 					'allRoles'        => __( 'All roles', LAUNCHDEK_TEXT_DOMAIN ),
 					'rolesSelected'   => __( '%d roles selected', LAUNCHDEK_TEXT_DOMAIN ),
+					'selectTargetSites' => __( 'Select sites…', LAUNCHDEK_TEXT_DOMAIN ),
+					'targetSitesSelected' => __( '%d sites selected', LAUNCHDEK_TEXT_DOMAIN ),
 					'deepLinkAuto'    => __( 'Auto-detected from step content.', LAUNCHDEK_TEXT_DOMAIN ),
 					'deepLinkHelp'    => __( 'Optional wp-admin path (e.g. options-permalink.php). LaunchDek auto-fills this from the step title, instructions, or API route when possible.', LAUNCHDEK_TEXT_DOMAIN ),
-					'stepTypeHelp'    => __( 'Manual steps are completed by a person on the client panel or in the hub run tracker. API steps run automatically against the remote site using the WordPress REST API.', LAUNCHDEK_TEXT_DOMAIN ),
+					'stepTypeHelp'    => __( 'Choose how this step completes during a run. Manual steps wait for a person; API steps run automatically on the remote site.', LAUNCHDEK_TEXT_DOMAIN ),
+					'stepTypeManualHelp' => __( 'Manual steps pause the run until someone marks them complete in the hub run tracker or the client checklist panel. Use for tasks that need human verification.', LAUNCHDEK_TEXT_DOMAIN ),
+					'stepTypeApiHelp' => __( 'API steps run automatically when the checklist reaches this step. LaunchDek sends an authenticated REST request to the remote WordPress site using its saved Application Password—no client panel action required.', LAUNCHDEK_TEXT_DOMAIN ),
+					'apiMapperHelp'   => __( 'Configure the REST call LaunchDek makes on the client site. Use Validate API Step to dry-run checks before saving. Fields listed under Settings → Exclude Options are stripped from /wp/v2/settings payloads.', LAUNCHDEK_TEXT_DOMAIN ),
+					'apiMethodHelp'   => __( 'HTTP verb for the request. GET reads data without changes. POST, PUT, PATCH, and DELETE send the JSON payload to create, update, or remove resources.', LAUNCHDEK_TEXT_DOMAIN ),
+					'apiRouteHelp'    => __( 'WordPress REST API path on the remote site. Must start with / (for example, /wp/v2/settings for site options).', LAUNCHDEK_TEXT_DOMAIN ),
+					'apiPayloadHelp'  => __( 'Request body for mutating methods. For /wp/v2/settings, use WordPress setting field names (for example, {"title":"My Site"}). Use {} for GET requests.', LAUNCHDEK_TEXT_DOMAIN ),
 					'roleTargetMappingHelp' => __( 'Limit which WordPress roles can complete this step on the client panel. Leave empty to allow all logged-in users.', LAUNCHDEK_TEXT_DOMAIN ),
 					'showNoteField'   => __( 'Show note field on client panel', LAUNCHDEK_TEXT_DOMAIN ),
 					'showNoteFieldHelp' => __( 'When enabled, clients can add text notes as evidence when completing this manual step.', LAUNCHDEK_TEXT_DOMAIN ),
@@ -303,6 +321,11 @@ class LAUNCHDEK_Admin {
 					'captureImportMany'   => __( 'Import %d Captured Steps', LAUNCHDEK_TEXT_DOMAIN ),
 					'captureImported'     => __( 'Captured steps imported into the checklist builder.', LAUNCHDEK_TEXT_DOMAIN ),
 					'captureDefaultTitle' => __( 'Captured Checklist', LAUNCHDEK_TEXT_DOMAIN ),
+					'automationNeedSiteChecklist' => __( 'Select at least one site and a checklist.', LAUNCHDEK_TEXT_DOMAIN ),
+					'automationBatchQueueEmpty'   => __( 'No queued items to process.', LAUNCHDEK_TEXT_DOMAIN ),
+					'automationStartRunFirst'     => __( 'Start a run first.', LAUNCHDEK_TEXT_DOMAIN ),
+					'automationBatchProcessed'    => __( 'Batch queue processed.', LAUNCHDEK_TEXT_DOMAIN ),
+					'automationRunStarted'        => __( 'Run #%d started.', LAUNCHDEK_TEXT_DOMAIN ),
 				),
 		);
 
@@ -341,6 +364,22 @@ class LAUNCHDEK_Admin {
 					array(
 						'is_template' => 0,
 					)
+				),
+			);
+			$localize['clientPreview'] = array(
+				'panelTitle'        => LAUNCHDEK_Settings::get_client_panel_title(),
+				'defaultPanelTitle' => LAUNCHDEK_Settings::get_default_client_panel_title(),
+				'strings'    => array(
+					'collapse'         => __( 'Collapse', LAUNCHDEK_TEXT_DOMAIN ),
+					'stepOf'           => __( 'Step %1$s of %2$s', LAUNCHDEK_TEXT_DOMAIN ),
+					'markComplete'     => __( 'Mark complete', LAUNCHDEK_TEXT_DOMAIN ),
+					'goToSettings'     => __( 'Go to settings', LAUNCHDEK_TEXT_DOMAIN ),
+					'toggleStep'       => __( 'Toggle step details', LAUNCHDEK_TEXT_DOMAIN ),
+					'waiting'          => __( 'Waiting on agency', LAUNCHDEK_TEXT_DOMAIN ),
+					'addNotes'         => __( 'Add notes', LAUNCHDEK_TEXT_DOMAIN ),
+					'attachScreenshot' => __( 'Attach screenshot', LAUNCHDEK_TEXT_DOMAIN ),
+					'notePlaceholder'  => __( 'Add a note about this step…', LAUNCHDEK_TEXT_DOMAIN ),
+					'previewEmpty'     => __( 'Add a title and steps to preview the client panel.', LAUNCHDEK_TEXT_DOMAIN ),
 				),
 			);
 		}

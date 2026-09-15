@@ -63,8 +63,21 @@ Yes, when enabled in Settings, application passwords are encrypted using your Wo
 
 == Changelog ==
 
+= 1.0.31 =
+* Automation: Target sites selector is now a multi-check dropdown (checkbox list) instead of a native multi-select
+
+= 1.0.30 =
+* Checklists: removed the New Checklist tab — use Templates or Start Blank in My Checklists to create checklists
+* Checklists: Step Type and API Payload Mapper fields now include info tooltips — API help updates when you switch between Manual and API
+* Checklists: builder preview no longer shows the client panel progress bar
+
 = 1.0.29 =
+* Checklists: **My Checklists** builder preview now mirrors the remote client checklist panel (sidebar layout, step cards, progress bar, and note controls)
+* Checklists: **My Checklists** builder uses a three-column layout — canvas, step configuration, and live preview — with checklist selection via dropdown only (custom checklist cards removed)
+* Checklists: edit the client panel heading (default "Agency Checklist") directly in the builder preview sidebar; saves automatically and syncs on the next checklist push or client panel refresh
+* Checklists: **Private Agency Vault** section now includes clearer copy and an info tooltip explaining how to save and reuse agency templates
 * Checklists: **Your Custom Checklists** now loads faster — lightweight summary API, server-side preload on the Checklists page, and deduplicated client fetches (one request instead of three)
+* Templates: template card actions (View steps, Edit, Use Checklist) are hidden by default and appear on card hover
 
 = 1.0.28 =
 * Checklists: My Checklists, Templates, New Checklist, and Auto-Capture are now unified tab navigation on a single page (Auto-Capture is inline instead of a modal)
@@ -79,6 +92,9 @@ Yes, when enabled in Settings, application passwords are encrypted using your Wo
 
 = 1.0.25 =
 * Admin: archive run, delete run, delete site, and delete checklist confirmations now use a WordPress-style modal instead of browser confirm dialogs
+
+= 1.0.25 =
+* Automation page: validation and run feedback now uses WordPress inline notices instead of browser alert dialogs
 
 = 1.0.24 =
 * Sites: checklist history **View run** is now a split button with a dropdown for Edit, Duplicate, Export, Archive, and Delete (archive hides the run from history; delete removes it permanently)

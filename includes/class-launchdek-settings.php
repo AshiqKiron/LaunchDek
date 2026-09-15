@@ -357,6 +357,20 @@ class LAUNCHDEK_Settings {
 		return self::sanitize_client_panel_title( $settings['client_panel_title'] ?? self::get_default_client_panel_title() );
 	}
 
+	/**
+	 * Persist the client checklist panel heading.
+	 *
+	 * @param mixed $title Raw title input.
+	 * @return string Sanitized title stored in settings.
+	 */
+	public static function save_client_panel_title( $title ) {
+		$settings                       = self::get();
+		$settings['client_panel_title'] = self::sanitize_client_panel_title( $title );
+		update_option( self::OPTION_NAME, $settings );
+
+		return $settings['client_panel_title'];
+	}
+
 	public static function get_notification_events() {
 		return array(
 			'run_started'           => __( 'Checklist run started', LAUNCHDEK_TEXT_DOMAIN ),
