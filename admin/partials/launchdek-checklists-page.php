@@ -14,23 +14,15 @@ if ( ! defined( 'ABSPATH' ) ) {
 ?>
 <div class="wrap launchdek-admin" data-launchdek-page="checklists">
 	<h1><?php echo esc_html( get_admin_page_title() ); ?>
+		<button type="button" class="page-title-action" id="launchdek-show-builder"><?php esc_html_e( 'My Checklists', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
+		<button type="button" class="page-title-action" id="launchdek-show-templates" hidden><?php esc_html_e( 'Templates', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
 		<button type="button" class="page-title-action" id="launchdek-new-checklist" hidden><?php esc_html_e( 'New Checklist', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
 		<button type="button" class="page-title-action" id="launchdek-auto-capture" hidden><?php esc_html_e( 'Auto-Capture', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
 	</h1>
 
-	<nav class="launchdek-page-tabs" role="tablist" aria-label="<?php esc_attr_e( 'Checklists sections', LAUNCHDEK_TEXT_DOMAIN ); ?>">
-		<button type="button" class="launchdek-page-tab is-active" role="tab" id="launchdek-tab-templates" data-tab="templates" aria-selected="true" aria-controls="launchdek-panel-templates">
-			<?php esc_html_e( 'Templates', LAUNCHDEK_TEXT_DOMAIN ); ?>
-		</button>
-		<button type="button" class="launchdek-page-tab" role="tab" id="launchdek-tab-builder" data-tab="builder" aria-selected="false" aria-controls="launchdek-panel-builder">
-			<?php esc_html_e( 'My Checklists', LAUNCHDEK_TEXT_DOMAIN ); ?>
-		</button>
-	</nav>
-
-	<div id="launchdek-panel-templates" class="launchdek-tab-panel" data-launchdek-tab-panel="templates" role="tabpanel" aria-labelledby="launchdek-tab-templates">
+	<div id="launchdek-panel-templates" class="launchdek-tab-panel" data-launchdek-tab-panel="templates" role="tabpanel">
 		<div class="launchdek-card">
 			<h2><?php esc_html_e( 'Built-In Standard Stacks', LAUNCHDEK_TEXT_DOMAIN ); ?></h2>
-			<p class="launchdek-muted" id="launchdek-category-description"></p>
 			<div id="launchdek-category-tabs" class="launchdek-category-tabs" role="tablist" aria-label="<?php esc_attr_e( 'Template categories', LAUNCHDEK_TEXT_DOMAIN ); ?>"></div>
 			<div id="launchdek-builtin-templates" class="launchdek-template-grid"></div>
 			<div id="launchdek-builtin-notice" class="launchdek-notice-area"></div>
@@ -38,7 +30,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 		<div class="launchdek-card">
 			<h2><?php esc_html_e( 'Your Custom Checklists', LAUNCHDEK_TEXT_DOMAIN ); ?></h2>
-			<p class="launchdek-muted"><?php esc_html_e( 'Checklists you create and save here appear below for reuse and cloning.', LAUNCHDEK_TEXT_DOMAIN ); ?></p>
+			<p class="launchdek-muted"><?php esc_html_e( 'Checklists you create and save here appear below for reuse.', LAUNCHDEK_TEXT_DOMAIN ); ?></p>
 			<div id="launchdek-custom-checklists" class="launchdek-template-grid"></div>
 			<div id="launchdek-custom-notice" class="launchdek-notice-area"></div>
 		</div>
@@ -58,53 +50,53 @@ if ( ! defined( 'ABSPATH' ) ) {
 		</div>
 	</div>
 
-	<div id="launchdek-panel-builder" class="launchdek-tab-panel" data-launchdek-tab-panel="builder" role="tabpanel" aria-labelledby="launchdek-tab-builder" hidden>
+	<div id="launchdek-panel-builder" class="launchdek-tab-panel" data-launchdek-tab-panel="builder" role="tabpanel" hidden>
 		<div id="launchdek-checklist-notice" class="launchdek-notice-area" aria-live="polite"></div>
 
-		<div class="launchdek-grid-2 launchdek-builder-layout">
-			<div class="launchdek-card launchdek-checklist-list-card">
-				<h2><?php esc_html_e( 'Checklists', LAUNCHDEK_TEXT_DOMAIN ); ?></h2>
-				<ul id="launchdek-checklist-list" class="launchdek-list"></ul>
-			</div>
+		<p class="launchdek-checklist-picker">
+			<label for="launchdek-checklist-select"><?php esc_html_e( 'Checklist', LAUNCHDEK_TEXT_DOMAIN ); ?></label>
+			<select id="launchdek-checklist-select" class="launchdek-select">
+				<option value=""><?php esc_html_e( 'Select checklist…', LAUNCHDEK_TEXT_DOMAIN ); ?></option>
+			</select>
+		</p>
 
-			<div class="launchdek-card" id="launchdek-checklist-editor" hidden>
-				<h2><?php esc_html_e( 'Checklist Builder', LAUNCHDEK_TEXT_DOMAIN ); ?></h2>
-				<div class="launchdek-cl-meta">
-					<p>
-						<label for="launchdek-cl-title"><?php esc_html_e( 'Checklist title', LAUNCHDEK_TEXT_DOMAIN ); ?></label>
-						<input type="text" id="launchdek-cl-title" class="large-text" required />
-					</p>
-					<p>
-						<label for="launchdek-cl-description"><?php esc_html_e( 'Description', LAUNCHDEK_TEXT_DOMAIN ); ?></label>
-						<textarea id="launchdek-cl-description" class="large-text" rows="2"></textarea>
-					</p>
-				</div>
-
-				<div class="launchdek-builder-workspace">
-					<div class="launchdek-canvas-card">
-						<div class="launchdek-canvas-header">
-							<h3><?php esc_html_e( 'Checklist Canvas', LAUNCHDEK_TEXT_DOMAIN ); ?></h3>
-							<button type="button" class="button" id="launchdek-add-step"><?php esc_html_e( 'Add Step', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
-						</div>
-						<div id="launchdek-checklist-canvas" class="launchdek-checklist-canvas" aria-label="<?php esc_attr_e( 'Drag-and-drop checklist builder canvas', LAUNCHDEK_TEXT_DOMAIN ); ?>">
-							<div id="launchdek-canvas-steps" class="launchdek-canvas-steps"></div>
-						</div>
-					</div>
-
-					<aside class="launchdek-step-config-sidebar" aria-label="<?php esc_attr_e( 'Step configuration panel', LAUNCHDEK_TEXT_DOMAIN ); ?>">
-						<h3><?php esc_html_e( 'Step Configuration', LAUNCHDEK_TEXT_DOMAIN ); ?></h3>
-						<div id="launchdek-step-config" class="launchdek-step-config">
-							<p class="launchdek-muted"><?php esc_html_e( 'Select a step on the canvas to configure.', LAUNCHDEK_TEXT_DOMAIN ); ?></p>
-						</div>
-					</aside>
-				</div>
-
-				<p class="launchdek-modal-actions">
-					<button type="button" class="button button-primary" id="launchdek-save-checklist"><?php esc_html_e( 'Save Checklist', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
-					<button type="button" class="button" id="launchdek-export-checklist"><?php esc_html_e( 'Export JSON', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
-					<button type="button" class="button" id="launchdek-delete-checklist"><?php esc_html_e( 'Delete', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
+		<div class="launchdek-card" id="launchdek-checklist-editor" hidden>
+			<h2><?php esc_html_e( 'Checklist Builder', LAUNCHDEK_TEXT_DOMAIN ); ?></h2>
+			<div class="launchdek-cl-meta">
+				<p>
+					<label for="launchdek-cl-title"><?php esc_html_e( 'Checklist title', LAUNCHDEK_TEXT_DOMAIN ); ?></label>
+					<input type="text" id="launchdek-cl-title" class="large-text" required />
+				</p>
+				<p>
+					<label for="launchdek-cl-description"><?php esc_html_e( 'Description', LAUNCHDEK_TEXT_DOMAIN ); ?></label>
+					<textarea id="launchdek-cl-description" class="large-text" rows="2"></textarea>
 				</p>
 			</div>
+
+			<div class="launchdek-builder-workspace">
+				<div class="launchdek-canvas-card">
+					<div class="launchdek-canvas-header">
+						<h3><?php esc_html_e( 'Checklist Canvas', LAUNCHDEK_TEXT_DOMAIN ); ?></h3>
+						<button type="button" class="button" id="launchdek-add-step"><?php esc_html_e( 'Add Step', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
+					</div>
+					<div id="launchdek-checklist-canvas" class="launchdek-checklist-canvas" aria-label="<?php esc_attr_e( 'Drag-and-drop checklist builder canvas', LAUNCHDEK_TEXT_DOMAIN ); ?>">
+						<div id="launchdek-canvas-steps" class="launchdek-canvas-steps"></div>
+					</div>
+				</div>
+
+				<aside class="launchdek-step-config-sidebar" aria-label="<?php esc_attr_e( 'Step configuration panel', LAUNCHDEK_TEXT_DOMAIN ); ?>">
+					<h3><?php esc_html_e( 'Step Configuration', LAUNCHDEK_TEXT_DOMAIN ); ?></h3>
+					<div id="launchdek-step-config" class="launchdek-step-config">
+						<p class="launchdek-muted"><?php esc_html_e( 'Select a step on the canvas to configure.', LAUNCHDEK_TEXT_DOMAIN ); ?></p>
+					</div>
+				</aside>
+			</div>
+
+			<p class="launchdek-modal-actions">
+				<button type="button" class="button button-primary" id="launchdek-save-checklist"><?php esc_html_e( 'Save Checklist', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
+				<button type="button" class="button" id="launchdek-export-checklist"><?php esc_html_e( 'Export JSON', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
+				<button type="button" class="button" id="launchdek-delete-checklist"><?php esc_html_e( 'Delete', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
+			</p>
 		</div>
 
 		<div class="launchdek-card launchdek-import-export">

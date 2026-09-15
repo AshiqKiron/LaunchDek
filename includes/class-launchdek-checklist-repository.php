@@ -302,12 +302,13 @@ class LAUNCHDEK_Checklist_Repository {
 				? ! empty( $step['show_note_field'] )
 				: ( 'manual' === $type );
 
+			$show_screenshot_field = array_key_exists( 'show_screenshot_field', $step )
+				? ! empty( $step['show_screenshot_field'] )
+				: ( 'manual' === $type && $show_note_field );
+
 			$deep_link = LAUNCHDEK_Admin_Deep_Links::normalize_stored_path( $step['deep_link'] ?? '' );
 			if ( '' === $deep_link ) {
-				$deep_link = LAUNCHDEK_Admin_Deep_Links::infer_path_from_text(
-					$step['title'] ?? '',
-					$step['instructions'] ?? ''
-				);
+				$deep_link = LAUNCHDEK_Admin_Deep_Links::resolve_path( $step );
 			}
 
 			$normalized[] = array(
@@ -316,9 +317,10 @@ class LAUNCHDEK_Checklist_Repository {
 				'instructions'    => sanitize_textarea_field( $step['instructions'] ?? '' ),
 				'deep_link'       => $deep_link,
 				'type'            => $type,
-				'target_roles'    => $target_roles,
-				'show_note_field' => $show_note_field,
-				'api'             => self::normalize_api_config( $step['api'] ?? array() ),
+				'target_roles'          => $target_roles,
+				'show_note_field'       => $show_note_field,
+				'show_screenshot_field' => $show_screenshot_field,
+				'api'                   => self::normalize_api_config( $step['api'] ?? array() ),
 			);
 		}
 

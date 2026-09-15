@@ -135,6 +135,10 @@ class LAUNCHDEK_Client_Push {
 				? ! empty( $def['show_note_field'] )
 				: ( 'manual' === ( $step['step_type'] ?? 'manual' ) );
 
+			$show_screenshot_field = array_key_exists( 'show_screenshot_field', $def )
+				? ! empty( $def['show_screenshot_field'] )
+				: ( $show_note_field && 'manual' === ( $step['step_type'] ?? 'manual' ) );
+
 			$completed_by = null;
 			if ( ! empty( $step['response']['completed_by'] ) && is_array( $step['response']['completed_by'] ) ) {
 				$completed_by = array(
@@ -152,8 +156,9 @@ class LAUNCHDEK_Client_Push {
 				'target_roles'    => array_values( array_map( 'sanitize_key', (array) ( $def['target_roles'] ?? array() ) ) ),
 				'deep_link'       => $deep_link ? esc_url_raw( $deep_link ) : '',
 				'admin_path'      => $admin_path ? sanitize_text_field( $admin_path ) : '',
-				'show_note_field' => $show_note_field,
-				'manual_checked'  => ! empty( $step['manual_checked'] ),
+				'show_note_field'       => $show_note_field,
+				'show_screenshot_field' => $show_screenshot_field,
+				'manual_checked'        => ! empty( $step['manual_checked'] ),
 				'notes'           => LAUNCHDEK_Run_Repository::filter_step_notes( $step['notes'] ?? null ),
 				'completed_at'    => ! empty( $step['completed_at'] ) ? sanitize_text_field( $step['completed_at'] ) : '',
 				'completed_by'    => $completed_by,

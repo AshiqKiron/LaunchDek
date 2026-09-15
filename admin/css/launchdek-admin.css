@@ -1297,8 +1297,9 @@
 }
 
 .launchdek-checklist-canvas {
-	overflow-x: auto;
-	overflow-y: hidden;
+	overflow-x: hidden;
+	overflow-y: auto;
+	max-height: 560px;
 	padding: 8px 4px 12px;
 	-webkit-overflow-scrolling: touch;
 	scrollbar-gutter: stable;
@@ -1306,8 +1307,8 @@
 
 .launchdek-canvas-steps {
 	min-height: 140px;
-	width: max-content;
-	min-width: 100%;
+	width: 100%;
+	min-width: 0;
 }
 
 .launchdek-canvas-empty {
@@ -1318,10 +1319,12 @@
 
 .launchdek-canvas-flow {
 	display: flex;
-	align-items: center;
+	flex-direction: column;
+	align-items: stretch;
 	gap: 0;
-	min-width: min-content;
-	width: max-content;
+	width: 100%;
+	max-width: 360px;
+	margin: 0 auto;
 }
 
 .launchdek-canvas-node-chevron {
@@ -1352,20 +1355,14 @@
 	font-size: 18px;
 }
 
-.launchdek-step-note-field-option {
-	font-weight: 600;
-}
-
-.launchdek-step-note-field-option input {
-	width: auto;
-	margin-right: 6px;
-}
-
 .launchdek-canvas-node {
-	flex: 0 0 180px;
+	flex: 0 0 auto;
 	display: flex;
 	flex-direction: column;
 	gap: 6px;
+	width: 100%;
+	min-height: 104px;
+	box-sizing: border-box;
 	padding: 14px 12px;
 	border: 2px solid #c3c4c7;
 	border-radius: 6px;
@@ -1407,6 +1404,11 @@
 	font-size: 13px;
 	line-height: 1.3;
 	color: #1d2327;
+	display: -webkit-box;
+	-webkit-line-clamp: 2;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+	min-height: 2.6em;
 }
 
 .launchdek-canvas-node-type {
@@ -1425,10 +1427,12 @@
 .launchdek-canvas-connector {
 	display: flex;
 	align-items: center;
-	padding: 0 6px;
+	justify-content: center;
+	padding: 4px 0;
 	color: #a7aaad;
-	font-size: 20px;
+	font-size: 18px;
 	flex-shrink: 0;
+	line-height: 1;
 }
 
 .launchdek-step-config-sidebar {
@@ -1448,26 +1452,190 @@
 	font-size: 0.95em;
 }
 
-.launchdek-role-mapping {
-	border: 1px solid #dcdcde;
-	border-radius: 3px;
-	padding: 10px 12px;
+.launchdek-multicheck-dropdown {
+	position: relative;
 	margin: 0 0 12px;
 }
 
-.launchdek-role-mapping legend {
+.launchdek-multicheck-label {
+	display: block;
+	margin-bottom: 4px;
 	font-weight: 600;
-	padding: 0 4px;
 }
 
-.launchdek-role-option {
+.launchdek-multicheck-toggle {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	width: 100%;
+	min-height: 30px;
+	padding: 4px 8px;
+	border: 1px solid #8c8f94;
+	border-radius: 3px;
+	background: #fff;
+	color: #2c3338;
+	text-align: left;
+	cursor: pointer;
+}
+
+.launchdek-multicheck-toggle:hover,
+.launchdek-multicheck-toggle:focus {
+	border-color: #2271b1;
+	color: #2271b1;
+}
+
+.launchdek-multicheck-toggle .dashicons {
+	flex-shrink: 0;
+	width: 18px;
+	height: 18px;
+	font-size: 18px;
+}
+
+.launchdek-multicheck-summary {
+	flex: 1 1 auto;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	font-weight: 400;
+}
+
+.launchdek-multicheck-menu {
+	position: absolute;
+	z-index: 30;
+	top: calc(100% + 4px);
+	left: 0;
+	right: 0;
+	max-height: 220px;
+	overflow-y: auto;
+	border: 1px solid #c3c4c7;
+	border-radius: 3px;
+	background: #fff;
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+	padding: 6px 0;
+}
+
+.launchdek-multicheck-option {
 	display: block;
 	font-weight: 400;
-	margin: 4px 0;
+	margin: 0;
+	padding: 6px 12px;
+	cursor: pointer;
 }
 
-.launchdek-role-option input {
-	margin-right: 6px;
+.launchdek-multicheck-option:hover {
+	background: #f6f7f7;
+}
+
+.launchdek-deeplink-hint {
+	display: block;
+	margin-top: 4px;
+	font-size: 12px;
+}
+
+.launchdek-field-label-row {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.launchdek-multicheck-label.launchdek-field-label-row {
+	display: flex;
+	margin-bottom: 4px;
+}
+
+.launchdek-field-info {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 18px;
+	height: 18px;
+	padding: 0;
+	border: 0;
+	background: transparent;
+	color: #646970;
+	cursor: help;
+	vertical-align: middle;
+}
+
+.launchdek-field-info .dashicons {
+	width: 16px;
+	height: 16px;
+	font-size: 16px;
+}
+
+.launchdek-field-info:hover,
+.launchdek-field-info:focus {
+	color: #2271b1;
+	outline: none;
+}
+
+.launchdek-has-tooltip {
+	position: relative;
+}
+
+.launchdek-has-tooltip::after {
+	content: attr(data-tooltip);
+	position: absolute;
+	left: 50%;
+	bottom: calc(100% + 8px);
+	transform: translateX(-50%);
+	width: max-content;
+	max-width: 260px;
+	padding: 8px 10px;
+	border-radius: 4px;
+	background: #1d2327;
+	color: #fff;
+	font-size: 12px;
+	font-weight: 400;
+	line-height: 1.4;
+	text-align: left;
+	white-space: normal;
+	opacity: 0;
+	visibility: hidden;
+	pointer-events: none;
+	transition: opacity 0.15s ease, visibility 0.15s ease;
+	z-index: 40;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+}
+
+.launchdek-has-tooltip:hover::after,
+.launchdek-has-tooltip:focus::after {
+	opacity: 1;
+	visibility: visible;
+}
+
+.launchdek-step-client-options {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	margin-bottom: 8px;
+}
+
+.launchdek-step-option-label {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	font-weight: 400;
+}
+
+.launchdek-checklist-picker {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px 12px;
+	margin: 0 0 16px;
+}
+
+.launchdek-checklist-picker label {
+	margin: 0;
+	font-weight: 600;
+}
+
+.launchdek-checklist-picker .launchdek-select {
+	min-width: min(100%, 420px);
+	max-width: 100%;
 }
 
 .launchdek-cl-meta {
@@ -1537,11 +1705,26 @@
 	font-weight: 600;
 }
 
-.launchdek-step-config input,
+.launchdek-step-config .launchdek-step-note-field-option {
+	display: flex;
+	align-items: flex-start;
+	gap: 8px;
+	font-weight: 600;
+	margin-bottom: 0;
+}
+
+.launchdek-step-config input:not([type="checkbox"]):not([type="radio"]),
 .launchdek-step-config textarea,
 .launchdek-step-config select {
 	width: 100%;
 	margin-top: 4px;
+}
+
+.launchdek-step-config .launchdek-step-note-field-option input,
+.launchdek-step-config .launchdek-multicheck-option input {
+	width: auto;
+	margin-top: 0;
+	margin-right: 6px;
 }
 
 /* Automation layout */
@@ -1812,53 +1995,6 @@
 	padding-left: 8px;
 }
 
-/* Checklists page tabs */
-.launchdek-page-tabs {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 0;
-	margin: 0 0 16px;
-	border-bottom: 1px solid #c3c4c7;
-}
-
-.launchdek-admin .launchdek-page-tab {
-	appearance: none;
-	-webkit-appearance: none;
-	background: transparent;
-	border: 1px solid transparent;
-	border-bottom: none;
-	border-radius: 4px 4px 0 0;
-	padding: 8px 16px;
-	margin-bottom: -1px;
-	font-size: 14px;
-	font-weight: 500;
-	line-height: 1.4;
-	color: #50575e;
-	cursor: pointer;
-	box-shadow: none;
-}
-
-.launchdek-admin .launchdek-page-tab:hover {
-	color: #2271b1;
-	background: #f6f7f7;
-}
-
-.launchdek-admin .launchdek-page-tab:focus {
-	color: #2271b1;
-	outline: 2px solid transparent;
-	box-shadow: inset 0 0 0 1px #2271b1;
-}
-
-.launchdek-admin .launchdek-page-tab.is-active {
-	background: #fff;
-	border-color: #c3c4c7;
-	border-bottom-color: #fff;
-	color: #1d2327;
-	font-weight: 600;
-	cursor: default;
-	box-shadow: none;
-}
-
 /* Template category tabs */
 .launchdek-category-tabs {
 	display: flex;
@@ -1898,13 +2034,19 @@
 	gap: 12px;
 	margin-top: 12px;
 	align-items: stretch;
+	grid-auto-rows: minmax(min-content, auto);
+}
+
+.launchdek-template-grid > .launchdek-template-card {
+	min-width: 0;
+	height: auto;
+	align-self: stretch;
 }
 
 .launchdek-template-card {
 	position: relative;
 	display: flex;
 	flex-direction: column;
-	height: 100%;
 	border: 1px solid #c3c4c7;
 	border-radius: 4px;
 	padding: 16px;
@@ -1921,7 +2063,8 @@
 .launchdek-template-card-content {
 	position: relative;
 	flex: 1 1 auto;
-	min-height: 148px;
+	min-height: 200px;
+	overflow: hidden;
 }
 
 .launchdek-template-card-main {
@@ -1942,12 +2085,6 @@
 
 .launchdek-template-step-count {
 	margin-bottom: 4px !important;
-}
-
-.launchdek-template-preview-hint {
-	margin: 0 0 12px !important;
-	color: #787c82 !important;
-	font-style: italic;
 }
 
 .launchdek-template-card .launchdek-badge {
@@ -1972,13 +2109,41 @@
 	border: none !important;
 	background: transparent !important;
 	box-shadow: none !important;
+	color: #1d2327 !important;
+	text-decoration: none !important;
+	font-weight: 400;
 }
 
-.launchdek-template-card-actions .button.button-primary {
-	flex: 1 0 100%;
-	width: 100%;
+.launchdek-template-steps-toggle:hover,
+.launchdek-template-steps-toggle:focus {
+	color: #1d2327 !important;
+	text-decoration: none !important;
+	background: transparent !important;
+	box-shadow: none !important;
+}
+
+.launchdek-template-card-actions .launchdek-template-steps-toggle {
+	flex: 0 0 auto;
+}
+
+.launchdek-template-use-checklist {
+	flex: 1 1 auto;
+	min-width: 0;
 	justify-content: center;
 	text-align: center;
+	font-weight: 500;
+	color: #1d2327;
+	border-color: #c3c4c7;
+	background: #fff;
+	box-shadow: none;
+}
+
+.launchdek-template-use-checklist:hover,
+.launchdek-template-use-checklist:focus {
+	color: #1d2327;
+	border-color: #8c8f94;
+	background: #f6f7f7;
+	box-shadow: none;
 }
 
 .launchdek-template-steps-preview {

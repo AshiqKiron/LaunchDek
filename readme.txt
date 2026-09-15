@@ -63,6 +63,10 @@ Yes, when enabled in Settings, application passwords are encrypted using your Wo
 
 == Changelog ==
 
+= 1.0.27 =
+* Checklists: My Checklists tab now uses a dropdown selector instead of listing every checklist in a sidebar
+* Checklists: **Use Checklist** on built-in templates, custom checklists, and vault items now opens the checklist builder so you can review steps, customize, and save
+
 = 1.0.26 =
 * Templates: built-in template catalog is cached and preloaded on dashboard, checklists, and settings screens — category tabs and the template picker render on first paint without waiting for a REST fetch
 

@@ -342,6 +342,10 @@
 		return step.show_note_field !== false;
 	}
 
+	function stepShowsScreenshotField(step) {
+		return step.show_screenshot_field !== false && stepShowsNoteField(step);
+	}
+
 	function isManualStep(step) {
 		return step.type === 'manual' || !step.type;
 	}
@@ -722,11 +726,15 @@
 			? '<div class="launchdek-client-note-form-settings">' + settingsLink + '</div>'
 			: '';
 
+		var screenshotBtn = stepShowsScreenshotField(step)
+			? renderIconButton('launchdek-client-attach-screenshot is-attach-action', strings.attachScreenshot || 'Attach screenshot', renderAttachIcon(), stepIndex, 'right')
+			: '';
+
 		return '<div class="launchdek-client-note-form" data-step="' + escHtml(stepIndex) + '">' +
 			settingsHtml +
 			'<div class="launchdek-client-note-form-actions">' +
 				'<button type="button" class="launchdek-client-icon-btn launchdek-client-has-tooltip launchdek-client-note-action ' + actionClass + '" data-step="' + escHtml(stepIndex) + '" data-tooltip="' + escHtml(actionLabel) + '" aria-label="' + escHtml(actionLabel) + '">' + actionIcon + '</button>' +
-				renderIconButton('launchdek-client-attach-screenshot is-attach-action', strings.attachScreenshot || 'Attach screenshot', renderAttachIcon(), stepIndex, 'right') +
+				screenshotBtn +
 			'</div>' +
 			'<div class="launchdek-client-note-composer' + (isOpen ? ' is-open' : '') + '">' +
 				'<div class="launchdek-client-note-composer-inner">' +

@@ -63,6 +63,10 @@ class LAUNCHDEK_Client_Run_Store {
 				? ! empty( $step['show_note_field'] )
 				: ( 'manual' === $step_type );
 
+			$show_screenshot_field = array_key_exists( 'show_screenshot_field', $step )
+				? ! empty( $step['show_screenshot_field'] )
+				: ( $show_note_field && 'manual' === $step_type );
+
 			$completed_by = null;
 			if ( ! empty( $step['completed_by'] ) && is_array( $step['completed_by'] ) ) {
 				$completed_by = array(
@@ -83,8 +87,9 @@ class LAUNCHDEK_Client_Run_Store {
 				'target_roles'    => array_values( array_map( 'sanitize_key', (array) ( $step['target_roles'] ?? array() ) ) ),
 				'deep_link'       => self::resolve_step_deep_link( $step['deep_link'] ?? '', $step['admin_path'] ?? '' ),
 				'admin_path'      => sanitize_text_field( $step['admin_path'] ?? '' ),
-				'show_note_field' => $show_note_field,
-				'manual_checked'  => ! empty( $step['manual_checked'] ),
+				'show_note_field'       => $show_note_field,
+				'show_screenshot_field' => $show_screenshot_field,
+				'manual_checked'        => ! empty( $step['manual_checked'] ),
 				'notes'           => $notes,
 				'completed_at'    => sanitize_text_field( $step['completed_at'] ?? '' ),
 				'completed_by'    => $completed_by,

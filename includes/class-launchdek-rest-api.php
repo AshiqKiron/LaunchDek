@@ -192,6 +192,12 @@ class LAUNCHDEK_REST_API {
 			'permission_callback' => array( __CLASS__, 'can_edit_checklists' ),
 		) );
 
+		register_rest_route( self::NAMESPACE, '/checklists/infer-deep-link', array(
+			'methods'             => 'POST',
+			'callback'            => array( __CLASS__, 'infer_deep_link' ),
+			'permission_callback' => array( __CLASS__, 'can_edit_checklists' ),
+		) );
+
 		register_rest_route( self::NAMESPACE, '/checklists/(?P<id>\d+)/validate-step', array(
 			'methods'             => 'POST',
 			'callback'            => array( __CLASS__, 'validate_api_step' ),
@@ -878,6 +884,25 @@ class LAUNCHDEK_REST_API {
 			return new WP_Error( 'not_found', __( 'Checklist not found.', LAUNCHDEK_TEXT_DOMAIN ), array( 'status' => 404 ) );
 		}
 		return rest_ensure_response( $export );
+	}
+
+	public static function infer_deep_link( $request ) {
+		$data = $request->get_json_params();
+		if ( ! is_array( $data ) ) {
+			$data = array();
+		}
+
+		$path = LAUNCHDEK_Admin_Deep_Links::resolve_path(
+			array(
+				'deep_link'    => '',
+				'type'         => sanitize_key( $data['type'] ?? 'manual' ),
+				'title'        => sanitize_text_field( $data['title'] ?? '' ),
+				'instructions' => sanitize_textarea_field( $data['instructions'] ?? '' ),
+				'api'          => is_array( $data['api'] ?? null ) ? $data['api'] : array(),
+			)
+		);
+
+		return rest_ensure_response( array( 'path' => $path ) );
 	}
 
 	public static function validate_api_step( $request ) {

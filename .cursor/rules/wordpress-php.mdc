@@ -80,7 +80,7 @@ array(
 
 Steps live in `checklist.steps[]` (JSON in DB or template files).
 
-**`manual`** — fields: `id`, `title`, `instructions`, `target_roles` (optional array of WP role slugs — UI metadata for agency assignment), `deep_link` (optional admin path — stored via `LAUNCHDEK_Admin_Deep_Links::normalize_stored_path()`; inferred from title/instructions on save when empty), `show_note_field` (optional bool, default `true` — when `false`, client panel hides the per-step note textarea), `type: manual`. Executor sets status `awaiting_manual` and resolves admin path via `LAUNCHDEK_Admin_Deep_Links::resolve_path()` then `LAUNCHDEK_Remote_Client::admin_link()`. User completes via `/runs/{id}/steps/{step}/complete`; revert via `/runs/{id}/steps/{step}/uncomplete`.
+**`manual`** — fields: `id`, `title`, `instructions`, `target_roles` (optional array of WP role slugs — UI metadata for agency assignment), `deep_link` (optional admin path — stored via `LAUNCHDEK_Admin_Deep_Links::normalize_stored_path()`; backfilled via `LAUNCHDEK_Admin_Deep_Links::resolve_path()` on save when empty), `show_note_field` (optional bool, default `true` — when `false`, client panel hides the per-step note textarea), `show_screenshot_field` (optional bool, default `true` when notes enabled — when `false`, client panel hides the screenshot attach button), `type: manual`. Executor sets status `awaiting_manual` and resolves admin path via `LAUNCHDEK_Admin_Deep_Links::resolve_path()` then `LAUNCHDEK_Remote_Client::admin_link()`. User completes via `/runs/{id}/steps/{step}/complete`; revert via `/runs/{id}/steps/{step}/uncomplete`.
 
 **Step notes** (stored on run steps in hub `launchdek_run_steps.notes_json` + client snapshots) — array of `{ user, text, created_at, attachment_id?, attachment_url? }`. Notes require non-empty `text`. Hub persistence via `LAUNCHDEK_Run_Repository::add_step_note()` / `sanitize_step_note()`. Optional attachments reference existing remote media library IDs; hub stores sanitized `attachment_url` for display in Automation run tracker.
 
@@ -111,7 +111,7 @@ Resolves wp-admin paths for checklist step settings shortcuts (hub run tracker +
 | `infer_path_from_text( $title, $instructions )` | Keyword/regex rules for common screens (Permalinks, Plugins, Users, etc.) |
 | `path_from_api_step( $api )` | Map `/wp/v2/settings` and other core REST routes to admin screens |
 
-On checklist save, `LAUNCHDEK_Checklist_Repository` normalizes `deep_link` and backfills from text when empty. `LAUNCHDEK_Client_Push::build_snapshot()` sets `deep_link` (remote full URL) and `admin_path` (path only). Client `LAUNCHDEK_Client_Run_Store::resolve_step_deep_link()` prefers the snapshot URL, then rebuilds from `admin_path`. `LAUNCHDEK_Templates::repair_builtin_deep_links()` runs once (`launchdek_deep_links_repaired`) to restore built-in template paths stripped by legacy sanitization.
+On checklist save, `LAUNCHDEK_Checklist_Repository` normalizes `deep_link` and backfills via `resolve_path()` when empty. Builder live inference uses `POST /checklists/infer-deep-link` (`LAUNCHDEK_REST_API::infer_deep_link()` → `resolve_path()`). `LAUNCHDEK_Client_Push::build_snapshot()` sets `deep_link` (remote full URL) and `admin_path` (path only). Client `LAUNCHDEK_Client_Run_Store::resolve_step_deep_link()` prefers the snapshot URL, then rebuilds from `admin_path`. `LAUNCHDEK_Templates::repair_builtin_deep_links()` runs once (`launchdek_deep_links_repaired`) to restore built-in template paths stripped by legacy sanitization.
 
 ## Built-in Template JSON
 
