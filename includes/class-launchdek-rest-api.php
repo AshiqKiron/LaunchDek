@@ -742,6 +742,12 @@ class LAUNCHDEK_REST_API {
 		if ( null !== $request->get_param( 'is_template' ) ) {
 			$args['is_template'] = rest_sanitize_boolean( $request->get_param( 'is_template' ) );
 		}
+		if ( null !== $request->get_param( 'is_vault' ) ) {
+			$args['is_vault'] = rest_sanitize_boolean( $request->get_param( 'is_vault' ) );
+		}
+		if ( rest_sanitize_boolean( $request->get_param( 'summary' ) ) ) {
+			return rest_ensure_response( LAUNCHDEK_Checklist_Repository::summary_list( $args ) );
+		}
 		return rest_ensure_response( LAUNCHDEK_Checklist_Repository::all( $args ) );
 	}
 
@@ -1198,7 +1204,14 @@ class LAUNCHDEK_REST_API {
 	}
 
 	public static function get_vault() {
-		return rest_ensure_response( LAUNCHDEK_Templates::get_vault() );
+		return rest_ensure_response(
+			LAUNCHDEK_Checklist_Repository::summary_list(
+				array(
+					'is_vault' => true,
+					'limit'    => 100,
+				)
+			)
+		);
 	}
 
 	public static function save_to_vault( $request ) {

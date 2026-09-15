@@ -150,7 +150,7 @@ class LAUNCHDEK_Admin {
 				'onboarding' => array(
 					'show'           => empty( LAUNCHDEK_Settings::get()['onboarding_dismissed'] ),
 					'templatesUrl'   => admin_url( 'admin.php?page=' . self::PAGE_SLUG . '-checklists' ),
-					'checklistsUrl'  => admin_url( 'admin.php?page=' . self::PAGE_SLUG . '-checklists&tab=builder' ),
+					'checklistsUrl'  => admin_url( 'admin.php?page=' . self::PAGE_SLUG . '-checklists&tab=my-checklists' ),
 					'automationUrl'  => admin_url( 'admin.php?page=' . self::PAGE_SLUG . '-automation' ),
 					'activityLogsUrl' => admin_url( 'admin.php?page=' . self::PAGE_SLUG . '-activity-logs' ),
 				),
@@ -258,6 +258,7 @@ class LAUNCHDEK_Admin {
 					'rolesSelected'   => __( '%d roles selected', LAUNCHDEK_TEXT_DOMAIN ),
 					'deepLinkAuto'    => __( 'Auto-detected from step content.', LAUNCHDEK_TEXT_DOMAIN ),
 					'deepLinkHelp'    => __( 'Optional wp-admin path (e.g. options-permalink.php). LaunchDek auto-fills this from the step title, instructions, or API route when possible.', LAUNCHDEK_TEXT_DOMAIN ),
+					'stepTypeHelp'    => __( 'Manual steps are completed by a person on the client panel or in the hub run tracker. API steps run automatically against the remote site using the WordPress REST API.', LAUNCHDEK_TEXT_DOMAIN ),
 					'roleTargetMappingHelp' => __( 'Limit which WordPress roles can complete this step on the client panel. Leave empty to allow all logged-in users.', LAUNCHDEK_TEXT_DOMAIN ),
 					'showNoteField'   => __( 'Show note field on client panel', LAUNCHDEK_TEXT_DOMAIN ),
 					'showNoteFieldHelp' => __( 'When enabled, clients can add text notes as evidence when completing this manual step.', LAUNCHDEK_TEXT_DOMAIN ),
@@ -330,6 +331,17 @@ class LAUNCHDEK_Admin {
 				'preloaded'  => true,
 				'builtin'    => LAUNCHDEK_Templates::get_catalog(),
 				'categories' => LAUNCHDEK_Templates::get_categories(),
+			);
+		}
+
+		if ( self::PAGE_SLUG . '_page_' . self::PAGE_SLUG . '-checklists' === $hook ) {
+			$localize['customChecklists'] = array(
+				'preloaded' => true,
+				'items'     => LAUNCHDEK_Checklist_Repository::summary_list(
+					array(
+						'is_template' => 0,
+					)
+				),
 			);
 		}
 

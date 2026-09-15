@@ -13,14 +13,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 ?>
 <div class="wrap launchdek-admin" data-launchdek-page="checklists">
-	<h1><?php echo esc_html( get_admin_page_title() ); ?>
-		<button type="button" class="page-title-action" id="launchdek-show-builder"><?php esc_html_e( 'My Checklists', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
-		<button type="button" class="page-title-action" id="launchdek-show-templates" hidden><?php esc_html_e( 'Templates', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
-		<button type="button" class="page-title-action" id="launchdek-new-checklist" hidden><?php esc_html_e( 'New Checklist', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
-		<button type="button" class="page-title-action" id="launchdek-auto-capture" hidden><?php esc_html_e( 'Auto-Capture', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
-	</h1>
+	<h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
 
-	<div id="launchdek-panel-templates" class="launchdek-tab-panel" data-launchdek-tab-panel="templates" role="tabpanel">
+	<nav class="launchdek-checklist-nav nav-tab-wrapper" role="tablist" aria-label="<?php esc_attr_e( 'Checklist sections', LAUNCHDEK_TEXT_DOMAIN ); ?>">
+		<button type="button" class="nav-tab nav-tab-active" id="launchdek-tab-templates" data-launchdek-tab="templates" role="tab" aria-selected="true" aria-controls="launchdek-panel-templates"><?php esc_html_e( 'Templates', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
+		<button type="button" class="nav-tab" id="launchdek-tab-my-checklists" data-launchdek-tab="my-checklists" role="tab" aria-selected="false" aria-controls="launchdek-panel-my-checklists"><?php esc_html_e( 'My Checklists', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
+		<button type="button" class="nav-tab" id="launchdek-tab-new-checklist" data-launchdek-tab="new-checklist" role="tab" aria-selected="false" aria-controls="launchdek-panel-new-checklist"><?php esc_html_e( 'New Checklist', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
+		<button type="button" class="nav-tab" id="launchdek-tab-auto-capture" data-launchdek-tab="auto-capture" role="tab" aria-selected="false" aria-controls="launchdek-panel-auto-capture"><?php esc_html_e( 'Auto-Capture', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
+	</nav>
+
+	<div id="launchdek-panel-templates" class="launchdek-tab-panel" data-launchdek-tab-panel="templates" role="tabpanel" aria-labelledby="launchdek-tab-templates">
 		<div class="launchdek-card">
 			<h2><?php esc_html_e( 'Built-In Standard Stacks', LAUNCHDEK_TEXT_DOMAIN ); ?></h2>
 			<div id="launchdek-category-tabs" class="launchdek-category-tabs" role="tablist" aria-label="<?php esc_attr_e( 'Template categories', LAUNCHDEK_TEXT_DOMAIN ); ?>"></div>
@@ -50,9 +52,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 		</div>
 	</div>
 
-	<div id="launchdek-panel-builder" class="launchdek-tab-panel" data-launchdek-tab-panel="builder" role="tabpanel" hidden>
-		<div id="launchdek-checklist-notice" class="launchdek-notice-area" aria-live="polite"></div>
-
+	<div id="launchdek-panel-my-checklists" class="launchdek-tab-panel" data-launchdek-tab-panel="my-checklists" role="tabpanel" aria-labelledby="launchdek-tab-my-checklists" hidden>
 		<p class="launchdek-checklist-picker">
 			<label for="launchdek-checklist-select"><?php esc_html_e( 'Checklist', LAUNCHDEK_TEXT_DOMAIN ); ?></label>
 			<select id="launchdek-checklist-select" class="launchdek-select">
@@ -111,15 +111,21 @@ if ( ! defined( 'ABSPATH' ) ) {
 		</div>
 	</div>
 
-	<?php require LAUNCHDEK_PLUGIN_DIR . 'admin/partials/launchdek-template-picker-modal.php'; ?>
+	<div id="launchdek-panel-new-checklist" class="launchdek-tab-panel" data-launchdek-tab-panel="new-checklist" role="tabpanel" aria-labelledby="launchdek-tab-new-checklist" hidden>
+		<div class="launchdek-card launchdek-new-checklist-intro">
+			<h2><?php esc_html_e( 'Create a New Checklist', LAUNCHDEK_TEXT_DOMAIN ); ?></h2>
+			<p class="launchdek-muted"><?php esc_html_e( 'Start from a built-in template or a blank canvas, then build and save your checklist under My Checklists.', LAUNCHDEK_TEXT_DOMAIN ); ?></p>
+			<p class="launchdek-new-checklist-actions">
+				<button type="button" class="button button-primary" id="launchdek-new-from-template"><?php esc_html_e( 'Start from Template', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
+				<button type="button" class="button" id="launchdek-new-blank"><?php esc_html_e( 'Start Blank', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
+				<button type="button" class="button button-link" id="launchdek-new-browse-templates"><?php esc_html_e( 'Browse Templates', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
+			</p>
+		</div>
+	</div>
 
-	<div id="launchdek-auto-capture-modal" class="launchdek-modal launchdek-auto-capture-modal" hidden>
-		<div class="launchdek-modal-backdrop" data-launchdek-close-capture></div>
-		<div class="launchdek-modal-content launchdek-auto-capture-content" role="dialog" aria-modal="true" aria-labelledby="launchdek-auto-capture-title">
-			<div class="launchdek-auto-capture-header">
-				<h2 id="launchdek-auto-capture-title"><?php esc_html_e( 'Auto-Capture Checklist Steps', LAUNCHDEK_TEXT_DOMAIN ); ?></h2>
-				<button type="button" class="launchdek-auto-capture-close" data-launchdek-close-capture aria-label="<?php esc_attr_e( 'Close', LAUNCHDEK_TEXT_DOMAIN ); ?>">&times;</button>
-			</div>
+	<div id="launchdek-panel-auto-capture" class="launchdek-tab-panel" data-launchdek-tab-panel="auto-capture" role="tabpanel" aria-labelledby="launchdek-tab-auto-capture" hidden>
+		<div class="launchdek-card launchdek-auto-capture-panel">
+			<h2><?php esc_html_e( 'Auto-Capture Checklist Steps', LAUNCHDEK_TEXT_DOMAIN ); ?></h2>
 			<p class="launchdek-muted"><?php esc_html_e( 'Record configuration changes on a client site and turn them into reusable checklist steps.', LAUNCHDEK_TEXT_DOMAIN ); ?></p>
 			<div id="launchdek-auto-capture-notice" class="launchdek-notice-area"></div>
 			<p>
@@ -135,8 +141,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 				<button type="button" class="button" id="launchdek-auto-capture-stop" hidden><?php esc_html_e( 'Stop Recording', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
 				<button type="button" class="button button-primary" id="launchdek-auto-capture-import" hidden><?php esc_html_e( 'Import Captured Steps', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
 				<button type="button" class="button" id="launchdek-auto-capture-clear" hidden><?php esc_html_e( 'Clear', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
-				<button type="button" class="button" data-launchdek-close-capture><?php esc_html_e( 'Close', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
 			</div>
 		</div>
 	</div>
+
+	<?php require LAUNCHDEK_PLUGIN_DIR . 'admin/partials/launchdek-template-picker-modal.php'; ?>
 </div>

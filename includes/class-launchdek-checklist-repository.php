@@ -80,6 +80,76 @@ class LAUNCHDEK_Checklist_Repository {
 	}
 
 	/**
+	 * Lightweight checklist rows for list/grid UIs (no full step payloads).
+	 *
+	 * @param array $args Filters.
+	 * @return array
+	 */
+	public static function summary_list( $args = array() ) {
+		global $wpdb;
+
+		$defaults = array(
+			'is_template' => null,
+			'is_vault'    => null,
+			'limit'       => 100,
+		);
+
+		$args  = wp_parse_args( $args, $defaults );
+		$table = self::table();
+		$where = array( '1=1' );
+		$vals  = array();
+
+		if ( null !== $args['is_template'] ) {
+			$where[] = 'is_template = %d';
+			$vals[]  = $args['is_template'] ? 1 : 0;
+		}
+
+		if ( null !== $args['is_vault'] ) {
+			$where[] = 'is_vault = %d';
+			$vals[]  = $args['is_vault'] ? 1 : 0;
+		}
+
+		$sql    = 'SELECT id, title, description, steps_json FROM ' . $table . ' WHERE ' . implode( ' AND ', $where ) . ' ORDER BY title ASC LIMIT %d';
+		$vals[] = max( 1, absint( $args['limit'] ) );
+
+		$rows = $wpdb->get_results( $wpdb->prepare( $sql, $vals ), ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+
+		return is_array( $rows ) ? array_map( array( __CLASS__, 'format_summary' ), $rows ) : array();
+	}
+
+	/**
+	 * Format a row for summary list output.
+	 *
+	 * @param array $row Raw row with steps_json.
+	 * @return array
+	 */
+	public static function format_summary( $row ) {
+		$steps   = json_decode( (string) ( $row['steps_json'] ?? '' ), true );
+		$preview = array();
+
+		if ( is_array( $steps ) ) {
+			foreach ( $steps as $step ) {
+				if ( ! is_array( $step ) ) {
+					continue;
+				}
+
+				$preview[] = array(
+					'id'    => ! empty( $step['id'] ) ? sanitize_key( $step['id'] ) : '',
+					'title' => sanitize_text_field( $step['title'] ?? '' ),
+				);
+			}
+		}
+
+		return array(
+			'id'          => (int) $row['id'],
+			'title'       => (string) $row['title'],
+			'description' => (string) $row['description'],
+			'steps_count' => count( $preview ),
+			'steps'       => $preview,
+		);
+	}
+
+	/**
 	 * Lightweight id/title pairs for dashboard quick-launch pickers.
 	 *
 	 * @return array<int, array{id:int,title:string}>

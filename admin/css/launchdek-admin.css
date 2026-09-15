@@ -75,6 +75,26 @@
 	vertical-align: baseline;
 }
 
+.launchdek-checklist-nav {
+	margin: 0 0 16px;
+}
+
+.launchdek-checklist-nav .nav-tab {
+	cursor: pointer;
+}
+
+.launchdek-new-checklist-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	align-items: center;
+	margin: 16px 0 0;
+}
+
+.launchdek-auto-capture-panel .launchdek-auto-capture-actions {
+	margin-top: 16px;
+}
+
 @media (max-width: 960px) {
 	.launchdek-grid-2,
 	.launchdek-builder-layout {
@@ -1606,6 +1626,12 @@
 	visibility: visible;
 }
 
+.launchdek-field-label-row .launchdek-field-info.launchdek-has-tooltip::after,
+.launchdek-step-option-label .launchdek-field-info.launchdek-has-tooltip::after {
+	left: 0;
+	transform: none;
+}
+
 .launchdek-step-client-options {
 	display: flex;
 	flex-direction: column;
@@ -2099,6 +2125,49 @@
 	margin-top: auto;
 	padding-top: 12px;
 	flex-shrink: 0;
+}
+
+#launchdek-panel-templates .launchdek-template-card-actions {
+	max-height: 0;
+	margin-top: 0;
+	padding-top: 0;
+	opacity: 0;
+	overflow: hidden;
+	visibility: hidden;
+	pointer-events: none;
+	transition: opacity 0.15s ease, visibility 0.15s ease, max-height 0.2s ease, padding-top 0.2s ease, margin-top 0.2s ease;
+}
+
+#launchdek-panel-templates .launchdek-template-card:hover .launchdek-template-card-actions,
+#launchdek-panel-templates .launchdek-template-card.is-steps-open .launchdek-template-card-actions,
+#launchdek-panel-templates .launchdek-template-card:focus-within .launchdek-template-card-actions {
+	max-height: 4rem;
+	margin-top: auto;
+	padding-top: 12px;
+	opacity: 1;
+	visibility: visible;
+	pointer-events: auto;
+}
+
+@media (hover: none) {
+	#launchdek-panel-templates .launchdek-template-card-actions {
+		max-height: none;
+		margin-top: auto;
+		padding-top: 12px;
+		opacity: 1;
+		visibility: visible;
+		pointer-events: auto;
+	}
+}
+
+.launchdek-template-card-actions:not(:has(.launchdek-template-steps-toggle)) {
+	flex-wrap: nowrap;
+}
+
+.launchdek-template-card-actions > .launchdek-template-edit-checklist,
+.launchdek-template-card-actions > .launchdek-template-use-checklist {
+	flex: 1 1 0;
+	min-width: 0;
 }
 
 .launchdek-template-steps-toggle {

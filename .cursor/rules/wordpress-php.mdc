@@ -40,7 +40,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 - Register hooks in `LAUNCHDEK_Plugin::run()` or static `::register()` on service classes — not in bootstrap.
 - REST namespace: `LAUNCHDEK_REST_NAMESPACE` (`launchdek/v1`).
 - Enqueue assets with `filemtime()` fallback to `LAUNCHDEK_VERSION`.
-- Localize `launchdekAdmin` with `rest_url()`, `wp_create_nonce( 'wp_rest' )`, and translatable strings.
+- Localize `launchdekAdmin` with `rest_url()`, `wp_create_nonce( 'wp_rest' )`, and translatable strings. On the Checklists screen, also localize `customChecklists` (`preloaded` + `summary_list` items for non-template checklists).
 - Page slugs: use `LAUNCHDEK_Admin::PAGE_SLUG` + suffixes.
 
 ## Class Wiring
@@ -53,6 +53,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 - Credentials: `LAUNCHDEK_Credential_Vault::encrypt()` / `::decrypt()` on save/read.
 - Audit: `LAUNCHDEK_Audit_Log::log()` for privileged actions; `::feed_entry_show_site_label()` / `::format_feed_message( $entry, $embed_site )` shape dashboard feed copy; `::log()` invalidates `LAUNCHDEK_Dashboard_Cache::invalidate_feed()`.
 - Dashboard cache: `LAUNCHDEK_Dashboard_Cache::{get_stats,get_connection_counts,get_feed,get_quick_launch_picker}()` read from `launchdek_dashboard_cache`; `::refresh_quick_launch_picker()` delegates to `LAUNCHDEK_Site_Repository::picker_list()` and `LAUNCHDEK_Checklist_Repository::picker_list()`; repositories call `invalidate_stats()` / `invalidate_connections()` / `invalidate_quick_launch_picker()` on mutations. `::clear()` on uninstall.
+- Checklist summaries: `LAUNCHDEK_Checklist_Repository::summary_list( $args )` / `::format_summary()` return lightweight rows (`id`, `title`, `description`, `steps_count`, step id/title preview) for list/grid UIs; `GET /checklists?summary=1` (optional `is_template`, `is_vault`); `GET /templates/vault` uses `summary_list( [ 'is_vault' => true ] )`.
 - Activation: `LAUNCHDEK_Activator` (sets redirect transient); `LAUNCHDEK_Admin::maybe_activation_redirect()` sends new installs to dashboard with `?onboarding=1`. Deactivation: `LAUNCHDEK_Deactivator` (clears drift cron).
 - Legacy redirects (`LAUNCHDEK_Admin::maybe_redirect_legacy_templates_page()` on `admin_init`): `?page={slug}-templates` → Checklists (Templates default tab); `?page={slug}-sites&activity_logs` → Activity Logs page.
 
@@ -143,7 +144,7 @@ All non-settings pages use `render_page()` which passes `$settings`, `$page`, an
 | `launchdek-admin-page.php` | `dashboard` (receives `$dashboard_stats`, `$connection_counts`, `$log_feed`, `$quick_launch_picker` from cache; Quick Launch selects pre-rendered with `data-launchdek-preloaded="1"`) |
 | `launchdek-sites-page.php` | `sites` |
 | `launchdek-activity-logs-page.php` | `activity-logs` (hidden submenu; `GET /logs/feed?detailed=1`, `can_view_dashboard`) |
-| `launchdek-checklists-page.php` | `checklists` (builder + Templates tab panel) |
+| `launchdek-checklists-page.php` | `checklists` (four nav tabs: Templates, My Checklists, New Checklist, Auto-Capture) |
 | `launchdek-automation-page.php` | `automation` |
 | `launchdek-integrations-page.php` | `integrations` |
 | `launchdek-settings-page.php` | `settings` (Settings API form) |
