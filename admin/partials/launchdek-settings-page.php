@@ -26,7 +26,40 @@ $exclude_options   = LAUNCHDEK_Settings::get_exclude_options();
 $exclude_labels    = LAUNCHDEK_Settings::get_exclude_option_labels();
 $panel_layouts     = LAUNCHDEK_Settings::get_client_panel_layouts();
 $panel_layout      = LAUNCHDEK_Settings::get_client_panel_layout();
-$panel_title       = LAUNCHDEK_Settings::get_client_panel_title();
+$section_tooltips = array(
+	'platform'        => __(
+		'Turn LaunchDek on or off for this hub and schedule automated drift checks that compare remote site state twice daily.',
+		LAUNCHDEK_TEXT_DOMAIN
+	),
+	'credential_vault' => __(
+		'AES-256-CBC encryption using local WordPress salts. When enabled, application passwords are encrypted at rest and decrypted only when a remote request is made.',
+		LAUNCHDEK_TEXT_DOMAIN
+	),
+	'client_panel'    => __(
+		'Choose how the optional checklist panel appears on connected client sites. Layout changes sync on the next checklist push or client panel refresh.',
+		LAUNCHDEK_TEXT_DOMAIN
+	),
+	'exclude_options' => __(
+		'Sensitive settings the hub should never push to remote sites during API checklist steps. One REST field or legacy option name per line; matching fields are stripped from /wp/v2/settings payloads before they run.',
+		LAUNCHDEK_TEXT_DOMAIN
+	),
+	'webhooks'        => __(
+		'Route LaunchDek events to Slack, Microsoft Teams, or Discord. Choose which run, step, drift, and client-panel events trigger a notification.',
+		LAUNCHDEK_TEXT_DOMAIN
+	),
+	'access_guardrails' => __(
+		'Map WordPress roles to LaunchDek capabilities using agency presets. Administrators always retain full access regardless of this matrix.',
+		LAUNCHDEK_TEXT_DOMAIN
+	),
+	'onboarding'      => __(
+		'Preview the first-run onboarding wizard without leaving Settings. Dismissal is stored separately and is not reset when you save these settings.',
+		LAUNCHDEK_TEXT_DOMAIN
+	),
+);
+$panel_layout_help = __(
+	'Controls where and how the checklist panel appears in remote wp-admin. Use the preview to compare sidebar, top bar, dock, pill, and other layouts.',
+	LAUNCHDEK_TEXT_DOMAIN
+);
 $channels        = array(
 	'slack'   => array(
 		'label'       => __( 'Slack', LAUNCHDEK_TEXT_DOMAIN ),
@@ -49,7 +82,12 @@ $channels        = array(
 		<?php settings_fields( LAUNCHDEK_Settings::SETTINGS_GROUP ); ?>
 
 		<div class="launchdek-card launchdek-settings-card launchdek-settings-general">
-			<h2><?php esc_html_e( 'Platform', LAUNCHDEK_TEXT_DOMAIN ); ?></h2>
+			<div class="launchdek-card-heading-row launchdek-card-heading-row--info-first">
+				<button type="button" class="launchdek-field-info launchdek-has-tooltip" data-tooltip="<?php echo esc_attr( $section_tooltips['platform'] ); ?>" aria-label="<?php echo esc_attr( $section_tooltips['platform'] ); ?>">
+					<span class="dashicons dashicons-info-outline" aria-hidden="true"></span>
+				</button>
+				<h2><?php esc_html_e( 'Platform', LAUNCHDEK_TEXT_DOMAIN ); ?></h2>
+			</div>
 			<div class="launchdek-settings-toggles">
 				<label class="launchdek-settings-toggle">
 					<input type="checkbox" name="<?php echo esc_attr( $option_name ); ?>[enabled]" value="1" <?php checked( ! empty( $settings['enabled'] ) ); ?> />
@@ -63,8 +101,12 @@ $channels        = array(
 		</div>
 
 		<div class="launchdek-card launchdek-settings-card">
-			<h2><?php esc_html_e( 'Credential Vault Security', LAUNCHDEK_TEXT_DOMAIN ); ?></h2>
-			<p class="launchdek-settings-lead"><?php esc_html_e( 'AES-256-CBC encryption using local WordPress salts.', LAUNCHDEK_TEXT_DOMAIN ); ?></p>
+			<div class="launchdek-card-heading-row launchdek-card-heading-row--info-first">
+				<button type="button" class="launchdek-field-info launchdek-has-tooltip" data-tooltip="<?php echo esc_attr( $section_tooltips['credential_vault'] ); ?>" aria-label="<?php echo esc_attr( $section_tooltips['credential_vault'] ); ?>">
+					<span class="dashicons dashicons-info-outline" aria-hidden="true"></span>
+				</button>
+				<h2><?php esc_html_e( 'Credential Vault Security', LAUNCHDEK_TEXT_DOMAIN ); ?></h2>
+			</div>
 			<label class="launchdek-settings-toggle">
 				<input type="checkbox" name="<?php echo esc_attr( $option_name ); ?>[encrypt_credentials]" value="1" <?php checked( ! empty( $settings['encrypt_credentials'] ) ); ?> />
 				<span><?php esc_html_e( 'Encrypt stored application passwords at rest (recommended)', LAUNCHDEK_TEXT_DOMAIN ); ?></span>
@@ -75,47 +117,46 @@ $channels        = array(
 		</div>
 
 		<div class="launchdek-card launchdek-settings-card">
-			<h2><?php esc_html_e( 'Client Checklist Panel', LAUNCHDEK_TEXT_DOMAIN ); ?></h2>
-			<p class="launchdek-settings-lead"><?php esc_html_e( 'Choose how the optional checklist panel appears on connected client sites.', LAUNCHDEK_TEXT_DOMAIN ); ?></p>
+			<div class="launchdek-card-heading-row launchdek-card-heading-row--info-first">
+				<button type="button" class="launchdek-field-info launchdek-has-tooltip" data-tooltip="<?php echo esc_attr( $section_tooltips['client_panel'] ); ?>" aria-label="<?php echo esc_attr( $section_tooltips['client_panel'] ); ?>">
+					<span class="dashicons dashicons-info-outline" aria-hidden="true"></span>
+				</button>
+				<h2><?php esc_html_e( 'Client Checklist Panel', LAUNCHDEK_TEXT_DOMAIN ); ?></h2>
+			</div>
 			<div class="launchdek-settings-panel-layout-picker">
-				<div class="launchdek-settings-panel-layout-controls">
-					<label for="launchdek-panel-title"><?php esc_html_e( 'Panel title', LAUNCHDEK_TEXT_DOMAIN ); ?></label>
-					<input
-						type="text"
-						class="regular-text"
-						id="launchdek-panel-title"
-						name="<?php echo esc_attr( $option_name ); ?>[client_panel_title]"
-						value="<?php echo esc_attr( $panel_title ); ?>"
-						maxlength="80"
-						placeholder="<?php echo esc_attr( LAUNCHDEK_Settings::get_default_client_panel_title() ); ?>"
-					/>
-					<p class="launchdek-muted launchdek-settings-note">
-						<?php esc_html_e( 'Heading shown on the client checklist panel. Syncs on the next checklist push or client panel refresh.', LAUNCHDEK_TEXT_DOMAIN ); ?>
-					</p>
-					<label for="launchdek-panel-layout"><?php esc_html_e( 'Panel layout', LAUNCHDEK_TEXT_DOMAIN ); ?></label>
-					<select
-						id="launchdek-panel-layout"
-						class="launchdek-select launchdek-settings-panel-layout-select"
-						name="<?php echo esc_attr( $option_name ); ?>[client_panel_layout]"
+				<label for="launchdek-panel-layout" class="launchdek-settings-panel-layout-label">
+					<span class="launchdek-field-label-row">
+						<button type="button" class="launchdek-field-info launchdek-has-tooltip" data-tooltip="<?php echo esc_attr( $panel_layout_help ); ?>" aria-label="<?php echo esc_attr( $panel_layout_help ); ?>">
+							<span class="dashicons dashicons-info-outline" aria-hidden="true"></span>
+						</button>
+						<span><?php esc_html_e( 'Panel layout', LAUNCHDEK_TEXT_DOMAIN ); ?></span>
+					</span>
+				</label>
+				<div class="launchdek-settings-panel-layout-body">
+					<div class="launchdek-settings-panel-layout-controls">
+						<select
+							id="launchdek-panel-layout"
+							class="launchdek-select launchdek-settings-panel-layout-select"
+							name="<?php echo esc_attr( $option_name ); ?>[client_panel_layout]"
+						>
+							<?php foreach ( $panel_layouts as $layout_key => $layout ) : ?>
+								<option
+									value="<?php echo esc_attr( $layout_key ); ?>"
+									data-description="<?php echo esc_attr( $layout['description'] ); ?>"
+									<?php selected( $panel_layout, $layout_key ); ?>
+								><?php echo esc_html( $layout['label'] ); ?></option>
+							<?php endforeach; ?>
+						</select>
+						<p id="launchdek-panel-layout-description" class="launchdek-panel-layout-preview-description">
+							<?php echo esc_html( $panel_layouts[ $panel_layout ]['description'] ?? '' ); ?>
+						</p>
+					</div>
+					<div
+						id="launchdek-panel-layout-preview"
+						class="launchdek-panel-layout-preview"
+						data-layout="<?php echo esc_attr( $panel_layout ); ?>"
+						aria-live="polite"
 					>
-						<?php foreach ( $panel_layouts as $layout_key => $layout ) : ?>
-							<option
-								value="<?php echo esc_attr( $layout_key ); ?>"
-								data-description="<?php echo esc_attr( $layout['description'] ); ?>"
-								<?php selected( $panel_layout, $layout_key ); ?>
-							><?php echo esc_html( $layout['label'] ); ?></option>
-						<?php endforeach; ?>
-					</select>
-					<p id="launchdek-panel-layout-description" class="launchdek-panel-layout-preview-description">
-						<?php echo esc_html( $panel_layouts[ $panel_layout ]['description'] ?? '' ); ?>
-					</p>
-				</div>
-				<div
-					id="launchdek-panel-layout-preview"
-					class="launchdek-panel-layout-preview"
-					data-layout="<?php echo esc_attr( $panel_layout ); ?>"
-					aria-live="polite"
-				>
 					<div class="launchdek-panel-layout-preview-frame" aria-hidden="true">
 						<span class="launchdek-preview-adminbar"></span>
 						<span class="launchdek-preview-content"></span>
@@ -130,12 +171,17 @@ $channels        = array(
 						<span class="launchdek-preview-metabox"></span>
 					</div>
 				</div>
+				</div>
 			</div>
 		</div>
 
 		<div class="launchdek-card launchdek-settings-card">
-			<h2><?php esc_html_e( 'Exclude Options', LAUNCHDEK_TEXT_DOMAIN ); ?></h2>
-			<p class="launchdek-settings-lead"><?php esc_html_e( 'Sensitive settings the hub should never push to remote sites during API checklist steps.', LAUNCHDEK_TEXT_DOMAIN ); ?></p>
+			<div class="launchdek-card-heading-row launchdek-card-heading-row--info-first">
+				<button type="button" class="launchdek-field-info launchdek-has-tooltip" data-tooltip="<?php echo esc_attr( $section_tooltips['exclude_options'] ); ?>" aria-label="<?php echo esc_attr( $section_tooltips['exclude_options'] ); ?>">
+					<span class="dashicons dashicons-info-outline" aria-hidden="true"></span>
+				</button>
+				<h2><?php esc_html_e( 'Exclude Options', LAUNCHDEK_TEXT_DOMAIN ); ?></h2>
+			</div>
 			<label for="launchdek-exclude-options" class="screen-reader-text"><?php esc_html_e( 'Excluded settings fields', LAUNCHDEK_TEXT_DOMAIN ); ?></label>
 			<textarea
 				class="large-text code launchdek-settings-exclude-options"
@@ -167,7 +213,12 @@ $channels        = array(
 		</div>
 
 		<div class="launchdek-card launchdek-settings-card">
-			<h2><?php esc_html_e( 'Webhooks & Notifications', LAUNCHDEK_TEXT_DOMAIN ); ?></h2>
+			<div class="launchdek-card-heading-row launchdek-card-heading-row--info-first">
+				<button type="button" class="launchdek-field-info launchdek-has-tooltip" data-tooltip="<?php echo esc_attr( $section_tooltips['webhooks'] ); ?>" aria-label="<?php echo esc_attr( $section_tooltips['webhooks'] ); ?>">
+					<span class="dashicons dashicons-info-outline" aria-hidden="true"></span>
+				</button>
+				<h2><?php esc_html_e( 'Webhooks & Notifications', LAUNCHDEK_TEXT_DOMAIN ); ?></h2>
+			</div>
 			<p class="launchdek-settings-lead"><?php esc_html_e( 'Channel Routing', LAUNCHDEK_TEXT_DOMAIN ); ?></p>
 
 			<div class="launchdek-settings-channels" role="group" aria-label="<?php esc_attr_e( 'Notification channel routing', LAUNCHDEK_TEXT_DOMAIN ); ?>">
@@ -207,7 +258,12 @@ $channels        = array(
 		</div>
 
 		<div class="launchdek-card launchdek-settings-card">
-			<h2><?php esc_html_e( 'Access Guardrails', LAUNCHDEK_TEXT_DOMAIN ); ?></h2>
+			<div class="launchdek-card-heading-row launchdek-card-heading-row--info-first">
+				<button type="button" class="launchdek-field-info launchdek-has-tooltip" data-tooltip="<?php echo esc_attr( $section_tooltips['access_guardrails'] ); ?>" aria-label="<?php echo esc_attr( $section_tooltips['access_guardrails'] ); ?>">
+					<span class="dashicons dashicons-info-outline" aria-hidden="true"></span>
+				</button>
+				<h2><?php esc_html_e( 'Access Guardrails', LAUNCHDEK_TEXT_DOMAIN ); ?></h2>
+			</div>
 			<p class="launchdek-settings-lead"><?php esc_html_e( 'Agency Role Permissions (Admin vs. Developer vs. Auditor)', LAUNCHDEK_TEXT_DOMAIN ); ?></p>
 
 			<div class="launchdek-settings-role-presets">
@@ -281,8 +337,12 @@ $channels        = array(
 		</div>
 
 		<div class="launchdek-card launchdek-settings-card">
-			<h2><?php esc_html_e( 'Onboarding', LAUNCHDEK_TEXT_DOMAIN ); ?></h2>
-			<p class="launchdek-settings-lead"><?php esc_html_e( 'Preview the first-run onboarding wizard without leaving Settings.', LAUNCHDEK_TEXT_DOMAIN ); ?></p>
+			<div class="launchdek-card-heading-row launchdek-card-heading-row--info-first">
+				<button type="button" class="launchdek-field-info launchdek-has-tooltip" data-tooltip="<?php echo esc_attr( $section_tooltips['onboarding'] ); ?>" aria-label="<?php echo esc_attr( $section_tooltips['onboarding'] ); ?>">
+					<span class="dashicons dashicons-info-outline" aria-hidden="true"></span>
+				</button>
+				<h2><?php esc_html_e( 'Onboarding', LAUNCHDEK_TEXT_DOMAIN ); ?></h2>
+			</div>
 			<button type="button" class="button button-secondary" id="launchdek-show-onboarding">
 				<?php esc_html_e( 'Show onboarding wizard', LAUNCHDEK_TEXT_DOMAIN ); ?>
 			</button>

@@ -19,7 +19,7 @@ class LAUNCHDEK_Installer {
 	 *
 	 * @var string
 	 */
-	const DB_VERSION = '1.4.0';
+	const DB_VERSION = '1.5.0';
 
 	/**
 	 * Option key storing installed DB version.
@@ -66,6 +66,37 @@ class LAUNCHDEK_Installer {
 
 		if ( '' === $installed || version_compare( $installed, '1.4.0', '<' ) ) {
 			self::migrate_run_archive_column();
+		}
+
+		if ( '' === $installed || version_compare( $installed, '1.5.0', '<' ) ) {
+			self::migrate_site_integration_columns();
+		}
+	}
+
+	/**
+	 * Add integration source and external ID columns for connector sync.
+	 *
+	 * @return void
+	 */
+	protected static function migrate_site_integration_columns() {
+		global $wpdb;
+
+		$sites_table = $wpdb->prefix . 'launchdek_sites';
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$source_col = $wpdb->get_results( "SHOW COLUMNS FROM `{$sites_table}` LIKE 'integration_source'" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		if ( empty( $source_col ) ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.NotPrepared
+			$wpdb->query( "ALTER TABLE `{$sites_table}` ADD `integration_source` varchar(32) NOT NULL DEFAULT '' AFTER `client_agent`" );
+		}
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$external_col = $wpdb->get_results( "SHOW COLUMNS FROM `{$sites_table}` LIKE 'external_id'" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		if ( empty( $external_col ) ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.NotPrepared
+			$wpdb->query( "ALTER TABLE `{$sites_table}` ADD `external_id` varchar(64) NOT NULL DEFAULT '' AFTER `integration_source`" );
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.NotPrepared
+			$wpdb->query( "ALTER TABLE `{$sites_table}` ADD KEY integration_source_external (integration_source, external_id)" );
 		}
 	}
 
@@ -195,11 +226,14 @@ class LAUNCHDEK_Installer {
 			last_ping_at datetime DEFAULT NULL,
 			last_error text,
 			client_agent tinyint(1) NOT NULL DEFAULT 0,
+			integration_source varchar(32) NOT NULL DEFAULT '',
+			external_id varchar(64) NOT NULL DEFAULT '',
 			created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
 			updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
 			PRIMARY KEY  (id),
 			KEY health_status (health_status),
-			KEY url (url(191))
+			KEY url (url(191)),
+			KEY integration_source_external (integration_source, external_id)
 		) {$charset_collate};
 
 		CREATE TABLE {$tags} (

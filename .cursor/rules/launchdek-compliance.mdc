@@ -38,7 +38,7 @@ See `launchdek-project.mdc` (architecture), `launchdek-standards.mdc` (quality),
 ## Directory & Privacy
 
 - No obfuscated code or undisclosed telemetry.
-- Outbound requests are limited to: user-registered remote sites (including mu-plugin deploy/push), user-configured webhook URLs, and integration adapters (user-initiated push).
+- Outbound requests are limited to: user-registered remote sites (including mu-plugin deploy/push), user-configured webhook URLs, and integration adapters (user-initiated site sync and client panel push — MainWP uses MainWP Connect to child sites when hub Application Passwords are not configured).
 - Integrations **Telemetry Sync Mapping Rules** store field-mapping preferences only (`telemetry_sync_rules`); they do not emit tracking data.
 - Webhook and integration behavior must be documented in `readme.txt`.
 - No spammy readme or deceptive behavior.

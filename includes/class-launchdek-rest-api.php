@@ -368,6 +368,18 @@ class LAUNCHDEK_REST_API {
 			'permission_callback' => array( __CLASS__, 'can_manage_settings' ),
 		) );
 
+		register_rest_route( self::NAMESPACE, '/integrations/(?P<slug>[a-z0-9\-_]+)/sync', array(
+			'methods'             => 'POST',
+			'callback'            => array( __CLASS__, 'sync_integration' ),
+			'permission_callback' => array( __CLASS__, 'can_manage_settings' ),
+		) );
+
+		register_rest_route( self::NAMESPACE, '/integrations/(?P<slug>[a-z0-9\-_]+)/preview', array(
+			'methods'             => 'GET',
+			'callback'            => array( __CLASS__, 'preview_integration_sync' ),
+			'permission_callback' => array( __CLASS__, 'can_manage_settings' ),
+		) );
+
 		register_rest_route( self::NAMESPACE, '/integrations/(?P<slug>[a-z0-9\-_]+)/push', array(
 			'methods'             => 'POST',
 			'callback'            => array( __CLASS__, 'push_integration' ),
@@ -1300,12 +1312,37 @@ class LAUNCHDEK_REST_API {
 		return rest_ensure_response( LAUNCHDEK_Integrations::get_statuses() );
 	}
 
+	public static function sync_integration( $request ) {
+		$slug = sanitize_key( $request['slug'] );
+		$result = LAUNCHDEK_Integration_Sync::sync( $slug );
+
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+
+		return rest_ensure_response( $result );
+	}
+
+	public static function preview_integration_sync( $request ) {
+		$slug = sanitize_key( $request['slug'] );
+		$result = LAUNCHDEK_Integration_Sync::preview( $slug );
+
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+
+		return rest_ensure_response( $result );
+	}
+
 	public static function push_integration( $request ) {
 		$integration = LAUNCHDEK_Integrations::get( sanitize_key( $request['slug'] ) );
 		if ( ! $integration ) {
 			return new WP_Error( 'not_found', __( 'Integration not found.', LAUNCHDEK_TEXT_DOMAIN ), array( 'status' => 404 ) );
 		}
 		$data = $request->get_json_params();
+		if ( ! is_array( $data ) ) {
+			$data = array();
+		}
 		return rest_ensure_response( $integration->push_agent( $data['site_ids'] ?? array() ) );
 	}
 

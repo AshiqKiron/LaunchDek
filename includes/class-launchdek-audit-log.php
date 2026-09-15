@@ -538,6 +538,30 @@ class LAUNCHDEK_Audit_Log {
 					$details['title'] ?? __( 'Checklist', LAUNCHDEK_TEXT_DOMAIN )
 				);
 
+			case 'integration_sync':
+				$summary = is_array( $details['summary'] ?? null ) ? $details['summary'] : array();
+				$integration = $details['integration'] ?? __( 'Connector', LAUNCHDEK_TEXT_DOMAIN );
+
+				return sprintf(
+					/* translators: 1: connector slug, 2: created count, 3: updated count */
+					__( '%1$s sync: %2$s created, %3$s updated', LAUNCHDEK_TEXT_DOMAIN ),
+					$integration,
+					(int) ( $summary['created'] ?? 0 ),
+					(int) ( $summary['updated'] ?? 0 )
+				);
+
+			case 'integration_push':
+				$summary = is_array( $details['summary'] ?? null ) ? $details['summary'] : array();
+				$integration = $details['integration'] ?? __( 'Connector', LAUNCHDEK_TEXT_DOMAIN );
+
+				return sprintf(
+					/* translators: 1: connector slug, 2: success count, 3: failed count */
+					__( '%1$s client panel push: %2$s succeeded, %3$s failed', LAUNCHDEK_TEXT_DOMAIN ),
+					$integration,
+					(int) ( $summary['success'] ?? 0 ),
+					(int) ( $summary['failed'] ?? 0 )
+				);
+
 			case 'connection_test':
 				$result_message = $details['message'] ?? __( 'Completed', LAUNCHDEK_TEXT_DOMAIN );
 
@@ -926,7 +950,15 @@ class LAUNCHDEK_Audit_Log {
 				) : '';
 
 			case 'integration_push':
+			case 'integration_sync':
 				return self::format_details_kv( $details );
+
+			case 'telemetry_rules_updated':
+				return ! empty( $details['count'] ) ? sprintf(
+					/* translators: %d: number of rules */
+					__( '%d mapping rules saved', LAUNCHDEK_TEXT_DOMAIN ),
+					(int) $details['count']
+				) : '';
 
 			case 'run_status_changed':
 				return sprintf(
@@ -1063,6 +1095,8 @@ class LAUNCHDEK_Audit_Log {
 			'connection_test'        => __( 'Connection test', LAUNCHDEK_TEXT_DOMAIN ),
 			'drift_verified'         => __( 'Drift verification', LAUNCHDEK_TEXT_DOMAIN ),
 			'integration_push'       => __( 'Integration push', LAUNCHDEK_TEXT_DOMAIN ),
+			'integration_sync'       => __( 'Integration sync', LAUNCHDEK_TEXT_DOMAIN ),
+			'telemetry_rules_updated' => __( 'Telemetry rules updated', LAUNCHDEK_TEXT_DOMAIN ),
 			'client_run_pushed'      => __( 'Checklist pushed to client', LAUNCHDEK_TEXT_DOMAIN ),
 			'client_step_completed'  => __( 'Client step completed', LAUNCHDEK_TEXT_DOMAIN ),
 			'client_step_uncompleted' => __( 'Client step uncompleted', LAUNCHDEK_TEXT_DOMAIN ),

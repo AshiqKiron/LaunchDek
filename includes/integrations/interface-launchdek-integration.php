@@ -36,9 +36,23 @@ interface LAUNCHDEK_Integration_Interface {
 	public function is_available();
 
 	/**
+	 * Whether this connector can import site inventory into LaunchDek.
+	 *
+	 * @return bool
+	 */
+	public function supports_site_sync();
+
+	/**
+	 * Fetch child sites from the connected platform.
+	 *
+	 * @return array|WP_Error Array of platform rows keyed by connector field names.
+	 */
+	public function fetch_platform_sites();
+
+	/**
 	 * Push LaunchDek agent to child sites.
 	 *
-	 * @param array $site_ids Target site IDs.
+	 * @param array $site_ids Target LaunchDek site IDs.
 	 * @return array Results per site.
 	 */
 	public function push_agent( $site_ids = array() );

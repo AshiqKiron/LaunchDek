@@ -26,6 +26,18 @@ class LAUNCHDEK_Integration_WP_Engine implements LAUNCHDEK_Integration_Interface
 		return defined( 'WPE_PLUGIN_BASE' ) || class_exists( 'WpeCommon' ) || getenv( 'IS_WPE' );
 	}
 
+	public function supports_site_sync() {
+		return false;
+	}
+
+	public function fetch_platform_sites() {
+		return new WP_Error(
+			'launchdek_integration_sync_unsupported',
+			__( 'WP Engine site sync is not available yet.', LAUNCHDEK_TEXT_DOMAIN ),
+			array( 'status' => 400 )
+		);
+	}
+
 	public function push_agent( $site_ids = array() ) {
 		$results = array();
 

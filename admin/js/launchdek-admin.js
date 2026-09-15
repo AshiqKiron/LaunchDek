@@ -5242,15 +5242,52 @@
 		var connectorNotice = document.getElementById('launchdek-connector-modal-notice');
 		var connectorDocs = document.getElementById('launchdek-connector-docs');
 		var connectorPush = document.getElementById('launchdek-connector-push');
+		var connectorSync = document.getElementById('launchdek-connector-sync');
+		var connectorPreview = document.getElementById('launchdek-connector-preview');
 		var activeConnector = null;
 		var fieldLabels = {};
+
+		function formatIntegrationSyncSummary(data, preview) {
+			var summary = data.summary || {};
+			var template = preview ? strings.integrationPreviewSummary : strings.integrationSyncSummary;
+			if (!template) {
+				return strings.saved;
+			}
+			return template
+				.replace('%1$s', summary.created || 0)
+				.replace('%2$s', summary.updated || 0)
+				.replace('%3$s', summary.skipped || 0)
+				.replace('%4$s', preview ? (summary.total || 0) : (summary.needs_credentials || 0));
+		}
+
+		function formatIntegrationPushSummary(data) {
+			var summary = data.summary || {};
+			var template = strings.integrationPushSummary;
+			if (!template) {
+				return data.message || strings.saved;
+			}
+			return template
+				.replace('%1$s', summary.success || 0)
+				.replace('%2$s', summary.failed || 0)
+				.replace('%3$s', summary.skipped || 0);
+		}
+
+		function setConnectorModalActions(item) {
+			var supportsSync = !!item.supports_sync;
+			connectorSync.hidden = !supportsSync;
+			connectorPreview.hidden = !supportsSync;
+			connectorSync.disabled = !item.available || !supportsSync;
+			connectorPreview.disabled = !item.available || !supportsSync;
+			connectorPush.disabled = !item.available;
+			connectorPush.textContent = strings.integrationPushPanel || 'Push Client Panel';
+		}
 
 		function openConnectorModal(item) {
 			activeConnector = item;
 			connectorTitle.textContent = item.name;
 			connectorDescription.textContent = item.description || '';
 			connectorNotice.innerHTML = '';
-			connectorPush.disabled = !item.available;
+			setConnectorModalActions(item);
 			if (item.docs_url) {
 				connectorDocs.href = item.docs_url;
 				connectorDocs.hidden = false;
@@ -5264,36 +5301,80 @@
 			node.addEventListener('click', function () { closeModal(connectorModal); });
 		});
 
+		connectorSync.addEventListener('click', function () {
+			if (!activeConnector) return;
+			connectorSync.disabled = true;
+			post('/integrations/' + activeConnector.slug + '/sync', {}).then(function (r) {
+				notice(connectorNotice, formatIntegrationSyncSummary(r, false), 'success');
+				loadConnectors();
+			}).catch(function (e) {
+				notice(connectorNotice, e.message, 'error');
+			}).finally(function () {
+				if (activeConnector) {
+					setConnectorModalActions(activeConnector);
+				}
+			});
+		});
+
+		connectorPreview.addEventListener('click', function () {
+			if (!activeConnector) return;
+			connectorPreview.disabled = true;
+			get('/integrations/' + activeConnector.slug + '/preview').then(function (r) {
+				notice(connectorNotice, formatIntegrationSyncSummary(r, true), 'success');
+			}).catch(function (e) {
+				notice(connectorNotice, e.message, 'error');
+			}).finally(function () {
+				if (activeConnector) {
+					setConnectorModalActions(activeConnector);
+				}
+			});
+		});
+
 		connectorPush.addEventListener('click', function () {
 			if (!activeConnector) return;
 			connectorPush.disabled = true;
 			post('/integrations/' + activeConnector.slug + '/push', {}).then(function (r) {
-				var msg = r.message || r.error || strings.saved;
+				var msg = r.summary ? formatIntegrationPushSummary(r) : (r.message || r.error || strings.saved);
 				notice(connectorNotice, msg, r.error ? 'error' : 'success');
 			}).catch(function (e) {
 				notice(connectorNotice, e.message, 'error');
 			}).finally(function () {
-				connectorPush.disabled = !activeConnector || !activeConnector.available;
+				if (activeConnector) {
+					setConnectorModalActions(activeConnector);
+				}
 			});
 		});
 
-		get('/integrations').then(function (items) {
-			connectorList.innerHTML = '';
-			items.forEach(function (item) {
-				var row = el('li', { className: 'launchdek-connector-row ' + (item.available ? 'available' : 'unavailable') });
-				var actions = el('div', { className: 'launchdek-connector-actions' });
-				actions.appendChild(el('span', {
-					className: 'launchdek-badge ' + (item.available ? 'healthy' : 'unknown'),
-					text: item.available ? (strings.connected || 'Connected') : (strings.notDetected || 'Not Detected')
-				}));
-				var setupBtn = el('button', { className: 'button', text: strings.setup || 'Setup' });
-				setupBtn.addEventListener('click', function () { openConnectorModal(item); });
-				actions.appendChild(setupBtn);
-				row.appendChild(el('span', { className: 'launchdek-connector-name', text: item.name }));
-				row.appendChild(actions);
-				connectorList.appendChild(row);
+		function loadConnectors() {
+			get('/integrations').then(function (items) {
+				connectorList.innerHTML = '';
+				items.forEach(function (item) {
+					var row = el('li', { className: 'launchdek-connector-row ' + (item.available ? 'available' : 'unavailable') });
+					var meta = el('div', { className: 'launchdek-connector-meta' });
+					meta.appendChild(el('span', { className: 'launchdek-connector-name', text: item.name }));
+					if (item.supports_sync && item.synced_sites) {
+						var syncedLabel = strings.integrationSyncedSites || '%s synced sites';
+						meta.appendChild(el('span', {
+							className: 'launchdek-connector-sync-count launchdek-muted',
+							text: syncedLabel.replace('%s', item.synced_sites)
+						}));
+					}
+					var actions = el('div', { className: 'launchdek-connector-actions' });
+					actions.appendChild(el('span', {
+						className: 'launchdek-badge ' + (item.available ? 'healthy' : 'unknown'),
+						text: item.available ? (strings.connected || 'Connected') : (strings.notDetected || 'Not Detected')
+					}));
+					var setupBtn = el('button', { className: 'button', text: strings.setup || 'Setup' });
+					setupBtn.addEventListener('click', function () { openConnectorModal(item); });
+					actions.appendChild(setupBtn);
+					row.appendChild(meta);
+					row.appendChild(actions);
+					connectorList.appendChild(row);
+				});
 			});
-		});
+		}
+
+		loadConnectors();
 
 		get('/integrations/telemetry-rules').then(function (data) {
 			fieldLabels = data.fields || {};

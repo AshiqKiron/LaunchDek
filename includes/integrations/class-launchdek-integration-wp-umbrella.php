@@ -26,6 +26,18 @@ class LAUNCHDEK_Integration_WP_Umbrella implements LAUNCHDEK_Integration_Interfa
 		return defined( 'WP_UMBRELLA_VERSION' ) || class_exists( 'WPUmbrella\Core' );
 	}
 
+	public function supports_site_sync() {
+		return false;
+	}
+
+	public function fetch_platform_sites() {
+		return new WP_Error(
+			'launchdek_integration_sync_unsupported',
+			__( 'WP Umbrella site sync is not available yet.', LAUNCHDEK_TEXT_DOMAIN ),
+			array( 'status' => 400 )
+		);
+	}
+
 	public function push_agent( $site_ids = array() ) {
 		if ( ! $this->is_available() ) {
 			return array( 'error' => __( 'WP Umbrella is not installed.', LAUNCHDEK_TEXT_DOMAIN ) );

@@ -39,6 +39,8 @@ require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-installer.php';
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-capabilities.php';
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-credential-vault.php';
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-audit-log.php';
+require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-integrations.php';
+require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-telemetry-mapper.php';
 
 // Data layer.
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-site-repository.php';
@@ -58,7 +60,7 @@ require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-auto-capture.php';
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-drift-verifier.php';
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-webhook-dispatcher.php';
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-templates.php';
-require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-integrations.php';
+require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-integration-sync.php';
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-drift-cron.php';
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-rest-api.php';
 

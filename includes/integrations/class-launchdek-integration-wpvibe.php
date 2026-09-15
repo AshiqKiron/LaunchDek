@@ -26,6 +26,18 @@ class LAUNCHDEK_Integration_WPvibe implements LAUNCHDEK_Integration_Interface {
 		return defined( 'WPVIBE_VERSION' ) || class_exists( 'WPVibe\Core' );
 	}
 
+	public function supports_site_sync() {
+		return false;
+	}
+
+	public function fetch_platform_sites() {
+		return new WP_Error(
+			'launchdek_integration_sync_unsupported',
+			__( 'WPvibe site sync is not available yet.', LAUNCHDEK_TEXT_DOMAIN ),
+			array( 'status' => 400 )
+		);
+	}
+
 	public function push_agent( $site_ids = array() ) {
 		$results = array();
 

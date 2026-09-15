@@ -48,7 +48,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 			<p id="launchdek-connector-modal-description" class="launchdek-muted"></p>
 			<div id="launchdek-connector-modal-notice" class="launchdek-notice-area"></div>
 			<p class="launchdek-modal-actions">
-				<button type="button" class="button button-primary" id="launchdek-connector-push"><?php esc_html_e( 'Push Agent', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
+				<button type="button" class="button button-primary" id="launchdek-connector-sync" hidden><?php esc_html_e( 'Sync Sites', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
+				<button type="button" class="button" id="launchdek-connector-preview" hidden><?php esc_html_e( 'Preview Sync', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
+				<button type="button" class="button" id="launchdek-connector-push"><?php esc_html_e( 'Push Client Panel', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
 				<a href="#" id="launchdek-connector-docs" class="button" target="_blank" rel="noopener noreferrer" hidden><?php esc_html_e( 'Documentation', LAUNCHDEK_TEXT_DOMAIN ); ?></a>
 				<button type="button" class="button launchdek-modal-close"><?php esc_html_e( 'Close', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
 			</p>

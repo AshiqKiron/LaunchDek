@@ -15,6 +15,7 @@ require_once LAUNCHDEK_PLUGIN_DIR . 'includes/integrations/class-launchdek-integ
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/integrations/class-launchdek-integration-wp-umbrella.php';
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/integrations/class-launchdek-integration-wp-engine.php';
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/integrations/class-launchdek-integration-wpvibe.php';
+require_once LAUNCHDEK_PLUGIN_DIR . 'includes/integrations/class-launchdek-mainwp-agent.php';
 
 /**
  * Integrations manager.

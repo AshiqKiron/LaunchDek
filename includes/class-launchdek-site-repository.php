@@ -40,6 +40,221 @@ class LAUNCHDEK_Site_Repository {
 	 * @param int $id Site ID.
 	 * @return array|null
 	 */
+	/**
+	 * Normalize a site URL for storage and lookup.
+	 *
+	 * @param string $url Site URL.
+	 * @return string
+	 */
+	public static function normalize_url( $url ) {
+		return esc_url_raw( untrailingslashit( (string) $url ) );
+	}
+
+	/**
+	 * Find site by normalized URL.
+	 *
+	 * @param string $url Site URL.
+	 * @return array|null
+	 */
+	public static function find_by_url( $url ) {
+		global $wpdb;
+
+		$url = self::normalize_url( $url );
+		if ( '' === $url ) {
+			return null;
+		}
+
+		$row = $wpdb->get_row(
+			$wpdb->prepare( 'SELECT * FROM ' . self::table() . ' WHERE url = %s', $url ),
+			ARRAY_A
+		);
+
+		return $row ? self::format( $row ) : null;
+	}
+
+	/**
+	 * Find site by integration source and external ID.
+	 *
+	 * @param string $source     Integration slug.
+	 * @param string $external_id Platform site ID.
+	 * @return array|null
+	 */
+	public static function find_by_external( $source, $external_id ) {
+		global $wpdb;
+
+		$source      = sanitize_key( $source );
+		$external_id = sanitize_text_field( (string) $external_id );
+
+		if ( '' === $source || '' === $external_id ) {
+			return null;
+		}
+
+		$row = $wpdb->get_row(
+			$wpdb->prepare(
+				'SELECT * FROM ' . self::table() . ' WHERE integration_source = %s AND external_id = %s',
+				$source,
+				$external_id
+			),
+			ARRAY_A
+		);
+
+		return $row ? self::format( $row ) : null;
+	}
+
+	/**
+	 * Whether a stored site has usable Application Password credentials.
+	 *
+	 * @param int $id Site ID.
+	 * @return bool
+	 */
+	public static function has_credentials( $id ) {
+		$credentials = self::get_credentials( $id );
+
+		return is_array( $credentials ) && '' !== trim( (string) ( $credentials['app_password'] ?? '' ) );
+	}
+
+	/**
+	 * Create or update a site imported from an integration connector.
+	 *
+	 * @param string $source      Integration slug.
+	 * @param string $external_id Platform site ID.
+	 * @param array  $platform_row Raw platform fields.
+	 * @param bool   $dry_run     Preview only.
+	 * @return array
+	 */
+	public static function upsert_from_integration( $source, $external_id, $platform_row, $dry_run = false ) {
+		$mapped = LAUNCHDEK_Telemetry_Mapper::map( $source, $platform_row );
+		$url    = self::normalize_url( $mapped['url'] ?? ( $platform_row['site_url'] ?? ( $platform_row['url'] ?? '' ) ) );
+
+		if ( '' === $url ) {
+			return array(
+				'action'  => 'skipped',
+				'reason'  => 'missing_url',
+				'site_id' => 0,
+			);
+		}
+
+		$existing = self::find_by_external( $source, $external_id );
+		if ( ! $existing ) {
+			$existing = self::find_by_url( $url );
+		}
+
+		if ( $dry_run ) {
+			return array(
+				'action'  => $existing ? 'updated' : 'created',
+				'site_id' => $existing ? (int) $existing['id'] : 0,
+				'url'     => $url,
+			);
+		}
+
+		if ( $existing ) {
+			$update = array(
+				'integration_source' => sanitize_key( $source ),
+				'external_id'        => sanitize_text_field( (string) $external_id ),
+				'url'                => $url,
+			);
+
+			if ( ! empty( $mapped['name'] ) ) {
+				$update['name'] = $mapped['name'];
+			}
+			if ( ! empty( $mapped['wp_version'] ) ) {
+				$update['wp_version'] = $mapped['wp_version'];
+			}
+			if ( ! empty( $mapped['php_version'] ) ) {
+				$update['php_version'] = $mapped['php_version'];
+			}
+
+			self::update( (int) $existing['id'], $update );
+			self::ensure_integration_tag( (int) $existing['id'], $source );
+
+			return array(
+				'action'  => 'updated',
+				'site_id' => (int) $existing['id'],
+				'url'     => $url,
+			);
+		}
+
+		$create = array(
+			'name'               => ! empty( $mapped['name'] ) ? $mapped['name'] : $url,
+			'url'                => $url,
+			'admin_username'     => '',
+			'app_password'       => '',
+			'wp_version'         => $mapped['wp_version'] ?? '',
+			'php_version'        => $mapped['php_version'] ?? '',
+			'integration_source' => sanitize_key( $source ),
+			'external_id'        => sanitize_text_field( (string) $external_id ),
+			'tags'               => array(
+				array(
+					'tag'        => $source,
+					'group_type' => 'integration',
+				),
+			),
+		);
+
+		$id = self::create( $create );
+
+		if ( ! $id ) {
+			return array(
+				'action'  => 'skipped',
+				'reason'  => 'create_failed',
+				'site_id' => 0,
+				'url'     => $url,
+			);
+		}
+
+		return array(
+			'action'  => 'created',
+			'site_id' => (int) $id,
+			'url'     => $url,
+		);
+	}
+
+	/**
+	 * Ensure an integration tag exists for a site.
+	 *
+	 * @param int    $site_id Site ID.
+	 * @param string $source  Integration slug.
+	 * @return void
+	 */
+	public static function ensure_integration_tag( $site_id, $source ) {
+		$source = sanitize_key( $source );
+		$tags   = self::get_tags( $site_id );
+
+		foreach ( $tags as $tag ) {
+			if ( sanitize_key( $tag['tag'] ?? '' ) === $source && 'integration' === sanitize_key( $tag['group_type'] ?? '' ) ) {
+				return;
+			}
+		}
+
+		$tags[] = array(
+			'tag'        => $source,
+			'group_type' => 'integration',
+		);
+
+		self::set_tags( $site_id, $tags );
+	}
+
+	/**
+	 * List sites imported from a specific integration.
+	 *
+	 * @param string $source Integration slug.
+	 * @return array
+	 */
+	public static function list_by_integration( $source ) {
+		global $wpdb;
+
+		$source = sanitize_key( $source );
+		$rows   = $wpdb->get_results(
+			$wpdb->prepare(
+				'SELECT * FROM ' . self::table() . ' WHERE integration_source = %s ORDER BY name ASC',
+				$source
+			),
+			ARRAY_A
+		);
+
+		return is_array( $rows ) ? array_map( array( __CLASS__, 'format' ), $rows ) : array();
+	}
+
 	public static function find( $id ) {
 		global $wpdb;
 
@@ -244,20 +459,25 @@ class LAUNCHDEK_Site_Repository {
 	public static function create( $data ) {
 		global $wpdb;
 
-		$url = esc_url_raw( untrailingslashit( $data['url'] ?? '' ) );
+		$url = self::normalize_url( $data['url'] ?? '' );
 
 		$result = $wpdb->insert(
 			self::table(),
 			array(
-				'name'             => sanitize_text_field( $data['name'] ?? $url ),
-				'url'              => $url,
-				'admin_username'   => sanitize_user( $data['admin_username'] ?? '' ),
-				'app_password_enc' => LAUNCHDEK_Credential_Vault::encrypt( $data['app_password'] ?? '' ),
-				'health_status'    => 'unknown',
-				'created_at'       => current_time( 'mysql', true ),
-				'updated_at'       => current_time( 'mysql', true ),
+				'name'               => sanitize_text_field( $data['name'] ?? $url ),
+				'url'                => $url,
+				'admin_username'     => sanitize_user( $data['admin_username'] ?? '' ),
+				'app_password_enc'   => LAUNCHDEK_Credential_Vault::encrypt( $data['app_password'] ?? '' ),
+				'wp_version'         => sanitize_text_field( $data['wp_version'] ?? '' ),
+				'php_version'        => sanitize_text_field( $data['php_version'] ?? '' ),
+				'health_status'      => 'unknown',
+				'client_agent'       => 0,
+				'integration_source' => sanitize_key( $data['integration_source'] ?? '' ),
+				'external_id'        => sanitize_text_field( $data['external_id'] ?? '' ),
+				'created_at'         => current_time( 'mysql', true ),
+				'updated_at'         => current_time( 'mysql', true ),
 			),
-			array( '%s', '%s', '%s', '%s', '%s', '%s', '%s' )
+			array( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%s', '%s', '%s', '%s' )
 		);
 
 		if ( false === $result ) {
@@ -300,8 +520,18 @@ class LAUNCHDEK_Site_Repository {
 		}
 
 		if ( isset( $data['url'] ) ) {
-			$fields['url'] = esc_url_raw( untrailingslashit( $data['url'] ) );
+			$fields['url'] = self::normalize_url( $data['url'] );
 			$format[]      = '%s';
+		}
+
+		if ( isset( $data['integration_source'] ) ) {
+			$fields['integration_source'] = sanitize_key( $data['integration_source'] );
+			$format[]                     = '%s';
+		}
+
+		if ( isset( $data['external_id'] ) ) {
+			$fields['external_id'] = sanitize_text_field( (string) $data['external_id'] );
+			$format[]              = '%s';
 		}
 
 		if ( isset( $data['admin_username'] ) ) {
@@ -513,8 +743,11 @@ class LAUNCHDEK_Site_Repository {
 			'health_status' => $row['health_status'],
 			'last_ping_at'  => $row['last_ping_at'],
 			'last_error'    => $row['last_error'],
-			'client_agent'  => ! empty( $row['client_agent'] ),
-			'tags'          => self::get_tags( (int) $row['id'] ),
+			'client_agent'        => ! empty( $row['client_agent'] ),
+			'integration_source'  => (string) ( $row['integration_source'] ?? '' ),
+			'external_id'         => (string) ( $row['external_id'] ?? '' ),
+			'has_credentials'     => '' !== trim( LAUNCHDEK_Credential_Vault::decrypt( $row['app_password_enc'] ?? '' ) ),
+			'tags'                => self::get_tags( (int) $row['id'] ),
 			'created_at'    => $row['created_at'],
 			'updated_at'    => $row['updated_at'],
 		);

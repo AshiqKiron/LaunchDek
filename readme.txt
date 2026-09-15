@@ -20,7 +20,7 @@ LaunchDek is a master-site plugin for WordPress agencies to manage remote client
 * **Sites** — Register remote sites, connection tester, tagging and grouping, per-site checklist run history
 * **Checklists** — Drag-and-drop builder, step configuration, API payload mapper, import/export, plus 86 built-in templates and agency vault
 * **Batch Run** — Run checklists on single or multiple sites, live step tracker, drift monitor
-* **Integrations** — MainWP, ManageWP, WP Umbrella, WP Engine, WPvibe adapters
+* **Integrations** — MainWP site sync and client panel push; ManageWP, WP Umbrella, WP Engine, WPvibe connector stubs
 * **Settings** — Encrypted credential vault, Slack/Discord/Teams webhooks, role guardrails
 
 == Installation ==
@@ -55,13 +55,21 @@ The client panel is a bundled must-use plugin included with LaunchDek — not a 
 * User-registered remote WordPress sites (Application Password REST calls)
 * Optional client panel deploy and checklist sync (user-initiated when connecting or pushing a run)
 * User-configured webhook URLs (Slack, Discord, Teams)
-* User-initiated integration adapter pushes
+* User-initiated integration sync and client panel pushes (MainWP child sites when configured)
 
 = Are credentials encrypted? =
 
 Yes, when enabled in Settings, application passwords are encrypted using your WordPress salt keys.
 
 == Changelog ==
+
+= 1.0.36 =
+* MainWP integration: sync child sites into LaunchDek with telemetry mapping rules (name, URL, WP version, PHP version)
+* MainWP integration: push the client checklist panel to synced child sites through MainWP when Application Passwords are not yet configured
+* Integrations page: Sync Sites, Preview Sync, and Push Client Panel actions in the connector setup modal
+
+= 1.0.35 =
+* Settings: section headings and client panel fields now include left-side info icons with tooltips explaining each area
 
 = 1.0.34 =
 * Activity Logs: faster page load — paginated results (50 per page with Load more), preloaded site filter, lean API responses, batch database lookups, and lazy raw-data fetch on demand

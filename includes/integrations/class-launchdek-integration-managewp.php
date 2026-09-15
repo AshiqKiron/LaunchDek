@@ -26,6 +26,18 @@ class LAUNCHDEK_Integration_ManageWP implements LAUNCHDEK_Integration_Interface 
 		return defined( 'MMB_WORKER_VERSION' ) || file_exists( WP_PLUGIN_DIR . '/worker/init.php' );
 	}
 
+	public function supports_site_sync() {
+		return false;
+	}
+
+	public function fetch_platform_sites() {
+		return new WP_Error(
+			'launchdek_integration_sync_unsupported',
+			__( 'ManageWP site sync is not available yet.', LAUNCHDEK_TEXT_DOMAIN ),
+			array( 'status' => 400 )
+		);
+	}
+
 	public function push_agent( $site_ids = array() ) {
 		if ( ! $this->is_available() ) {
 			return array( 'error' => __( 'ManageWP Worker is not detected on this site.', LAUNCHDEK_TEXT_DOMAIN ) );

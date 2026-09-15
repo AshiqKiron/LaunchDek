@@ -1640,6 +1640,16 @@
 	margin: 0;
 }
 
+.launchdek-card-heading-row--info-first .launchdek-field-info.launchdek-has-tooltip::after {
+	left: 0;
+	transform: none;
+}
+
+.launchdek-settings-card .launchdek-field-label-row {
+	display: inline-flex;
+	align-items: center;
+}
+
 .launchdek-field-info {
 	display: inline-flex;
 	align-items: center;
@@ -2600,9 +2610,20 @@
 	opacity: 0.85;
 }
 
+.launchdek-connector-meta {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	min-width: 0;
+}
+
 .launchdek-connector-name {
 	font-weight: 500;
 	color: #1d2327;
+}
+
+.launchdek-connector-sync-count {
+	font-size: 12px;
 }
 
 .launchdek-connector-actions {
@@ -2626,8 +2647,12 @@
 }
 
 .launchdek-settings-card h2 {
-	margin: 0 0 8px;
+	margin: 0;
 	font-size: 1.1em;
+}
+
+.launchdek-settings-card .launchdek-card-heading-row {
+	margin-bottom: 12px;
 }
 
 .launchdek-settings-lead {
@@ -2642,40 +2667,30 @@
 }
 
 .launchdek-settings-panel-layout-picker {
-	display: grid;
-	grid-template-columns: minmax(220px, 360px) minmax(280px, 420px);
-	grid-template-areas:
-		"controls-label preview"
-		"controls-select preview"
-		"controls-description preview";
-	gap: 10px 24px;
-	align-items: start;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
 	max-width: 860px;
 }
 
-.launchdek-settings-panel-layout-controls {
-	display: contents;
-}
-
-.launchdek-settings-panel-layout-controls > label {
-	grid-area: controls-label;
-}
-
-.launchdek-settings-panel-layout-select {
-	grid-area: controls-select;
-}
-
-.launchdek-settings-panel-layout-controls > .launchdek-panel-layout-preview-description {
-	grid-area: controls-description;
-}
-
-.launchdek-panel-layout-preview {
-	grid-area: preview;
-}
-
-.launchdek-settings-panel-layout-controls > label {
+.launchdek-settings-panel-layout-label {
+	display: block;
+	margin: 0;
 	font-weight: 600;
 	color: #1d2327;
+}
+
+.launchdek-settings-panel-layout-body {
+	display: grid;
+	grid-template-columns: minmax(220px, 360px) minmax(280px, 420px);
+	gap: 10px 24px;
+	align-items: start;
+}
+
+.launchdek-settings-panel-layout-controls {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
 }
 
 .launchdek-settings-panel-layout-select {
@@ -2688,13 +2703,8 @@
 }
 
 @media screen and (max-width: 782px) {
-	.launchdek-settings-panel-layout-picker {
+	.launchdek-settings-panel-layout-body {
 		grid-template-columns: 1fr;
-		grid-template-areas:
-			"controls-label"
-			"controls-select"
-			"preview"
-			"controls-description";
 		max-width: 420px;
 	}
 }
