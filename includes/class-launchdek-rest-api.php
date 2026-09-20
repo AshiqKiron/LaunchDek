@@ -56,6 +56,12 @@ class LAUNCHDEK_REST_API {
 			'permission_callback' => array( __CLASS__, 'can_view_dashboard' ),
 		) );
 
+		register_rest_route( self::NAMESPACE, '/logs/run/(?P<run_id>\d+)/steps', array(
+			'methods'             => 'GET',
+			'callback'            => array( __CLASS__, 'get_log_run_steps' ),
+			'permission_callback' => array( __CLASS__, 'can_view_dashboard' ),
+		) );
+
 		register_rest_route( self::NAMESPACE, '/onboarding/dismiss', array(
 			'methods'             => 'POST',
 			'callback'            => array( __CLASS__, 'dismiss_onboarding' ),
@@ -122,6 +128,19 @@ class LAUNCHDEK_REST_API {
 			'methods'             => 'GET',
 			'callback'            => array( __CLASS__, 'get_all_tags' ),
 			'permission_callback' => array( __CLASS__, 'can_manage_sites' ),
+		) );
+
+		register_rest_route( self::NAMESPACE, '/sites/groups', array(
+			array(
+				'methods'             => 'GET',
+				'callback'            => array( __CLASS__, 'get_site_groups' ),
+				'permission_callback' => array( __CLASS__, 'can_manage_sites' ),
+			),
+			array(
+				'methods'             => 'POST',
+				'callback'            => array( __CLASS__, 'create_site_group' ),
+				'permission_callback' => array( __CLASS__, 'can_manage_sites' ),
+			),
 		) );
 
 		register_rest_route( self::NAMESPACE, '/sites/(?P<id>\d+)/panel/install', array(
@@ -516,6 +535,23 @@ class LAUNCHDEK_REST_API {
 	}
 
 	/**
+	 * Completed step timeline for a checklist run (Activity Logs UI).
+	 *
+	 * @param WP_REST_Request $request Request.
+	 * @return WP_REST_Response
+	 */
+	public static function get_log_run_steps( $request ) {
+		$run_id = absint( $request['run_id'] );
+
+		return rest_ensure_response(
+			array(
+				'run_id' => $run_id,
+				'steps'  => LAUNCHDEK_Audit_Log::get_run_steps_timeline( $run_id ),
+			)
+		);
+	}
+
+	/**
 	 * Persist onboarding dismissal.
 	 *
 	 * @return WP_REST_Response
@@ -814,6 +850,37 @@ class LAUNCHDEK_REST_API {
 
 	public static function get_all_tags() {
 		return rest_ensure_response( LAUNCHDEK_Site_Repository::get_all_tags() );
+	}
+
+	/**
+	 * List site tag groups for filters and the site editor.
+	 *
+	 * @return WP_REST_Response
+	 */
+	public static function get_site_groups() {
+		return rest_ensure_response( LAUNCHDEK_Settings::get_site_group_catalog() );
+	}
+
+	/**
+	 * Create a custom site tag group.
+	 *
+	 * @param WP_REST_Request $request Request.
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public static function create_site_group( $request ) {
+		$label  = $request->get_param( 'label' );
+		$result = LAUNCHDEK_Settings::add_custom_site_group( is_string( $label ) ? $label : '' );
+
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+
+		return rest_ensure_response(
+			array(
+				'group'  => $result,
+				'groups' => LAUNCHDEK_Settings::get_site_group_catalog(),
+			)
+		);
 	}
 
 	// Checklist handlers.

@@ -127,8 +127,11 @@ class LAUNCHDEK_Audit_Log {
 		}
 
 		if ( $args['site_id'] ) {
-			$where[] = 'site_id = %d';
-			$vals[]  = absint( $args['site_id'] );
+			$filtered_site_id = absint( $args['site_id'] );
+			$runs_table       = $wpdb->prefix . 'launchdek_runs';
+			$where[]          = "(site_id = %d OR run_id IN (SELECT id FROM {$runs_table} WHERE site_id = %d))";
+			$vals[]           = $filtered_site_id;
+			$vals[]           = $filtered_site_id;
 		}
 
 		if ( $args['run_id'] ) {
@@ -251,7 +254,64 @@ class LAUNCHDEK_Audit_Log {
 				)
 			),
 			'runs'  => $runs,
+			'steps' => self::load_run_steps_map( $unique_run_ids ),
 		);
+	}
+
+	/**
+	 * Batch-load run step titles for audit detail formatting.
+	 *
+	 * @param array $run_ids Run IDs.
+	 * @return array<string, string> Keys "{run_id}:{step_index}".
+	 */
+	private static function load_run_steps_map( array $run_ids ) {
+		global $wpdb;
+
+		$map = array();
+		if ( empty( $run_ids ) ) {
+			return $map;
+		}
+
+		$steps_table  = $wpdb->prefix . 'launchdek_run_steps';
+		$placeholders = implode( ',', array_fill( 0, count( $run_ids ), '%d' ) );
+		$sql          = "SELECT run_id, step_index, title FROM {$steps_table} WHERE run_id IN ({$placeholders})";
+		$rows         = $wpdb->get_results( $wpdb->prepare( $sql, $run_ids ), ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+
+		if ( ! is_array( $rows ) ) {
+			return $map;
+		}
+
+		foreach ( $rows as $row ) {
+			$key       = (int) $row['run_id'] . ':' . (int) $row['step_index'];
+			$map[ $key ] = (string) $row['title'];
+		}
+
+		return $map;
+	}
+
+	/**
+	 * Resolve a step title from audit details and batch context.
+	 *
+	 * @param int   $run_id  Run ID.
+	 * @param array $details Audit details.
+	 * @param array $context Query context maps.
+	 * @return string
+	 */
+	private static function resolve_step_title_from_context( $run_id, $details, $context ) {
+		if ( ! empty( $details['step_title'] ) ) {
+			return sanitize_text_field( $details['step_title'] );
+		}
+
+		if ( ! $run_id || ! isset( $details['step_index'] ) ) {
+			return '';
+		}
+
+		$key = (int) $run_id . ':' . (int) $details['step_index'];
+		if ( ! empty( $context['steps'][ $key ] ) ) {
+			return (string) $context['steps'][ $key ];
+		}
+
+		return '';
 	}
 
 	/**
@@ -877,10 +937,12 @@ class LAUNCHDEK_Audit_Log {
 	 * @param array  $details Structured details.
 	 * @return string
 	 */
-	public static function format_details_summary( $action, $details ) {
+	public static function format_details_summary( $action, $details, $context = array(), $row = array() ) {
 		if ( ! is_array( $details ) ) {
 			return '';
 		}
+
+		$run_id = isset( $row['run_id'] ) ? (int) $row['run_id'] : 0;
 
 		switch ( $action ) {
 			case 'run_started':
@@ -917,10 +979,11 @@ class LAUNCHDEK_Audit_Log {
 			case 'manual_step_completed':
 			case 'manual_step_uncompleted':
 			case 'client_step_uncompleted':
-				return ! empty( $details['step_title'] ) ? sprintf(
+				$step_title = self::resolve_step_title_from_context( $run_id, $details, $context );
+				return $step_title ? sprintf(
 					/* translators: %s: step title */
 					__( 'Step: %s', LAUNCHDEK_TEXT_DOMAIN ),
-					$details['step_title']
+					$step_title
 				) : '';
 
 			case 'site_created':
@@ -961,10 +1024,33 @@ class LAUNCHDEK_Audit_Log {
 				) : '';
 
 			case 'run_status_changed':
+				$status = $details['status'] ?? '';
+				if ( $run_id && ! empty( $context['runs'][ $run_id ]['checklist_title'] ) ) {
+					if ( 'completed' === $status ) {
+						return sprintf(
+							/* translators: %s: checklist title */
+							__( 'Checklist completed: %s', LAUNCHDEK_TEXT_DOMAIN ),
+							$context['runs'][ $run_id ]['checklist_title']
+						);
+					}
+					if ( 'failed' === $status ) {
+						return sprintf(
+							/* translators: %s: checklist title */
+							__( 'Checklist failed: %s', LAUNCHDEK_TEXT_DOMAIN ),
+							$context['runs'][ $run_id ]['checklist_title']
+						);
+					}
+					return sprintf(
+						/* translators: 1: checklist title, 2: run status */
+						__( 'Checklist %1$s — status %2$s', LAUNCHDEK_TEXT_DOMAIN ),
+						$context['runs'][ $run_id ]['checklist_title'],
+						$status
+					);
+				}
 				return sprintf(
 					/* translators: %s: run status */
 					__( 'Status changed to %s', LAUNCHDEK_TEXT_DOMAIN ),
-					$details['status'] ?? ''
+					$status
 				);
 
 			case 'drift_verified':
@@ -994,11 +1080,17 @@ class LAUNCHDEK_Audit_Log {
 				return $details['message'] ?? '';
 
 			case 'client_step_completed':
-				return sprintf(
-					'%s — %s',
-					$details['step_title'] ?? '',
-					$details['client_user'] ?? ''
-				);
+				$step_title = self::resolve_step_title_from_context( $run_id, $details, $context );
+				$client     = $details['client_user'] ?? '';
+				if ( $step_title && $client ) {
+					return sprintf(
+						/* translators: 1: step title, 2: client user name */
+						__( 'Step %1$s completed by %2$s', LAUNCHDEK_TEXT_DOMAIN ),
+						$step_title,
+						$client
+					);
+				}
+				return trim( $step_title . ( $client ? ' — ' . $client : '' ) );
 
 			case 'client_step_note_added':
 				$summary = $details['note_preview'] ?? '';
@@ -1011,6 +1103,92 @@ class LAUNCHDEK_Audit_Log {
 			default:
 				return self::format_details_kv( $details );
 		}
+	}
+
+	/**
+	 * Build human-readable detail lines for the Activity Logs table.
+	 *
+	 * @param array  $row       Raw audit row.
+	 * @param array  $details   Decoded details.
+	 * @param array  $context   Lookup maps.
+	 * @param string $user_name Resolved actor display name.
+	 * @return string[]
+	 */
+	public static function format_activity_detail_lines( $row, $details, $context, $user_name ) {
+		if ( ! is_array( $details ) ) {
+			$details = array();
+		}
+
+		$lines   = array();
+		$action  = $row['action'] ?? '';
+		$run_id  = (int) ( $row['run_id'] ?? 0 );
+		$run     = $run_id && ! empty( $context['runs'][ $run_id ] ) ? $context['runs'][ $run_id ] : null;
+		$summary = self::format_details_summary( $action, $details, $context, $row );
+
+		if ( $summary ) {
+			$lines[] = $summary;
+		}
+
+		switch ( $action ) {
+			case 'run_started':
+			case 'client_run_pushed':
+				if ( $run && ! empty( $run['checklist_title'] ) && false === strpos( $summary, $run['checklist_title'] ) ) {
+					$lines[] = sprintf(
+						/* translators: %s: checklist title */
+						__( 'Checklist: %s', LAUNCHDEK_TEXT_DOMAIN ),
+						$run['checklist_title']
+					);
+				}
+				break;
+
+			case 'run_status_changed':
+				$status = $details['status'] ?? '';
+				if ( 'completed' === $status && $user_name ) {
+					$lines[] = sprintf(
+						/* translators: %s: user display name */
+						__( 'Marked complete by %s', LAUNCHDEK_TEXT_DOMAIN ),
+						$user_name
+					);
+				} elseif ( 'failed' === $status && $user_name ) {
+					$lines[] = sprintf(
+						/* translators: %s: user display name */
+						__( 'Recorded by %s', LAUNCHDEK_TEXT_DOMAIN ),
+						$user_name
+					);
+				}
+				break;
+
+			case 'manual_step_completed':
+				if ( $user_name ) {
+					$lines[] = sprintf(
+						/* translators: %s: user display name */
+						__( 'Completed by %s', LAUNCHDEK_TEXT_DOMAIN ),
+						$user_name
+					);
+				}
+				break;
+
+			case 'client_step_note_added':
+				$step_title = self::resolve_step_title_from_context( $run_id, $details, $context );
+				if ( $step_title ) {
+					$lines[] = sprintf(
+						/* translators: %s: step title */
+						__( 'Step: %s', LAUNCHDEK_TEXT_DOMAIN ),
+						$step_title
+					);
+				}
+				break;
+
+			case 'api_step_executed':
+				if ( ! empty( $details['route'] ) ) {
+					$lines[] = trim( ( $details['method'] ?? 'GET' ) . ' ' . $details['route'] );
+				}
+				break;
+		}
+
+		$lines = array_values( array_unique( array_filter( $lines ) ) );
+
+		return $lines;
 	}
 
 	/**
@@ -1178,6 +1356,16 @@ class LAUNCHDEK_Audit_Log {
 		$site_id = (int) $row['site_id'];
 		$run_id  = (int) $row['run_id'];
 
+		$action_label = self::format_action_label( $row['action'] );
+		if ( 'run_status_changed' === $row['action'] ) {
+			$run_status = $details['status'] ?? '';
+			if ( 'completed' === $run_status ) {
+				$action_label = __( 'Checklist completed', LAUNCHDEK_TEXT_DOMAIN );
+			} elseif ( 'failed' === $run_status ) {
+				$action_label = __( 'Checklist failed', LAUNCHDEK_TEXT_DOMAIN );
+			}
+		}
+
 		$formatted = array(
 			'id'              => (int) $row['id'],
 			'user_id'         => $user_id,
@@ -1186,8 +1374,9 @@ class LAUNCHDEK_Audit_Log {
 			'site_name'       => self::resolve_site_name( $site_id, $run_id, $details, $context ),
 			'run_id'          => $run_id,
 			'action'          => $row['action'],
-			'action_label'    => self::format_action_label( $row['action'] ),
-			'details_summary' => self::format_details_summary( $row['action'], $details ),
+			'action_label'    => $action_label,
+			'details_summary' => self::format_details_summary( $row['action'], $details, $context, $row ),
+			'detail_lines'    => self::format_activity_detail_lines( $row, $details, $context, $user_name ),
 			'outcome_class'   => self::resolve_outcome_class( $row['action'], $details ),
 			'payload_hash'    => $row['payload_hash'],
 			'created_at'      => $row['created_at'],
@@ -1202,10 +1391,148 @@ class LAUNCHDEK_Audit_Log {
 			$formatted['details'] = $details;
 		}
 
-		$formatted['message'] = self::format_feed_message( $formatted, false );
+		$message_entry            = $formatted;
+		$message_entry['details'] = $details;
+		$formatted['message']     = self::format_feed_message( $message_entry, false );
 
 		unset( $formatted['run_summary'] );
 
+		$formatted['show_run_timeline'] = $run_id > 0 && self::log_supports_run_timeline( $row['action'] );
+
 		return $formatted;
+	}
+
+	/**
+	 * Whether an audit action can show a run step completion timeline.
+	 *
+	 * @param string $action Action slug.
+	 * @return bool
+	 */
+	public static function log_supports_run_timeline( $action ) {
+		$actions = array(
+			'run_started',
+			'run_status_changed',
+			'manual_step_completed',
+			'manual_step_uncompleted',
+			'client_step_completed',
+			'client_step_uncompleted',
+			'client_step_note_added',
+			'api_step_executed',
+			'client_run_pushed',
+		);
+
+		return in_array( $action, $actions, true );
+	}
+
+	/**
+	 * Completed steps for a checklist run (Activity Logs expandable timeline).
+	 *
+	 * @param int $run_id Run ID.
+	 * @return array<int, array{step_index:int,title:string,completed_at:string,completed_by:string}>
+	 */
+	public static function get_run_steps_timeline( $run_id ) {
+		$run_id = absint( $run_id );
+		if ( ! $run_id ) {
+			return array();
+		}
+
+		$run = LAUNCHDEK_Run_Repository::find( $run_id );
+		if ( ! $run || empty( $run['steps'] ) || ! is_array( $run['steps'] ) ) {
+			return array();
+		}
+
+		$actors = self::load_run_step_completion_actors( $run_id );
+		$out    = array();
+
+		foreach ( $run['steps'] as $step ) {
+			if ( ! is_array( $step ) || 'completed' !== ( $step['status'] ?? '' ) ) {
+				continue;
+			}
+
+			$index = (int) ( $step['step_index'] ?? 0 );
+			$by    = '';
+
+			if ( ! empty( $step['response']['completed_by'] ) && is_array( $step['response']['completed_by'] ) ) {
+				$by = sanitize_text_field( $step['response']['completed_by']['name'] ?? '' );
+				if ( '' === $by && ! empty( $step['response']['completed_by']['email'] ) ) {
+					$by = sanitize_email( $step['response']['completed_by']['email'] );
+				}
+			}
+
+			if ( '' === $by && ! empty( $actors[ $index ] ) ) {
+				$by = $actors[ $index ];
+			}
+
+			if ( '' === $by && 'api' === ( $step['step_type'] ?? '' ) ) {
+				$by = __( 'Automated', LAUNCHDEK_TEXT_DOMAIN );
+			}
+
+			$out[] = array(
+				'step_index'   => $index,
+				'title'        => sanitize_text_field( $step['title'] ?? '' ),
+				'completed_at' => ! empty( $step['completed_at'] ) ? sanitize_text_field( $step['completed_at'] ) : '',
+				'completed_by' => $by,
+			);
+		}
+
+		return $out;
+	}
+
+	/**
+	 * Map run step indexes to the user who completed them (from audit entries).
+	 *
+	 * @param int $run_id Run ID.
+	 * @return array<int, string>
+	 */
+	private static function load_run_step_completion_actors( $run_id ) {
+		global $wpdb;
+
+		$run_id = absint( $run_id );
+		if ( ! $run_id ) {
+			return array();
+		}
+
+		$table   = $wpdb->prefix . 'launchdek_audit_log';
+		$actions = array( 'manual_step_completed', 'client_step_completed', 'api_step_executed' );
+		$holders = implode( ',', array_fill( 0, count( $actions ), '%s' ) );
+		$sql     = "SELECT user_id, action, details_json, created_at FROM {$table} WHERE run_id = %d AND action IN ({$holders}) ORDER BY created_at ASC";
+		$vals    = array_merge( array( $run_id ), $actions );
+		$rows    = $wpdb->get_results( $wpdb->prepare( $sql, $vals ), ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+
+		if ( ! is_array( $rows ) || empty( $rows ) ) {
+			return array();
+		}
+
+		$user_ids = array();
+		foreach ( $rows as $row ) {
+			if ( ! empty( $row['user_id'] ) ) {
+				$user_ids[] = (int) $row['user_id'];
+			}
+		}
+
+		$user_map = self::load_users_map( array_values( array_unique( $user_ids ) ) );
+		$map      = array();
+
+		foreach ( $rows as $row ) {
+			$details = json_decode( (string) ( $row['details_json'] ?? '' ), true );
+			if ( ! is_array( $details ) || ! isset( $details['step_index'] ) ) {
+				continue;
+			}
+
+			$index = (int) $details['step_index'];
+			$actor = '';
+
+			if ( 'client_step_completed' === ( $row['action'] ?? '' ) && ! empty( $details['client_user'] ) ) {
+				$actor = sanitize_text_field( $details['client_user'] );
+			} elseif ( ! empty( $row['user_id'] ) && ! empty( $user_map[ (int) $row['user_id'] ] ) ) {
+				$actor = $user_map[ (int) $row['user_id'] ];
+			}
+
+			if ( $actor ) {
+				$map[ $index ] = $actor;
+			}
+		}
+
+		return $map;
 	}
 }

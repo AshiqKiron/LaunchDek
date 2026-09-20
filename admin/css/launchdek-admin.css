@@ -98,7 +98,8 @@
 	display: flex;
 	align-items: center;
 	flex-wrap: wrap;
-	gap: 4px 8px;
+	gap: 8px 12px;
+	width: 100%;
 }
 
 .launchdek-admin > h1 .page-title-action {
@@ -106,6 +107,15 @@
 	top: auto;
 	margin: 0;
 	vertical-align: baseline;
+}
+
+.launchdek-page-title-actions {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 8px;
+	margin-left: auto;
 }
 
 .launchdek-checklist-nav {
@@ -135,28 +145,122 @@
 	margin: 8px 0;
 }
 
-/* Sites toolbar */
-.launchdek-sites-toolbar {
-	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
-	justify-content: space-between;
-	gap: 12px 16px;
-}
-
-.launchdek-sites-toolbar-actions {
+/* Sites table card */
+.launchdek-sites-table-card .launchdek-sites-toolbar-filters {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 8px;
 	align-items: center;
+	justify-content: flex-end;
+	margin-bottom: 12px;
 }
 
-.launchdek-sites-toolbar-filters {
+.launchdek-sites-table-card .wp-list-table {
+	margin-top: 0;
+}
+
+#launchdek-sites-table th:nth-child(1),
+#launchdek-sites-table td:nth-child(1) {
+	width: 52%;
+	min-width: 280px;
+}
+
+#launchdek-sites-table th:nth-child(3),
+#launchdek-sites-table td:nth-child(3),
+#launchdek-sites-table th:nth-child(4),
+#launchdek-sites-table td:nth-child(4) {
+	width: 7%;
+}
+
+#launchdek-sites-table .launchdek-site-name-col {
+	display: flex;
+	align-items: flex-start;
+	gap: 6px;
+	min-width: 0;
+	vertical-align: top;
+}
+
+.launchdek-site-name-cell {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	flex-wrap: nowrap;
+	gap: 2px;
+	min-width: 0;
+	flex: 1 1 auto;
+	max-width: 100%;
+}
+
+.launchdek-site-name-label {
+	display: block;
+	width: 100%;
+	max-width: 100%;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	font-weight: 600;
+	color: #1d2327;
+	line-height: 1.35;
+}
+
+.launchdek-site-url-link {
+	display: block;
+	width: 100%;
+	max-width: 100%;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	font-size: 12px;
+	line-height: 1.35;
+	color: #2271b1;
+}
+
+#launchdek-sites-table .launchdek-client-agent-badge {
+	flex-shrink: 0;
+	margin-top: 4px;
+	white-space: nowrap;
+}
+
+.launchdek-site-group-add {
+	margin: 0 0 12px;
+	padding: 12px 14px;
+	background: #f6f7f7;
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+}
+
+.launchdek-site-group-add-field {
+	margin: 0 0 10px;
+}
+
+.launchdek-site-group-add-field label {
+	display: inline-block;
+	margin-bottom: 4px;
+	font-weight: 600;
+}
+
+.launchdek-site-group-add .regular-text {
+	width: 100%;
+	max-width: 100%;
+	box-sizing: border-box;
+}
+
+.launchdek-site-group-add .regular-text:focus {
+	border-color: #2271b1;
+	box-shadow: 0 0 0 1px #2271b1;
+	outline: 2px solid transparent;
+}
+
+.launchdek-site-group-add-actions {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 8px;
+	margin: 0;
 	align-items: center;
-	margin-left: auto;
+}
+
+.launchdek-site-group-add .launchdek-notice-area {
+	margin: 8px 0 0;
 }
 
 .launchdek-filter-label {
@@ -219,7 +323,8 @@
 	top: calc(100% + 2px);
 	right: 0;
 	z-index: 30;
-	min-width: 160px;
+	min-width: 220px;
+	max-width: 320px;
 	margin: 0;
 	padding: 4px 0;
 	background: #fff;
@@ -228,11 +333,49 @@
 	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
 }
 
+.launchdek-site-actions-info {
+	padding: 8px 12px 6px;
+	border-bottom: 1px solid #f0f0f1;
+	margin-bottom: 4px;
+}
+
+.launchdek-site-actions-info-list {
+	margin: 0;
+}
+
+.launchdek-site-actions-info-row {
+	display: flex;
+	gap: 8px;
+	margin: 0 0 4px;
+	font-size: 11px;
+	line-height: 1.35;
+}
+
+.launchdek-site-actions-info-row:last-child {
+	margin-bottom: 0;
+}
+
+.launchdek-site-actions-info-row dt {
+	flex: 0 0 auto;
+	min-width: 72px;
+	margin: 0;
+	font-weight: 600;
+	color: #646970;
+}
+
+.launchdek-site-actions-info-row dd {
+	margin: 0;
+	flex: 1 1 auto;
+	color: #1d2327;
+	word-break: break-word;
+}
+
 .launchdek-site-actions-menu[hidden] {
 	display: none;
 }
 
-.launchdek-site-actions-menu button {
+.launchdek-site-actions-menu button,
+.launchdek-site-actions-menu a {
 	display: block;
 	width: 100%;
 	margin: 0;
@@ -245,10 +388,14 @@
 	font-size: 13px;
 	line-height: 1.4;
 	cursor: pointer;
+	box-sizing: border-box;
+	text-decoration: none;
 }
 
 .launchdek-site-actions-menu button:hover:not(:disabled),
-.launchdek-site-actions-menu button:focus:not(:disabled) {
+.launchdek-site-actions-menu button:focus:not(:disabled),
+.launchdek-site-actions-menu a:hover,
+.launchdek-site-actions-menu a:focus {
 	background: #f0f0f1;
 	color: #2271b1;
 	outline: none;
@@ -302,9 +449,13 @@
 }
 
 .launchdek-client-agent-badge {
-	margin-left: 6px;
-	font-size: 11px;
-	vertical-align: middle;
+	margin: 2px 0 0;
+	font-size: 10px;
+	line-height: 1.3;
+	white-space: nowrap;
+	text-transform: none;
+	letter-spacing: 0.01em;
+	flex-shrink: 0;
 }
 
 .launchdek-site-history-toggle {
@@ -313,9 +464,9 @@
 	justify-content: center;
 	width: 24px;
 	height: 24px;
-	margin: 0 2px 0 0;
+	margin: 1px 0 0;
 	padding: 0;
-	vertical-align: middle;
+	flex-shrink: 0;
 	color: #50575e;
 	text-decoration: none;
 }
@@ -2100,6 +2251,27 @@
 	width: 120px;
 }
 
+.launchdek-audit-table--hide-site-col .launchdek-audit-col-site,
+.launchdek-audit-table--hide-site-col .launchdek-audit-site {
+	display: none;
+}
+
+.launchdek-audit-detail-lines {
+	margin: 0;
+	padding-left: 1.15em;
+	font-size: 13px;
+	line-height: 1.45;
+	color: #1d2327;
+}
+
+.launchdek-audit-detail-lines li {
+	margin: 0 0 4px;
+}
+
+.launchdek-audit-detail-lines li:last-child {
+	margin-bottom: 0;
+}
+
 .launchdek-audit-timestamp {
 	white-space: nowrap;
 }
@@ -2145,19 +2317,52 @@
 	color: #646970;
 }
 
-.launchdek-audit-raw {
+.launchdek-audit-raw,
+.launchdek-audit-run-steps {
 	margin: 0;
 }
 
-.launchdek-audit-raw summary {
+.launchdek-audit-raw summary,
+.launchdek-audit-run-steps summary {
 	cursor: pointer;
 	font-size: 12px;
 	color: #2271b1;
 	user-select: none;
 }
 
-.launchdek-audit-raw[open] summary {
+.launchdek-audit-raw[open] summary,
+.launchdek-audit-run-steps[open] summary {
 	margin-bottom: 6px;
+}
+
+.launchdek-audit-run-step-list {
+	margin: 0;
+	padding: 0 0 0 16px;
+	font-size: 12px;
+	line-height: 1.45;
+	max-height: 200px;
+	overflow-y: auto;
+}
+
+.launchdek-audit-run-step-item {
+	margin-bottom: 6px;
+}
+
+.launchdek-audit-run-step-item:last-child {
+	margin-bottom: 0;
+}
+
+.launchdek-audit-run-step-title {
+	display: block;
+	color: #1d2327;
+	font-weight: 500;
+}
+
+.launchdek-audit-run-step-meta {
+	display: block;
+	color: #646970;
+	font-size: 11px;
+	margin-top: 2px;
 }
 
 .launchdek-audit-diff {

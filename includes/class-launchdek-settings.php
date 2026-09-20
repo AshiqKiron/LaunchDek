@@ -41,6 +41,7 @@ class LAUNCHDEK_Settings {
 			'exclude_options'              => self::get_default_exclude_options(),
 			'client_panel_layout'          => 'sidebar',
 			'client_panel_title'           => self::get_default_client_panel_title(),
+			'custom_site_groups'           => array(),
 			'wp_umbrella_api_token_enc'    => '',
 		);
 
@@ -513,6 +514,210 @@ class LAUNCHDEK_Settings {
 		update_option( self::OPTION_NAME, $settings );
 
 		return self::has_wp_umbrella_api_token();
+	}
+
+	/**
+	 * Built-in site tag group slugs and labels.
+	 *
+	 * @return array<string, string> slug => label.
+	 */
+	public static function get_builtin_site_groups() {
+		return array(
+			'general' => __( 'General', LAUNCHDEK_TEXT_DOMAIN ),
+			'client'  => __( 'Client', LAUNCHDEK_TEXT_DOMAIN ),
+			'project' => __( 'Project Type', LAUNCHDEK_TEXT_DOMAIN ),
+			'tier'    => __( 'Hosting Tier', LAUNCHDEK_TEXT_DOMAIN ),
+		);
+	}
+
+	/**
+	 * Group slugs that cannot be created via the Sites UI.
+	 *
+	 * @return string[]
+	 */
+	public static function get_reserved_site_group_slugs() {
+		return array( 'integration' );
+	}
+
+	/**
+	 * User-defined site tag groups from settings.
+	 *
+	 * @return array<int, array{slug:string, label:string}>
+	 */
+	public static function get_custom_site_groups() {
+		$settings = self::get();
+		$raw      = isset( $settings['custom_site_groups'] ) && is_array( $settings['custom_site_groups'] ) ? $settings['custom_site_groups'] : array();
+		$groups   = array();
+
+		foreach ( $raw as $group ) {
+			if ( ! is_array( $group ) ) {
+				continue;
+			}
+			$slug  = sanitize_key( $group['slug'] ?? '' );
+			$label = sanitize_text_field( $group['label'] ?? '' );
+			if ( '' === $slug || '' === $label ) {
+				continue;
+			}
+			$groups[] = array(
+				'slug'  => $slug,
+				'label' => $label,
+			);
+		}
+
+		return $groups;
+	}
+
+	/**
+	 * Human-readable label for a group slug.
+	 *
+	 * @param string $slug Group slug.
+	 * @return string
+	 */
+	public static function get_site_group_label( $slug ) {
+		$slug = sanitize_key( $slug );
+		if ( '' === $slug ) {
+			return '';
+		}
+
+		$builtin = self::get_builtin_site_groups();
+		if ( isset( $builtin[ $slug ] ) ) {
+			return $builtin[ $slug ];
+		}
+
+		if ( 'integration' === $slug ) {
+			return __( 'Integration', LAUNCHDEK_TEXT_DOMAIN );
+		}
+
+		foreach ( self::get_custom_site_groups() as $group ) {
+			if ( $group['slug'] === $slug ) {
+				return $group['label'];
+			}
+		}
+
+		return ucwords( str_replace( array( '-', '_' ), ' ', $slug ) );
+	}
+
+	/**
+	 * Catalog of selectable site tag groups (built-in, custom, and in-use slugs).
+	 *
+	 * @param bool $include_in_use Merge distinct group_type values from site tags.
+	 * @return array<int, array{slug:string, label:string, builtin:bool}>
+	 */
+	public static function get_site_group_catalog( $include_in_use = true ) {
+		$seen    = array();
+		$catalog = array();
+
+		foreach ( self::get_builtin_site_groups() as $slug => $label ) {
+			$seen[ $slug ] = true;
+			$catalog[]     = array(
+				'slug'    => $slug,
+				'label'   => $label,
+				'builtin' => true,
+			);
+		}
+
+		foreach ( self::get_custom_site_groups() as $group ) {
+			if ( isset( $seen[ $group['slug'] ] ) ) {
+				continue;
+			}
+			$seen[ $group['slug'] ] = true;
+			$catalog[]              = array(
+				'slug'    => $group['slug'],
+				'label'   => $group['label'],
+				'builtin' => false,
+			);
+		}
+
+		if ( $include_in_use ) {
+			foreach ( LAUNCHDEK_Site_Repository::get_distinct_group_types() as $slug ) {
+				if ( isset( $seen[ $slug ] ) ) {
+					continue;
+				}
+				$seen[ $slug ] = true;
+				$catalog[]     = array(
+					'slug'    => $slug,
+					'label'   => self::get_site_group_label( $slug ),
+					'builtin' => false,
+				);
+			}
+		}
+
+		return $catalog;
+	}
+
+	/**
+	 * Register a custom site tag group.
+	 *
+	 * @param string $label Display name.
+	 * @return array{slug:string, label:string}|WP_Error
+	 */
+	public static function add_custom_site_group( $label ) {
+		$label = sanitize_text_field( $label );
+		if ( '' === $label ) {
+			return new WP_Error(
+				'site_group_name_required',
+				__( 'Enter a group name.', LAUNCHDEK_TEXT_DOMAIN ),
+				array( 'status' => 400 )
+			);
+		}
+
+		if ( mb_strlen( $label ) > 80 ) {
+			return new WP_Error(
+				'site_group_name_too_long',
+				__( 'Group name must be 80 characters or fewer.', LAUNCHDEK_TEXT_DOMAIN ),
+				array( 'status' => 400 )
+			);
+		}
+
+		$slug = sanitize_key( sanitize_title( $label ) );
+		if ( '' === $slug ) {
+			return new WP_Error(
+				'site_group_invalid',
+				__( 'Could not create a group from that name. Try a different name.', LAUNCHDEK_TEXT_DOMAIN ),
+				array( 'status' => 400 )
+			);
+		}
+
+		if ( in_array( $slug, self::get_reserved_site_group_slugs(), true ) ) {
+			return new WP_Error(
+				'site_group_reserved',
+				__( 'That group name is reserved.', LAUNCHDEK_TEXT_DOMAIN ),
+				array( 'status' => 400 )
+			);
+		}
+
+		if ( isset( self::get_builtin_site_groups()[ $slug ] ) ) {
+			return new WP_Error(
+				'site_group_exists',
+				__( 'A built-in group with that name already exists.', LAUNCHDEK_TEXT_DOMAIN ),
+				array( 'status' => 400 )
+			);
+		}
+
+		$custom = self::get_custom_site_groups();
+		foreach ( $custom as $group ) {
+			if ( $group['slug'] === $slug ) {
+				return new WP_Error(
+					'site_group_exists',
+					__( 'A group with that name already exists.', LAUNCHDEK_TEXT_DOMAIN ),
+					array( 'status' => 400 )
+				);
+			}
+		}
+
+		$custom[] = array(
+			'slug'  => $slug,
+			'label' => $label,
+		);
+
+		$settings                      = self::get();
+		$settings['custom_site_groups'] = $custom;
+		update_option( self::OPTION_NAME, $settings );
+
+		return array(
+			'slug'  => $slug,
+			'label' => $label,
+		);
 	}
 
 	public static function get_email_notification_addresses() {

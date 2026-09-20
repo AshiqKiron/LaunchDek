@@ -1185,13 +1185,60 @@
 	// ─── Sites ───────────────────────────────────────────────
 	var currentSiteId = null;
 	var pushChecklistSiteId = null;
+	var siteGroupsCache = null;
+	var SITE_GROUP_ADD_VALUE = '__add_group__';
+	var siteGroupLastValue = 'general';
+	var addToGroupSiteId = null;
+	var addToGroupLastGroup = 'general';
 	var customChecklistSummaries = null;
 	var customChecklistSummariesLoading = null;
 	var siteRunsCache = {};
 	var siteRunsPending = {};
 	var siteRunsMorePending = {};
 	var siteRunsHistoryLimit = 25;
-	var siteTableColspan = 6;
+	var siteTableColspan = 5;
+
+	function siteRowDisplayName(site) {
+		var name = (site && site.name) ? String(site.name).trim() : '';
+		var url = (site && site.url) ? String(site.url).trim() : '';
+		if (name && (!url || name.toLowerCase() !== url.toLowerCase())) {
+			return name;
+		}
+		if (url) {
+			return url;
+		}
+		return name;
+	}
+
+	function siteUrlDisplayLabel(url) {
+		return String(url || '').trim();
+	}
+
+	function siteRowNameCellHtml(site) {
+		var siteId = String(site.id);
+		var name = site && site.name ? String(site.name).trim() : '';
+		var url = site && site.url ? String(site.url).trim() : '';
+		var showDistinctName = name !== '' && url !== '' && name.toLowerCase() !== url.toLowerCase();
+		var html = siteHistoryToggleHtml(siteId) + '<div class="launchdek-site-name-cell">';
+
+		if (showDistinctName) {
+			html += '<span class="launchdek-site-name-label">' + escHtml(name) + '</span>';
+			if (url) {
+				html += '<a class="launchdek-site-url-link" href="' + escAttr(url) + '" target="_blank" rel="noopener" title="' + escAttr(url) + '">' + escHtml(siteUrlDisplayLabel(url)) + '</a>';
+			}
+		} else if (url) {
+			var linkText = siteUrlDisplayLabel(url) || siteRowDisplayName(site);
+			html += '<a class="launchdek-site-url-link" href="' + escAttr(url) + '" target="_blank" rel="noopener" title="' + escAttr(url) + '">' + escHtml(linkText) + '</a>';
+		} else {
+			html += '<span class="launchdek-site-name-label">' + escHtml(name || '—') + '</span>';
+		}
+
+		if (site.client_agent) {
+			html += '<span class="launchdek-badge healthy launchdek-client-agent-badge">' + escHtml(strings.clientPanelBadge || 'Client panel') + '</span>';
+		}
+		html += '</div>';
+		return html;
+	}
 	var siteConnectionStaleMs = 30 * 60 * 1000;
 
 	function healthLabel(status) {
@@ -1276,8 +1323,11 @@
 		html += '</button>';
 		html += '</div>';
 		html += '<div class="launchdek-site-actions-menu" role="menu" hidden>';
+		html += siteActionsInfoHtml(site);
 		html += '<button type="button" role="menuitem" class="launchdek-push-checklist" data-id="' + escAttr(site.id) + '" data-name="' + escAttr(site.name) + '"' + (connectionBlocked ? ' disabled' : '') + '>' + escHtml(strings.pushChecklist || 'Push Checklist') + '</button>';
 		html += '<button type="button" role="menuitem" class="launchdek-test-site" data-id="' + escAttr(site.id) + '">' + escHtml(strings.testSite || 'Test') + '</button>';
+		html += '<button type="button" role="menuitem" class="launchdek-add-to-group" data-id="' + escAttr(site.id) + '" data-name="' + escAttr(site.name) + '">' + escHtml(strings.siteAddToGroup || 'Add to group') + '</button>';
+		html += '<a href="' + escAttr(getActivityLogsUrl(site.id)) + '" role="menuitem" class="launchdek-site-activity-log">' + escHtml(strings.siteActivityLog || 'Activity Log') + '</a>';
 		html += '<button type="button" role="menuitem" class="launchdek-delete-site" data-id="' + escAttr(site.id) + '">' + escHtml(strings.delete || 'Delete') + '</button>';
 		html += '</div></div>';
 		return html;
@@ -1820,8 +1870,7 @@
 		var siteId = String(site.id);
 		var tr = el('tr', { className: 'launchdek-site-row', 'data-site-id': siteId });
 		tr.innerHTML =
-			'<td>' + siteHistoryToggleHtml(siteId) + escHtml(site.name) + (site.client_agent ? ' <span class="launchdek-badge healthy launchdek-client-agent-badge">' + escHtml(strings.clientPanelBadge || 'Client panel') + '</span>' : '') + '</td>' +
-			'<td><a href="' + escAttr(site.url) + '" target="_blank" rel="noopener">' + escHtml(site.url) + '</a></td>' +
+			'<td class="launchdek-site-name-col">' + siteRowNameCellHtml(site) + '</td>' +
 			'<td class="launchdek-site-status-cell">' + connectionStatusHtml(site) + '</td>' +
 			'<td class="launchdek-site-wp-version">' + escHtml(site.wp_version || '—') + '</td>' +
 			'<td class="launchdek-site-php-version">' + escHtml(site.php_version || '—') + '</td>' +
@@ -1878,6 +1927,107 @@
 		}
 		var parsed = Date.parse(String(site.last_ping_at).replace(' ', 'T') + 'Z');
 		return isNaN(parsed) ? null : parsed;
+	}
+
+	function formatSiteDatetime(mysql) {
+		if (!mysql) {
+			return '—';
+		}
+		var normalized = String(mysql).replace(' ', 'T');
+		var parsed = new Date(normalized);
+		if (isNaN(parsed.getTime())) {
+			return String(mysql);
+		}
+		return parsed.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) +
+			' ' + parsed.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+	}
+
+	function siteGroupLabel(slug) {
+		slug = String(slug || '');
+		if (!slug) {
+			return '';
+		}
+		var groups = getSiteGroupsFromBootstrap();
+		var match = groups.find(function (g) { return g.slug === slug; });
+		return match ? match.label : slug;
+	}
+
+	function siteActionsInfoHtml(site) {
+		var rows = [];
+		rows.push([strings.siteInfoId || 'Site ID', String(site.id)]);
+
+		var username = site.admin_username ? String(site.admin_username).trim() : '';
+		if (username) {
+			rows.push([strings.siteInfoUser || 'Username', username]);
+		}
+
+		var wpVer = site.wp_version ? String(site.wp_version).trim() : '—';
+		var phpVer = site.php_version ? String(site.php_version).trim() : '—';
+		var envTemplate = strings.siteInfoEnvironment || 'WP %1$s · PHP %2$s';
+		rows.push([
+			strings.siteInfoEnvironmentLabel || 'Environment',
+			envTemplate.replace('%1$s', wpVer).replace('%2$s', phpVer)
+		]);
+
+		var health = healthLabel(site.health_status || 'unknown');
+		var ping = formatSiteDatetime(site.last_ping_at);
+		var connection = ping !== '—' ? health + ' · ' + ping : health;
+		rows.push([strings.siteInfoConnection || 'Connection', connection]);
+
+		var lastError = site.last_error ? String(site.last_error).trim() : '';
+		if (lastError) {
+			rows.push([strings.siteInfoLastError || 'Last error', lastError]);
+		}
+
+		rows.push([
+			strings.siteInfoClientPanel || 'Client panel',
+			site.client_agent ? (strings.siteInfoYes || 'Yes') : (strings.siteInfoNo || 'No')
+		]);
+		rows.push([
+			strings.siteInfoAppPassword || 'App password',
+			site.has_credentials ? (strings.siteInfoConfigured || 'Configured') : (strings.siteInfoMissing || 'Missing')
+		]);
+
+		var integrationSource = site.integration_source ? String(site.integration_source).trim() : '';
+		if (integrationSource) {
+			var integrationVal = integrationSource;
+			var externalId = site.external_id ? String(site.external_id).trim() : '';
+			if (externalId) {
+				integrationVal += ' · ID ' + externalId;
+			}
+			rows.push([strings.siteInfoIntegration || 'Integration', integrationVal]);
+		}
+
+		if (site.tags && site.tags.length) {
+			var tagParts = [];
+			site.tags.forEach(function (tag) {
+				var name = tag && tag.tag ? String(tag.tag).trim() : '';
+				if (!name) {
+					return;
+				}
+				var groupLabel = siteGroupLabel(tag.group_type);
+				tagParts.push(groupLabel ? name + ' (' + groupLabel + ')' : name);
+			});
+			if (tagParts.length) {
+				rows.push([strings.siteInfoTags || 'Tags', tagParts.join(', ')]);
+			}
+		}
+
+		var updated = formatSiteDatetime(site.updated_at);
+		if (updated !== '—') {
+			rows.push([strings.siteInfoUpdated || 'Updated', updated]);
+		}
+
+		var html = '<div class="launchdek-site-actions-info" role="group" aria-label="' + escAttr(strings.siteInfoDetails || 'Site details') + '">';
+		html += '<dl class="launchdek-site-actions-info-list">';
+		rows.forEach(function (row) {
+			html += '<div class="launchdek-site-actions-info-row">';
+			html += '<dt>' + escHtml(row[0]) + '</dt>';
+			html += '<dd>' + escHtml(row[1]) + '</dd>';
+			html += '</div>';
+		});
+		html += '</dl></div>';
+		return html;
 	}
 
 	function isSiteConnectionStale(site) {
@@ -2040,6 +2190,12 @@
 				confirmAndDeleteSite(parseInt(btn.dataset.id, 10));
 			};
 		});
+		document.querySelectorAll('.launchdek-add-to-group').forEach(function (btn) {
+			btn.onclick = function () {
+				closeAllSiteActionMenus();
+				openAddToGroupModal(parseInt(btn.dataset.id, 10), btn.dataset.name || '');
+			};
+		});
 	}
 
 	function ensurePushChecklistsLoaded() {
@@ -2064,6 +2220,303 @@
 		});
 	}
 
+	function getSiteGroupsFromBootstrap() {
+		if (launchdekAdmin.sites && launchdekAdmin.sites.groups && launchdekAdmin.sites.groups.length) {
+			return launchdekAdmin.sites.groups;
+		}
+		return siteGroupsCache || [];
+	}
+
+	function fetchSiteGroups(forceRefresh) {
+		if (!forceRefresh && siteGroupsCache) {
+			return Promise.resolve(siteGroupsCache);
+		}
+		if (!forceRefresh && launchdekAdmin.sites && launchdekAdmin.sites.groups && launchdekAdmin.sites.groups.length) {
+			siteGroupsCache = launchdekAdmin.sites.groups;
+			return Promise.resolve(siteGroupsCache);
+		}
+		return get('/sites/groups').then(function (groups) {
+			siteGroupsCache = Array.isArray(groups) ? groups : [];
+			if (launchdekAdmin.sites) {
+				launchdekAdmin.sites.groups = siteGroupsCache;
+			}
+			return siteGroupsCache;
+		});
+	}
+
+	function fillSiteGroupSelect(select, options) {
+		if (!select) {
+			return;
+		}
+		options = options || {};
+		var selected = options.selected || '';
+		var includeAdd = !!options.includeAdd;
+		var keepFirstValue = options.keepFirstValue;
+		var keepFirstLabel = options.keepFirstLabel;
+		var groups = options.groups || getSiteGroupsFromBootstrap();
+		var firstOption = keepFirstValue !== undefined && select.options.length
+			? { value: keepFirstValue, label: keepFirstLabel || select.options[0].textContent }
+			: null;
+
+		select.innerHTML = '';
+		if (firstOption) {
+			select.appendChild(el('option', { value: firstOption.value, text: firstOption.label }));
+		}
+		groups.forEach(function (group) {
+			if (!group || !group.slug) {
+				return;
+			}
+			select.appendChild(el('option', { value: group.slug, text: group.label || group.slug }));
+		});
+		if (includeAdd) {
+			select.appendChild(el('option', { value: SITE_GROUP_ADD_VALUE, text: strings.siteGroupAdd || 'Add group…' }));
+		}
+
+		var hasSelected = selected && Array.prototype.some.call(select.options, function (opt) {
+			return opt.value === selected;
+		});
+		if (hasSelected) {
+			select.value = selected;
+		} else if (selected) {
+			select.appendChild(el('option', { value: selected, text: selected }));
+			select.value = selected;
+		} else if (select.options.length) {
+			select.selectedIndex = firstOption ? 1 : 0;
+		}
+		siteGroupLastValue = select.value === SITE_GROUP_ADD_VALUE ? (siteGroupLastValue || 'general') : select.value;
+	}
+
+	function refreshSiteGroupSelects(selectedSiteGroup) {
+		var groups = getSiteGroupsFromBootstrap();
+		var filter = document.getElementById('launchdek-filter-group');
+		var siteGroup = document.getElementById('launchdek-site-group');
+		var addToGroupGroup = document.getElementById('launchdek-add-to-group-group');
+		var filterValue = filter ? filter.value : '';
+		fillSiteGroupSelect(filter, {
+			groups: groups,
+			keepFirstValue: '',
+			keepFirstLabel: filter && filter.options.length ? filter.options[0].textContent : '',
+			selected: filterValue
+		});
+		fillSiteGroupSelect(siteGroup, {
+			groups: groups,
+			includeAdd: true,
+			selected: selectedSiteGroup || siteGroupLastValue || 'general'
+		});
+		if (addToGroupGroup) {
+			var addToGroupValue = addToGroupGroup.value === SITE_GROUP_ADD_VALUE ? addToGroupLastGroup : addToGroupGroup.value;
+			fillSiteGroupSelect(addToGroupGroup, {
+				groups: groups,
+				includeAdd: true,
+				selected: selectedSiteGroup || addToGroupValue || addToGroupLastGroup || 'general'
+			});
+			addToGroupLastGroup = addToGroupGroup.value === SITE_GROUP_ADD_VALUE ? (selectedSiteGroup || addToGroupLastGroup) : addToGroupGroup.value;
+		}
+	}
+
+	function toggleSiteGroupAddForm(show) {
+		var panel = document.getElementById('launchdek-site-group-add');
+		var nameInput = document.getElementById('launchdek-site-group-add-name');
+		var notice = document.getElementById('launchdek-site-group-add-notice');
+		if (!panel) {
+			return;
+		}
+		panel.hidden = !show;
+		if (notice) {
+			notice.innerHTML = '';
+		}
+		if (show && nameInput) {
+			nameInput.value = '';
+			nameInput.focus();
+		}
+	}
+
+	function setSiteGroupSelectValue(slug) {
+		var siteGroup = document.getElementById('launchdek-site-group');
+		if (!siteGroup) {
+			return;
+		}
+		fillSiteGroupSelect(siteGroup, {
+			groups: getSiteGroupsFromBootstrap(),
+			includeAdd: true,
+			selected: slug || 'general'
+		});
+		siteGroupLastValue = siteGroup.value === SITE_GROUP_ADD_VALUE ? (slug || 'general') : siteGroup.value;
+	}
+
+	function handleSiteGroupSelectChange() {
+		var siteGroup = document.getElementById('launchdek-site-group');
+		if (!siteGroup || siteGroup.value !== SITE_GROUP_ADD_VALUE) {
+			if (siteGroup && siteGroup.value !== SITE_GROUP_ADD_VALUE) {
+				siteGroupLastValue = siteGroup.value;
+			}
+			return;
+		}
+		siteGroup.value = siteGroupLastValue || 'general';
+		toggleSiteGroupAddForm(true);
+	}
+
+	function toggleAddToGroupGroupForm(show) {
+		var panel = document.getElementById('launchdek-add-to-group-group-add');
+		var nameInput = document.getElementById('launchdek-add-to-group-group-add-name');
+		var notice = document.getElementById('launchdek-add-to-group-group-add-notice');
+		var fields = document.getElementById('launchdek-add-to-group-fields');
+		var modal = document.getElementById('launchdek-add-to-group-modal');
+		var actions = modal ? modal.querySelector('.launchdek-modal-actions') : null;
+		if (!panel) {
+			return;
+		}
+		panel.hidden = !show;
+		if (fields) {
+			fields.hidden = show;
+		}
+		if (actions) {
+			actions.hidden = show;
+		}
+		if (notice) {
+			notice.innerHTML = '';
+		}
+		if (show && nameInput) {
+			nameInput.value = '';
+			nameInput.focus();
+		}
+	}
+
+	function handleAddToGroupGroupSelectChange() {
+		var groupSelect = document.getElementById('launchdek-add-to-group-group');
+		if (!groupSelect || groupSelect.value !== SITE_GROUP_ADD_VALUE) {
+			if (groupSelect && groupSelect.value !== SITE_GROUP_ADD_VALUE) {
+				addToGroupLastGroup = groupSelect.value;
+			}
+			return;
+		}
+		groupSelect.value = addToGroupLastGroup || 'general';
+		toggleAddToGroupGroupForm(true);
+	}
+
+	function saveNewSiteGroup(options) {
+		options = options || {};
+		var nameInput = document.getElementById(options.nameInputId || 'launchdek-site-group-add-name');
+		var noticeEl = document.getElementById(options.noticeId || 'launchdek-site-group-add-notice');
+		var saveBtn = document.getElementById(options.saveBtnId || 'launchdek-site-group-add-save');
+		var hidePanel = options.hidePanel;
+		var label = nameInput ? nameInput.value.trim() : '';
+		if (!label) {
+			notice(noticeEl, strings.siteGroupNameRequired || 'Enter a group name.', 'error');
+			return;
+		}
+		if (saveBtn) {
+			saveBtn.disabled = true;
+		}
+		post('/sites/groups', { label: label })
+			.then(function (data) {
+				if (data && data.groups) {
+					siteGroupsCache = data.groups;
+					if (launchdekAdmin.sites) {
+						launchdekAdmin.sites.groups = data.groups;
+					}
+				}
+				var slug = data && data.group ? data.group.slug : '';
+				refreshSiteGroupSelects(slug || siteGroupLastValue);
+				if (typeof hidePanel === 'function') {
+					hidePanel();
+				} else {
+					toggleSiteGroupAddForm(false);
+				}
+			})
+			.catch(function (err) {
+				notice(noticeEl, err.message, 'error');
+			})
+			.finally(function () {
+				if (saveBtn) {
+					saveBtn.disabled = false;
+				}
+			});
+	}
+
+	function openAddToGroupModal(siteId, siteName) {
+		addToGroupSiteId = siteId;
+		var modal = document.getElementById('launchdek-add-to-group-modal');
+		var result = document.getElementById('launchdek-add-to-group-result');
+		document.getElementById('launchdek-add-to-group-site-name').textContent = siteName || ('Site #' + siteId);
+		if (result) {
+			result.innerHTML = '';
+		}
+		toggleAddToGroupGroupForm(false);
+
+		fetchSiteGroups().then(function () {
+			return get('/sites/' + siteId);
+		}).then(function (site) {
+			var tagInput = document.getElementById('launchdek-add-to-group-tag');
+			var defaultTag = (site.tags && site.tags.length) ? site.tags[0].tag : (site.name || '');
+			var defaultGroup = (site.tags && site.tags.length) ? (site.tags[0].group_type || 'general') : 'general';
+			if (tagInput) {
+				tagInput.value = defaultTag;
+			}
+			fillSiteGroupSelect(document.getElementById('launchdek-add-to-group-group'), {
+				groups: getSiteGroupsFromBootstrap(),
+				includeAdd: true,
+				selected: defaultGroup
+			});
+			addToGroupLastGroup = defaultGroup;
+			modal.hidden = false;
+		}).catch(function (err) {
+			if (result) {
+				notice(result, err.message, 'error');
+			}
+			modal.hidden = false;
+		});
+	}
+
+	function submitAddToGroup() {
+		if (!addToGroupSiteId) {
+			return;
+		}
+		var result = document.getElementById('launchdek-add-to-group-result');
+		var tagInput = document.getElementById('launchdek-add-to-group-tag');
+		var groupEl = document.getElementById('launchdek-add-to-group-group');
+		var submitBtn = document.getElementById('launchdek-add-to-group-submit');
+		var tagName = tagInput ? tagInput.value.trim() : '';
+		var group = groupEl ? groupEl.value : 'general';
+		if (group === SITE_GROUP_ADD_VALUE) {
+			group = addToGroupLastGroup || 'general';
+		}
+		if (!tagName) {
+			notice(result, strings.siteAddToGroupTagRequired || 'Enter a tag name.', 'error');
+			return;
+		}
+		if (submitBtn) {
+			submitBtn.disabled = true;
+		}
+		get('/sites/' + addToGroupSiteId).then(function (site) {
+			var tags = (site.tags || []).map(function (t) {
+				return { tag: t.tag, group_type: t.group_type };
+			});
+			var found = false;
+			tags = tags.map(function (t) {
+				if (t.tag === tagName) {
+					found = true;
+					return { tag: tagName, group_type: group };
+				}
+				return t;
+			});
+			if (!found) {
+				tags.push({ tag: tagName, group_type: group });
+			}
+			return put('/sites/' + addToGroupSiteId, { tags: tags });
+		}).then(function () {
+			closeModal(document.getElementById('launchdek-add-to-group-modal'));
+			addToGroupSiteId = null;
+			loadSites({ forceFetch: true });
+		}).catch(function (err) {
+			notice(result, err.message, 'error');
+		}).finally(function () {
+			if (submitBtn) {
+				submitBtn.disabled = false;
+			}
+		});
+	}
+
 	function openSiteModal(id) {
 		currentSiteId = id || null;
 		var modal = document.getElementById('launchdek-site-modal');
@@ -2072,6 +2525,7 @@
 		document.getElementById('launchdek-site-id').value = id || '';
 		document.getElementById('launchdek-site-test-result').innerHTML = '';
 		togglePanelSetup(false);
+		toggleSiteGroupAddForm(false);
 		deleteBtn.hidden = !id;
 
 		if (id) {
@@ -2082,7 +2536,9 @@
 				document.getElementById('launchdek-site-password').value = '';
 				document.getElementById('launchdek-site-tags').value = (site.tags || []).map(function (t) { return t.tag; }).join(', ');
 				if (site.tags && site.tags[0]) {
-					document.getElementById('launchdek-site-group').value = site.tags[0].group_type || 'general';
+					setSiteGroupSelectValue(site.tags[0].group_type || 'general');
+				} else {
+					setSiteGroupSelectValue('general');
 				}
 				if (!site.client_agent) {
 					togglePanelSetup(true);
@@ -2090,6 +2546,7 @@
 			});
 		} else {
 			document.getElementById('launchdek-site-form').reset();
+			setSiteGroupSelectValue('general');
 		}
 		modal.hidden = false;
 	}
@@ -2290,7 +2747,11 @@
 
 	function parseTagsInput() {
 		var raw = document.getElementById('launchdek-site-tags').value;
-		var group = document.getElementById('launchdek-site-group').value;
+		var groupEl = document.getElementById('launchdek-site-group');
+		var group = groupEl ? groupEl.value : 'general';
+		if (group === SITE_GROUP_ADD_VALUE) {
+			group = siteGroupLastValue || 'general';
+		}
 		return raw.split(',').map(function (t) { return t.trim(); }).filter(Boolean).map(function (t) {
 			return { tag: t, group_type: group };
 		});
@@ -2419,10 +2880,44 @@
 			});
 		});
 
+		if (launchdekAdmin.sites && launchdekAdmin.sites.groups) {
+			siteGroupsCache = launchdekAdmin.sites.groups;
+		}
+		fetchSiteGroups().then(function () {
+			var filter = document.getElementById('launchdek-filter-group');
+			if (filter && filter.getAttribute('data-launchdek-preloaded') !== '1') {
+				refreshSiteGroupSelects(siteGroupLastValue);
+			}
+		});
+
 		document.getElementById('launchdek-add-site').addEventListener('click', function () { openSiteModal(null); });
 		document.getElementById('launchdek-connection-tester').addEventListener('click', openConnectionTesterModal);
 		document.getElementById('launchdek-filter-tag').addEventListener('change', loadSites);
 		document.getElementById('launchdek-filter-group').addEventListener('change', loadSites);
+		var siteGroupSelect = document.getElementById('launchdek-site-group');
+		if (siteGroupSelect) {
+			siteGroupLastValue = siteGroupSelect.value === SITE_GROUP_ADD_VALUE ? 'general' : (siteGroupSelect.value || 'general');
+			siteGroupSelect.addEventListener('change', handleSiteGroupSelectChange);
+		}
+		var siteGroupAddSave = document.getElementById('launchdek-site-group-add-save');
+		var siteGroupAddCancel = document.getElementById('launchdek-site-group-add-cancel');
+		if (siteGroupAddSave) {
+			siteGroupAddSave.addEventListener('click', saveNewSiteGroup);
+		}
+		if (siteGroupAddCancel) {
+			siteGroupAddCancel.addEventListener('click', function () {
+				toggleSiteGroupAddForm(false);
+			});
+		}
+		var siteGroupAddName = document.getElementById('launchdek-site-group-add-name');
+		if (siteGroupAddName) {
+			siteGroupAddName.addEventListener('keydown', function (e) {
+				if (e.key === 'Enter') {
+					e.preventDefault();
+					saveNewSiteGroup();
+				}
+			});
+		}
 		document.querySelectorAll('#launchdek-site-modal .launchdek-modal-close, #launchdek-site-modal .launchdek-modal-backdrop').forEach(function (n) {
 			n.addEventListener('click', function () { closeModal(document.getElementById('launchdek-site-modal')); });
 		});
@@ -2432,6 +2927,40 @@
 		document.querySelectorAll('#launchdek-push-checklist-modal .launchdek-modal-close, #launchdek-push-checklist-modal .launchdek-modal-backdrop').forEach(function (n) {
 			n.addEventListener('click', function () { closeModal(document.getElementById('launchdek-push-checklist-modal')); });
 		});
+		document.querySelectorAll('#launchdek-add-to-group-modal .launchdek-modal-close, #launchdek-add-to-group-modal .launchdek-modal-backdrop').forEach(function (n) {
+			n.addEventListener('click', function () {
+				closeModal(document.getElementById('launchdek-add-to-group-modal'));
+				addToGroupSiteId = null;
+			});
+		});
+
+		var addToGroupGroupSelect = document.getElementById('launchdek-add-to-group-group');
+		if (addToGroupGroupSelect) {
+			addToGroupGroupSelect.addEventListener('change', handleAddToGroupGroupSelectChange);
+		}
+		var addToGroupGroupAddSave = document.getElementById('launchdek-add-to-group-group-add-save');
+		if (addToGroupGroupAddSave) {
+			addToGroupGroupAddSave.addEventListener('click', function () {
+				saveNewSiteGroup({
+					nameInputId: 'launchdek-add-to-group-group-add-name',
+					noticeId: 'launchdek-add-to-group-group-add-notice',
+					saveBtnId: 'launchdek-add-to-group-group-add-save',
+					hidePanel: function () {
+						toggleAddToGroupGroupForm(false);
+					}
+				});
+			});
+		}
+		var addToGroupGroupAddCancel = document.getElementById('launchdek-add-to-group-group-add-cancel');
+		if (addToGroupGroupAddCancel) {
+			addToGroupGroupAddCancel.addEventListener('click', function () {
+				toggleAddToGroupGroupForm(false);
+			});
+		}
+		var addToGroupSubmit = document.getElementById('launchdek-add-to-group-submit');
+		if (addToGroupSubmit) {
+			addToGroupSubmit.addEventListener('click', submitAddToGroup);
+		}
 
 		document.getElementById('launchdek-push-checklist-submit').addEventListener('click', function () {
 			var select = document.getElementById('launchdek-push-checklist-select');
@@ -4522,27 +5051,83 @@
 		return !!log.has_details;
 	}
 
+	function auditLogShowsRunTimeline(log) {
+		if (!log || !log.run_id) {
+			return false;
+		}
+		if (log.show_run_timeline) {
+			return true;
+		}
+		var runActions = {
+			run_started: true,
+			run_status_changed: true,
+			manual_step_completed: true,
+			manual_step_uncompleted: true,
+			client_step_completed: true,
+			client_step_uncompleted: true,
+			client_step_note_added: true,
+			api_step_executed: true,
+			client_run_pushed: true
+		};
+		return !!runActions[log.action];
+	}
+
+	function isActivityLogsPage() {
+		return !!document.querySelector('[data-launchdek-page="activity-logs"]');
+	}
+
+	function isActivityLogsSiteScoped() {
+		var select = document.getElementById('launchdek-activity-logs-site');
+		return !!(select && select.value);
+	}
+
+	function getActivityLogsColspan() {
+		return isActivityLogsSiteScoped() ? 3 : 4;
+	}
+
+	function syncActivityLogsSiteColumn() {
+		var table = document.getElementById('launchdek-activity-logs-table');
+		if (!table) {
+			return;
+		}
+		table.classList.toggle('launchdek-audit-table--hide-site-col', isActivityLogsSiteScoped());
+	}
+
 	function buildAuditDetailsHtml(log) {
-		var summary = log.message || log.details_summary || '';
+		var activityLogsUi = isActivityLogsPage();
+		var summary = log.message || '';
+		var detailLines = Array.isArray(log.detail_lines) ? log.detail_lines : [];
 		var extra = '';
-		if (log.details_summary && log.message && log.details_summary !== log.message) {
+
+		if (!activityLogsUi && log.details_summary && log.message && log.details_summary !== log.message) {
 			extra = log.details_summary;
+		}
+		if (!summary && log.details_summary) {
+			summary = log.details_summary;
 		}
 
 		var html = '<div class="launchdek-audit-cell">';
 		html += '<div class="launchdek-audit-action"><span class="launchdek-badge ' + escHtml(log.outcome_class || 'unknown') + '">' + escHtml(log.action_label || log.action) + '</span></div>';
 
-		if (summary) {
-			html += '<p class="launchdek-audit-summary">' + escHtml(summary) + '</p>';
-		}
-		if (extra) {
-			html += '<p class="launchdek-audit-extra">' + escHtml(extra) + '</p>';
-		}
-		if (!summary && !extra) {
-			html += '<p class="launchdek-audit-summary launchdek-muted">' + escHtml(strings.auditNoDetails || 'No additional details.') + '</p>';
+		if (activityLogsUi && detailLines.length) {
+			html += '<ul class="launchdek-audit-detail-lines">';
+			detailLines.forEach(function (line) {
+				html += '<li>' + escHtml(line) + '</li>';
+			});
+			html += '</ul>';
+		} else {
+			if (summary) {
+				html += '<p class="launchdek-audit-summary">' + escHtml(summary) + '</p>';
+			}
+			if (extra) {
+				html += '<p class="launchdek-audit-extra">' + escHtml(extra) + '</p>';
+			}
+			if (!summary && !extra) {
+				html += '<p class="launchdek-audit-summary launchdek-muted">' + escHtml(strings.auditNoDetails || 'No additional details.') + '</p>';
+			}
 		}
 
-		if (auditHasRawDetails(log)) {
+		if (!activityLogsUi && auditHasRawDetails(log)) {
 			var rawBody = '';
 			if (log.details && typeof log.details === 'object' && Object.keys(log.details).length > 0) {
 				rawBody = escHtml(JSON.stringify(log.details, null, 2));
@@ -4552,6 +5137,15 @@
 			html += '<details class="launchdek-audit-raw">' +
 				'<summary>' + escHtml(strings.auditViewRawData || 'View raw data') + '</summary>' +
 				'<pre class="launchdek-audit-diff">' + rawBody + '</pre>' +
+			'</details>';
+		}
+
+		if (activityLogsUi && auditLogShowsRunTimeline(log)) {
+			html += '<details class="launchdek-audit-run-steps" data-run-id="' + escAttr(String(log.run_id)) + '">' +
+				'<summary>' + escHtml(strings.auditViewRunSteps || 'View completed steps') + '</summary>' +
+				'<ul class="launchdek-audit-run-step-list launchdek-muted">' +
+					'<li>' + escHtml(strings.loading || 'Loading…') + '</li>' +
+				'</ul>' +
 			'</details>';
 		}
 
@@ -4582,9 +5176,10 @@
 
 	function renderAuditRows(tbody, logs, emptyMessage) {
 		if (!tbody) return;
+		var colspan = isActivityLogsPage() ? getActivityLogsColspan() : 4;
 		tbody.innerHTML = '';
 		if (!logs.length) {
-			tbody.innerHTML = '<tr><td colspan="4" class="launchdek-muted">' + escHtml(emptyMessage || strings.auditEmpty || 'No audit entries match these filters.') + '</td></tr>';
+			tbody.innerHTML = '<tr><td colspan="' + colspan + '" class="launchdek-muted">' + escHtml(emptyMessage || strings.auditEmpty || 'No audit entries match these filters.') + '</td></tr>';
 			return;
 		}
 		appendAuditRows(tbody, logs);
@@ -4612,6 +5207,81 @@
 	var activityLogsHasMore = false;
 	var activityLogsLoadingMore = false;
 	var activityLogDetailsPending = {};
+	var activityLogRunStepsCache = {};
+	var activityLogRunStepsPending = {};
+
+	function formatRunTimestampPlain(value) {
+		if (!value) {
+			return '';
+		}
+		var parsed = Date.parse(String(value).replace(' ', 'T') + 'Z');
+		if (isNaN(parsed)) {
+			return String(value);
+		}
+		return new Date(parsed).toLocaleString();
+	}
+
+	function renderActivityLogRunStepsList(steps) {
+		if (!steps || !steps.length) {
+			return '<li>' + escHtml(strings.auditRunStepsEmpty || 'No steps completed yet for this run.') + '</li>';
+		}
+		var html = '';
+		steps.forEach(function (step) {
+			var when = formatRunTimestampPlain(step.completed_at);
+			var by = step.completed_by ? String(step.completed_by) : '';
+			var metaParts = [];
+			if (when) {
+				metaParts.push(when);
+			}
+			if (by) {
+				metaParts.push((strings.auditRunStepsBy || 'by %s').replace('%s', by));
+			}
+			html += '<li class="launchdek-audit-run-step-item">';
+			html += '<span class="launchdek-audit-run-step-title">' + escHtml(step.title || ('Step ' + ((step.step_index || 0) + 1))) + '</span>';
+			if (metaParts.length) {
+				html += '<span class="launchdek-audit-run-step-meta">' + escHtml(metaParts.join(' · ')) + '</span>';
+			}
+			html += '</li>';
+		});
+		return html;
+	}
+
+	function loadActivityLogRunSteps(runId, listEl) {
+		if (!runId || !listEl || listEl.dataset.loaded === '1') {
+			return;
+		}
+
+		if (activityLogRunStepsCache[runId]) {
+			listEl.innerHTML = renderActivityLogRunStepsList(activityLogRunStepsCache[runId]);
+			listEl.dataset.loaded = '1';
+			return;
+		}
+
+		if (activityLogRunStepsPending[runId]) {
+			activityLogRunStepsPending[runId].push(listEl);
+			return;
+		}
+
+		activityLogRunStepsPending[runId] = [listEl];
+		get('/logs/run/' + encodeURIComponent(runId) + '/steps').then(function (data) {
+			var targets = activityLogRunStepsPending[runId] || [];
+			delete activityLogRunStepsPending[runId];
+			var steps = (data && data.steps) || [];
+			activityLogRunStepsCache[runId] = steps;
+			var markup = renderActivityLogRunStepsList(steps);
+			targets.forEach(function (ul) {
+				ul.innerHTML = markup;
+				ul.dataset.loaded = '1';
+			});
+		}).catch(function () {
+			var targets = activityLogRunStepsPending[runId] || [];
+			delete activityLogRunStepsPending[runId];
+			targets.forEach(function (ul) {
+				ul.innerHTML = '<li>' + escHtml(strings.error || 'Something went wrong.') + '</li>';
+				ul.dataset.loaded = '1';
+			});
+		});
+	}
 
 	function renderActivityLogsLoadMore() {
 		var wrap = document.getElementById('launchdek-activity-logs-load-more-wrap');
@@ -4768,7 +5438,8 @@
 				loadMoreBtn.textContent = strings.activityLogsLoadingMore || 'Loading more activity…';
 			}
 		} else {
-			tbody.innerHTML = '<tr><td colspan="4" class="launchdek-muted">' + escHtml(strings.loading || 'Loading…') + '</td></tr>';
+			syncActivityLogsSiteColumn();
+			tbody.innerHTML = '<tr><td colspan="' + getActivityLogsColspan() + '" class="launchdek-muted">' + escHtml(strings.loading || 'Loading…') + '</td></tr>';
 			renderActivityLogsLoadMore();
 		}
 
@@ -4788,7 +5459,7 @@
 			renderActivityLogsLoadMore();
 		}).catch(function () {
 			if (!append) {
-				tbody.innerHTML = '<tr><td colspan="4" class="launchdek-muted">' + escHtml(strings.error || 'Something went wrong.') + '</td></tr>';
+				tbody.innerHTML = '<tr><td colspan="' + getActivityLogsColspan() + '" class="launchdek-muted">' + escHtml(strings.error || 'Something went wrong.') + '</td></tr>';
 			}
 			renderActivityLogsLoadMore();
 		}).then(function () {
@@ -4818,13 +5489,22 @@
 				var siteSelect = document.getElementById('launchdek-activity-logs-site');
 				if (siteSelect) siteSelect.value = siteId;
 			}
+			syncActivityLogsSiteColumn();
 			loadActivityLogs(false);
 		});
 
 		var filterBtn = document.getElementById('launchdek-activity-logs-filter');
 		if (filterBtn) filterBtn.addEventListener('click', function () {
+			syncActivityLogsSiteColumn();
 			loadActivityLogs(false);
 		});
+
+		var siteFilterEl = document.getElementById('launchdek-activity-logs-site');
+		if (siteFilterEl) {
+			siteFilterEl.addEventListener('change', function () {
+				syncActivityLogsSiteColumn();
+			});
+		}
 
 		var searchEl = document.getElementById('launchdek-activity-logs-search');
 		if (searchEl) {
@@ -4849,12 +5529,27 @@
 		if (tbody) {
 			tbody.addEventListener('toggle', function (e) {
 				var details = e.target;
-				if (!details || !details.matches || !details.matches('.launchdek-audit-raw') || !details.open) return;
-				var pre = details.querySelector('.launchdek-audit-diff');
-				if (!pre || pre.dataset.loaded === '1') return;
-				var row = details.closest('tr');
-				var logId = row ? row.getAttribute('data-log-id') : '';
-				loadActivityLogDetails(logId, pre);
+				if (!details || !details.matches || !details.open) {
+					return;
+				}
+				if (details.matches('.launchdek-audit-raw')) {
+					var pre = details.querySelector('.launchdek-audit-diff');
+					if (!pre || pre.dataset.loaded === '1') {
+						return;
+					}
+					var row = details.closest('tr');
+					var logId = row ? row.getAttribute('data-log-id') : '';
+					loadActivityLogDetails(logId, pre);
+					return;
+				}
+				if (details.matches('.launchdek-audit-run-steps')) {
+					var list = details.querySelector('.launchdek-audit-run-step-list');
+					if (!list || list.dataset.loaded === '1') {
+						return;
+					}
+					var runId = details.getAttribute('data-run-id') || '';
+					loadActivityLogRunSteps(runId, list);
+				}
 			}, true);
 		}
 	}

@@ -64,6 +64,16 @@ Yes, when enabled in Settings, application passwords are encrypted using your Wo
 
 == Changelog ==
 
+= 1.0.44 =
+* Activity Logs: when filtered by site, hide the Site column and show readable checklist/step completion lines (timestamp and user stay in When/User columns) instead of raw JSON; site filter includes run-linked audit entries
+* Sites: improve **Add to group** and custom group UI — stacked new-group field, **Back** instead of a second Cancel, and focus the add-group step without duplicate modal actions
+* Sites: show the full site name and URL in the table (no hostname-only or truncated labels)
+* Sites: row actions dropdown includes a **Site details** summary (ID, username, versions, connection, client panel, credentials, tags, and more) for quicker debugging
+
+= 1.0.43 =
+* Sites: add custom tag groups from the site editor (Add group…) and use them in the group filter dropdown; groups are saved in hub settings
+* Sites: **Add to group** in the row actions menu assigns a tag and group without opening the full site editor
+
 = 1.0.42 =
 * WP Umbrella integration: import connected projects via the Public API, encrypted API token storage in connector setup, client panel push for synced sites with Application Passwords, and sync diagnostics when no sites import
 
@@ -91,6 +101,10 @@ Yes, when enabled in Settings, application passwords are encrypted using your Wo
 
 = 1.0.35 =
 * Settings: section headings and client panel fields now include left-side info icons with tooltips explaining each area
+
+= 1.0.35 =
+* Sites: each site's actions menu includes **Activity Log**, opening the Activity Logs page with that site pre-selected in the filter
+* Activity Logs: run-related entries include **View completed steps** — expand to see each finished step with completion time and who completed it (lazy-loaded per run)
 
 = 1.0.34 =
 * Activity Logs: faster page load — paginated results (50 per page with Load more), preloaded site filter, lean API responses, batch database lookups, and lazy raw-data fetch on demand

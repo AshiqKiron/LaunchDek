@@ -741,6 +741,33 @@ class LAUNCHDEK_Site_Repository {
 	}
 
 	/**
+	 * Distinct tag group_type values in use across sites.
+	 *
+	 * @return string[]
+	 */
+	public static function get_distinct_group_types() {
+		global $wpdb;
+
+		$rows = $wpdb->get_col(
+			'SELECT DISTINCT group_type FROM ' . self::tags_table() . ' ORDER BY group_type' // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		);
+
+		if ( ! is_array( $rows ) ) {
+			return array();
+		}
+
+		$slugs = array();
+		foreach ( $rows as $slug ) {
+			$slug = sanitize_key( (string) $slug );
+			if ( '' !== $slug ) {
+				$slugs[] = $slug;
+			}
+		}
+
+		return $slugs;
+	}
+
+	/**
 	 * Get decrypted credentials for API use.
 	 *
 	 * @param int $id Site ID.

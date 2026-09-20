@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	<h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
 
 	<p class="launchdek-muted launchdek-activity-logs-intro">
-		<?php esc_html_e( 'Full immutable audit trail for checklist runs, site changes, and client activity. Filter by site, status, or date range.', LAUNCHDEK_TEXT_DOMAIN ); ?>
+		<?php esc_html_e( 'Checklist runs, site changes, and client activity—all in one log. Filter by site, status, or date.', LAUNCHDEK_TEXT_DOMAIN ); ?>
 		<a href="<?php echo esc_url( admin_url( 'admin.php?page=' . LAUNCHDEK_Admin::PAGE_SLUG . '-sites' ) ); ?>"><?php esc_html_e( 'Back to Sites', LAUNCHDEK_TEXT_DOMAIN ); ?></a>
 	</p>
 
