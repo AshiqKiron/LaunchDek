@@ -149,181 +149,6 @@ function launchdek_site_row_name_cell_html( $site ) {
 endif;
 
 /**
- * Resolve a site group slug to its display label.
- *
- * @param string $slug Group slug.
- * @return string
- */
-if ( ! function_exists( 'launchdek_site_group_label' ) ) :
-function launchdek_site_group_label( $slug ) {
-	$slug = sanitize_key( (string) $slug );
-	if ( '' === $slug ) {
-		return '';
-	}
-
-	foreach ( LAUNCHDEK_Settings::get_site_group_catalog( false ) as $group ) {
-		if ( ( $group['slug'] ?? '' ) === $slug ) {
-			return (string) ( $group['label'] ?? $slug );
-		}
-	}
-
-	return $slug;
-}
-endif;
-
-/**
- * Format a site timestamp for display.
- *
- * @param string $mysql MySQL datetime.
- * @return string
- */
-if ( ! function_exists( 'launchdek_site_datetime_display' ) ) :
-function launchdek_site_datetime_display( $mysql ) {
-	$mysql = trim( (string) $mysql );
-	if ( '' === $mysql ) {
-		return '—';
-	}
-
-	$formatted = mysql2date( get_option( 'date_format' ) . ' ' . get_option( 'time_format' ), $mysql );
-	return $formatted ? $formatted : $mysql;
-}
-endif;
-
-/**
- * Integration connector label for site info.
- *
- * @param string $source Integration slug.
- * @return string
- */
-if ( ! function_exists( 'launchdek_site_integration_label' ) ) :
-function launchdek_site_integration_label( $source ) {
-	$source = sanitize_key( (string) $source );
-	if ( '' === $source ) {
-		return '';
-	}
-
-	$integration = LAUNCHDEK_Integrations::get( $source );
-	return $integration ? $integration->get_name() : $source;
-}
-endif;
-
-/**
- * Site details block for the row actions dropdown.
- *
- * @param array $site Site payload.
- * @return string
- */
-if ( ! function_exists( 'launchdek_site_actions_info_html' ) ) :
-function launchdek_site_actions_info_html( $site ) {
-	$rows   = array();
-	$rows[] = array(
-		__( 'Site ID', LAUNCHDEK_TEXT_DOMAIN ),
-		(string) absint( $site['id'] ?? 0 ),
-	);
-
-	$username = trim( (string) ( $site['admin_username'] ?? '' ) );
-	if ( '' !== $username ) {
-		$rows[] = array(
-			__( 'Username', LAUNCHDEK_TEXT_DOMAIN ),
-			$username,
-		);
-	}
-
-	$wp_version  = trim( (string) ( $site['wp_version'] ?? '' ) );
-	$php_version = trim( (string) ( $site['php_version'] ?? '' ) );
-	$rows[]      = array(
-		__( 'Environment', LAUNCHDEK_TEXT_DOMAIN ),
-		sprintf(
-			/* translators: 1: WordPress version, 2: PHP version */
-			__( 'WP %1$s · PHP %2$s', LAUNCHDEK_TEXT_DOMAIN ),
-			$wp_version !== '' ? $wp_version : '—',
-			$php_version !== '' ? $php_version : '—'
-		),
-	);
-
-	$health_label = launchdek_sites_health_label( sanitize_key( $site['health_status'] ?? 'unknown' ) );
-	$ping_display = launchdek_site_datetime_display( $site['last_ping_at'] ?? '' );
-	$connection   = '—' !== $ping_display
-		? $health_label . ' · ' . $ping_display
-		: $health_label;
-	$rows[]       = array(
-		__( 'Connection', LAUNCHDEK_TEXT_DOMAIN ),
-		$connection,
-	);
-
-	$last_error = trim( (string) ( $site['last_error'] ?? '' ) );
-	if ( '' !== $last_error ) {
-		$rows[] = array(
-			__( 'Last error', LAUNCHDEK_TEXT_DOMAIN ),
-			$last_error,
-		);
-	}
-
-	$rows[] = array(
-		__( 'Client panel', LAUNCHDEK_TEXT_DOMAIN ),
-		! empty( $site['client_agent'] ) ? __( 'Yes', LAUNCHDEK_TEXT_DOMAIN ) : __( 'No', LAUNCHDEK_TEXT_DOMAIN ),
-	);
-
-	$rows[] = array(
-		__( 'App password', LAUNCHDEK_TEXT_DOMAIN ),
-		! empty( $site['has_credentials'] ) ? __( 'Configured', LAUNCHDEK_TEXT_DOMAIN ) : __( 'Missing', LAUNCHDEK_TEXT_DOMAIN ),
-	);
-
-	$integration_source = trim( (string) ( $site['integration_source'] ?? '' ) );
-	if ( '' !== $integration_source ) {
-		$external_id = trim( (string) ( $site['external_id'] ?? '' ) );
-		$integration = launchdek_site_integration_label( $integration_source );
-		if ( '' !== $external_id ) {
-			$integration .= ' · ID ' . $external_id;
-		}
-		$rows[] = array(
-			__( 'Integration', LAUNCHDEK_TEXT_DOMAIN ),
-			$integration,
-		);
-	}
-
-	$tags = isset( $site['tags'] ) && is_array( $site['tags'] ) ? $site['tags'] : array();
-	if ( ! empty( $tags ) ) {
-		$tag_labels = array();
-		foreach ( $tags as $tag ) {
-			$name = trim( (string) ( $tag['tag'] ?? '' ) );
-			if ( '' === $name ) {
-				continue;
-			}
-			$group_label = launchdek_site_group_label( $tag['group_type'] ?? '' );
-			$tag_labels[] = $group_label ? $name . ' (' . $group_label . ')' : $name;
-		}
-		if ( ! empty( $tag_labels ) ) {
-			$rows[] = array(
-				__( 'Tags', LAUNCHDEK_TEXT_DOMAIN ),
-				implode( ', ', $tag_labels ),
-			);
-		}
-	}
-
-	$updated = launchdek_site_datetime_display( $site['updated_at'] ?? '' );
-	if ( '—' !== $updated ) {
-		$rows[] = array(
-			__( 'Updated', LAUNCHDEK_TEXT_DOMAIN ),
-			$updated,
-		);
-	}
-
-	$html  = '<div class="launchdek-site-actions-info" role="group" aria-label="' . esc_attr__( 'Site details', LAUNCHDEK_TEXT_DOMAIN ) . '">';
-	$html .= '<dl class="launchdek-site-actions-info-list">';
-	foreach ( $rows as $row ) {
-		$html .= '<div class="launchdek-site-actions-info-row">';
-		$html .= '<dt>' . esc_html( $row[0] ) . '</dt>';
-		$html .= '<dd>' . esc_html( $row[1] ) . '</dd>';
-		$html .= '</div>';
-	}
-	$html .= '</dl></div>';
-
-	return $html;
-}
-endif;
-
-/**
  * Render site row actions dropdown markup.
  *
  * @param array $site Site payload.
@@ -344,9 +169,9 @@ function launchdek_sites_actions_html( $site ) {
 	$html .= '</button>';
 	$html .= '</div>';
 	$html .= '<div class="launchdek-site-actions-menu" role="menu" hidden>';
-	$html .= launchdek_site_actions_info_html( $site ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	$html .= '<button type="button" role="menuitem" class="launchdek-push-checklist" data-id="' . esc_attr( (string) $site_id ) . '" data-name="' . esc_attr( $site['name'] ?? '' ) . '"' . disabled( $connection_blocked, true, false ) . '>' . esc_html__( 'Push Checklist', LAUNCHDEK_TEXT_DOMAIN ) . '</button>';
 	$html .= '<button type="button" role="menuitem" class="launchdek-test-site" data-id="' . esc_attr( (string) $site_id ) . '">' . esc_html__( 'Test', LAUNCHDEK_TEXT_DOMAIN ) . '</button>';
+	$html .= '<button type="button" role="menuitem" class="launchdek-site-more-info" data-id="' . esc_attr( (string) $site_id ) . '">' . esc_html__( 'More info', LAUNCHDEK_TEXT_DOMAIN ) . '</button>';
 	$html .= '<button type="button" role="menuitem" class="launchdek-add-to-group" data-id="' . esc_attr( (string) $site_id ) . '" data-name="' . esc_attr( $site['name'] ?? '' ) . '">' . esc_html__( 'Add to group', LAUNCHDEK_TEXT_DOMAIN ) . '</button>';
 	$activity_url = admin_url( 'admin.php?page=' . LAUNCHDEK_Admin::PAGE_SLUG . '-activity-logs&site_id=' . $site_id );
 	$html .= '<a href="' . esc_url( $activity_url ) . '" role="menuitem" class="launchdek-site-activity-log">' . esc_html__( 'Activity Log', LAUNCHDEK_TEXT_DOMAIN ) . '</a>';
@@ -524,6 +349,18 @@ endif;
 			<p class="launchdek-modal-actions">
 				<button type="button" class="button button-primary" id="launchdek-push-checklist-submit"><?php esc_html_e( 'Push & Start Run', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
 				<button type="button" class="button launchdek-modal-close"><?php esc_html_e( 'Cancel', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
+			</p>
+		</div>
+	</div>
+
+	<div id="launchdek-site-info-modal" class="launchdek-modal" hidden>
+		<div class="launchdek-modal-backdrop"></div>
+		<div class="launchdek-modal-content launchdek-card">
+			<h2 id="launchdek-site-info-modal-title"><?php esc_html_e( 'Site details', LAUNCHDEK_TEXT_DOMAIN ); ?></h2>
+			<div id="launchdek-site-info-body" class="launchdek-site-info-body" aria-live="polite"></div>
+			<p class="launchdek-modal-actions">
+				<button type="button" class="button button-primary" id="launchdek-site-info-edit"><?php esc_html_e( 'Edit site', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
+				<button type="button" class="button launchdek-modal-close"><?php esc_html_e( 'Close', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
 			</p>
 		</div>
 	</div>

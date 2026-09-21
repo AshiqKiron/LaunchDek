@@ -65,10 +65,15 @@ Yes, when enabled in Settings, application passwords are encrypted using your Wo
 == Changelog ==
 
 = 1.0.44 =
-* Activity Logs: when filtered by site, hide the Site column and show readable checklist/step completion lines (timestamp and user stay in When/User columns) instead of raw JSON; site filter includes run-linked audit entries
+* Settings: organize hub options into four tabs — Platform & Security, Panel layout & Exclude, Webhooks & Email, and Access & Roles (Save Changes applies all sections)
+* Activity Logs: first page loads faster — server-preloaded rows on page load, lightweight admin-ajax feed (avoids full REST bootstrap), lean list queries, and a faster site filter SQL path for `?site_id=` links from Sites
+* Activity Logs: **View raw data** loads faster via a lean details fetch, in-memory cache, and prefetch when **View details** is expanded
+* Checklists: **Built-In Standard Stacks** includes a search bar to find templates by title, description, slug, or step text (searches all categories; category badges appear on results)
+* Sites: checklist history table shows a **Completed** timestamp (in progress runs show —) and no longer includes the **View run** action column
+* Activity Logs: **What happened** shows a short summary plus **View details** (labeled fields for run, step, API, drift, and more) and nested **View raw data** (JSON on click); when filtered by site, the Site column is hidden; site filter includes run-linked audit entries
 * Sites: improve **Add to group** and custom group UI — stacked new-group field, **Back** instead of a second Cancel, and focus the add-group step without duplicate modal actions
 * Sites: show the full site name and URL in the table (no hostname-only or truncated labels)
-* Sites: row actions dropdown includes a **Site details** summary (ID, username, versions, connection, client panel, credentials, tags, and more) for quicker debugging
+* Sites: row actions menu **More info** opens a site details modal (ID, URL, username, versions, connection, client panel, credentials, tags, and more) for quicker debugging
 
 = 1.0.43 =
 * Sites: add custom tag groups from the site editor (Add group…) and use them in the group filter dropdown; groups are saved in hub settings

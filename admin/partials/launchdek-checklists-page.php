@@ -24,6 +24,19 @@ if ( ! defined( 'ABSPATH' ) ) {
 	<div id="launchdek-panel-templates" class="launchdek-tab-panel" data-launchdek-tab-panel="templates" role="tabpanel" aria-labelledby="launchdek-tab-templates">
 		<div class="launchdek-card">
 			<h2><?php esc_html_e( 'Built-In Standard Stacks', LAUNCHDEK_TEXT_DOMAIN ); ?></h2>
+			<div class="launchdek-builtin-templates-toolbar">
+				<label class="launchdek-builtin-template-search-field" for="launchdek-builtin-template-search">
+					<span class="launchdek-builtin-template-search-label"><?php esc_html_e( 'Search', LAUNCHDEK_TEXT_DOMAIN ); ?></span>
+					<input
+						type="search"
+						id="launchdek-builtin-template-search"
+						class="regular-text"
+						placeholder="<?php esc_attr_e( 'Search templates by title, description, or steps…', LAUNCHDEK_TEXT_DOMAIN ); ?>"
+						autocomplete="off"
+					/>
+				</label>
+				<p id="launchdek-builtin-template-search-hint" class="launchdek-muted launchdek-builtin-template-search-hint" hidden aria-live="polite"></p>
+			</div>
 			<div id="launchdek-category-tabs" class="launchdek-category-tabs" role="tablist" aria-label="<?php esc_attr_e( 'Template categories', LAUNCHDEK_TEXT_DOMAIN ); ?>"></div>
 			<div id="launchdek-builtin-templates" class="launchdek-template-grid"></div>
 			<div id="launchdek-builtin-notice" class="launchdek-notice-area"></div>

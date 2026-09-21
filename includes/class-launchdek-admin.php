@@ -199,8 +199,13 @@ class LAUNCHDEK_Admin {
 					'testSite'       => __( 'Test', LAUNCHDEK_TEXT_DOMAIN ),
 					'siteActivityLog' => __( 'Activity Log', LAUNCHDEK_TEXT_DOMAIN ),
 					'siteActionsMenu' => __( 'More site actions', LAUNCHDEK_TEXT_DOMAIN ),
+					'siteMoreInfo'           => __( 'More info', LAUNCHDEK_TEXT_DOMAIN ),
 					'siteInfoDetails'        => __( 'Site details', LAUNCHDEK_TEXT_DOMAIN ),
+					'siteInfoEdit'           => __( 'Edit site', LAUNCHDEK_TEXT_DOMAIN ),
+					'siteInfoName'           => __( 'Site name', LAUNCHDEK_TEXT_DOMAIN ),
+					'siteInfoUrl'            => __( 'URL', LAUNCHDEK_TEXT_DOMAIN ),
 					'siteInfoId'             => __( 'Site ID', LAUNCHDEK_TEXT_DOMAIN ),
+					'siteInfoCreated'        => __( 'Created', LAUNCHDEK_TEXT_DOMAIN ),
 					'siteInfoUser'           => __( 'Username', LAUNCHDEK_TEXT_DOMAIN ),
 					'siteInfoEnvironmentLabel' => __( 'Environment', LAUNCHDEK_TEXT_DOMAIN ),
 					'siteInfoEnvironment'    => __( 'WP %1$s · PHP %2$s', LAUNCHDEK_TEXT_DOMAIN ),
@@ -283,6 +288,8 @@ class LAUNCHDEK_Admin {
 					'savedToVault'    => __( 'Saved to vault.', LAUNCHDEK_TEXT_DOMAIN ),
 					'noVaultTemplates' => __( 'No vault templates yet.', LAUNCHDEK_TEXT_DOMAIN ),
 					'noCategoryTemplates' => __( 'No templates in this category yet.', LAUNCHDEK_TEXT_DOMAIN ),
+					'noSearchTemplates'   => __( 'No templates match your search.', LAUNCHDEK_TEXT_DOMAIN ),
+					'builtinTemplateSearchHint' => __( 'Showing %d results across all categories.', LAUNCHDEK_TEXT_DOMAIN ),
 					'chooseTemplate'  => __( 'Choose a Template', LAUNCHDEK_TEXT_DOMAIN ),
 					'startBlankInstead' => __( 'Start blank instead', LAUNCHDEK_TEXT_DOMAIN ),
 					'importTemplate'  => __( 'Import Template', LAUNCHDEK_TEXT_DOMAIN ),
@@ -379,10 +386,13 @@ class LAUNCHDEK_Admin {
 					'automationExecuteEmpty'      => __( 'Complete steps 1–2 to start a run, or open an existing run from Sites.', LAUNCHDEK_TEXT_DOMAIN ),
 					'automationRunActivityIntro'  => __( 'Recent activity for %s.', LAUNCHDEK_TEXT_DOMAIN ),
 					'automationRunActivityIdle'   => __( 'Start a run to see site activity here, or open the full activity log.', LAUNCHDEK_TEXT_DOMAIN ),
+					'auditViewDetails'            => __( 'View details', LAUNCHDEK_TEXT_DOMAIN ),
 					'auditViewRawData'            => __( 'View raw data', LAUNCHDEK_TEXT_DOMAIN ),
 					'auditViewRunSteps'           => __( 'View completed steps', LAUNCHDEK_TEXT_DOMAIN ),
 					'auditRunStepsEmpty'          => __( 'No steps completed yet for this run.', LAUNCHDEK_TEXT_DOMAIN ),
 					'auditRunStepsBy'             => __( 'by %s', LAUNCHDEK_TEXT_DOMAIN ),
+					'auditRunStepNumber'          => __( 'Step %d', LAUNCHDEK_TEXT_DOMAIN ),
+					'auditRunStepFallback'        => __( 'Step %d', LAUNCHDEK_TEXT_DOMAIN ),
 					'auditNoDetails'              => __( 'No additional details.', LAUNCHDEK_TEXT_DOMAIN ),
 					'auditEmpty'                  => __( 'No activity matches these filters.', LAUNCHDEK_TEXT_DOMAIN ),
 					'activityLogsLoadMore'        => __( 'Load more activity', LAUNCHDEK_TEXT_DOMAIN ),
@@ -434,9 +444,22 @@ class LAUNCHDEK_Admin {
 		}
 
 		if ( self::PAGE_SLUG . '_page_' . self::PAGE_SLUG . '-activity-logs' === $hook ) {
+			$initial_site_id = isset( $_GET['site_id'] ) ? absint( wp_unslash( $_GET['site_id'] ) ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			$localize['activityLogs'] = array(
-				'preloaded' => true,
-				'sites'     => LAUNCHDEK_Site_Repository::picker_list(),
+				'preloaded'          => true,
+				'sites'              => LAUNCHDEK_Site_Repository::picker_list(),
+				'initialSiteId'      => $initial_site_id,
+				'initialFeedPreload' => true,
+				'initialFeed'        => LAUNCHDEK_Audit_Log::query(
+					LAUNCHDEK_Audit_Log::list_query_args_from_input(
+						array(
+							'site_id'         => $initial_site_id,
+							'limit'           => LAUNCHDEK_Audit_Log::LIST_DEFAULT_LIMIT,
+							'offset'          => 0,
+							'include_details' => false,
+						)
+					)
+				),
 			);
 		}
 

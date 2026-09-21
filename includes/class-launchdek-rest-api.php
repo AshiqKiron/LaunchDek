@@ -498,18 +498,19 @@ class LAUNCHDEK_REST_API {
 
 			return rest_ensure_response(
 				LAUNCHDEK_Audit_Log::query(
-					array(
-						'user_id'         => absint( $request->get_param( 'user_id' ) ?: 0 ),
-						'site_id'         => absint( $request->get_param( 'site_id' ) ?: 0 ),
-						'action'          => sanitize_key( $request->get_param( 'action' ) ?: '' ),
-						'search'          => sanitize_text_field( $request->get_param( 'search' ) ?: '' ),
-						'status'          => sanitize_key( $request->get_param( 'status' ) ?: '' ),
-						'date_from'       => sanitize_text_field( $request->get_param( 'date_from' ) ?: '' ),
-						'date_to'         => sanitize_text_field( $request->get_param( 'date_to' ) ?: '' ),
-						'limit'           => absint( $request->get_param( 'limit' ) ?: LAUNCHDEK_Audit_Log::LIST_DEFAULT_LIMIT ),
-						'offset'          => absint( $request->get_param( 'offset' ) ?: 0 ),
-						'include_details' => $include_details,
-						'paginate'        => true,
+					LAUNCHDEK_Audit_Log::list_query_args_from_input(
+						array(
+							'user_id'         => $request->get_param( 'user_id' ) ?: 0,
+							'site_id'         => $request->get_param( 'site_id' ) ?: 0,
+							'action'          => $request->get_param( 'action' ) ?: '',
+							'search'          => $request->get_param( 'search' ) ?: '',
+							'status'          => $request->get_param( 'status' ) ?: '',
+							'date_from'       => $request->get_param( 'date_from' ) ?: '',
+							'date_to'         => $request->get_param( 'date_to' ) ?: '',
+							'limit'           => $request->get_param( 'limit' ) ?: LAUNCHDEK_Audit_Log::LIST_DEFAULT_LIMIT,
+							'offset'          => $request->get_param( 'offset' ) ?: 0,
+							'include_details' => $include_details,
+						)
 					)
 				)
 			);
@@ -526,7 +527,29 @@ class LAUNCHDEK_REST_API {
 	 * @return WP_REST_Response|WP_Error
 	 */
 	public static function get_log_entry( $request ) {
-		$entry = LAUNCHDEK_Audit_Log::find( absint( $request['id'] ), true );
+		$id = absint( $request['id'] );
+
+		$details_only = filter_var( $request->get_param( 'details_only' ), FILTER_VALIDATE_BOOLEAN );
+		if ( null === $request->get_param( 'details_only' ) ) {
+			$details_only = false;
+		}
+
+		if ( $details_only ) {
+			$details = LAUNCHDEK_Audit_Log::get_decoded_details( $id );
+			if ( null === $details ) {
+				return new WP_Error( 'not_found', __( 'Activity log entry not found.', LAUNCHDEK_TEXT_DOMAIN ), array( 'status' => 404 ) );
+			}
+
+			return rest_ensure_response(
+				array(
+					'id'          => $id,
+					'details'     => $details,
+					'has_details' => ! empty( $details ),
+				)
+			);
+		}
+
+		$entry = LAUNCHDEK_Audit_Log::find( $id, true );
 		if ( ! $entry ) {
 			return new WP_Error( 'not_found', __( 'Activity log entry not found.', LAUNCHDEK_TEXT_DOMAIN ), array( 'status' => 404 ) );
 		}

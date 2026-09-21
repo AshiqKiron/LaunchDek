@@ -17,11 +17,12 @@ class LAUNCHDEK_Payload_Mapper {
 	/**
 	 * Execute an API step against a remote site.
 	 *
-	 * @param int   $site_id Site ID.
-	 * @param array $step    Step definition.
+	 * @param int   $site_id       Site ID.
+	 * @param array $step          Step definition.
+	 * @param array $audit_context Optional run context for audit log linkage (run_id, step_index, step_title).
 	 * @return array|WP_Error
 	 */
-	public static function execute( $site_id, $step ) {
+	public static function execute( $site_id, $step, $audit_context = array() ) {
 		$client = LAUNCHDEK_Remote_Client::from_site( $site_id );
 
 		if ( ! $client ) {
@@ -61,10 +62,22 @@ class LAUNCHDEK_Payload_Mapper {
 				$audit_details['excluded_fields'] = $stripped;
 			}
 
+			if ( is_array( $audit_context ) ) {
+				if ( isset( $audit_context['step_index'] ) ) {
+					$audit_details['step_index'] = (int) $audit_context['step_index'];
+				}
+				if ( ! empty( $audit_context['step_title'] ) ) {
+					$audit_details['step_title'] = sanitize_text_field( $audit_context['step_title'] );
+				}
+			}
+
+			$run_id = is_array( $audit_context ) && ! empty( $audit_context['run_id'] ) ? absint( $audit_context['run_id'] ) : 0;
+
 			LAUNCHDEK_Audit_Log::log(
 				'api_step_executed',
 				$audit_details,
-				$site_id
+				$site_id,
+				$run_id
 			);
 		}
 

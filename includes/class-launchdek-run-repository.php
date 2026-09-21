@@ -189,7 +189,16 @@ class LAUNCHDEK_Run_Repository {
 		$formatted    = array();
 
 		foreach ( $rows as $row ) {
-			$run_id = (int) $row['id'];
+			$run_id       = (int) $row['id'];
+			$status       = (string) ( $row['status'] ?? '' );
+			$completed_at = $row['completed_at'];
+
+			if ( empty( $completed_at ) && in_array( $status, array( 'completed', 'failed', 'cancelled' ), true ) ) {
+				$progress = $progress_map[ $run_id ] ?? self::empty_step_progress();
+				if ( ! empty( $progress['last_step_completed_at'] ) ) {
+					$completed_at = $progress['last_step_completed_at'];
+				}
+			}
 
 			$formatted[] = array_merge(
 				array(
@@ -199,10 +208,10 @@ class LAUNCHDEK_Run_Repository {
 					'checklist_is_template'   => ! empty( $row['checklist_is_template'] ),
 					'checklist_template_slug' => (string) ( $row['checklist_template_slug'] ?? '' ),
 					'site_id'                 => (int) $row['site_id'],
-					'status'                  => (string) ( $row['status'] ?? '' ),
+					'status'                  => $status,
 					'started_by_name'         => (string) ( $row['started_by_name'] ?? '' ),
 					'started_at'              => $row['started_at'],
-					'completed_at'            => $row['completed_at'],
+					'completed_at'            => $completed_at,
 				),
 				$progress_map[ $run_id ] ?? self::empty_step_progress()
 			);
@@ -219,14 +228,15 @@ class LAUNCHDEK_Run_Repository {
 	/**
 	 * Default step progress shape for runs with no step rows.
 	 *
-	 * @return array{steps_total:int,steps_completed:int,steps_failed:int,progress_percent:float}
+	 * @return array{steps_total:int,steps_completed:int,steps_failed:int,progress_percent:float,last_step_completed_at:string|null}
 	 */
 	public static function empty_step_progress() {
 		return array(
-			'steps_total'      => 0,
-			'steps_completed'  => 0,
-			'steps_failed'     => 0,
-			'progress_percent' => 0.0,
+			'steps_total'            => 0,
+			'steps_completed'        => 0,
+			'steps_failed'           => 0,
+			'progress_percent'       => 0.0,
+			'last_step_completed_at' => null,
 		);
 	}
 
@@ -234,7 +244,7 @@ class LAUNCHDEK_Run_Repository {
 	 * Batch-fetch step progress for multiple runs.
 	 *
 	 * @param int[] $run_ids Run IDs.
-	 * @return array<int, array{steps_total:int,steps_completed:int,steps_failed:int,progress_percent:float}>
+	 * @return array<int, array{steps_total:int,steps_completed:int,steps_failed:int,progress_percent:float,last_step_completed_at:string|null}>
 	 */
 	public static function get_step_progress_map( $run_ids ) {
 		$run_ids = array_values( array_filter( array_map( 'absint', (array) $run_ids ) ) );
@@ -249,7 +259,8 @@ class LAUNCHDEK_Run_Repository {
 		$sql          = 'SELECT run_id,
 				COUNT(*) AS steps_total,
 				SUM( CASE WHEN status = %s THEN 1 ELSE 0 END ) AS steps_completed,
-				SUM( CASE WHEN status = %s THEN 1 ELSE 0 END ) AS steps_failed
+				SUM( CASE WHEN status = %s THEN 1 ELSE 0 END ) AS steps_failed,
+				MAX( completed_at ) AS last_step_completed_at
 			FROM ' . self::steps_table() . '
 			WHERE run_id IN (' . $placeholders . ')
 			GROUP BY run_id';
@@ -269,11 +280,14 @@ class LAUNCHDEK_Run_Repository {
 				$total     = (int) $row['steps_total'];
 				$completed = (int) $row['steps_completed'];
 
+				$last_completed = ! empty( $row['last_step_completed_at'] ) ? $row['last_step_completed_at'] : null;
+
 				$map[ $run_id ] = array(
-					'steps_total'      => $total,
-					'steps_completed'  => $completed,
-					'steps_failed'     => (int) $row['steps_failed'],
-					'progress_percent' => $total > 0 ? round( ( $completed / $total ) * 100, 1 ) : 0.0,
+					'steps_total'            => $total,
+					'steps_completed'        => $completed,
+					'steps_failed'           => (int) $row['steps_failed'],
+					'progress_percent'       => $total > 0 ? round( ( $completed / $total ) * 100, 1 ) : 0.0,
+					'last_step_completed_at' => $last_completed,
 				);
 			}
 		}

@@ -36,7 +36,15 @@ class LAUNCHDEK_Step_Executor {
 		$type = $step_def['type'] ?? 'manual';
 
 		if ( 'api' === $type ) {
-			$result = LAUNCHDEK_Payload_Mapper::execute( $site_id, $step_def );
+			$result = LAUNCHDEK_Payload_Mapper::execute(
+				$site_id,
+				$step_def,
+				array(
+					'run_id'     => $run_id,
+					'step_index' => $step_index,
+					'step_title' => $step_def['title'] ?? '',
+				)
+			);
 
 			if ( is_wp_error( $result ) ) {
 				LAUNCHDEK_Run_Repository::update_step(

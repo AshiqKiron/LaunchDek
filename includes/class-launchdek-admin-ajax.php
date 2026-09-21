@@ -31,6 +31,7 @@ class LAUNCHDEK_Admin_Ajax {
 			'launchdek_get_telemetry_rules',
 			'launchdek_save_telemetry_rules',
 			'launchdek_get_site_runs',
+			'launchdek_get_activity_logs',
 		);
 
 		foreach ( $actions as $action ) {
@@ -68,6 +69,24 @@ class LAUNCHDEK_Admin_Ajax {
 			wp_send_json_error(
 				array(
 					'message' => __( 'You do not have permission to manage sites.', LAUNCHDEK_TEXT_DOMAIN ),
+				),
+				403
+			);
+		}
+	}
+
+	/**
+	 * Verify nonce and dashboard view capability (Activity Logs).
+	 *
+	 * @return void
+	 */
+	protected static function verify_dashboard_request() {
+		check_ajax_referer( 'wp_rest', 'nonce' );
+
+		if ( ! LAUNCHDEK_Capabilities::current_user_can( LAUNCHDEK_Capabilities::VIEW_DASHBOARD ) ) {
+			wp_send_json_error(
+				array(
+					'message' => __( 'You do not have permission to view activity logs.', LAUNCHDEK_TEXT_DOMAIN ),
 				),
 				403
 			);
@@ -223,6 +242,32 @@ class LAUNCHDEK_Admin_Ajax {
 			array(
 				'rules'  => LAUNCHDEK_Integrations::save_telemetry_rules( $rules ),
 				'fields' => LAUNCHDEK_Integrations::get_launchdek_fields(),
+			)
+		);
+	}
+
+	/**
+	 * Paginated activity log feed for the Activity Logs admin page.
+	 *
+	 * @return void
+	 */
+	public static function handle_get_activity_logs() {
+		self::verify_dashboard_request();
+
+		wp_send_json_success(
+			LAUNCHDEK_Audit_Log::query(
+				LAUNCHDEK_Audit_Log::list_query_args_from_input(
+					array(
+						'site_id'         => wp_unslash( $_POST['site_id'] ?? 0 ),
+						'status'          => wp_unslash( $_POST['status'] ?? '' ),
+						'search'          => wp_unslash( $_POST['search'] ?? '' ),
+						'date_from'       => wp_unslash( $_POST['date_from'] ?? '' ),
+						'date_to'         => wp_unslash( $_POST['date_to'] ?? '' ),
+						'limit'           => wp_unslash( $_POST['limit'] ?? LAUNCHDEK_Audit_Log::LIST_DEFAULT_LIMIT ),
+						'offset'          => wp_unslash( $_POST['offset'] ?? 0 ),
+						'include_details' => wp_unslash( $_POST['include_details'] ?? '0' ),
+					)
+				)
 			)
 		);
 	}

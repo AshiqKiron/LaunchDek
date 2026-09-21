@@ -88,6 +88,14 @@ $channels        = array(
 	<form method="post" action="options.php" class="launchdek-settings-form">
 		<?php settings_fields( LAUNCHDEK_Settings::SETTINGS_GROUP ); ?>
 
+		<nav class="launchdek-settings-nav nav-tab-wrapper" role="tablist" aria-label="<?php esc_attr_e( 'Settings sections', LAUNCHDEK_TEXT_DOMAIN ); ?>">
+			<button type="button" class="nav-tab nav-tab-active" id="launchdek-settings-tab-platform-security" data-launchdek-settings-tab="platform-security" role="tab" aria-selected="true" aria-controls="launchdek-settings-panel-platform-security"><?php esc_html_e( 'Platform & Security', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
+			<button type="button" class="nav-tab" id="launchdek-settings-tab-panel-exclude" data-launchdek-settings-tab="panel-exclude" role="tab" aria-selected="false" aria-controls="launchdek-settings-panel-panel-exclude"><?php esc_html_e( 'Panel layout & Exclude', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
+			<button type="button" class="nav-tab" id="launchdek-settings-tab-webhooks-email" data-launchdek-settings-tab="webhooks-email" role="tab" aria-selected="false" aria-controls="launchdek-settings-panel-webhooks-email"><?php esc_html_e( 'Webhooks & Email', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
+			<button type="button" class="nav-tab" id="launchdek-settings-tab-access-roles" data-launchdek-settings-tab="access-roles" role="tab" aria-selected="false" aria-controls="launchdek-settings-panel-access-roles"><?php esc_html_e( 'Access & Roles', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
+		</nav>
+
+		<div id="launchdek-settings-panel-platform-security" class="launchdek-settings-tab-panel" data-launchdek-settings-panel="platform-security" role="tabpanel" aria-labelledby="launchdek-settings-tab-platform-security">
 		<div class="launchdek-card launchdek-settings-card launchdek-settings-general">
 			<div class="launchdek-card-heading-row launchdek-card-heading-row--info-first">
 				<button type="button" class="launchdek-field-info launchdek-has-tooltip" data-tooltip="<?php echo esc_attr( $section_tooltips['platform'] ); ?>" aria-label="<?php echo esc_attr( $section_tooltips['platform'] ); ?>">
@@ -109,6 +117,18 @@ $channels        = array(
 
 		<div class="launchdek-card launchdek-settings-card">
 			<div class="launchdek-card-heading-row launchdek-card-heading-row--info-first">
+				<button type="button" class="launchdek-field-info launchdek-has-tooltip" data-tooltip="<?php echo esc_attr( $section_tooltips['onboarding'] ); ?>" aria-label="<?php echo esc_attr( $section_tooltips['onboarding'] ); ?>">
+					<span class="dashicons dashicons-info-outline" aria-hidden="true"></span>
+				</button>
+				<h2><?php esc_html_e( 'Onboarding', LAUNCHDEK_TEXT_DOMAIN ); ?></h2>
+			</div>
+			<button type="button" class="button button-secondary" id="launchdek-show-onboarding">
+				<?php esc_html_e( 'Show onboarding wizard', LAUNCHDEK_TEXT_DOMAIN ); ?>
+			</button>
+		</div>
+
+		<div class="launchdek-card launchdek-settings-card">
+			<div class="launchdek-card-heading-row launchdek-card-heading-row--info-first">
 				<button type="button" class="launchdek-field-info launchdek-has-tooltip" data-tooltip="<?php echo esc_attr( $section_tooltips['credential_vault'] ); ?>" aria-label="<?php echo esc_attr( $section_tooltips['credential_vault'] ); ?>">
 					<span class="dashicons dashicons-info-outline" aria-hidden="true"></span>
 				</button>
@@ -122,7 +142,9 @@ $channels        = array(
 				<?php esc_html_e( 'Credentials are encrypted with OpenSSL AES-256-CBC and a key derived from your site salts. Decryption happens only when a remote request is made.', LAUNCHDEK_TEXT_DOMAIN ); ?>
 			</p>
 		</div>
+		</div>
 
+		<div id="launchdek-settings-panel-panel-exclude" class="launchdek-settings-tab-panel" data-launchdek-settings-panel="panel-exclude" role="tabpanel" aria-labelledby="launchdek-settings-tab-panel-exclude" hidden>
 		<div class="launchdek-card launchdek-settings-card">
 			<div class="launchdek-card-heading-row launchdek-card-heading-row--info-first">
 				<button type="button" class="launchdek-field-info launchdek-has-tooltip" data-tooltip="<?php echo esc_attr( $section_tooltips['client_panel'] ); ?>" aria-label="<?php echo esc_attr( $section_tooltips['client_panel'] ); ?>">
@@ -217,7 +239,9 @@ $channels        = array(
 				</div>
 			<?php endif; ?>
 		</div>
+		</div>
 
+		<div id="launchdek-settings-panel-webhooks-email" class="launchdek-settings-tab-panel" data-launchdek-settings-panel="webhooks-email" role="tabpanel" aria-labelledby="launchdek-settings-tab-webhooks-email" hidden>
 		<div class="launchdek-card launchdek-settings-card">
 			<div class="launchdek-card-heading-row launchdek-card-heading-row--info-first">
 				<button type="button" class="launchdek-field-info launchdek-has-tooltip" data-tooltip="<?php echo esc_attr( $section_tooltips['webhooks'] ); ?>" aria-label="<?php echo esc_attr( $section_tooltips['webhooks'] ); ?>">
@@ -259,85 +283,6 @@ $channels        = array(
 							<span><?php echo esc_html( $event_label ); ?></span>
 						</label>
 					<?php endforeach; ?>
-				</div>
-			</div>
-		</div>
-
-		<div class="launchdek-card launchdek-settings-card">
-			<div class="launchdek-card-heading-row launchdek-card-heading-row--info-first">
-				<button type="button" class="launchdek-field-info launchdek-has-tooltip" data-tooltip="<?php echo esc_attr( $section_tooltips['access_guardrails'] ); ?>" aria-label="<?php echo esc_attr( $section_tooltips['access_guardrails'] ); ?>">
-					<span class="dashicons dashicons-info-outline" aria-hidden="true"></span>
-				</button>
-				<h2><?php esc_html_e( 'Access Guardrails', LAUNCHDEK_TEXT_DOMAIN ); ?></h2>
-			</div>
-			<p class="launchdek-settings-lead"><?php esc_html_e( 'Agency Role Permissions (Admin vs. Developer vs. Auditor)', LAUNCHDEK_TEXT_DOMAIN ); ?></p>
-
-			<div class="launchdek-settings-role-presets">
-				<?php foreach ( LAUNCHDEK_Capabilities::get_agency_role_presets() as $preset ) : ?>
-					<div class="launchdek-settings-role-preset">
-						<h3><?php echo esc_html( $preset['label'] ); ?></h3>
-						<p><?php echo esc_html( $preset['description'] ); ?></p>
-						<ul class="launchdek-settings-role-caps">
-							<?php foreach ( $preset['caps'] as $cap ) : ?>
-								<?php if ( isset( $cap_labels[ $cap ] ) ) : ?>
-									<li><?php echo esc_html( $cap_labels[ $cap ] ); ?></li>
-								<?php endif; ?>
-							<?php endforeach; ?>
-						</ul>
-					</div>
-				<?php endforeach; ?>
-			</div>
-
-			<div class="launchdek-settings-role-mapping">
-				<h3><?php esc_html_e( 'Assign WordPress Roles', LAUNCHDEK_TEXT_DOMAIN ); ?></h3>
-				<p class="launchdek-muted"><?php esc_html_e( 'Map each WordPress role to LaunchDek capabilities. Administrators always retain full access.', LAUNCHDEK_TEXT_DOMAIN ); ?></p>
-
-				<div class="launchdek-settings-perm-scroll" tabindex="0" role="region" aria-label="<?php esc_attr_e( 'WordPress role permission matrix', LAUNCHDEK_TEXT_DOMAIN ); ?>">
-					<table class="launchdek-settings-perm-table widefat">
-						<thead>
-							<tr>
-								<th scope="col"><?php esc_html_e( 'Capability', LAUNCHDEK_TEXT_DOMAIN ); ?></th>
-								<?php foreach ( $wp_roles as $role_slug => $role_name ) : ?>
-									<?php if ( 'administrator' === $role_slug ) : ?>
-										<?php continue; ?>
-									<?php endif; ?>
-									<th scope="col"><?php echo esc_html( translate_user_role( $role_name ) ); ?></th>
-								<?php endforeach; ?>
-							</tr>
-						</thead>
-						<tbody>
-							<?php foreach ( $guard_caps as $cap ) : ?>
-								<tr>
-									<th scope="row"><?php echo esc_html( $cap_labels[ $cap ] ?? $cap ); ?></th>
-									<?php foreach ( $wp_roles as $role_slug => $role_name ) : ?>
-										<?php if ( 'administrator' === $role_slug ) : ?>
-											<?php continue; ?>
-										<?php endif; ?>
-										<td>
-											<label class="launchdek-settings-perm-check">
-												<span class="screen-reader-text">
-													<?php
-													printf(
-														/* translators: 1: capability label, 2: role name */
-														esc_html__( 'Allow %1$s for %2$s', LAUNCHDEK_TEXT_DOMAIN ),
-														$cap_labels[ $cap ] ?? $cap,
-														translate_user_role( $role_name )
-													);
-													?>
-												</span>
-												<input
-													type="checkbox"
-													name="<?php echo esc_attr( $option_name ); ?>[role_permissions][<?php echo esc_attr( $cap ); ?>][]"
-													value="<?php echo esc_attr( $role_slug ); ?>"
-													<?php checked( ! empty( $role_perms[ $cap ] ) && in_array( $role_slug, $role_perms[ $cap ], true ) ); ?>
-												/>
-											</label>
-										</td>
-									<?php endforeach; ?>
-								</tr>
-							<?php endforeach; ?>
-						</tbody>
-					</table>
 				</div>
 			</div>
 		</div>
@@ -387,17 +332,92 @@ $channels        = array(
 				</p>
 			</div>
 		</div>
+		</div>
+
+		<div id="launchdek-settings-panel-access-roles" class="launchdek-settings-tab-panel" data-launchdek-settings-panel="access-roles" role="tabpanel" aria-labelledby="launchdek-settings-tab-access-roles" hidden>
+		<div class="launchdek-card launchdek-settings-card">
+			<div class="launchdek-card-heading-row launchdek-card-heading-row--info-first">
+				<button type="button" class="launchdek-field-info launchdek-has-tooltip" data-tooltip="<?php echo esc_attr( $section_tooltips['access_guardrails'] ); ?>" aria-label="<?php echo esc_attr( $section_tooltips['access_guardrails'] ); ?>">
+					<span class="dashicons dashicons-info-outline" aria-hidden="true"></span>
+				</button>
+				<h2><?php esc_html_e( 'Access Guardrails', LAUNCHDEK_TEXT_DOMAIN ); ?></h2>
+			</div>
+			<p class="launchdek-settings-lead"><?php esc_html_e( 'Agency Role Permissions (Admin vs. Developer vs. Auditor)', LAUNCHDEK_TEXT_DOMAIN ); ?></p>
+
+			<div class="launchdek-settings-role-presets">
+				<?php foreach ( LAUNCHDEK_Capabilities::get_agency_role_presets() as $preset ) : ?>
+					<div class="launchdek-settings-role-preset">
+						<h3><?php echo esc_html( $preset['label'] ); ?></h3>
+						<p><?php echo esc_html( $preset['description'] ); ?></p>
+						<ul class="launchdek-settings-role-caps">
+							<?php foreach ( $preset['caps'] as $cap ) : ?>
+								<?php if ( isset( $cap_labels[ $cap ] ) ) : ?>
+									<li><?php echo esc_html( $cap_labels[ $cap ] ); ?></li>
+								<?php endif; ?>
+							<?php endforeach; ?>
+						</ul>
+					</div>
+				<?php endforeach; ?>
+			</div>
+		</div>
 
 		<div class="launchdek-card launchdek-settings-card">
 			<div class="launchdek-card-heading-row launchdek-card-heading-row--info-first">
-				<button type="button" class="launchdek-field-info launchdek-has-tooltip" data-tooltip="<?php echo esc_attr( $section_tooltips['onboarding'] ); ?>" aria-label="<?php echo esc_attr( $section_tooltips['onboarding'] ); ?>">
+				<button type="button" class="launchdek-field-info launchdek-has-tooltip" data-tooltip="<?php echo esc_attr( $section_tooltips['access_guardrails'] ); ?>" aria-label="<?php echo esc_attr( $section_tooltips['access_guardrails'] ); ?>">
 					<span class="dashicons dashicons-info-outline" aria-hidden="true"></span>
 				</button>
-				<h2><?php esc_html_e( 'Onboarding', LAUNCHDEK_TEXT_DOMAIN ); ?></h2>
+				<h2><?php esc_html_e( 'WordPress Roles', LAUNCHDEK_TEXT_DOMAIN ); ?></h2>
 			</div>
-			<button type="button" class="button button-secondary" id="launchdek-show-onboarding">
-				<?php esc_html_e( 'Show onboarding wizard', LAUNCHDEK_TEXT_DOMAIN ); ?>
-			</button>
+			<p class="launchdek-muted"><?php esc_html_e( 'Map each WordPress role to LaunchDek capabilities. Administrators always retain full access.', LAUNCHDEK_TEXT_DOMAIN ); ?></p>
+
+				<div class="launchdek-settings-perm-scroll" tabindex="0" role="region" aria-label="<?php esc_attr_e( 'WordPress role permission matrix', LAUNCHDEK_TEXT_DOMAIN ); ?>">
+					<table class="launchdek-settings-perm-table widefat">
+						<thead>
+							<tr>
+								<th scope="col"><?php esc_html_e( 'Capability', LAUNCHDEK_TEXT_DOMAIN ); ?></th>
+								<?php foreach ( $wp_roles as $role_slug => $role_name ) : ?>
+									<?php if ( 'administrator' === $role_slug ) : ?>
+										<?php continue; ?>
+									<?php endif; ?>
+									<th scope="col"><?php echo esc_html( translate_user_role( $role_name ) ); ?></th>
+								<?php endforeach; ?>
+							</tr>
+						</thead>
+						<tbody>
+							<?php foreach ( $guard_caps as $cap ) : ?>
+								<tr>
+									<th scope="row"><?php echo esc_html( $cap_labels[ $cap ] ?? $cap ); ?></th>
+									<?php foreach ( $wp_roles as $role_slug => $role_name ) : ?>
+										<?php if ( 'administrator' === $role_slug ) : ?>
+											<?php continue; ?>
+										<?php endif; ?>
+										<td>
+											<label class="launchdek-settings-perm-check">
+												<span class="screen-reader-text">
+													<?php
+													printf(
+														/* translators: 1: capability label, 2: role name */
+														esc_html__( 'Allow %1$s for %2$s', LAUNCHDEK_TEXT_DOMAIN ),
+														$cap_labels[ $cap ] ?? $cap,
+														translate_user_role( $role_name )
+													);
+													?>
+												</span>
+												<input
+													type="checkbox"
+													name="<?php echo esc_attr( $option_name ); ?>[role_permissions][<?php echo esc_attr( $cap ); ?>][]"
+													value="<?php echo esc_attr( $role_slug ); ?>"
+													<?php checked( ! empty( $role_perms[ $cap ] ) && in_array( $role_slug, $role_perms[ $cap ], true ) ); ?>
+												/>
+											</label>
+										</td>
+									<?php endforeach; ?>
+								</tr>
+							<?php endforeach; ?>
+						</tbody>
+					</table>
+				</div>
+		</div>
 		</div>
 
 		<?php submit_button(); ?>
