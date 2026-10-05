@@ -125,11 +125,13 @@ class LAUNCHDEK_Settings {
 			}
 		}
 
-		if ( isset( $input['notification_events'] ) && is_array( $input['notification_events'] ) ) {
-			$output['notification_events'] = array_map( 'sanitize_key', $input['notification_events'] );
-		}
-
 		if ( isset( $_POST['option_page'] ) && self::SETTINGS_GROUP === $_POST['option_page'] ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+			if ( isset( $input['notification_events'] ) && is_array( $input['notification_events'] ) ) {
+				$output['notification_events'] = array_map( 'sanitize_key', $input['notification_events'] );
+			} else {
+				$output['notification_events'] = array();
+			}
+
 			if ( isset( $input['email_notification_events'] ) && is_array( $input['email_notification_events'] ) ) {
 				$output['email_notification_events'] = array_map( 'sanitize_key', $input['email_notification_events'] );
 			} else {
@@ -432,6 +434,7 @@ class LAUNCHDEK_Settings {
 			'run_started'           => __( 'Checklist run started', LAUNCHDEK_TEXT_DOMAIN ),
 			'run_completed'         => __( 'Checklist run completed', LAUNCHDEK_TEXT_DOMAIN ),
 			'run_failed'            => __( 'Checklist run failed', LAUNCHDEK_TEXT_DOMAIN ),
+			'run_cancelled'         => __( 'Checklist run cancelled', LAUNCHDEK_TEXT_DOMAIN ),
 			'step_failed'           => __( 'Step failed', LAUNCHDEK_TEXT_DOMAIN ),
 			'drift_detected'        => __( 'Configuration drift detected', LAUNCHDEK_TEXT_DOMAIN ),
 			'client_step_completed' => __( 'Client completed a checklist step', LAUNCHDEK_TEXT_DOMAIN ),
@@ -457,6 +460,10 @@ class LAUNCHDEK_Settings {
 			'run_failed'            => array(
 				'label'       => __( 'Notify when checklist run fails', LAUNCHDEK_TEXT_DOMAIN ),
 				'description' => __( 'Email when a run stops with a failed status.', LAUNCHDEK_TEXT_DOMAIN ),
+			),
+			'run_cancelled'         => array(
+				'label'       => __( 'Notify when checklist run is cancelled', LAUNCHDEK_TEXT_DOMAIN ),
+				'description' => __( 'Email when a run is marked cancelled.', LAUNCHDEK_TEXT_DOMAIN ),
 			),
 			'step_failed'           => array(
 				'label'       => __( 'Notify when a step fails', LAUNCHDEK_TEXT_DOMAIN ),

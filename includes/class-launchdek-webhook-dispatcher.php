@@ -27,7 +27,7 @@ class LAUNCHDEK_Webhook_Dispatcher {
 		$settings = LAUNCHDEK_Settings::get();
 		$enabled  = $settings['notification_events'] ?? array();
 
-		if ( ! empty( $enabled ) && ! in_array( $event, (array) $enabled, true ) ) {
+		if ( empty( $enabled ) || ! in_array( $event, (array) $enabled, true ) ) {
 			return;
 		}
 
@@ -55,6 +55,7 @@ class LAUNCHDEK_Webhook_Dispatcher {
 	 */
 	protected static function format_message( $event, $data ) {
 		$event_labels = array(
+			'drift_detected'        => __( 'Configuration drift detected', LAUNCHDEK_TEXT_DOMAIN ),
 			'client_step_completed' => __( 'Client step completed', LAUNCHDEK_TEXT_DOMAIN ),
 			'client_note_added'     => __( 'Client note added', LAUNCHDEK_TEXT_DOMAIN ),
 		);
@@ -84,6 +85,10 @@ class LAUNCHDEK_Webhook_Dispatcher {
 
 		if ( ! empty( $data['note'] ) ) {
 			$base .= ': ' . wp_trim_words( $data['note'], 20, '…' );
+		}
+
+		if ( ! empty( $data['drift_summary'] ) ) {
+			$base .= ' — ' . $data['drift_summary'];
 		}
 
 		if ( ! empty( $data['error'] ) ) {

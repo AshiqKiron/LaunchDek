@@ -24,12 +24,27 @@ $telemetry              = isset( $integrations_bootstrap['telemetry'] ) && is_ar
 	: array();
 $telemetry_rules        = isset( $telemetry['rules'] ) && is_array( $telemetry['rules'] ) ? $telemetry['rules'] : array();
 $telemetry_fields       = isset( $telemetry['fields'] ) && is_array( $telemetry['fields'] ) ? $telemetry['fields'] : array();
+$section_tooltips       = array(
+	'connectors' => __(
+		'Detect installed platform plugins on this hub, sync site inventory when supported, and push the LaunchDek client checklist panel to connected sites. Sync and push run only when you start them from Setup—LaunchDek does not send undisclosed telemetry.',
+		LAUNCHDEK_TEXT_DOMAIN
+	),
+	'telemetry'  => __(
+		'Choose which platform fields map onto LaunchDek site records when you sync from a connector. These rules store mapping preferences on this hub only—they are not tracking or outbound telemetry.',
+		LAUNCHDEK_TEXT_DOMAIN
+	),
+);
 ?>
 <div class="wrap launchdek-admin" data-launchdek-page="integrations">
 	<h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
 
 	<div class="launchdek-card">
-		<h2><?php esc_html_e( 'Platform Connectors Hub', LAUNCHDEK_TEXT_DOMAIN ); ?></h2>
+		<div class="launchdek-card-heading-row launchdek-card-heading-row--info-first">
+			<button type="button" class="launchdek-field-info launchdek-has-tooltip" data-tooltip="<?php echo esc_attr( $section_tooltips['connectors'] ); ?>" aria-label="<?php echo esc_attr( $section_tooltips['connectors'] ); ?>">
+				<span class="dashicons dashicons-info-outline" aria-hidden="true"></span>
+			</button>
+			<h2><?php esc_html_e( 'Platform Connectors Hub', LAUNCHDEK_TEXT_DOMAIN ); ?></h2>
+		</div>
 		<p><?php esc_html_e( 'Connect LaunchDek with site management platforms to push the agent to child sites.', LAUNCHDEK_TEXT_DOMAIN ); ?></p>
 		<div id="launchdek-connectors-notice" class="launchdek-notice-area"></div>
 		<ul id="launchdek-connectors-list" class="launchdek-connector-list" aria-label="<?php esc_attr_e( 'Platform connectors', LAUNCHDEK_TEXT_DOMAIN ); ?>" data-launchdek-preloaded="1">
@@ -68,7 +83,12 @@ $telemetry_fields       = isset( $telemetry['fields'] ) && is_array( $telemetry[
 	</div>
 
 	<div class="launchdek-card">
-		<h2><?php esc_html_e( 'Telemetry Sync Mapping Rules', LAUNCHDEK_TEXT_DOMAIN ); ?></h2>
+		<div class="launchdek-card-heading-row launchdek-card-heading-row--info-first">
+			<button type="button" class="launchdek-field-info launchdek-has-tooltip" data-tooltip="<?php echo esc_attr( $section_tooltips['telemetry'] ); ?>" aria-label="<?php echo esc_attr( $section_tooltips['telemetry'] ); ?>">
+				<span class="dashicons dashicons-info-outline" aria-hidden="true"></span>
+			</button>
+			<h2><?php esc_html_e( 'Telemetry Sync Mapping Rules', LAUNCHDEK_TEXT_DOMAIN ); ?></h2>
+		</div>
 		<p><?php esc_html_e( 'Map platform telemetry fields to LaunchDek site records when connectors sync remote site data.', LAUNCHDEK_TEXT_DOMAIN ); ?></p>
 		<div id="launchdek-telemetry-notice" class="launchdek-notice-area"></div>
 		<div class="launchdek-table-scroll">

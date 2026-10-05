@@ -127,6 +127,11 @@ Yes, when enabled in Settings, application passwords are encrypted using your Wo
 
 == Changelog ==
 
+= 1.0.46 =
+* Notifications: drift verification now sends email and webhook alerts when newly detected configuration drift appears (scheduled or manual verify)
+* Notifications: webhook event checkboxes save correctly when all are unchecked; empty selection no longer sends every event to configured webhooks
+* Settings: optional notifications for cancelled checklist runs (webhook and email event lists)
+
 = 1.0.45 =
 * Admin UI: improved responsive layout on phones and tablets — scrollable data tables, stacked toolbars and forms, mobile-friendly modals, and Sites table hides version columns on narrow screens to reduce horizontal scrolling
 * Client checklist panel: uses more of the screen width on very small devices with wrapped step action controls

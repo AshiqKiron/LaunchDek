@@ -147,6 +147,11 @@ class LAUNCHDEK_Email_Notifier {
 			$lines[] = sprintf( __( 'Note: %s', LAUNCHDEK_TEXT_DOMAIN ), wp_trim_words( $data['note'], 40, '…' ) );
 		}
 
+		if ( ! empty( $data['drift_summary'] ) ) {
+			/* translators: %s: comma-separated setting labels */
+			$lines[] = sprintf( __( 'Drift: %s', LAUNCHDEK_TEXT_DOMAIN ), $data['drift_summary'] );
+		}
+
 		if ( ! empty( $data['error'] ) ) {
 			/* translators: %s: error message */
 			$lines[] = sprintf( __( 'Error: %s', LAUNCHDEK_TEXT_DOMAIN ), $data['error'] );

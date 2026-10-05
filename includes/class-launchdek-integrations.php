@@ -11,10 +11,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/integrations/interface-launchdek-integration.php';
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/integrations/class-launchdek-integration-mainwp.php';
-require_once LAUNCHDEK_PLUGIN_DIR . 'includes/integrations/class-launchdek-integration-managewp.php';
+// require_once LAUNCHDEK_PLUGIN_DIR . 'includes/integrations/class-launchdek-integration-managewp.php';
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/integrations/class-launchdek-integration-wp-umbrella.php';
-require_once LAUNCHDEK_PLUGIN_DIR . 'includes/integrations/class-launchdek-integration-wp-engine.php';
-require_once LAUNCHDEK_PLUGIN_DIR . 'includes/integrations/class-launchdek-integration-wpvibe.php';
+// require_once LAUNCHDEK_PLUGIN_DIR . 'includes/integrations/class-launchdek-integration-wp-engine.php';
+// require_once LAUNCHDEK_PLUGIN_DIR . 'includes/integrations/class-launchdek-integration-wpvibe.php';
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/integrations/class-launchdek-mainwp-agent.php';
 
 /**
@@ -33,10 +33,7 @@ class LAUNCHDEK_Integrations {
 		if ( null === $integrations ) {
 			$integrations = array(
 				new LAUNCHDEK_Integration_MainWP(),
-				new LAUNCHDEK_Integration_ManageWP(),
 				new LAUNCHDEK_Integration_WP_Umbrella(),
-				new LAUNCHDEK_Integration_WP_Engine(),
-				new LAUNCHDEK_Integration_WPvibe(),
 			);
 		}
 

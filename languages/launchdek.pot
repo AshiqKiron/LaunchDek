@@ -1231,7 +1231,7 @@ msgid "Client checklist panel setup"
 msgstr ""
 
 #: admin/partials/launchdek-sites-page.php:307
-msgid "Optional one-time setup so clients see the checklist in their wp-admin. Core automation works without this step."
+msgid "One time setup so clients see the checklist in their wp-admin."
 msgstr ""
 
 #: admin/partials/launchdek-sites-page.php:309

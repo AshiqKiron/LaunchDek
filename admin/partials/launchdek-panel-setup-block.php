@@ -31,7 +31,7 @@ if ( '' !== $panel_setup_prefix ) {
 ?>
 <div id="<?php echo esc_attr( $root_id ); ?>" class="launchdek-panel-setup"<?php echo $panel_setup_hidden ? ' hidden' : ''; ?>>
 	<h3 class="launchdek-panel-setup-title"><?php esc_html_e( 'Client checklist panel setup', LAUNCHDEK_TEXT_DOMAIN ); ?></h3>
-	<p class="launchdek-muted"><?php esc_html_e( 'Optional one-time setup so clients see the checklist in their wp-admin. Core automation works without this step.', LAUNCHDEK_TEXT_DOMAIN ); ?></p>
+	<p class="launchdek-muted"><?php esc_html_e( 'One time setup so clients see the checklist in their wp-admin.', LAUNCHDEK_TEXT_DOMAIN ); ?></p>
 	<ol class="launchdek-panel-setup-steps">
 		<li><?php esc_html_e( 'Download the bootstrap file below.', LAUNCHDEK_TEXT_DOMAIN ); ?></li>
 		<li><?php esc_html_e( 'Upload it to wp-content/mu-plugins/ on the client site (create the mu-plugins folder if needed).', LAUNCHDEK_TEXT_DOMAIN ); ?></li>

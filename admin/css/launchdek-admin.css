@@ -1918,6 +1918,11 @@
 	visibility: visible;
 }
 
+.launchdek-card-heading-row .launchdek-field-info.launchdek-has-tooltip::after {
+	top: calc(100% + 8px);
+	bottom: auto;
+}
+
 .launchdek-field-label-row .launchdek-field-info.launchdek-has-tooltip::after,
 .launchdek-step-option-label .launchdek-field-info.launchdek-has-tooltip::after {
 	left: 0;

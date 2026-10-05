@@ -96,6 +96,8 @@ class LAUNCHDEK_Drift_Verifier {
 
 		update_option( 'launchdek_drift_baseline_' . $site_id, $baseline, false );
 
+		self::maybe_dispatch_drift_notification( $site_id, $site, $drifts );
+
 		LAUNCHDEK_Audit_Log::log(
 			'drift_verified',
 			array(
@@ -116,6 +118,71 @@ class LAUNCHDEK_Drift_Verifier {
 		self::record_site_status( $site_id, $result );
 
 		return $result;
+	}
+
+	/**
+	 * Fire webhook/email when newly detected configuration drift appears (not on every recurring check).
+	 *
+	 * @param int   $site_id Site ID.
+	 * @param array $site    Site row.
+	 * @param array $drifts  Drift entries from this verification.
+	 * @return void
+	 */
+	private static function maybe_dispatch_drift_notification( $site_id, $site, $drifts ) {
+		$config_drifts = array_values(
+			array_filter(
+				(array) $drifts,
+				static function ( $entry ) {
+					return is_array( $entry ) && ( $entry['status'] ?? '' ) === 'drift';
+				}
+			)
+		);
+
+		if ( empty( $config_drifts ) ) {
+			return;
+		}
+
+		$stored    = self::get_status_store();
+		$prev      = $stored['sites'][ (string) $site_id ]['drifts'] ?? array();
+		$prev_keys = array();
+
+		foreach ( (array) $prev as $entry ) {
+			if ( is_array( $entry ) && ( $entry['status'] ?? '' ) === 'drift' && ! empty( $entry['check'] ) ) {
+				$prev_keys[] = (string) $entry['check'];
+			}
+		}
+
+		$new_drifts = array();
+		foreach ( $config_drifts as $entry ) {
+			$key = (string) ( $entry['check'] ?? '' );
+			if ( '' !== $key && ! in_array( $key, $prev_keys, true ) ) {
+				$new_drifts[] = $entry;
+			}
+		}
+
+		if ( empty( $new_drifts ) ) {
+			return;
+		}
+
+		$labels = array();
+		foreach ( $new_drifts as $entry ) {
+			$labels[] = (string) ( $entry['label'] ?? $entry['check'] ?? '' );
+		}
+		$labels = array_filter( $labels );
+
+		if ( empty( $labels ) ) {
+			return;
+		}
+
+		LAUNCHDEK_Webhook_Dispatcher::dispatch(
+			'drift_detected',
+			array(
+				'site_id'       => (int) $site_id,
+				'site_name'     => $site['name'] ?: $site['url'],
+				'site_url'      => $site['url'] ?? '',
+				'drift_summary' => implode( ', ', $labels ),
+			)
+		);
 	}
 
 	/**
