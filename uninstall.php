@@ -10,6 +10,7 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 }
 
 require_once plugin_dir_path( __FILE__ ) . 'includes/class-launchdek-settings.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/class-launchdek-licensing.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/class-launchdek-installer.php';
 require_once plugin_dir_path( __FILE__ ) . 'includes/class-launchdek-capabilities.php';
 
@@ -17,6 +18,7 @@ require_once plugin_dir_path( __FILE__ ) . 'includes/class-launchdek-dashboard-c
 require_once plugin_dir_path( __FILE__ ) . 'includes/class-launchdek-templates.php';
 
 delete_option( LAUNCHDEK_Settings::OPTION_NAME );
+delete_option( LAUNCHDEK_Licensing::OPTION_NAME );
 delete_option( LAUNCHDEK_Settings::VERSION_OPTION );
 delete_option( 'launchdek_templates_seeded' );
 delete_option( LAUNCHDEK_Templates::CATALOG_OPTION );

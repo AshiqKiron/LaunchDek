@@ -52,37 +52,213 @@
 	gap: 0 16px;
 }
 
-.launchdek-billing-layout > .launchdek-card {
-	margin-top: 0;
+.launchdek-billing-intro {
+	max-width: 720px;
+	margin: 0 0 20px;
+	font-size: 14px;
+	line-height: 1.5;
 }
 
-.launchdek-billing-plan-name {
-	margin: 0 0 8px;
-	font-size: 1.5em;
-	font-weight: 600;
+.launchdek-billing-compare-wrap {
+	overflow-x: auto;
+	overflow-y: visible;
+	margin-top: 8px;
+	padding-bottom: 16px;
+	border: 1px solid #c3c4c7;
+	background: #fff;
+	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+}
+
+.launchdek-billing-compare {
+	margin: 0;
+	border: 0;
+	box-shadow: none;
+	min-width: 720px;
+	table-layout: fixed;
+}
+
+.launchdek-billing-compare.striped > tbody > :nth-child(odd),
+.launchdek-billing-compare.striped > tbody > :nth-child(odd) > th,
+.launchdek-billing-compare.striped > tbody > :nth-child(odd) > td {
+	background-color: #f6f7f7;
+}
+
+.launchdek-billing-compare.striped > tbody > .launchdek-billing-compare-cta-row,
+.launchdek-billing-compare.striped > tbody > .launchdek-billing-compare-cta-row > th,
+.launchdek-billing-compare.striped > tbody > .launchdek-billing-compare-cta-row > td {
+	background-color: #fff;
+}
+
+.launchdek-billing-compare thead th {
+	vertical-align: bottom;
+	padding: 16px 12px;
+	text-align: center;
+	border-bottom: 1px solid #c3c4c7;
+	background: #fff;
+}
+
+.launchdek-billing-compare tbody th,
+.launchdek-billing-compare tbody td {
+	padding: 12px;
+	vertical-align: middle;
+	overflow: visible;
+}
+
+.launchdek-billing-compare tbody tr:hover,
+.launchdek-billing-compare tbody tr:focus-within {
+	position: relative;
+	z-index: 2;
+}
+
+.launchdek-billing-compare-feature-col {
+	width: 40%;
+	text-align: left;
+	font-weight: 500;
 	color: #1d2327;
 }
 
-.launchdek-billing-plan-badge {
-	display: inline-block;
-	margin: 0 0 12px;
-	padding: 4px 10px;
-	border-radius: 999px;
-	background: #f0f6fc;
-	border: 1px solid #c5d9ed;
-	color: #135e96;
-	font-size: 12px;
+.launchdek-billing-compare-plan-col {
+	width: 20%;
+}
+
+.launchdek-billing-compare-plan-col .launchdek-billing-plan-name {
+	display: block;
+	margin: 0 0 4px;
+	font-size: 15px;
 	font-weight: 600;
-	text-transform: uppercase;
-	letter-spacing: 0.4px;
+	color: #1d2327;
+	line-height: 1.3;
 }
 
-.launchdek-billing-usage-grid {
-	margin-top: 0;
+.launchdek-billing-compare-plan-col .launchdek-billing-plan-price {
+	display: block;
+	font-size: 13px;
+	font-weight: 400;
+	color: #646970;
 }
 
-.launchdek-billing-actions {
-	margin: 16px 0 0;
+.launchdek-billing-feature-label {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	flex-wrap: nowrap;
+}
+
+.launchdek-billing-feature-label .launchdek-field-info {
+	flex-shrink: 0;
+}
+
+.launchdek-billing-feature-label-text {
+	min-width: 0;
+}
+
+.launchdek-billing-compare-value-col {
+	text-align: center;
+	color: #1d2327;
+	font-size: 13px;
+}
+
+.launchdek-billing-yes {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	color: #1d2327;
+}
+
+.launchdek-billing-yes .dashicons {
+	width: 20px;
+	height: 20px;
+	font-size: 20px;
+	background: none;
+}
+
+.launchdek-billing-no {
+	color: #a7aaad;
+	font-size: 18px;
+	line-height: 1;
+}
+
+.launchdek-billing-compare-cta-row th,
+.launchdek-billing-compare-cta-row td {
+	border-top: 1px solid #c3c4c7;
+	background: #fff;
+	padding-top: 16px;
+	padding-bottom: 16px;
+}
+
+.launchdek-billing-compare-cta-cell {
+	text-align: center;
+}
+
+.launchdek-billing-cta {
+	min-width: 120px;
+	justify-content: center;
+}
+
+.launchdek-billing-cta--current {
+	color: #646970 !important;
+	border-color: #c3c4c7 !important;
+	background: #f6f7f7 !important;
+	box-shadow: none !important;
+	cursor: default;
+}
+
+.launchdek-billing-plan-name {
+	font-size: 22px;
+	font-weight: 600;
+	margin: 0 0 8px;
+}
+
+.launchdek-billing-plans-grid {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 16px;
+	margin-top: 12px;
+}
+
+.launchdek-billing-plan-col {
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+	padding: 16px;
+	background: #fff;
+}
+
+.launchdek-billing-plan-col.is-current {
+	border-color: #2271b1;
+	box-shadow: 0 0 0 1px #2271b1;
+}
+
+.launchdek-billing-plan-col h3 {
+	margin: 0 0 8px;
+	font-size: 16px;
+}
+
+.launchdek-billing-plan-price {
+	margin: 0 0 12px;
+	font-size: 15px;
+	font-weight: 600;
+}
+
+.launchdek-billing-plan-features {
+	margin: 0;
+	padding-left: 1.2em;
+	font-size: 13px;
+	line-height: 1.5;
+}
+
+.launchdek-settings-card--disabled {
+	opacity: 0.65;
+}
+
+.launchdek-billing-gated .launchdek-auto-capture-actions button {
+	pointer-events: none;
+	opacity: 0.5;
+}
+
+@media (max-width: 960px) {
+	.launchdek-billing-plans-grid {
+		grid-template-columns: 1fr;
+	}
 }
 
 .launchdek-builder-layout {
@@ -1657,7 +1833,9 @@
 
 .launchdek-step-config-sidebar {
 	max-height: 640px;
+	overflow-x: visible;
 	overflow-y: auto;
+	padding-bottom: 72px;
 }
 
 .launchdek-step-config-sidebar h3,
@@ -1847,9 +2025,8 @@
 	margin: 0;
 }
 
-.launchdek-card-heading-row--info-first .launchdek-field-info.launchdek-has-tooltip::after {
-	left: 0;
-	transform: none;
+.launchdek-settings-card {
+	overflow: visible;
 }
 
 .launchdek-settings-card .launchdek-field-label-row {
@@ -1891,10 +2068,11 @@
 	content: attr(data-tooltip);
 	position: absolute;
 	left: 50%;
-	bottom: calc(100% + 8px);
+	top: calc(100% + 8px);
+	bottom: auto;
 	transform: translateX(-50%);
 	width: max-content;
-	max-width: 260px;
+	max-width: min(320px, calc(100vw - 48px));
 	padding: 8px 10px;
 	border-radius: 4px;
 	background: #1d2327;
@@ -1904,11 +2082,12 @@
 	line-height: 1.4;
 	text-align: left;
 	white-space: normal;
+	overflow-wrap: break-word;
 	opacity: 0;
 	visibility: hidden;
 	pointer-events: none;
 	transition: opacity 0.15s ease, visibility 0.15s ease;
-	z-index: 40;
+	z-index: 100050;
 	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
 }
 
@@ -1918,15 +2097,39 @@
 	visibility: visible;
 }
 
-.launchdek-card-heading-row .launchdek-field-info.launchdek-has-tooltip::after {
-	top: calc(100% + 8px);
-	bottom: auto;
+.launchdek-admin[data-launchdek-tooltips-portal="true"] .launchdek-field-info.launchdek-has-tooltip::after {
+	content: none;
+	display: none;
 }
 
+#launchdek-field-tooltip.launchdek-field-tooltip-portal {
+	position: fixed;
+	z-index: 100060;
+	max-width: min(360px, calc(100vw - 48px));
+	padding: 8px 10px;
+	border-radius: 4px;
+	background: #1d2327;
+	color: #fff;
+	font-size: 12px;
+	font-weight: 400;
+	line-height: 1.4;
+	text-align: left;
+	overflow-wrap: break-word;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+	pointer-events: none;
+}
+
+#launchdek-field-tooltip.launchdek-field-tooltip-portal[hidden] {
+	display: none !important;
+}
+
+.launchdek-card-heading-row--info-first .launchdek-field-info.launchdek-has-tooltip::after,
 .launchdek-field-label-row .launchdek-field-info.launchdek-has-tooltip::after,
-.launchdek-step-option-label .launchdek-field-info.launchdek-has-tooltip::after {
+.launchdek-step-option-label .launchdek-field-info.launchdek-has-tooltip::after,
+.launchdek-billing-feature-label .launchdek-field-info.launchdek-has-tooltip::after {
 	left: 0;
 	transform: none;
+	max-width: min(360px, calc(100vw - 48px));
 }
 
 .launchdek-step-client-options {

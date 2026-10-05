@@ -127,6 +127,13 @@ Yes, when enabled in Settings, application passwords are encrypted using your Wo
 
 == Changelog ==
 
+= 1.0.48 =
+* Billing: Community (free, unlimited sites), Pro ($49/mo, 99 sites), and Agency ($99/mo, 199 sites) tiers with plan gates for templates, vault, auto-capture, notifications, scheduled drift, and panel layouts
+* Billing page: feature comparison table with plan columns, tooltips, and purchase links; REST `GET /billing/summary` and `POST /billing/plan` (manage settings) for license activation hook point
+
+= 1.0.47 =
+* Billing: plan comparison table (Free, Personal, Professional, Agency) with feature tooltips and purchase links
+
 = 1.0.46 =
 * Notifications: drift verification now sends email and webhook alerts when newly detected configuration drift appears (scheduled or manual verify)
 * Notifications: webhook event checkboxes save correctly when all are unchecked; empty selection no longer sends every event to configured webhooks

@@ -37,7 +37,17 @@ alwaysApply: false
 | `initTemplates()` | checklists (Templates tab) | category tabs, built-in grid + `#launchdek-builtin-template-search` (cross-category search), vault save/list |
 | `initIntegrations()` | `integrations` | Two cards with `.launchdek-card-heading-row--info-first` section info tooltips (`$section_tooltips` in partial). Platform Connectors Hub (`#launchdek-connectors-notice`, `#launchdek-connectors-list`, `#launchdek-connector-modal` with `#launchdek-connector-sync` → `launchdek_integration_sync`, `#launchdek-connector-preview` → `launchdek_integration_sync` + `dry_run: 1`, `#launchdek-connector-push` → `launchdek_integration_push`; sync buttons hidden when `supports_sync` is false; WP Umbrella modal panel `#launchdek-connector-wp-umbrella-config` — `#launchdek-wp-umbrella-api-token` (Public API token, not per-site plugin key), `#launchdek-wp-umbrella-token-status`, save/clear → `launchdek_save_wp_umbrella_token` (server verifies token before persist; inline status/errors in token panel); connector + telemetry lists preloaded from `launchdekAdmin.integrations` — `loadConnectors()` / `loadTelemetryRules()` skip ajax when cached, refresh after sync via `loadConnectors(true)` → `launchdek_get_integrations`), telemetry rules (`#launchdek-telemetry-notice`, `#launchdek-telemetry-rules-table`, `#launchdek-save-telemetry-rules` → `launchdek_save_telemetry_rules`) |
 
-Billing page (`data-launchdek-page="billing"`) has no JS init — static PHP cards only (plan, hub usage stats, invoices placeholder).
+Billing page (`data-launchdek-page="billing"`) has no dedicated page init — static PHP plan comparison table (`.launchdek-billing-compare`) from `LAUNCHDEK_Licensing::get_compare_features()`; **Current plan** / **Get Pro** / **Get Agency** CTAs in `.launchdek-billing-compare-cta-row`.
+
+### Plan gating (all plugin screens)
+
+Localized on every plugin screen: `launchdekAdmin.billing` (`LAUNCHDEK_Licensing::get_summary()` — `can_auto_capture`, `can_vault`, `can_add_site`, etc.), `launchdekAdmin.billingUrl`, strings `billingProRequired`, `billingViewPlans`, `billingSiteLimit`. Community gates:
+
+- `initAutoCapture()` — when `!billing.can_auto_capture`, adds `.launchdek-billing-gated` on `#launchdek-panel-auto-capture` and shows upgrade notice in `#launchdek-auto-capture-notice` (skips capture wiring).
+- `loadVaultTemplates()` — when `!billing.can_vault`, replaces `#launchdek-vault-list` with upgrade copy and disables `#launchdek-save-vault`.
+- Settings **Webhooks & Email** tab — PHP disables inputs and adds `.launchdek-settings-card--disabled` + `.launchdek-billing-upgrade-notice` when `!LAUNCHDEK_Licensing::has_pro_features()` (not JS).
+
+REST `403` responses with `launchdek_pro_required` / `launchdek_site_limit` should surface `strings.billingProRequired` / `strings.billingSiteLimit` with link to `billingUrl` where the UI handles errors.
 
 Each page init no-ops if `[data-launchdek-page="{page}"]` is absent (except `initTemplates()`, which keys off `#launchdek-builtin-templates`). Template picker and onboarding inits no-op if their modal element is absent; `initConfirmModal()` always prepares the ConfirmDialog root.
 
@@ -304,7 +314,7 @@ Prefix all selectors with `.launchdek-`.
 | `.launchdek-integration-card` | Legacy integration card style (prefer connector list) |
 | `.launchdek-import-export` | Checklist import/export controls |
 | `.launchdek-settings-*`, `.launchdek-settings-nav`, `.launchdek-settings-tab-panel`, `.launchdek-settings-exclude-options`, `.launchdek-settings-exclude-hints`, `.launchdek-settings-exclude-hints-label`, `.launchdek-settings-exclude-common-fields`, `.launchdek-settings-panel-layout-picker`, `.launchdek-settings-panel-layout-controls`, `.launchdek-settings-panel-layout-select`, `.launchdek-panel-layout-preview`, `.launchdek-panel-layout-preview-frame`, `.launchdek-panel-layout-preview-description`, `.launchdek-settings-email-events`, `.launchdek-settings-email-event`, `.launchdek-settings-email-address` | Settings page nav tabs + cards, toggles, exclude-options textarea (`#launchdek-exclude-options`; value via `LAUNCHDEK_Settings::format_exclude_options_textarea()`; common-field hints list), client panel layout picker (`#launchdek-panel-layout`, `#launchdek-panel-layout-preview` with `data-layout`), webhook channels, email notifications (`#launchdek-email-notification-address`), role presets, perm table |
-| `.launchdek-billing-layout`, `.launchdek-billing-plan-card`, `.launchdek-billing-plan-name`, `.launchdek-billing-plan-badge`, `.launchdek-billing-usage-card`, `.launchdek-billing-usage-grid`, `.launchdek-billing-account-card`, `.launchdek-billing-actions` | Billing page static layout (plan overview, hub usage stats, invoices placeholder) |
+| `.launchdek-billing-intro`, `.launchdek-billing-compare-wrap`, `.launchdek-billing-compare`, `.launchdek-billing-compare-feature-col`, `.launchdek-billing-compare-plan-col`, `.launchdek-billing-compare-value-col`, `.launchdek-billing-feature-label`, `.launchdek-billing-yes`, `.launchdek-billing-no`, `.launchdek-billing-compare-cta-row`, `.launchdek-billing-cta`, `.launchdek-billing-cta--current`, `.launchdek-billing-plan-name`, `.launchdek-billing-plan-price`, `.launchdek-billing-gated`, `.launchdek-billing-upgrade-notice`, `.launchdek-settings-card--disabled` | Billing comparison table + Pro upgrade notices; auto-capture panel gated state |
 | `.launchdek-notice-area .notice` | Inline success/error (WordPress core notice classes) |
 | `.launchdek-grid-2` | Two-column layout |
 | `.launchdek-select`, `.launchdek-muted` | Form controls |
@@ -317,7 +327,7 @@ Hub admin CSS uses stacked toolbars/forms and horizontal scroll on wide tables b
 
 ## Partials (`admin/partials/`)
 
-Thin shells only — no business logic. Each page partial sets `data-launchdek-page` on `.launchdek-admin` root (including `settings` and `billing`). Settings page uses Settings API form, not REST-driven CRUD. Billing page is static PHP (plan + usage + invoices placeholder); no modal partials.
+Thin shells only — no business logic. Each page partial sets `data-launchdek-page` on `.launchdek-admin` root (including `settings` and `billing`). Settings page uses Settings API form, not REST-driven CRUD. Billing page is static PHP (three-column feature comparison + purchase CTAs); no modal partials.
 
 Shared modal partials (require at end of page partial, do not duplicate markup):
 

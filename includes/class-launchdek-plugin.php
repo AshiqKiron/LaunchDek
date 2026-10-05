@@ -58,5 +58,6 @@ class LAUNCHDEK_Plugin {
 		LAUNCHDEK_Capabilities::register();
 		LAUNCHDEK_Templates::seed_builtin();
 		LAUNCHDEK_Templates::sync_builtin();
+		LAUNCHDEK_Licensing::sync_drift_cron();
 	}
 }

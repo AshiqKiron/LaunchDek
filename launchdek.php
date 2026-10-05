@@ -45,6 +45,7 @@ require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-telemetry-mapper.p
 // Data layer.
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-site-repository.php';
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-checklist-repository.php';
+require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-licensing.php';
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-run-repository.php';
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-dashboard-cache.php';
 

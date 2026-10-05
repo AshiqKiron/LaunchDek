@@ -39,7 +39,7 @@ class LAUNCHDEK_Settings {
 			'role_permissions'             => array(),
 			'telemetry_sync_rules'         => array(),
 			'exclude_options'              => self::get_default_exclude_options(),
-			'client_panel_layout'          => 'sidebar',
+			'client_panel_layout'          => 'live_topbar',
 			'client_panel_title'           => self::get_default_client_panel_title(),
 			'custom_site_groups'           => array(),
 			'wp_umbrella_api_token_enc'    => '',
@@ -118,29 +118,31 @@ class LAUNCHDEK_Settings {
 			}
 		}
 
-		$urls = array( 'slack_webhook', 'discord_webhook', 'teams_webhook' );
-		foreach ( $urls as $key ) {
-			if ( isset( $input[ $key ] ) ) {
-				$output[ $key ] = esc_url_raw( $input[ $key ] );
-			}
-		}
-
-		if ( isset( $_POST['option_page'] ) && self::SETTINGS_GROUP === $_POST['option_page'] ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
-			if ( isset( $input['notification_events'] ) && is_array( $input['notification_events'] ) ) {
-				$output['notification_events'] = array_map( 'sanitize_key', $input['notification_events'] );
-			} else {
-				$output['notification_events'] = array();
+		if ( LAUNCHDEK_Licensing::can_use_notifications() ) {
+			$urls = array( 'slack_webhook', 'discord_webhook', 'teams_webhook' );
+			foreach ( $urls as $key ) {
+				if ( isset( $input[ $key ] ) ) {
+					$output[ $key ] = esc_url_raw( $input[ $key ] );
+				}
 			}
 
-			if ( isset( $input['email_notification_events'] ) && is_array( $input['email_notification_events'] ) ) {
-				$output['email_notification_events'] = array_map( 'sanitize_key', $input['email_notification_events'] );
-			} else {
-				$output['email_notification_events'] = array();
-			}
-		}
+			if ( isset( $_POST['option_page'] ) && self::SETTINGS_GROUP === $_POST['option_page'] ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+				if ( isset( $input['notification_events'] ) && is_array( $input['notification_events'] ) ) {
+					$output['notification_events'] = array_map( 'sanitize_key', $input['notification_events'] );
+				} else {
+					$output['notification_events'] = array();
+				}
 
-		if ( isset( $input['email_notification_address'] ) ) {
-			$output['email_notification_address'] = self::sanitize_email_notification_addresses( $input['email_notification_address'] );
+				if ( isset( $input['email_notification_events'] ) && is_array( $input['email_notification_events'] ) ) {
+					$output['email_notification_events'] = array_map( 'sanitize_key', $input['email_notification_events'] );
+				} else {
+					$output['email_notification_events'] = array();
+				}
+			}
+
+			if ( isset( $input['email_notification_address'] ) ) {
+				$output['email_notification_address'] = self::sanitize_email_notification_addresses( $input['email_notification_address'] );
+			}
 		}
 
 		if ( isset( $input['role_permissions'] ) && is_array( $input['role_permissions'] ) ) {
@@ -358,10 +360,7 @@ class LAUNCHDEK_Settings {
 	 * @return string
 	 */
 	public static function sanitize_client_panel_layout( $layout ) {
-		$layout  = sanitize_key( (string) $layout );
-		$layouts = self::get_client_panel_layouts();
-
-		return isset( $layouts[ $layout ] ) ? $layout : 'sidebar';
+		return LAUNCHDEK_Licensing::sanitize_panel_layout( $layout );
 	}
 
 	/**
@@ -370,9 +369,7 @@ class LAUNCHDEK_Settings {
 	 * @return string
 	 */
 	public static function get_client_panel_layout() {
-		$settings = self::get();
-
-		return self::sanitize_client_panel_layout( $settings['client_panel_layout'] ?? 'sidebar' );
+		return LAUNCHDEK_Licensing::get_effective_panel_layout();
 	}
 
 	/**

@@ -2925,6 +2925,131 @@
 		ensureWpConfirmRoot();
 	}
 
+	/**
+	 * Fixed-position tooltips for field info buttons (avoids overflow clipping in tables/sidebars).
+	 */
+	function initFieldTooltips() {
+		var adminRoot = document.querySelector('.launchdek-admin');
+		if (!adminRoot) {
+			return;
+		}
+
+		var tooltipEl = null;
+		var activeTrigger = null;
+
+		function ensureTooltipEl() {
+			if (tooltipEl) {
+				return tooltipEl;
+			}
+			tooltipEl = document.createElement('div');
+			tooltipEl.id = 'launchdek-field-tooltip';
+			tooltipEl.className = 'launchdek-field-tooltip-portal';
+			tooltipEl.setAttribute('role', 'tooltip');
+			tooltipEl.hidden = true;
+			document.body.appendChild(tooltipEl);
+			return tooltipEl;
+		}
+
+		function hideTooltip() {
+			if (tooltipEl) {
+				tooltipEl.hidden = true;
+				tooltipEl.textContent = '';
+			}
+			activeTrigger = null;
+		}
+
+		function positionTooltip(trigger) {
+			var tip = ensureTooltipEl();
+			var text = trigger.getAttribute('data-tooltip') || '';
+			if (!text) {
+				hideTooltip();
+				return;
+			}
+
+			tip.textContent = text;
+			tip.hidden = false;
+			tip.style.visibility = 'hidden';
+			tip.style.left = '0';
+			tip.style.top = '0';
+
+			var margin = 8;
+			var rect = trigger.getBoundingClientRect();
+			var tipRect = tip.getBoundingClientRect();
+			var vw = window.innerWidth;
+			var vh = window.innerHeight;
+			var top = rect.bottom + margin;
+			var left = rect.left;
+
+			if (top + tipRect.height > vh - margin) {
+				top = rect.top - tipRect.height - margin;
+			}
+			if (top < margin) {
+				top = margin;
+			}
+			if (left + tipRect.width > vw - margin) {
+				left = vw - tipRect.width - margin;
+			}
+			if (left < margin) {
+				left = margin;
+			}
+
+			tip.style.top = top + 'px';
+			tip.style.left = left + 'px';
+			tip.style.visibility = '';
+		}
+
+		function showTooltip(trigger) {
+			activeTrigger = trigger;
+			positionTooltip(trigger);
+		}
+
+		adminRoot.addEventListener('mouseover', function (e) {
+			var trigger = e.target.closest('.launchdek-field-info.launchdek-has-tooltip');
+			if (!trigger || !adminRoot.contains(trigger)) {
+				return;
+			}
+			showTooltip(trigger);
+		});
+
+		adminRoot.addEventListener('mouseout', function (e) {
+			if (!activeTrigger || !activeTrigger.contains(e.target)) {
+				return;
+			}
+			var related = e.relatedTarget;
+			if (related && activeTrigger.contains(related)) {
+				return;
+			}
+			hideTooltip();
+		});
+
+		adminRoot.addEventListener('focusin', function (e) {
+			var trigger = e.target.closest('.launchdek-field-info.launchdek-has-tooltip');
+			if (trigger && adminRoot.contains(trigger)) {
+				showTooltip(trigger);
+			}
+		});
+
+		adminRoot.addEventListener('focusout', function (e) {
+			if (activeTrigger && e.target === activeTrigger) {
+				hideTooltip();
+			}
+		});
+
+		window.addEventListener('scroll', function () {
+			if (activeTrigger) {
+				positionTooltip(activeTrigger);
+			}
+		}, true);
+
+		window.addEventListener('resize', function () {
+			if (activeTrigger) {
+				positionTooltip(activeTrigger);
+			}
+		});
+
+		adminRoot.setAttribute('data-launchdek-tooltips-portal', 'true');
+	}
+
 	function parseTagsInput() {
 		var raw = document.getElementById('launchdek-site-tags').value;
 		var groupEl = document.getElementById('launchdek-site-group');
@@ -4598,6 +4723,21 @@
 
 	function initAutoCapture() {
 		if (!document.getElementById('launchdek-auto-capture-site')) {
+			return;
+		}
+
+		var billing = launchdekAdmin.billing || {};
+		if (!billing.can_auto_capture) {
+			var panel = document.getElementById('launchdek-panel-auto-capture');
+			if (panel) {
+				panel.classList.add('launchdek-billing-gated');
+			}
+			var noticeEl = document.getElementById('launchdek-auto-capture-notice');
+			var upgradeMsg = strings.billingProRequired || 'This feature is available on Pro and Agency plans.';
+			if (launchdekAdmin.billingUrl) {
+				upgradeMsg += ' <a href="' + escAttr(launchdekAdmin.billingUrl) + '">' + escHtml(strings.billingViewPlans || 'View plans') + '</a>';
+			}
+			notice(noticeEl, upgradeMsg, 'error');
 			return;
 		}
 
@@ -6341,6 +6481,23 @@
 	}
 
 	function loadVaultTemplates() {
+		var billing = launchdekAdmin.billing || {};
+		if (!billing.can_vault) {
+			var grid = document.getElementById('launchdek-vault-list');
+			if (grid) {
+				var vaultMsg = strings.billingProRequired || 'This feature is available on Pro and Agency plans.';
+				if (launchdekAdmin.billingUrl) {
+					vaultMsg += ' <a href="' + escAttr(launchdekAdmin.billingUrl) + '">' + escHtml(strings.billingViewPlans || 'View plans') + '</a>';
+				}
+				grid.innerHTML = '<p class="launchdek-muted">' + vaultMsg + '</p>';
+			}
+			var saveVaultBtn = document.getElementById('launchdek-save-vault');
+			if (saveVaultBtn) {
+				saveVaultBtn.disabled = true;
+			}
+			return;
+		}
+
 		get('/templates/vault').then(function (vault) {
 			var grid = document.getElementById('launchdek-vault-list');
 			grid.innerHTML = '';
@@ -6769,6 +6926,7 @@
 		initTemplatePicker();
 		initOnboarding();
 		initConfirmModal();
+		initFieldTooltips();
 		initDashboard();
 		initSites();
 		initActivityLogs();

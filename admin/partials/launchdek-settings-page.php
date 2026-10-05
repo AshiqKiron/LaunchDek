@@ -27,8 +27,9 @@ $guard_caps    = array(
 );
 $exclude_options   = LAUNCHDEK_Settings::get_exclude_options();
 $exclude_labels    = LAUNCHDEK_Settings::get_exclude_option_labels();
-$panel_layouts     = LAUNCHDEK_Settings::get_client_panel_layouts();
+$panel_layouts     = LAUNCHDEK_Licensing::get_panel_layouts_for_plan();
 $panel_layout      = LAUNCHDEK_Settings::get_client_panel_layout();
+$billing_pro       = LAUNCHDEK_Licensing::has_pro_features();
 $section_tooltips = array(
 	'platform'        => __(
 		'Turn LaunchDek on or off for this hub and schedule automated drift checks that compare remote site state twice daily.',
@@ -242,7 +243,20 @@ $channels        = array(
 		</div>
 
 		<div id="launchdek-settings-panel-webhooks-email" class="launchdek-settings-tab-panel" data-launchdek-settings-panel="webhooks-email" role="tabpanel" aria-labelledby="launchdek-settings-tab-webhooks-email" hidden>
-		<div class="launchdek-card launchdek-settings-card">
+		<?php if ( ! $billing_pro ) : ?>
+			<div class="notice notice-info inline launchdek-billing-upgrade-notice">
+				<p>
+					<?php
+					printf(
+						/* translators: %s: Billing admin page link */
+						esc_html__( 'Email and webhook notifications are included on Pro and Agency plans. %s', LAUNCHDEK_TEXT_DOMAIN ),
+						'<a href="' . esc_url( admin_url( 'admin.php?page=' . LAUNCHDEK_Admin::PAGE_SLUG . '-billing' ) ) . '">' . esc_html__( 'View plans', LAUNCHDEK_TEXT_DOMAIN ) . '</a>'
+					);
+					?>
+				</p>
+			</div>
+		<?php endif; ?>
+		<div class="launchdek-card launchdek-settings-card<?php echo $billing_pro ? '' : ' launchdek-settings-card--disabled'; ?>">
 			<div class="launchdek-card-heading-row launchdek-card-heading-row--info-first">
 				<button type="button" class="launchdek-field-info launchdek-has-tooltip" data-tooltip="<?php echo esc_attr( $section_tooltips['webhooks'] ); ?>" aria-label="<?php echo esc_attr( $section_tooltips['webhooks'] ); ?>">
 					<span class="dashicons dashicons-info-outline" aria-hidden="true"></span>
@@ -264,6 +278,7 @@ $channels        = array(
 							name="<?php echo esc_attr( $option_name ); ?>[<?php echo esc_attr( $key ); ?>_webhook]"
 							value="<?php echo esc_attr( $settings[ $key . '_webhook' ] ?? '' ); ?>"
 							placeholder="<?php echo esc_attr( $channel['placeholder'] ); ?>"
+							<?php disabled( ! $billing_pro ); ?>
 						/>
 					</div>
 				<?php endforeach; ?>
@@ -279,6 +294,7 @@ $channels        = array(
 								name="<?php echo esc_attr( $option_name ); ?>[notification_events][]"
 								value="<?php echo esc_attr( $event_key ); ?>"
 								<?php checked( in_array( $event_key, $active_events, true ) ); ?>
+								<?php disabled( ! $billing_pro ); ?>
 							/>
 							<span><?php echo esc_html( $event_label ); ?></span>
 						</label>
@@ -287,7 +303,7 @@ $channels        = array(
 			</div>
 		</div>
 
-		<div class="launchdek-card launchdek-settings-card">
+		<div class="launchdek-card launchdek-settings-card<?php echo $billing_pro ? '' : ' launchdek-settings-card--disabled'; ?>">
 			<div class="launchdek-card-heading-row launchdek-card-heading-row--info-first">
 				<button type="button" class="launchdek-field-info launchdek-has-tooltip" data-tooltip="<?php echo esc_attr( $section_tooltips['email_notifications'] ); ?>" aria-label="<?php echo esc_attr( $section_tooltips['email_notifications'] ); ?>">
 					<span class="dashicons dashicons-info-outline" aria-hidden="true"></span>
@@ -305,6 +321,7 @@ $channels        = array(
 								name="<?php echo esc_attr( $option_name ); ?>[email_notification_events][]"
 								value="<?php echo esc_attr( $event_key ); ?>"
 								<?php checked( in_array( $event_key, $active_email_events, true ) ); ?>
+								<?php disabled( ! $billing_pro ); ?>
 							/>
 							<span><?php echo esc_html( $event['label'] ); ?></span>
 						</label>
@@ -326,6 +343,7 @@ $channels        = array(
 					placeholder="<?php echo esc_attr( $default_admin_email ); ?>"
 					autocomplete="email"
 					inputmode="email"
+					<?php disabled( ! $billing_pro ); ?>
 				/>
 				<p class="launchdek-muted launchdek-settings-note">
 					<?php esc_html_e( 'Where these emails are sent. Separate multiple addresses with commas. Defaults to the site admin email.', LAUNCHDEK_TEXT_DOMAIN ); ?>

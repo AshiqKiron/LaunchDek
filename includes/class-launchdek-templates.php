@@ -99,7 +99,7 @@ class LAUNCHDEK_Templates {
 			&& is_array( $stored['catalog'] )
 			&& $stored['key'] === $cache_key
 		) {
-			return $stored['catalog'];
+			return LAUNCHDEK_Licensing::filter_builtin_templates( $stored['catalog'] );
 		}
 
 		$catalog = self::build_catalog();
@@ -113,7 +113,7 @@ class LAUNCHDEK_Templates {
 			false
 		);
 
-		return $catalog;
+		return LAUNCHDEK_Licensing::filter_builtin_templates( $catalog );
 	}
 
 	/**

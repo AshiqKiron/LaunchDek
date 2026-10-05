@@ -410,7 +410,12 @@ class LAUNCHDEK_Admin {
 					'automationBack'              => __( 'Back', LAUNCHDEK_TEXT_DOMAIN ),
 					'automationStartRun'          => __( 'Start Run', LAUNCHDEK_TEXT_DOMAIN ),
 					'automationBackToSetup'       => __( 'Back to setup', LAUNCHDEK_TEXT_DOMAIN ),
+					'billingProRequired'          => __( 'This feature is available on Pro and Agency plans.', LAUNCHDEK_TEXT_DOMAIN ),
+					'billingViewPlans'            => __( 'View plans', LAUNCHDEK_TEXT_DOMAIN ),
+					'billingSiteLimit'            => __( 'Your plan has reached its site limit. Upgrade on Billing to add more sites.', LAUNCHDEK_TEXT_DOMAIN ),
 				),
+			'billing' => LAUNCHDEK_Licensing::get_summary(),
+			'billingUrl' => admin_url( 'admin.php?page=' . self::PAGE_SLUG . '-billing' ),
 		);
 
 		if ( 'toplevel_page_' . self::PAGE_SLUG === $hook ) {
@@ -439,7 +444,7 @@ class LAUNCHDEK_Admin {
 			$localize['templates'] = array(
 				'preloaded'  => true,
 				'builtin'    => LAUNCHDEK_Templates::get_catalog(),
-				'categories' => LAUNCHDEK_Templates::get_categories(),
+				'categories' => LAUNCHDEK_Licensing::get_template_categories_for_plan(),
 			);
 		}
 
@@ -580,8 +585,7 @@ class LAUNCHDEK_Admin {
 		$this->render_page(
 			'launchdek-billing-page.php',
 			array(
-				'page'            => 'billing',
-				'dashboard_stats' => LAUNCHDEK_Dashboard_Cache::get_stats(),
+				'page' => 'billing',
 			)
 		);
 	}

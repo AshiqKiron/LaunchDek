@@ -80,6 +80,18 @@ class LAUNCHDEK_REST_API {
 			'permission_callback' => array( __CLASS__, 'can_edit_checklists' ),
 		) );
 
+		register_rest_route( self::NAMESPACE, '/billing/summary', array(
+			'methods'             => 'GET',
+			'callback'            => array( __CLASS__, 'get_billing_summary' ),
+			'permission_callback' => array( __CLASS__, 'can_view_dashboard' ),
+		) );
+
+		register_rest_route( self::NAMESPACE, '/billing/plan', array(
+			'methods'             => 'POST',
+			'callback'            => array( __CLASS__, 'update_billing_plan' ),
+			'permission_callback' => array( __CLASS__, 'can_manage_settings' ),
+		) );
+
 		// Sites.
 		register_rest_route( self::NAMESPACE, '/sites', array(
 			array(
@@ -617,6 +629,37 @@ class LAUNCHDEK_REST_API {
 		);
 	}
 
+	/**
+	 * Billing plan summary for admin UI.
+	 *
+	 * @return WP_REST_Response
+	 */
+	public static function get_billing_summary() {
+		return rest_ensure_response( LAUNCHDEK_Licensing::get_summary() );
+	}
+
+	/**
+	 * Set hub plan (license activation hook point; manage_settings only).
+	 *
+	 * @param WP_REST_Request $request REST request.
+	 * @return WP_REST_Response|WP_Error
+	 */
+	public static function update_billing_plan( $request ) {
+		$data = $request->get_json_params();
+		$plan = is_array( $data ) ? sanitize_key( (string) ( $data['plan'] ?? '' ) ) : '';
+
+		if ( '' === $plan ) {
+			return new WP_Error( 'missing_plan', __( 'Plan is required.', LAUNCHDEK_TEXT_DOMAIN ), array( 'status' => 400 ) );
+		}
+
+		$result = LAUNCHDEK_Licensing::set_plan( $plan );
+		if ( is_wp_error( $result ) ) {
+			return $result;
+		}
+
+		return rest_ensure_response( LAUNCHDEK_Licensing::get_summary() );
+	}
+
 	// Sites handlers.
 	public static function get_sites( $request ) {
 		$args = array(
@@ -670,6 +713,10 @@ class LAUNCHDEK_REST_API {
 	}
 
 	public static function create_site( $request ) {
+		if ( ! LAUNCHDEK_Licensing::can_add_site() ) {
+			return LAUNCHDEK_Licensing::site_limit_error();
+		}
+
 		$data = $request->get_json_params();
 		if ( empty( $data['url'] ) || empty( $data['admin_username'] ) || empty( $data['app_password'] ) ) {
 			return new WP_Error( 'missing_fields', __( 'URL, username, and app password are required.', LAUNCHDEK_TEXT_DOMAIN ), array( 'status' => 400 ) );
@@ -766,6 +813,10 @@ class LAUNCHDEK_REST_API {
 	 * @return WP_REST_Response|WP_Error
 	 */
 	public static function get_site_capture( $request ) {
+		if ( ! LAUNCHDEK_Licensing::can_use_auto_capture() ) {
+			return LAUNCHDEK_Licensing::pro_required_error( __( 'Auto-capture', LAUNCHDEK_TEXT_DOMAIN ) );
+		}
+
 		$id = absint( $request['id'] );
 
 		if ( ! LAUNCHDEK_Site_Repository::find( $id ) ) {
@@ -788,6 +839,10 @@ class LAUNCHDEK_REST_API {
 	 * @return WP_REST_Response|WP_Error
 	 */
 	public static function update_site_capture( $request ) {
+		if ( ! LAUNCHDEK_Licensing::can_use_auto_capture() ) {
+			return LAUNCHDEK_Licensing::pro_required_error( __( 'Auto-capture', LAUNCHDEK_TEXT_DOMAIN ) );
+		}
+
 		$id   = absint( $request['id'] );
 		$data = $request->get_json_params();
 		$action = is_array( $data ) ? sanitize_key( $data['action'] ?? '' ) : '';
@@ -822,6 +877,10 @@ class LAUNCHDEK_REST_API {
 	 * @return WP_REST_Response|WP_Error
 	 */
 	public static function clear_site_capture( $request ) {
+		if ( ! LAUNCHDEK_Licensing::can_use_auto_capture() ) {
+			return LAUNCHDEK_Licensing::pro_required_error( __( 'Auto-capture', LAUNCHDEK_TEXT_DOMAIN ) );
+		}
+
 		$id = absint( $request['id'] );
 
 		if ( ! LAUNCHDEK_Site_Repository::find( $id ) ) {
@@ -1369,11 +1428,15 @@ class LAUNCHDEK_REST_API {
 	public static function get_templates() {
 		return rest_ensure_response( array(
 			'builtin'    => LAUNCHDEK_Templates::get_catalog(),
-			'categories' => LAUNCHDEK_Templates::get_categories(),
+			'categories' => LAUNCHDEK_Licensing::get_template_categories_for_plan(),
 		) );
 	}
 
 	public static function get_vault() {
+		if ( ! LAUNCHDEK_Licensing::can_use_agency_vault() ) {
+			return LAUNCHDEK_Licensing::pro_required_error( __( 'Private Agency Vault', LAUNCHDEK_TEXT_DOMAIN ) );
+		}
+
 		return rest_ensure_response(
 			LAUNCHDEK_Checklist_Repository::summary_list(
 				array(
@@ -1385,6 +1448,10 @@ class LAUNCHDEK_REST_API {
 	}
 
 	public static function save_to_vault( $request ) {
+		if ( ! LAUNCHDEK_Licensing::can_use_agency_vault() ) {
+			return LAUNCHDEK_Licensing::pro_required_error( __( 'Private Agency Vault', LAUNCHDEK_TEXT_DOMAIN ) );
+		}
+
 		$data = $request->get_json_params();
 		$id   = absint( $data['checklist_id'] ?? 0 );
 		if ( ! $id ) {
@@ -1400,6 +1467,11 @@ class LAUNCHDEK_REST_API {
 
 		if ( ! $template ) {
 			return new WP_Error( 'not_found', __( 'Template not found.', LAUNCHDEK_TEXT_DOMAIN ), array( 'status' => 404 ) );
+		}
+
+		$category = LAUNCHDEK_Templates::normalize_category( $template['category'] ?? '' );
+		if ( ! LAUNCHDEK_Licensing::is_template_category_allowed( $category ) ) {
+			return LAUNCHDEK_Licensing::pro_required_error( __( 'This template category', LAUNCHDEK_TEXT_DOMAIN ) );
 		}
 
 		$id = LAUNCHDEK_Templates::clone_template( $template );

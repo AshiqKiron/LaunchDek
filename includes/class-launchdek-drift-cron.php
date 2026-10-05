@@ -62,6 +62,10 @@ class LAUNCHDEK_Drift_Cron {
 	 * @return void
 	 */
 	public static function run() {
+		if ( ! LAUNCHDEK_Licensing::can_use_scheduled_drift() ) {
+			return;
+		}
+
 		$settings = LAUNCHDEK_Settings::get();
 
 		if ( empty( $settings['enabled'] ) || empty( $settings['drift_verification_enabled'] ) ) {
