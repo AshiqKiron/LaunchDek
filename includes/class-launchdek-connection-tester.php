@@ -72,6 +72,23 @@ class LAUNCHDEK_Connection_Tester {
 			)
 		);
 
-		return $client->ping();
+		$result = $client->ping();
+
+		if ( ! empty( $result['success'] ) ) {
+			if ( LAUNCHDEK_Mu_Plugin_Installer::panel_available( $client ) ) {
+				$result['client_panel'] = array(
+					'success' => true,
+					'message' => __( 'Client checklist panel is installed and ready.', LAUNCHDEK_TEXT_DOMAIN ),
+				);
+				$result['client_agent'] = true;
+			} else {
+				$result['client_panel'] = array(
+					'success' => false,
+					'message' => __( 'Client panel is not installed yet. Download the bootstrap file, upload it to the client site, then retry panel install after saving the site.', LAUNCHDEK_TEXT_DOMAIN ),
+				);
+			}
+		}
+
+		return $result;
 	}
 }

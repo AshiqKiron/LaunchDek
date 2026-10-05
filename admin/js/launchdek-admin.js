@@ -254,6 +254,116 @@
 		container.innerHTML = '<div class="' + classes.join(' ') + '"><p>' + message + '</p></div>';
 	}
 
+	var PANEL_SETUP_SITES = {
+		panel: 'launchdek-panel-setup',
+		result: 'launchdek-panel-setup-result',
+		testResult: 'launchdek-site-test-result'
+	};
+
+	var PANEL_SETUP_ONBOARDING = {
+		panel: 'launchdek-onboarding-panel-setup',
+		result: 'launchdek-onboarding-panel-setup-result',
+		testResult: null
+	};
+
+	var PANEL_SETUP_TESTER = {
+		panel: 'launchdek-tester-panel-setup',
+		result: 'launchdek-tester-panel-setup-result',
+		testResult: 'launchdek-tester-result'
+	};
+
+	function togglePanelSetup(show, ids) {
+		ids = ids || PANEL_SETUP_SITES;
+		var panel = document.getElementById(ids.panel);
+		if (!panel) {
+			return;
+		}
+		panel.hidden = !show;
+		if (!show) {
+			var result = document.getElementById(ids.result);
+			if (result) {
+				result.innerHTML = '';
+			}
+		}
+	}
+
+	function panelStatusFromResponse(response) {
+		if (response && response.client_panel) {
+			return response.client_panel;
+		}
+		if (response && response.client_agent) {
+			return { success: true };
+		}
+		return null;
+	}
+
+	function updatePanelSetupStatus(status, ids) {
+		ids = ids || PANEL_SETUP_SITES;
+		var setupResult = document.getElementById(ids.result);
+		if (!setupResult) {
+			return;
+		}
+
+		if (status && status.success) {
+			togglePanelSetup(false, ids);
+			if (ids.testResult) {
+				var testResult = document.getElementById(ids.testResult);
+				if (testResult) {
+					notice(testResult, strings.panelSetupReady || 'Client panel is installed and ready.', 'success');
+				}
+			}
+			return;
+		}
+
+		togglePanelSetup(true, ids);
+		var message = (status && status.message) || strings.panelSetupNeeded || 'Client panel is not installed yet.';
+		notice(setupResult, message, 'error');
+	}
+
+	function downloadPanelBootstrap(ids) {
+		ids = ids || PANEL_SETUP_SITES;
+		var setupResult = document.getElementById(ids.result);
+		return get('/panel/bootstrap').then(function (data) {
+			var blob = new Blob([data.contents || ''], { type: 'application/x-php' });
+			var url = URL.createObjectURL(blob);
+			var link = document.createElement('a');
+			link.href = url;
+			link.download = data.filename || 'launchdek-client.php';
+			document.body.appendChild(link);
+			link.click();
+			document.body.removeChild(link);
+			URL.revokeObjectURL(url);
+			if (setupResult) {
+				notice(setupResult, strings.panelBootstrapDownloaded || 'Bootstrap file downloaded.', 'success');
+			}
+		}).catch(function (err) {
+			if (setupResult) {
+				notice(setupResult, err.message, 'error');
+			}
+		});
+	}
+
+	function retryPanelInstall(siteId, ids) {
+		ids = ids || PANEL_SETUP_SITES;
+		var setupResult = document.getElementById(ids.result);
+		if (!siteId) {
+			if (setupResult) {
+				notice(setupResult, strings.panelRetryNeedsSave || 'Save this site first, then retry panel install.', 'error');
+			}
+			togglePanelSetup(true, ids);
+			return Promise.resolve();
+		}
+
+		return post('/sites/' + siteId + '/panel/install', {}).then(function (panel) {
+			updatePanelSetupStatus(panel, ids);
+			return panel;
+		}).catch(function (err) {
+			if (setupResult) {
+				notice(setupResult, err.message, 'error');
+			}
+		});
+	}
+
 	function escHtml(value) {
 		return String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 	}
@@ -685,6 +795,27 @@
 		var selectedSiteId = '';
 		var connectionVerified = false;
 		var hasExistingSites = false;
+		var onboardingSitesList = [];
+		var onboardingSavedSiteId = null;
+
+		function syncOnboardingPanelSetup() {
+			var showPanelSetup = false;
+			if (selectedSiteId) {
+				var site = onboardingSitesList.find(function (s) {
+					return String(s.id) === String(selectedSiteId);
+				});
+				showPanelSetup = !site || !site.client_agent;
+				onboardingSavedSiteId = parseInt(selectedSiteId, 10) || null;
+			} else if (!connectPanel.hidden) {
+				showPanelSetup = true;
+				onboardingSavedSiteId = onboardingSavedSiteId || null;
+			}
+			if (showPanelSetup) {
+				togglePanelSetup(true, PANEL_SETUP_ONBOARDING);
+			} else {
+				togglePanelSetup(false, PANEL_SETUP_ONBOARDING);
+			}
+		}
 
 		function dismissOnboarding() {
 			return post('/onboarding/dismiss', {}).catch(function () {});
@@ -718,7 +849,9 @@
 			savedChecklistId = null;
 			selectedSiteId = '';
 			connectionVerified = false;
+			onboardingSavedSiteId = null;
 			setTestStatus('', '');
+			togglePanelSetup(false, PANEL_SETUP_ONBOARDING);
 			updateOnboardingProgress(1);
 			renderPreview();
 		}
@@ -845,11 +978,13 @@
 				existingSiteNotice.textContent = (strings.onboardingExistingSiteReady || 'Using selected site:') + ' ' + (option ? option.textContent : '');
 				connectionVerified = true;
 				setTestStatus('success', strings.onboardingStatusConnected || 'Status: Connected & Verified (OK)');
+				syncOnboardingPanelSetup();
 				return;
 			}
 
 			connectionVerified = false;
 			setTestStatus('', strings.onboardingStatusPending || 'Status: Not tested yet');
+			syncOnboardingPanelSetup();
 		}
 
 		function showStep2() {
@@ -858,6 +993,7 @@
 			updateOnboardingProgress(2);
 			step2Notice.innerHTML = '';
 			updateStep2SiteState();
+			syncOnboardingPanelSetup();
 		}
 
 		function showStep1() {
@@ -886,12 +1022,38 @@
 		}
 
 		get('/sites').then(function (sites) {
-			hasExistingSites = Array.isArray(sites) && sites.length > 0;
+			onboardingSitesList = Array.isArray(sites) ? sites : [];
+			hasExistingSites = onboardingSitesList.length > 0;
 			if (existingSitesWrap) {
 				existingSitesWrap.hidden = !hasExistingSites;
 			}
-			fillSelect(siteSelect, sites, 'id', 'name', strings.onboardingSelectSite || 'Select site…');
+			fillSelect(siteSelect, onboardingSitesList, 'id', 'name', strings.onboardingSelectSite || 'Select site…');
 		}).catch(function () {});
+
+		var onboardingDownloadBtn = document.getElementById('launchdek-onboarding-download-panel-bootstrap');
+		if (onboardingDownloadBtn) {
+			onboardingDownloadBtn.addEventListener('click', function () {
+				downloadPanelBootstrap(PANEL_SETUP_ONBOARDING);
+			});
+		}
+
+		var onboardingRetryBtn = document.getElementById('launchdek-onboarding-retry-panel-install');
+		if (onboardingRetryBtn) {
+			onboardingRetryBtn.addEventListener('click', function () {
+				var siteId = onboardingSavedSiteId || (selectedSiteId ? parseInt(selectedSiteId, 10) : null);
+				retryPanelInstall(siteId, PANEL_SETUP_ONBOARDING).then(function (panel) {
+					if (panel && panel.success && siteId) {
+						var idx = onboardingSitesList.findIndex(function (s) {
+							return String(s.id) === String(siteId);
+						});
+						if (idx !== -1) {
+							onboardingSitesList[idx].client_agent = true;
+						}
+						syncOnboardingPanelSetup();
+					}
+				});
+			});
+		}
 
 		pasteInput.addEventListener('input', renderPreview);
 		siteSelect.addEventListener('change', updateStep2SiteState);
@@ -965,6 +1127,10 @@
 				if (result.success) {
 					connectionVerified = true;
 					setTestStatus('success', strings.onboardingStatusConnected || 'Status: Connected & Verified (OK)');
+					updatePanelSetupStatus(panelStatusFromResponse(result), PANEL_SETUP_ONBOARDING);
+					if (!result.client_panel || !result.client_panel.success) {
+						togglePanelSetup(true, PANEL_SETUP_ONBOARDING);
+					}
 				} else {
 					connectionVerified = false;
 					setTestStatus('error', (strings.onboardingStatusFailed || 'Status: Connection failed') + (result.message ? ' — ' + result.message : ''));
@@ -1007,6 +1173,10 @@
 					tags: [],
 					group_type: 'general'
 				}).then(function (site) {
+					onboardingSavedSiteId = site.id;
+					if (site.client_panel) {
+						updatePanelSetupStatus(site.client_panel, PANEL_SETUP_ONBOARDING);
+					}
 					return finishOnboarding(site.id);
 				});
 			}
@@ -2555,6 +2725,7 @@
 		} else {
 			document.getElementById('launchdek-site-form').reset();
 			setSiteGroupSelectValue('general');
+			togglePanelSetup(true, PANEL_SETUP_SITES);
 		}
 		modal.hidden = false;
 	}
@@ -2563,6 +2734,7 @@
 		var modal = document.getElementById('launchdek-connection-tester-modal');
 		document.getElementById('launchdek-connection-tester-form').reset();
 		document.getElementById('launchdek-tester-result').innerHTML = '';
+		togglePanelSetup(false, PANEL_SETUP_TESTER);
 		modal.hidden = false;
 	}
 
@@ -2765,94 +2937,6 @@
 		});
 	}
 
-	function togglePanelSetup(show) {
-		var panel = document.getElementById('launchdek-panel-setup');
-		if (!panel) {
-			return;
-		}
-		panel.hidden = !show;
-		if (!show) {
-			var result = document.getElementById('launchdek-panel-setup-result');
-			if (result) {
-				result.innerHTML = '';
-			}
-		}
-	}
-
-	function panelStatusFromResponse(response) {
-		if (response && response.client_panel) {
-			return response.client_panel;
-		}
-		if (response && response.client_agent) {
-			return { success: true };
-		}
-		return null;
-	}
-
-	function updatePanelSetupStatus(status) {
-		var setupResult = document.getElementById('launchdek-panel-setup-result');
-		if (!setupResult) {
-			return;
-		}
-
-		if (status && status.success) {
-			togglePanelSetup(false);
-			var testResult = document.getElementById('launchdek-site-test-result');
-			if (testResult) {
-				notice(testResult, strings.panelSetupReady || 'Client panel is installed and ready.', 'success');
-			}
-			return;
-		}
-
-		togglePanelSetup(true);
-		var message = (status && status.message) || strings.panelSetupNeeded || 'Client panel is not installed yet.';
-		notice(setupResult, message, 'error');
-	}
-
-	function downloadPanelBootstrap() {
-		var setupResult = document.getElementById('launchdek-panel-setup-result');
-		return get('/panel/bootstrap').then(function (data) {
-			var blob = new Blob([data.contents || ''], { type: 'application/x-php' });
-			var url = URL.createObjectURL(blob);
-			var link = document.createElement('a');
-			link.href = url;
-			link.download = data.filename || 'launchdek-client.php';
-			document.body.appendChild(link);
-			link.click();
-			document.body.removeChild(link);
-			URL.revokeObjectURL(url);
-			if (setupResult) {
-				notice(setupResult, strings.panelBootstrapDownloaded || 'Bootstrap file downloaded.', 'success');
-			}
-		}).catch(function (err) {
-			if (setupResult) {
-				notice(setupResult, err.message, 'error');
-			}
-		});
-	}
-
-	function retryPanelInstall(siteId) {
-		var setupResult = document.getElementById('launchdek-panel-setup-result');
-		if (!siteId) {
-			if (setupResult) {
-				notice(setupResult, strings.panelRetryNeedsSave || 'Save this site first, then retry panel install.', 'error');
-			}
-			togglePanelSetup(true);
-			return Promise.resolve();
-		}
-
-		return post('/sites/' + siteId + '/panel/install', {}).then(function (panel) {
-			updatePanelSetupStatus(panel);
-			if (panel && panel.success) {
-				loadSites();
-			}
-		}).catch(function (err) {
-			if (setupResult) {
-				notice(setupResult, err.message, 'error');
-			}
-		});
-	}
-
 	function initSites() {
 		if (!document.querySelector('[data-launchdek-page="sites"]')) return;
 
@@ -3049,9 +3133,25 @@
 				app_password: document.getElementById('launchdek-tester-password').value
 			};
 			post('/sites/test', payload).then(function (r) {
-				notice(result, r.success ? r.message : (strings.connectionFail + ': ' + r.message), r.success ? 'success' : 'error');
+				var message = r.success ? r.message : (strings.connectionFail + ': ' + r.message);
+				if (r.success && r.client_panel && !r.client_panel.success) {
+					message += ' ' + (r.client_panel.message || strings.panelSetupNeeded || '');
+				}
+				notice(result, message, r.success ? 'success' : 'error');
+				if (r.success) {
+					updatePanelSetupStatus(panelStatusFromResponse(r), PANEL_SETUP_TESTER);
+				} else {
+					togglePanelSetup(false, PANEL_SETUP_TESTER);
+				}
 			}).catch(function (err) { notice(result, err.message, 'error'); });
 		});
+
+		var testerDownloadBtn = document.getElementById('launchdek-tester-download-panel-bootstrap');
+		if (testerDownloadBtn) {
+			testerDownloadBtn.addEventListener('click', function () {
+				downloadPanelBootstrap(PANEL_SETUP_TESTER);
+			});
+		}
 
 		document.getElementById('launchdek-site-test').addEventListener('click', function () {
 			var result = document.getElementById('launchdek-site-test-result');
@@ -3069,16 +3169,20 @@
 					message += ' ' + (r.client_panel.message || strings.panelSetupNeeded || '');
 				}
 				notice(result, message, r.success ? 'success' : 'error');
-				updatePanelSetupStatus(panelStatusFromResponse(r));
+				updatePanelSetupStatus(panelStatusFromResponse(r), PANEL_SETUP_SITES);
 			}).catch(function (e) { notice(result, e.message, 'error'); });
 		});
 
 		document.getElementById('launchdek-download-panel-bootstrap').addEventListener('click', function () {
-			downloadPanelBootstrap();
+			downloadPanelBootstrap(PANEL_SETUP_SITES);
 		});
 
 		document.getElementById('launchdek-retry-panel-install').addEventListener('click', function () {
-			retryPanelInstall(currentSiteId);
+			retryPanelInstall(currentSiteId, PANEL_SETUP_SITES).then(function (panel) {
+				if (panel && panel.success) {
+					loadSites();
+				}
+			});
 		});
 
 		document.getElementById('launchdek-site-form').addEventListener('submit', function (e) {
@@ -3102,7 +3206,7 @@
 					document.getElementById('launchdek-site-id').value = site.id;
 					document.getElementById('launchdek-site-delete').hidden = false;
 				}
-				updatePanelSetupStatus(site ? site.client_panel : null);
+				updatePanelSetupStatus(site ? site.client_panel : null, PANEL_SETUP_SITES);
 				if (site && site.client_panel && site.client_panel.success) {
 					closeModal(document.getElementById('launchdek-site-modal'));
 				}

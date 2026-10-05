@@ -193,6 +193,25 @@ class LAUNCHDEK_Integration_WP_Umbrella implements LAUNCHDEK_Integration_Interfa
 	}
 
 	/**
+	 * Verify a Public API token against WP Umbrella (lightweight projects probe).
+	 *
+	 * @param string $token Optional plaintext token; uses stored token when empty.
+	 * @return true|WP_Error
+	 */
+	public function verify_api_token( $token = '' ) {
+		$response = $this->api_request(
+			'/projects',
+			array(
+				'page'     => 1,
+				'per_page' => 1,
+			),
+			$token
+		);
+
+		return is_wp_error( $response ) ? $response : true;
+	}
+
+	/**
 	 * Push the client panel to a single LaunchDek site.
 	 *
 	 * @param array $site LaunchDek site row.
@@ -311,9 +330,11 @@ class LAUNCHDEK_Integration_WP_Umbrella implements LAUNCHDEK_Integration_Interfa
 	 * @return array|WP_Error
 	 */
 	protected function api_request( $path, $query = array(), $token = '' ) {
-		$token = '' !== (string) $token ? (string) $token : LAUNCHDEK_Settings::get_wp_umbrella_api_token();
+		$token = '' !== (string) $token
+			? LAUNCHDEK_Settings::normalize_wp_umbrella_api_token( $token )
+			: LAUNCHDEK_Settings::get_wp_umbrella_api_token();
 
-		if ( '' === trim( $token ) ) {
+		if ( '' === $token ) {
 			return new WP_Error(
 				'launchdek_wp_umbrella_unconfigured',
 				__( 'WP Umbrella API token is not configured.', LAUNCHDEK_TEXT_DOMAIN ),
@@ -350,10 +371,18 @@ class LAUNCHDEK_Integration_WP_Umbrella implements LAUNCHDEK_Integration_Interfa
 		$body   = wp_remote_retrieve_body( $response );
 		$data   = json_decode( $body, true );
 
-		if ( 401 === $status || 403 === $status ) {
+		if ( 401 === $status ) {
 			return new WP_Error(
 				'launchdek_wp_umbrella_unauthorized',
-				__( 'WP Umbrella rejected the API token. Regenerate your Public API token and save it again.', LAUNCHDEK_TEXT_DOMAIN ),
+				__( 'WP Umbrella rejected the API token. Use the account token from Profile → Public API (for developers)—not the per-site connection key from WP Umbrella plugin settings. Regenerate the Public API token if needed, then save again.', LAUNCHDEK_TEXT_DOMAIN ),
+				array( 'status' => $status )
+			);
+		}
+
+		if ( 403 === $status ) {
+			return new WP_Error(
+				'launchdek_wp_umbrella_forbidden',
+				__( 'WP Umbrella rejected the request. Regenerate your Public API token in Profile → Public API (for developers) and ensure it includes the public_api scope, then save again.', LAUNCHDEK_TEXT_DOMAIN ),
 				array( 'status' => $status )
 			);
 		}

@@ -71,6 +71,7 @@ $telemetry_fields       = isset( $telemetry['fields'] ) && is_array( $telemetry[
 		<h2><?php esc_html_e( 'Telemetry Sync Mapping Rules', LAUNCHDEK_TEXT_DOMAIN ); ?></h2>
 		<p><?php esc_html_e( 'Map platform telemetry fields to LaunchDek site records when connectors sync remote site data.', LAUNCHDEK_TEXT_DOMAIN ); ?></p>
 		<div id="launchdek-telemetry-notice" class="launchdek-notice-area"></div>
+		<div class="launchdek-table-scroll">
 		<table class="wp-list-table widefat fixed striped" id="launchdek-telemetry-rules-table">
 			<thead>
 				<tr>
@@ -93,6 +94,7 @@ $telemetry_fields       = isset( $telemetry['fields'] ) && is_array( $telemetry[
 				<?php endforeach; ?>
 			</tbody>
 		</table>
+		</div>
 		<p class="launchdek-inline-form">
 			<button type="button" class="button button-primary" id="launchdek-save-telemetry-rules"><?php esc_html_e( 'Save Mapping Rules', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
 		</p>
@@ -108,7 +110,7 @@ $telemetry_fields       = isset( $telemetry['fields'] ) && is_array( $telemetry[
 					<p class="launchdek-connector-config-status" id="launchdek-wp-umbrella-token-status" hidden></p>
 					<label for="launchdek-wp-umbrella-api-token"><?php esc_html_e( 'Public API token', LAUNCHDEK_TEXT_DOMAIN ); ?></label>
 					<input type="password" id="launchdek-wp-umbrella-api-token" class="regular-text" autocomplete="off" spellcheck="false" placeholder="<?php esc_attr_e( 'Paste your WP Umbrella Public API token', LAUNCHDEK_TEXT_DOMAIN ); ?>">
-					<p class="description launchdek-muted"><?php esc_html_e( 'Generate this in WP Umbrella under Profile → Public API (for developers). It is stored encrypted and never shown again after saving.', LAUNCHDEK_TEXT_DOMAIN ); ?></p>
+					<p class="description launchdek-muted"><?php esc_html_e( 'Generate this in WP Umbrella under Profile → Public API (for developers). Do not use the per-site connection key from the WP Umbrella plugin on a client site. The token is stored encrypted and never shown again after saving.', LAUNCHDEK_TEXT_DOMAIN ); ?></p>
 					<p class="launchdek-inline-form">
 						<button type="button" class="button button-primary" id="launchdek-wp-umbrella-save-token"><?php esc_html_e( 'Save API Token', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
 						<button type="button" class="button button-link-delete" id="launchdek-wp-umbrella-clear-token" hidden><?php esc_html_e( 'Remove API Token', LAUNCHDEK_TEXT_DOMAIN ); ?></button>

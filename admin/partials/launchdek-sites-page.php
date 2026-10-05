@@ -231,6 +231,7 @@ endif;
 				</select>
 			</label>
 		</div>
+		<div class="launchdek-table-scroll">
 		<table class="wp-list-table widefat fixed striped" id="launchdek-sites-table">
 			<thead>
 				<tr>
@@ -268,6 +269,7 @@ endif;
 				<?php endif; ?>
 			</tbody>
 		</table>
+		</div>
 	</div>
 
 	<div id="launchdek-site-modal" class="launchdek-modal" hidden>
@@ -302,21 +304,11 @@ endif;
 					<div id="launchdek-site-group-add-notice" class="launchdek-notice-area" aria-live="polite"></div>
 				</div>
 				<div id="launchdek-site-test-result" class="launchdek-notice-area"></div>
-				<div id="launchdek-panel-setup" class="launchdek-panel-setup" hidden>
-					<h3 class="launchdek-panel-setup-title"><?php esc_html_e( 'Client checklist panel setup', LAUNCHDEK_TEXT_DOMAIN ); ?></h3>
-					<p class="launchdek-muted"><?php esc_html_e( 'Optional one-time setup so clients see the checklist in their wp-admin. Core automation works without this step.', LAUNCHDEK_TEXT_DOMAIN ); ?></p>
-					<ol class="launchdek-panel-setup-steps">
-						<li><?php esc_html_e( 'Download the bootstrap file below.', LAUNCHDEK_TEXT_DOMAIN ); ?></li>
-						<li><?php esc_html_e( 'Upload it to wp-content/mu-plugins/ on the client site (create the mu-plugins folder if needed).', LAUNCHDEK_TEXT_DOMAIN ); ?></li>
-						<li><?php esc_html_e( 'Click Retry panel install — LaunchDek will deploy the full panel and verify the connection.', LAUNCHDEK_TEXT_DOMAIN ); ?></li>
-					</ol>
-					<p class="launchdek-panel-setup-actions">
-						<button type="button" class="button" id="launchdek-download-panel-bootstrap"><?php esc_html_e( 'Download launchdek-client.php', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
-						<button type="button" class="button button-secondary" id="launchdek-retry-panel-install"><?php esc_html_e( 'Retry panel install', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
-					</p>
-					<p class="launchdek-muted launchdek-panel-setup-path"><code>wp-content/mu-plugins/launchdek-client.php</code></p>
-					<div id="launchdek-panel-setup-result" class="launchdek-notice-area"></div>
-				</div>
+				<?php
+				$launchdek_panel_setup_id_prefix = '';
+				$launchdek_panel_setup_hidden      = true;
+				require LAUNCHDEK_PLUGIN_DIR . 'admin/partials/launchdek-panel-setup-block.php';
+				?>
 				<p class="launchdek-modal-actions">
 					<button type="button" class="button" id="launchdek-site-test"><?php esc_html_e( 'Test Connection', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
 					<button type="submit" class="button button-primary"><?php esc_html_e( 'Save Site', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
@@ -412,6 +404,12 @@ endif;
 				<p><label><?php esc_html_e( 'Admin Username', LAUNCHDEK_TEXT_DOMAIN ); ?><br><input type="text" id="launchdek-tester-username" class="regular-text" required /></label></p>
 				<p><label><?php esc_html_e( 'Application Password', LAUNCHDEK_TEXT_DOMAIN ); ?><br><input type="password" id="launchdek-tester-password" class="regular-text" autocomplete="new-password" required /></label></p>
 				<div id="launchdek-tester-result" class="launchdek-notice-area"></div>
+				<?php
+				$launchdek_panel_setup_id_prefix   = 'tester';
+				$launchdek_panel_setup_hidden      = true;
+				$launchdek_panel_setup_show_retry  = false;
+				require LAUNCHDEK_PLUGIN_DIR . 'admin/partials/launchdek-panel-setup-block.php';
+				?>
 				<p class="launchdek-modal-actions">
 					<button type="submit" class="button button-primary"><?php esc_html_e( 'Test Connection', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
 					<button type="button" class="button launchdek-modal-close"><?php esc_html_e( 'Close', LAUNCHDEK_TEXT_DOMAIN ); ?></button>

@@ -98,6 +98,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 				</div>
 			</div>
 
+			<?php
+			$launchdek_panel_setup_id_prefix = 'onboarding';
+			$launchdek_panel_setup_hidden      = true;
+			require LAUNCHDEK_PLUGIN_DIR . 'admin/partials/launchdek-panel-setup-block.php';
+			?>
+
 			<p id="launchdek-onboarding-existing-site" class="launchdek-onboarding-existing-site" hidden></p>
 
 			<p class="launchdek-onboarding-outro"><?php esc_html_e( 'Your imported checklist workflow will be ready to push instantly.', LAUNCHDEK_TEXT_DOMAIN ); ?></p>

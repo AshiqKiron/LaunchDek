@@ -1,0 +1,3940 @@
+# Copyright (C) 2026 ashiquzzaman
+# This file is distributed under the GPL-3.0-or-later.
+msgid ""
+msgstr ""
+"Project-Id-Version: LaunchDek 1.0.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/LaunchDek\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-09-22T17:58:19+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.12.0\n"
+"X-Domain: launchdek\n"
+
+#. Plugin Name of the plugin
+#: launchdek.php
+#: includes/class-launchdek-admin.php:28
+#: includes/class-launchdek-admin.php:29
+#: includes/class-launchdek-admin.php:485
+#: mu-plugin/launchdek-client/class-panel.php:175
+msgid "LaunchDek"
+msgstr ""
+
+#. Plugin URI of the plugin
+#: launchdek.php
+msgid "https://asphaltthemes.com/launchdek"
+msgstr ""
+
+#. Description of the plugin
+#: launchdek.php
+msgid "Remote WordPress site orchestration for agencies — checklists, audit, and integrations."
+msgstr ""
+
+#. Author of the plugin
+#: launchdek.php
+msgid "ashiquzzaman"
+msgstr ""
+
+#. Author URI of the plugin
+#: launchdek.php
+msgid "https://asphaltthemes.com"
+msgstr ""
+
+#: admin/partials/launchdek-activity-logs-page.php:19
+msgid "Checklist runs, site changes, and client activity—all in one log. Filter by site, status, or date."
+msgstr ""
+
+#: admin/partials/launchdek-activity-logs-page.php:20
+msgid "Back to Sites"
+msgstr ""
+
+#: admin/partials/launchdek-activity-logs-page.php:26
+#: admin/partials/launchdek-activity-logs-page.php:61
+#: admin/partials/launchdek-automation-page.php:155
+#: includes/class-launchdek-audit-log.php:602
+#: includes/class-launchdek-audit-log.php:735
+#: includes/class-launchdek-audit-log.php:1687
+msgid "Site"
+msgstr ""
+
+#: admin/partials/launchdek-activity-logs-page.php:28
+#: admin/partials/launchdek-automation-page.php:183
+msgid "All sites"
+msgstr ""
+
+#: admin/partials/launchdek-activity-logs-page.php:32
+#: admin/partials/launchdek-automation-page.php:157
+#: admin/partials/launchdek-sites-page.php:238
+#: includes/class-launchdek-admin.php:245
+#: includes/class-launchdek-audit-log.php:606
+#: includes/class-launchdek-audit-log.php:1691
+msgid "Status"
+msgstr ""
+
+#: admin/partials/launchdek-activity-logs-page.php:34
+msgid "All statuses"
+msgstr ""
+
+#: admin/partials/launchdek-activity-logs-page.php:35
+#: includes/class-launchdek-audit-log.php:619
+#: includes/class-launchdek-audit-log.php:1700
+msgid "Success"
+msgstr ""
+
+#: admin/partials/launchdek-activity-logs-page.php:36
+#: includes/class-launchdek-admin.php:248
+#: includes/class-launchdek-audit-log.php:807
+msgid "Failed"
+msgstr ""
+
+#: admin/partials/launchdek-activity-logs-page.php:37
+msgid "Drift / Warning"
+msgstr ""
+
+#: admin/partials/launchdek-activity-logs-page.php:41
+msgid "From"
+msgstr ""
+
+#: admin/partials/launchdek-activity-logs-page.php:45
+msgid "To"
+msgstr ""
+
+#: admin/partials/launchdek-activity-logs-page.php:49
+#: admin/partials/launchdek-checklists-page.php:29
+msgid "Search"
+msgstr ""
+
+#: admin/partials/launchdek-activity-logs-page.php:50
+msgid "Checklist, site, or note…"
+msgstr ""
+
+#: admin/partials/launchdek-activity-logs-page.php:53
+msgid "Apply Filters"
+msgstr ""
+
+#: admin/partials/launchdek-activity-logs-page.php:59
+msgid "When"
+msgstr ""
+
+#: admin/partials/launchdek-activity-logs-page.php:60
+msgid "User"
+msgstr ""
+
+#: admin/partials/launchdek-activity-logs-page.php:62
+msgid "What happened"
+msgstr ""
+
+#: admin/partials/launchdek-activity-logs-page.php:66
+msgid "Loading activity…"
+msgstr ""
+
+#: admin/partials/launchdek-admin-page.php:30
+msgid "Total Sites Connected"
+msgstr ""
+
+#: admin/partials/launchdek-admin-page.php:31
+#: admin/partials/launchdek-billing-page.php:42
+msgid "Active Checklists"
+msgstr ""
+
+#: admin/partials/launchdek-admin-page.php:32
+msgid "Checklist Completion Rate"
+msgstr ""
+
+#: admin/partials/launchdek-admin-page.php:37
+msgid "API Connection Status"
+msgstr ""
+
+#: admin/partials/launchdek-admin-page.php:38
+#: includes/class-launchdek-capabilities.php:234
+msgid "Manage Sites"
+msgstr ""
+
+#: admin/partials/launchdek-admin-page.php:40
+msgid "Connection status summary"
+msgstr ""
+
+#: admin/partials/launchdek-admin-page.php:43
+#: includes/class-launchdek-admin.php:194
+msgid "All Sites"
+msgstr ""
+
+#: admin/partials/launchdek-admin-page.php:47
+#: includes/class-launchdek-admin.php:195
+msgid "Healthy"
+msgstr ""
+
+#: admin/partials/launchdek-admin-page.php:51
+#: includes/class-launchdek-admin.php:196
+msgid "Issues"
+msgstr ""
+
+#: admin/partials/launchdek-admin-page.php:57
+msgid "Live Log Feed"
+msgstr ""
+
+#. translators: %s: link to activity logs page
+#: admin/partials/launchdek-admin-page.php:62
+#, php-format
+msgid "Showing the latest 15 entries. %s"
+msgstr ""
+
+#: admin/partials/launchdek-admin-page.php:63
+#: admin/partials/launchdek-automation-page.php:119
+msgid "View all activity logs"
+msgstr ""
+
+#: admin/partials/launchdek-admin-page.php:69
+msgid "No activity yet."
+msgstr ""
+
+#: admin/partials/launchdek-admin-page.php:95
+msgid "Quick Launch Bar"
+msgstr ""
+
+#: admin/partials/launchdek-admin-page.php:97
+msgid "Select site"
+msgstr ""
+
+#: admin/partials/launchdek-admin-page.php:98
+#: admin/partials/launchdek-checklists-page.php:183
+#: admin/partials/launchdek-onboarding-modal.php:78
+#: includes/class-launchdek-admin.php:354
+#: includes/class-launchdek-admin.php:371
+msgid "Select site…"
+msgstr ""
+
+#: admin/partials/launchdek-admin-page.php:103
+msgid "Select checklist"
+msgstr ""
+
+#: admin/partials/launchdek-admin-page.php:104
+#: admin/partials/launchdek-automation-page.php:74
+#: admin/partials/launchdek-automation-page.php:137
+#: admin/partials/launchdek-checklists-page.php:75
+#: includes/class-launchdek-admin.php:232
+msgid "Select checklist…"
+msgstr ""
+
+#: admin/partials/launchdek-admin-page.php:109
+#: admin/partials/launchdek-automation-page.php:21
+#: includes/class-launchdek-admin.php:400
+msgid "Run Checklist"
+msgstr ""
+
+#: admin/partials/launchdek-automation-page.php:20
+msgid "Batch run sections"
+msgstr ""
+
+#: admin/partials/launchdek-automation-page.php:22
+#: admin/partials/launchdek-automation-page.php:130
+#: includes/class-launchdek-admin.php:401
+msgid "Batch Queue"
+msgstr ""
+
+#: admin/partials/launchdek-automation-page.php:23
+#: includes/class-launchdek-admin.php:402
+msgid "Drift Monitor"
+msgstr ""
+
+#: admin/partials/launchdek-automation-page.php:28
+msgid "Choose a checklist and target site, then execute steps one at a time or run all automatic API steps."
+msgstr ""
+
+#: admin/partials/launchdek-automation-page.php:33
+msgid "Run checklist steps"
+msgstr ""
+
+#: admin/partials/launchdek-automation-page.php:42
+msgid "Run checklist progress"
+msgstr ""
+
+#: admin/partials/launchdek-automation-page.php:48
+#: admin/partials/launchdek-onboarding-modal.php:37
+#: includes/class-launchdek-admin.php:346
+#: includes/class-launchdek-admin.php:403
+msgid "Step 1"
+msgstr ""
+
+#: admin/partials/launchdek-automation-page.php:49
+#: includes/class-launchdek-admin.php:404
+msgid "Choose checklist"
+msgstr ""
+
+#: admin/partials/launchdek-automation-page.php:55
+#: admin/partials/launchdek-onboarding-modal.php:44
+#: includes/class-launchdek-admin.php:348
+#: includes/class-launchdek-admin.php:405
+msgid "Step 2"
+msgstr ""
+
+#: admin/partials/launchdek-automation-page.php:56
+#: includes/class-launchdek-admin.php:406
+msgid "Choose site"
+msgstr ""
+
+#: admin/partials/launchdek-automation-page.php:62
+#: includes/class-launchdek-admin.php:407
+msgid "Step 3"
+msgstr ""
+
+#: admin/partials/launchdek-automation-page.php:63
+#: includes/class-launchdek-admin.php:408
+msgid "Execute steps"
+msgstr ""
+
+#: admin/partials/launchdek-automation-page.php:72
+#: admin/partials/launchdek-automation-page.php:73
+#: admin/partials/launchdek-automation-page.php:136
+#: admin/partials/launchdek-automation-page.php:156
+#: admin/partials/launchdek-checklists-page.php:73
+#: includes/class-launchdek-admin.php:242
+#: includes/class-launchdek-audit-log.php:596
+#: includes/class-launchdek-audit-log.php:598
+#: includes/class-launchdek-audit-log.php:727
+#: includes/class-launchdek-audit-log.php:1044
+#: includes/class-launchdek-audit-log.php:1066
+#: includes/class-launchdek-audit-log.php:1085
+#: includes/class-launchdek-audit-log.php:1156
+#: includes/class-launchdek-audit-log.php:1266
+#: includes/class-launchdek-audit-log.php:1681
+#: includes/class-launchdek-audit-log.php:1683
+msgid "Checklist"
+msgstr ""
+
+#: admin/partials/launchdek-automation-page.php:78
+#: includes/class-launchdek-admin.php:409
+msgid "Next"
+msgstr ""
+
+#: admin/partials/launchdek-automation-page.php:85
+msgid "Target site"
+msgstr ""
+
+#: admin/partials/launchdek-automation-page.php:90
+#: admin/partials/launchdek-onboarding-modal.php:108
+#: admin/partials/launchdek-sites-page.php:300
+#: admin/partials/launchdek-sites-page.php:393
+#: includes/class-launchdek-admin.php:226
+#: includes/class-launchdek-admin.php:359
+#: includes/class-launchdek-admin.php:410
+msgid "Back"
+msgstr ""
+
+#: admin/partials/launchdek-automation-page.php:91
+#: includes/class-launchdek-admin.php:411
+msgid "Start Run"
+msgstr ""
+
+#: admin/partials/launchdek-automation-page.php:99
+#: includes/class-launchdek-admin.php:412
+msgid "Back to setup"
+msgstr ""
+
+#: admin/partials/launchdek-automation-page.php:101
+#: includes/class-launchdek-admin.php:386
+msgid "Complete steps 1–2 to start a run, or open an existing run from Sites."
+msgstr ""
+
+#: admin/partials/launchdek-automation-page.php:103
+msgid "Live step-by-step runner"
+msgstr ""
+
+#: admin/partials/launchdek-automation-page.php:105
+msgid "Run Auto Steps"
+msgstr ""
+
+#: admin/partials/launchdek-automation-page.php:106
+msgid "Execute Next Step"
+msgstr ""
+
+#: admin/partials/launchdek-automation-page.php:107
+msgid "Refresh Client Panel"
+msgstr ""
+
+#: admin/partials/launchdek-automation-page.php:118
+msgid "Recent Activity"
+msgstr ""
+
+#: admin/partials/launchdek-automation-page.php:122
+#: includes/class-launchdek-admin.php:388
+msgid "Start a run to see site activity here, or open the full activity log."
+msgstr ""
+
+#: admin/partials/launchdek-automation-page.php:131
+msgid "Use Batch Queue when running the same checklist on multiple sites at once."
+msgstr ""
+
+#: admin/partials/launchdek-automation-page.php:140
+msgid "Add to Batch Queue"
+msgstr ""
+
+#: admin/partials/launchdek-automation-page.php:141
+msgid "Process Queue"
+msgstr ""
+
+#: admin/partials/launchdek-automation-page.php:142
+msgid "Clear Queue"
+msgstr ""
+
+#: admin/partials/launchdek-automation-page.php:146
+msgid "Target sites"
+msgstr ""
+
+#: admin/partials/launchdek-automation-page.php:158
+#: includes/class-launchdek-audit-log.php:721
+msgid "Run"
+msgstr ""
+
+#: admin/partials/launchdek-automation-page.php:164
+msgid "No queued runs. Select sites and add to the batch queue."
+msgstr ""
+
+#: admin/partials/launchdek-automation-page.php:176
+msgid "Catch unexpected site changes"
+msgstr ""
+
+#: admin/partials/launchdek-automation-page.php:177
+msgid "LaunchDek watches your connected sites for changes to permalinks, search engine visibility, and environment labels (production, staging, and so on). The first check saves a baseline; later scans alert you when something drifts."
+msgstr ""
+
+#: admin/partials/launchdek-automation-page.php:179
+msgid "Loading drift monitor status…"
+msgstr ""
+
+#: admin/partials/launchdek-automation-page.php:185
+msgid "Run Verification Now"
+msgstr ""
+
+#: admin/partials/launchdek-billing-page.php:25
+msgid "Current Plan"
+msgstr ""
+
+#: admin/partials/launchdek-billing-page.php:26
+msgid "Self-Hosted"
+msgstr ""
+
+#: admin/partials/launchdek-billing-page.php:27
+msgid "Community Edition"
+msgstr ""
+
+#: admin/partials/launchdek-billing-page.php:29
+msgid "LaunchDek runs on your WordPress hub with no recurring subscription. Connect client sites, run checklists, and manage your agency workflow from this install."
+msgstr ""
+
+#: admin/partials/launchdek-billing-page.php:34
+msgid "Hub Usage"
+msgstr ""
+
+#: admin/partials/launchdek-billing-page.php:38
+msgid "Sites Connected"
+msgstr ""
+
+#: admin/partials/launchdek-billing-page.php:46
+msgid "Usage reflects your current hub. There are no per-site billing limits on the self-hosted edition."
+msgstr ""
+
+#: admin/partials/launchdek-billing-page.php:52
+msgid "Invoices & Payment"
+msgstr ""
+
+#: admin/partials/launchdek-billing-page.php:54
+msgid "No payment method is required for this self-hosted install. When managed billing becomes available, subscription details and invoices will appear here."
+msgstr ""
+
+#: admin/partials/launchdek-billing-page.php:58
+msgid "View Documentation"
+msgstr ""
+
+#: admin/partials/launchdek-checklists-page.php:18
+msgid "Checklist sections"
+msgstr ""
+
+#: admin/partials/launchdek-checklists-page.php:19
+msgid "Templates"
+msgstr ""
+
+#: admin/partials/launchdek-checklists-page.php:20
+msgid "My Checklists"
+msgstr ""
+
+#: admin/partials/launchdek-checklists-page.php:21
+msgid "Auto-Capture"
+msgstr ""
+
+#: admin/partials/launchdek-checklists-page.php:26
+msgid "Built-In Standard Stacks"
+msgstr ""
+
+#: admin/partials/launchdek-checklists-page.php:34
+msgid "Search templates by title, description, or steps…"
+msgstr ""
+
+#: admin/partials/launchdek-checklists-page.php:40
+msgid "Template categories"
+msgstr ""
+
+#: admin/partials/launchdek-checklists-page.php:47
+msgid "Save a checklist from My Checklists as a reusable template for your team. Vault items stay on this hub only—not in LaunchDek's built-in library. Click Use Checklist to start from a copy."
+msgstr ""
+
+#: admin/partials/launchdek-checklists-page.php:53
+msgid "Private Agency Vault"
+msgstr ""
+
+#: admin/partials/launchdek-checklists-page.php:58
+msgid "Save your best custom checklists here and reuse them across client sites."
+msgstr ""
+
+#: admin/partials/launchdek-checklists-page.php:60
+msgid "Select checklist to vault"
+msgstr ""
+
+#: admin/partials/launchdek-checklists-page.php:62
+msgid "Select checklist to vault…"
+msgstr ""
+
+#: admin/partials/launchdek-checklists-page.php:64
+msgid "Save to Vault"
+msgstr ""
+
+#: admin/partials/launchdek-checklists-page.php:81
+msgid "Checklist Builder"
+msgstr ""
+
+#: admin/partials/launchdek-checklists-page.php:83
+msgid "The checklist name shown in the hub, run history, and client panel when this checklist is pushed to a site."
+msgstr ""
+
+#: admin/partials/launchdek-checklists-page.php:87
+msgid "Optional short summary for your team. Appears in checklist pickers and helps identify this checklist when vaulting or launching runs."
+msgstr ""
+
+#: admin/partials/launchdek-checklists-page.php:99
+msgid "Checklist title"
+msgstr ""
+
+#: admin/partials/launchdek-checklists-page.php:110
+msgid "Description"
+msgstr ""
+
+#: admin/partials/launchdek-checklists-page.php:120
+msgid "Checklist Canvas"
+msgstr ""
+
+#: admin/partials/launchdek-checklists-page.php:121
+msgid "Add Step"
+msgstr ""
+
+#: admin/partials/launchdek-checklists-page.php:123
+msgid "Drag-and-drop checklist builder canvas"
+msgstr ""
+
+#: admin/partials/launchdek-checklists-page.php:128
+msgid "Step configuration panel"
+msgstr ""
+
+#: admin/partials/launchdek-checklists-page.php:129
+msgid "Step Configuration"
+msgstr ""
+
+#: admin/partials/launchdek-checklists-page.php:131
+msgid "Client panel heading"
+msgstr ""
+
+#: admin/partials/launchdek-checklists-page.php:140
+msgid "Heading shown on the client checklist panel. Syncs on the next checklist push or client panel refresh."
+msgstr ""
+
+#: admin/partials/launchdek-checklists-page.php:143
+msgid "Select a step on the canvas to configure."
+msgstr ""
+
+#: admin/partials/launchdek-checklists-page.php:147
+msgid "Checklist preview panel"
+msgstr ""
+
+#: admin/partials/launchdek-checklists-page.php:148
+#: admin/partials/launchdek-onboarding-modal.php:54
+#: includes/class-launchdek-admin.php:352
+msgid "Preview"
+msgstr ""
+
+#: admin/partials/launchdek-checklists-page.php:150
+#: includes/class-launchdek-admin.php:496
+msgid "Add a title and steps to preview the client panel."
+msgstr ""
+
+#: admin/partials/launchdek-checklists-page.php:156
+msgid "Save Checklist"
+msgstr ""
+
+#: admin/partials/launchdek-checklists-page.php:157
+msgid "Start Blank"
+msgstr ""
+
+#: admin/partials/launchdek-checklists-page.php:158
+msgid "Export JSON"
+msgstr ""
+
+#: admin/partials/launchdek-checklists-page.php:159
+#: admin/partials/launchdek-sites-page.php:178
+#: includes/class-launchdek-admin.php:258
+msgid "Delete"
+msgstr ""
+
+#: admin/partials/launchdek-checklists-page.php:164
+msgid "Import / Export Center"
+msgstr ""
+
+#: admin/partials/launchdek-checklists-page.php:166
+msgid "Import checklist JSON file"
+msgstr ""
+
+#: admin/partials/launchdek-checklists-page.php:168
+msgid "Import checklist from URL"
+msgstr ""
+
+#: admin/partials/launchdek-checklists-page.php:169
+msgid "Or paste JSON URL…"
+msgstr ""
+
+#: admin/partials/launchdek-checklists-page.php:170
+msgid "Import"
+msgstr ""
+
+#: admin/partials/launchdek-checklists-page.php:177
+msgid "Auto-Capture Checklist Steps"
+msgstr ""
+
+#: admin/partials/launchdek-checklists-page.php:178
+msgid "Record configuration changes on a client site and turn them into reusable checklist steps."
+msgstr ""
+
+#: admin/partials/launchdek-checklists-page.php:181
+msgid "Client site"
+msgstr ""
+
+#: admin/partials/launchdek-checklists-page.php:189
+msgid "Start Recording"
+msgstr ""
+
+#: admin/partials/launchdek-checklists-page.php:190
+msgid "Stop Recording"
+msgstr ""
+
+#: admin/partials/launchdek-checklists-page.php:191
+msgid "Import Captured Steps"
+msgstr ""
+
+#: admin/partials/launchdek-checklists-page.php:192
+msgid "Clear"
+msgstr ""
+
+#: admin/partials/launchdek-integrations-page.php:32
+msgid "Platform Connectors Hub"
+msgstr ""
+
+#: admin/partials/launchdek-integrations-page.php:33
+msgid "Connect LaunchDek with site management platforms to push the agent to child sites."
+msgstr ""
+
+#: admin/partials/launchdek-integrations-page.php:35
+msgid "Platform connectors"
+msgstr ""
+
+#. translators: %s: synced site count
+#: admin/partials/launchdek-integrations-page.php:50
+#: includes/class-launchdek-admin.php:337
+#, php-format
+msgid "%s synced sites"
+msgstr ""
+
+#: admin/partials/launchdek-integrations-page.php:59
+#: includes/class-launchdek-admin.php:328
+msgid "Connected"
+msgstr ""
+
+#: admin/partials/launchdek-integrations-page.php:59
+#: includes/class-launchdek-admin.php:329
+msgid "Not Detected"
+msgstr ""
+
+#: admin/partials/launchdek-integrations-page.php:62
+#: includes/class-launchdek-admin.php:330
+msgid "Setup"
+msgstr ""
+
+#: admin/partials/launchdek-integrations-page.php:71
+msgid "Telemetry Sync Mapping Rules"
+msgstr ""
+
+#: admin/partials/launchdek-integrations-page.php:72
+msgid "Map platform telemetry fields to LaunchDek site records when connectors sync remote site data."
+msgstr ""
+
+#: admin/partials/launchdek-integrations-page.php:77
+msgid "Enabled"
+msgstr ""
+
+#: admin/partials/launchdek-integrations-page.php:78
+#: includes/class-launchdek-audit-log.php:1161
+#: includes/class-launchdek-audit-log.php:1173
+msgid "Connector"
+msgstr ""
+
+#: admin/partials/launchdek-integrations-page.php:79
+msgid "Platform Field"
+msgstr ""
+
+#: admin/partials/launchdek-integrations-page.php:80
+msgid "LaunchDek Field"
+msgstr ""
+
+#: admin/partials/launchdek-integrations-page.php:97
+msgid "Save Mapping Rules"
+msgstr ""
+
+#: admin/partials/launchdek-integrations-page.php:104
+msgid "Connector Setup"
+msgstr ""
+
+#: admin/partials/launchdek-integrations-page.php:109
+msgid "Public API token"
+msgstr ""
+
+#: admin/partials/launchdek-integrations-page.php:110
+msgid "Paste your WP Umbrella Public API token"
+msgstr ""
+
+#: admin/partials/launchdek-integrations-page.php:111
+msgid "Generate this in WP Umbrella under Profile → Public API (for developers). Do not use the per-site connection key from the WP Umbrella plugin on a client site. The token is stored encrypted and never shown again after saving."
+msgstr ""
+
+#: admin/partials/launchdek-integrations-page.php:113
+msgid "Save API Token"
+msgstr ""
+
+#: admin/partials/launchdek-integrations-page.php:114
+msgid "Remove API Token"
+msgstr ""
+
+#: admin/partials/launchdek-integrations-page.php:120
+#: includes/class-launchdek-admin.php:331
+msgid "Sync Sites"
+msgstr ""
+
+#: admin/partials/launchdek-integrations-page.php:121
+#: includes/class-launchdek-admin.php:332
+msgid "Preview Sync"
+msgstr ""
+
+#: admin/partials/launchdek-integrations-page.php:122
+#: includes/class-launchdek-admin.php:333
+msgid "Push Client Panel"
+msgstr ""
+
+#: admin/partials/launchdek-integrations-page.php:123
+msgid "Documentation"
+msgstr ""
+
+#: admin/partials/launchdek-integrations-page.php:124
+#: admin/partials/launchdek-sites-page.php:363
+#: admin/partials/launchdek-sites-page.php:417
+msgid "Close"
+msgstr ""
+
+#: admin/partials/launchdek-onboarding-modal.php:17
+#: includes/class-launchdek-admin.php:344
+msgid "LaunchDek Onboarding"
+msgstr ""
+
+#: admin/partials/launchdek-onboarding-modal.php:19
+#: includes/class-launchdek-admin.php:350
+msgid "Turn your messy Notion SOPs or Google Docs into an active Checklist."
+msgstr ""
+
+#: admin/partials/launchdek-onboarding-modal.php:21
+msgid "Close onboarding"
+msgstr ""
+
+#: admin/partials/launchdek-onboarding-modal.php:31
+#: includes/class-launchdek-admin.php:345
+msgid "Onboarding progress"
+msgstr ""
+
+#: admin/partials/launchdek-onboarding-modal.php:38
+#: includes/class-launchdek-admin.php:347
+msgid "Import your checklist from SOPs or docs"
+msgstr ""
+
+#: admin/partials/launchdek-onboarding-modal.php:45
+#: includes/class-launchdek-admin.php:349
+msgid "Connect a client site with App Passwords"
+msgstr ""
+
+#: admin/partials/launchdek-onboarding-modal.php:53
+#: includes/class-launchdek-admin.php:351
+msgid "Paste your checklist text here:"
+msgstr ""
+
+#: admin/partials/launchdek-onboarding-modal.php:55
+msgid ""
+"Change site permalink structure\n"
+"Back up the site before making changes\n"
+"Update Settings → Permalinks to Post name\n"
+"Test key pages and fix 404 redirects"
+msgstr ""
+
+#: admin/partials/launchdek-onboarding-modal.php:57
+#: includes/class-launchdek-admin.php:367
+msgid "Start typing to see your checklist preview."
+msgstr ""
+
+#: admin/partials/launchdek-onboarding-modal.php:64
+#: includes/class-launchdek-admin.php:355
+msgid "Start from a template instead"
+msgstr ""
+
+#: admin/partials/launchdek-onboarding-modal.php:66
+#: admin/partials/launchdek-onboarding-modal.php:110
+#: includes/class-launchdek-admin.php:356
+msgid "Skip"
+msgstr ""
+
+#: admin/partials/launchdek-onboarding-modal.php:67
+#: includes/class-launchdek-admin.php:357
+msgid "Next: Connect"
+msgstr ""
+
+#: admin/partials/launchdek-onboarding-modal.php:73
+#: includes/class-launchdek-admin.php:358
+msgid "Connect your first remote client site using WordPress App Passwords."
+msgstr ""
+
+#: admin/partials/launchdek-onboarding-modal.php:76
+#: includes/class-launchdek-admin.php:353
+msgid "Test workflow immediately on:"
+msgstr ""
+
+#: admin/partials/launchdek-onboarding-modal.php:77
+msgid "Select site for optional test run"
+msgstr ""
+
+#: admin/partials/launchdek-onboarding-modal.php:84
+msgid "Remote Site URL:"
+msgstr ""
+
+#: admin/partials/launchdek-onboarding-modal.php:88
+msgid "Admin Username:"
+msgstr ""
+
+#: admin/partials/launchdek-onboarding-modal.php:92
+msgid "Application Password:"
+msgstr ""
+
+#: admin/partials/launchdek-onboarding-modal.php:96
+#: admin/partials/launchdek-sites-page.php:321
+#: admin/partials/launchdek-sites-page.php:416
+#: includes/class-launchdek-admin.php:362
+msgid "Test Connection"
+msgstr ""
+
+#: admin/partials/launchdek-onboarding-modal.php:103
+#: includes/class-launchdek-admin.php:361
+msgid "Your imported checklist workflow will be ready to push instantly."
+msgstr ""
+
+#: admin/partials/launchdek-onboarding-modal.php:111
+#: includes/class-launchdek-admin.php:360
+msgid "Finish & Launch"
+msgstr ""
+
+#: admin/partials/launchdek-settings-page.php:33
+msgid "Turn LaunchDek on or off for this hub and schedule automated drift checks that compare remote site state twice daily."
+msgstr ""
+
+#: admin/partials/launchdek-settings-page.php:37
+msgid "AES-256-CBC encryption using local WordPress salts. When enabled, application passwords are encrypted at rest and decrypted only when a remote request is made."
+msgstr ""
+
+#: admin/partials/launchdek-settings-page.php:41
+msgid "Choose how the optional checklist panel appears on connected client sites. Layout changes sync on the next checklist push or client panel refresh."
+msgstr ""
+
+#: admin/partials/launchdek-settings-page.php:45
+msgid "Sensitive settings the hub should never push to remote sites during API checklist steps. One REST field or legacy option name per line; matching fields are stripped from /wp/v2/settings payloads before they run."
+msgstr ""
+
+#: admin/partials/launchdek-settings-page.php:49
+msgid "Route LaunchDek events to Slack, Microsoft Teams, or Discord. Choose which run, step, drift, and client-panel events trigger a notification."
+msgstr ""
+
+#: admin/partials/launchdek-settings-page.php:53
+msgid "Map WordPress roles to LaunchDek capabilities using agency presets. Administrators always retain full access regardless of this matrix."
+msgstr ""
+
+#: admin/partials/launchdek-settings-page.php:57
+msgid "Send email alerts for key checklist events on this hub. Choose which events trigger a message and enter one or more comma-separated recipient addresses."
+msgstr ""
+
+#: admin/partials/launchdek-settings-page.php:61
+msgid "Preview the first-run onboarding wizard without leaving Settings. Dismissal is stored separately and is not reset when you save these settings."
+msgstr ""
+
+#: admin/partials/launchdek-settings-page.php:66
+msgid "Controls where and how the checklist panel appears in remote wp-admin. Use the preview to compare sidebar, top bar, dock, pill, and other layouts."
+msgstr ""
+
+#: admin/partials/launchdek-settings-page.php:72
+msgid "Slack"
+msgstr ""
+
+#: admin/partials/launchdek-settings-page.php:76
+msgid "Microsoft Teams"
+msgstr ""
+
+#: admin/partials/launchdek-settings-page.php:80
+msgid "Discord"
+msgstr ""
+
+#: admin/partials/launchdek-settings-page.php:91
+msgid "Settings sections"
+msgstr ""
+
+#: admin/partials/launchdek-settings-page.php:92
+msgid "Platform & Security"
+msgstr ""
+
+#: admin/partials/launchdek-settings-page.php:93
+msgid "Panel layout & Exclude"
+msgstr ""
+
+#: admin/partials/launchdek-settings-page.php:94
+msgid "Webhooks & Email"
+msgstr ""
+
+#: admin/partials/launchdek-settings-page.php:95
+msgid "Access & Roles"
+msgstr ""
+
+#: admin/partials/launchdek-settings-page.php:104
+msgid "Platform"
+msgstr ""
+
+#: admin/partials/launchdek-settings-page.php:109
+msgid "Enable LaunchDek features"
+msgstr ""
+
+#: admin/partials/launchdek-settings-page.php:113
+msgid "Run automated drift checks twice daily"
+msgstr ""
+
+#: admin/partials/launchdek-settings-page.php:123
+msgid "Onboarding"
+msgstr ""
+
+#: admin/partials/launchdek-settings-page.php:126
+msgid "Show onboarding wizard"
+msgstr ""
+
+#: admin/partials/launchdek-settings-page.php:135
+msgid "Credential Vault Security"
+msgstr ""
+
+#: admin/partials/launchdek-settings-page.php:139
+msgid "Encrypt stored application passwords at rest (recommended)"
+msgstr ""
+
+#: admin/partials/launchdek-settings-page.php:142
+msgid "Credentials are encrypted with OpenSSL AES-256-CBC and a key derived from your site salts. Decryption happens only when a remote request is made."
+msgstr ""
+
+#: admin/partials/launchdek-settings-page.php:153
+msgid "Client Checklist Panel"
+msgstr ""
+
+#: admin/partials/launchdek-settings-page.php:161
+msgid "Panel layout"
+msgstr ""
+
+#: admin/partials/launchdek-settings-page.php:212
+msgid "Exclude Options"
+msgstr ""
+
+#: admin/partials/launchdek-settings-page.php:214
+msgid "Excluded settings fields"
+msgstr ""
+
+#: admin/partials/launchdek-settings-page.php:224
+msgid "One field per line. Use WordPress REST settings names (url, email, title) or legacy option names (siteurl, admin_email). Matching fields are removed from /wp/v2/settings API step payloads before they run on client sites."
+msgstr ""
+
+#: admin/partials/launchdek-settings-page.php:229
+msgid "Common fields:"
+msgstr ""
+
+#: admin/partials/launchdek-settings-page.php:250
+msgid "Webhooks & Notifications"
+msgstr ""
+
+#: admin/partials/launchdek-settings-page.php:252
+msgid "Channel Routing"
+msgstr ""
+
+#: admin/partials/launchdek-settings-page.php:254
+msgid "Notification channel routing"
+msgstr ""
+
+#: admin/partials/launchdek-settings-page.php:273
+msgid "Notification Events"
+msgstr ""
+
+#: admin/partials/launchdek-settings-page.php:295
+msgid "Email Notifications"
+msgstr ""
+
+#: admin/partials/launchdek-settings-page.php:297
+msgid "Send email alerts for key checklist events on this site."
+msgstr ""
+
+#: admin/partials/launchdek-settings-page.php:299
+msgid "Email notification events"
+msgstr ""
+
+#: admin/partials/launchdek-settings-page.php:318
+msgid "Notification email addresses"
+msgstr ""
+
+#: admin/partials/launchdek-settings-page.php:331
+msgid "Where these emails are sent. Separate multiple addresses with commas. Defaults to the site admin email."
+msgstr ""
+
+#: admin/partials/launchdek-settings-page.php:343
+msgid "Access Guardrails"
+msgstr ""
+
+#: admin/partials/launchdek-settings-page.php:345
+msgid "Agency Role Permissions (Admin vs. Developer vs. Auditor)"
+msgstr ""
+
+#: admin/partials/launchdek-settings-page.php:369
+msgid "WordPress Roles"
+msgstr ""
+
+#: admin/partials/launchdek-settings-page.php:371
+msgid "Map each WordPress role to LaunchDek capabilities. Administrators always retain full access."
+msgstr ""
+
+#: admin/partials/launchdek-settings-page.php:373
+msgid "WordPress role permission matrix"
+msgstr ""
+
+#: admin/partials/launchdek-settings-page.php:377
+msgid "Capability"
+msgstr ""
+
+#. translators: 1: capability label, 2: role name
+#: admin/partials/launchdek-settings-page.php:400
+#, php-format
+msgid "Allow %1$s for %2$s"
+msgstr ""
+
+#: admin/partials/launchdek-sites-page.php:28
+#: includes/class-launchdek-admin.php:187
+msgid "OK"
+msgstr ""
+
+#: admin/partials/launchdek-sites-page.php:31
+#: includes/class-launchdek-admin.php:188
+msgid "Fail"
+msgstr ""
+
+#: admin/partials/launchdek-sites-page.php:34
+#: admin/partials/launchdek-sites-page.php:57
+#: includes/class-launchdek-admin.php:189
+#: includes/class-launchdek-admin.php:197
+msgid "Unknown"
+msgstr ""
+
+#: admin/partials/launchdek-sites-page.php:50
+#: includes/class-launchdek-admin.php:190
+msgid "Connection OK"
+msgstr ""
+
+#: admin/partials/launchdek-sites-page.php:52
+#: includes/class-launchdek-admin.php:192
+msgid "Connection not working"
+msgstr ""
+
+#: admin/partials/launchdek-sites-page.php:142
+#: includes/class-launchdek-admin.php:214
+#: includes/class-launchdek-admin.php:268
+msgid "Client panel"
+msgstr ""
+
+#: admin/partials/launchdek-sites-page.php:162
+#: includes/class-launchdek-admin.php:201
+msgid "More site actions"
+msgstr ""
+
+#: admin/partials/launchdek-sites-page.php:166
+#: includes/class-launchdek-admin.php:198
+msgid "Edit"
+msgstr ""
+
+#: admin/partials/launchdek-sites-page.php:172
+#: admin/partials/launchdek-sites-page.php:333
+#: includes/class-launchdek-admin.php:231
+msgid "Push Checklist"
+msgstr ""
+
+#: admin/partials/launchdek-sites-page.php:173
+#: includes/class-launchdek-admin.php:199
+msgid "Test"
+msgstr ""
+
+#: admin/partials/launchdek-sites-page.php:174
+#: includes/class-launchdek-admin.php:202
+msgid "More info"
+msgstr ""
+
+#: admin/partials/launchdek-sites-page.php:175
+#: admin/partials/launchdek-sites-page.php:371
+#: includes/class-launchdek-admin.php:229
+msgid "Add to group"
+msgstr ""
+
+#: admin/partials/launchdek-sites-page.php:177
+#: includes/class-launchdek-admin.php:200
+msgid "Activity Log"
+msgstr ""
+
+#: admin/partials/launchdek-sites-page.php:195
+#: includes/class-launchdek-admin.php:237
+msgid "Show checklist history"
+msgstr ""
+
+#: admin/partials/launchdek-sites-page.php:210
+msgid "Add Site"
+msgstr ""
+
+#: admin/partials/launchdek-sites-page.php:211
+#: admin/partials/launchdek-sites-page.php:408
+msgid "Connection Tester"
+msgstr ""
+
+#: admin/partials/launchdek-sites-page.php:212
+#: includes/class-launchdek-admin.php:61
+#: includes/class-launchdek-admin.php:62
+#: includes/class-launchdek-admin.php:548
+msgid "Activity Logs"
+msgstr ""
+
+#: admin/partials/launchdek-sites-page.php:217
+msgid "Tagging and grouping filters"
+msgstr ""
+
+#: admin/partials/launchdek-sites-page.php:219
+#: admin/partials/launchdek-sites-page.php:220
+msgid "Filter by tag"
+msgstr ""
+
+#: admin/partials/launchdek-sites-page.php:221
+msgid "All tags"
+msgstr ""
+
+#: admin/partials/launchdek-sites-page.php:225
+#: admin/partials/launchdek-sites-page.php:226
+msgid "Filter by group"
+msgstr ""
+
+#: admin/partials/launchdek-sites-page.php:227
+msgid "All groups"
+msgstr ""
+
+#: admin/partials/launchdek-sites-page.php:237
+#: admin/partials/launchdek-sites-page.php:279
+#: includes/class-launchdek-integrations.php:122
+msgid "Site Name"
+msgstr ""
+
+#: admin/partials/launchdek-sites-page.php:239
+msgid "WP Ver"
+msgstr ""
+
+#: admin/partials/launchdek-sites-page.php:240
+msgid "PHP Ver"
+msgstr ""
+
+#: admin/partials/launchdek-sites-page.php:241
+msgid "Actions"
+msgstr ""
+
+#: admin/partials/launchdek-sites-page.php:247
+#: includes/class-launchdek-admin.php:184
+msgid "No sites registered yet."
+msgstr ""
+
+#: admin/partials/launchdek-sites-page.php:276
+msgid "Add Remote Site"
+msgstr ""
+
+#: admin/partials/launchdek-sites-page.php:280
+#: admin/partials/launchdek-sites-page.php:411
+#: includes/class-launchdek-integrations.php:123
+#: includes/class-launchdek-settings.php:281
+msgid "Site URL"
+msgstr ""
+
+#: admin/partials/launchdek-sites-page.php:281
+#: admin/partials/launchdek-sites-page.php:412
+msgid "Admin Username"
+msgstr ""
+
+#: admin/partials/launchdek-sites-page.php:282
+#: admin/partials/launchdek-sites-page.php:413
+msgid "Application Password"
+msgstr ""
+
+#: admin/partials/launchdek-sites-page.php:283
+msgid "Tags (comma-separated)"
+msgstr ""
+
+#: admin/partials/launchdek-sites-page.php:285
+msgid "Tag Group"
+msgstr ""
+
+#: admin/partials/launchdek-sites-page.php:290
+#: includes/class-launchdek-admin.php:223
+msgid "Add group…"
+msgstr ""
+
+#: admin/partials/launchdek-sites-page.php:295
+#: admin/partials/launchdek-sites-page.php:388
+#: includes/class-launchdek-admin.php:224
+msgid "New group name"
+msgstr ""
+
+#: admin/partials/launchdek-sites-page.php:299
+#: admin/partials/launchdek-sites-page.php:392
+#: includes/class-launchdek-admin.php:225
+msgid "Add group"
+msgstr ""
+
+#: admin/partials/launchdek-sites-page.php:306
+#: includes/class-launchdek-admin.php:272
+msgid "Client checklist panel setup"
+msgstr ""
+
+#: admin/partials/launchdek-sites-page.php:307
+msgid "Optional one-time setup so clients see the checklist in their wp-admin. Core automation works without this step."
+msgstr ""
+
+#: admin/partials/launchdek-sites-page.php:309
+msgid "Download the bootstrap file below."
+msgstr ""
+
+#: admin/partials/launchdek-sites-page.php:310
+msgid "Upload it to wp-content/mu-plugins/ on the client site (create the mu-plugins folder if needed)."
+msgstr ""
+
+#: admin/partials/launchdek-sites-page.php:311
+msgid "Click Retry panel install — LaunchDek will deploy the full panel and verify the connection."
+msgstr ""
+
+#: admin/partials/launchdek-sites-page.php:314
+msgid "Download launchdek-client.php"
+msgstr ""
+
+#: admin/partials/launchdek-sites-page.php:315
+msgid "Retry panel install"
+msgstr ""
+
+#: admin/partials/launchdek-sites-page.php:322
+msgid "Save Site"
+msgstr ""
+
+#: admin/partials/launchdek-sites-page.php:323
+msgid "Delete Site"
+msgstr ""
+
+#: admin/partials/launchdek-sites-page.php:324
+#: admin/partials/launchdek-sites-page.php:351
+#: admin/partials/launchdek-sites-page.php:400
+#: admin/partials/launchdek-template-picker-modal.php:38
+#: includes/class-launchdek-admin.php:296
+msgid "Cancel"
+msgstr ""
+
+#: admin/partials/launchdek-sites-page.php:335
+msgid "Start a checklist run on"
+msgstr ""
+
+#: admin/partials/launchdek-sites-page.php:339
+msgid "Checklist from master"
+msgstr ""
+
+#: admin/partials/launchdek-sites-page.php:345
+msgid "Show checklist on client admin panel (requires one-time panel setup on the client site)"
+msgstr ""
+
+#: admin/partials/launchdek-sites-page.php:350
+msgid "Push & Start Run"
+msgstr ""
+
+#: admin/partials/launchdek-sites-page.php:359
+#: includes/class-launchdek-admin.php:203
+msgid "Site details"
+msgstr ""
+
+#: admin/partials/launchdek-sites-page.php:362
+#: includes/class-launchdek-admin.php:204
+msgid "Edit site"
+msgstr ""
+
+#: admin/partials/launchdek-sites-page.php:373
+msgid "Assign a tag and group for"
+msgstr ""
+
+#: admin/partials/launchdek-sites-page.php:378
+msgid "Tag"
+msgstr ""
+
+#: admin/partials/launchdek-sites-page.php:382
+msgid "Tag group"
+msgstr ""
+
+#: admin/partials/launchdek-sites-page.php:399
+msgid "Save"
+msgstr ""
+
+#: admin/partials/launchdek-sites-page.php:409
+msgid "Test credentials against a remote site without saving."
+msgstr ""
+
+#: admin/partials/launchdek-template-picker-modal.php:16
+#: includes/class-launchdek-admin.php:293
+msgid "Choose a Template"
+msgstr ""
+
+#: admin/partials/launchdek-template-picker-modal.php:17
+msgid "Close template picker"
+msgstr ""
+
+#: admin/partials/launchdek-template-picker-modal.php:20
+msgid "Filter templates by category"
+msgstr ""
+
+#: admin/partials/launchdek-template-picker-modal.php:25
+msgid "Available templates"
+msgstr ""
+
+#: admin/partials/launchdek-template-picker-modal.php:26
+msgid "Loading templates…"
+msgstr ""
+
+#: admin/partials/launchdek-template-picker-modal.php:29
+#: includes/class-launchdek-admin.php:300
+msgid "Steps preview"
+msgstr ""
+
+#: admin/partials/launchdek-template-picker-modal.php:30
+#: includes/class-launchdek-admin.php:301
+msgid "Select a template to preview its steps."
+msgstr ""
+
+#: admin/partials/launchdek-template-picker-modal.php:36
+#: includes/class-launchdek-admin.php:294
+msgid "Start blank instead"
+msgstr ""
+
+#: admin/partials/launchdek-template-picker-modal.php:39
+#: includes/class-launchdek-admin.php:295
+msgid "Import Template"
+msgstr ""
+
+#: includes/class-launchdek-admin-ajax.php:53
+msgid "You do not have permission to manage integrations."
+msgstr ""
+
+#: includes/class-launchdek-admin-ajax.php:71
+msgid "You do not have permission to manage sites."
+msgstr ""
+
+#: includes/class-launchdek-admin-ajax.php:89
+msgid "You do not have permission to view activity logs."
+msgstr ""
+
+#: includes/class-launchdek-admin-ajax.php:118
+#: includes/class-launchdek-admin-ajax.php:155
+#: includes/class-launchdek-integration-sync.php:50
+#: includes/class-launchdek-rest-api.php:1450
+msgid "Integration not found."
+msgstr ""
+
+#: includes/class-launchdek-admin-ajax.php:191
+msgid "API token is required."
+msgstr ""
+
+#: includes/class-launchdek-admin-ajax.php:218
+msgid "WP Umbrella API token saved."
+msgstr ""
+
+#: includes/class-launchdek-admin-ajax.php:219
+msgid "WP Umbrella API token removed."
+msgstr ""
+
+#: includes/class-launchdek-admin-ajax.php:304
+#: includes/class-launchdek-checklist-runner.php:28
+#: includes/class-launchdek-drift-verifier.php:57
+#: includes/class-launchdek-rest-api.php:634
+#: includes/class-launchdek-rest-api.php:650
+#: includes/class-launchdek-rest-api.php:697
+#: includes/class-launchdek-rest-api.php:721
+#: includes/class-launchdek-rest-api.php:745
+#: includes/class-launchdek-rest-api.php:772
+#: includes/class-launchdek-rest-api.php:796
+#: includes/class-launchdek-rest-api.php:828
+msgid "Site not found."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:38
+msgid "LaunchDek Overview"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:38
+msgid "Dashboard"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:39
+msgid "Sites"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:40
+msgid "Checklists"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:41
+msgid "Batch Run"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:42
+msgid "Integrations"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:43
+msgid "Billing"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:44
+#: includes/class-launchdek-admin.php:505
+msgid "Settings"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:178
+msgid "Are you sure you want to delete this?"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:179
+msgid "Delete this site permanently? All checklist runs for this site will also be removed."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:180
+msgid "Site deleted."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:181
+msgid "Saved successfully."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:182
+msgid "Something went wrong."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:183
+msgid "Loading…"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:185
+msgid "No sites match the current filters. Try clearing tag or group filters."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:186
+msgid "REST API is unavailable. On the hub site, go to Settings → Permalinks, choose Post name, and save."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:191
+msgid "Connection failed"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:193
+msgid "Checking connection…"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:205
+msgid "Site name"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:206
+#: includes/class-launchdek-audit-log.php:604
+#: includes/class-launchdek-audit-log.php:1689
+msgid "URL"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:207
+#: includes/class-launchdek-audit-log.php:601
+#: includes/class-launchdek-audit-log.php:1686
+msgid "Site ID"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:208
+msgid "Created"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:209
+msgid "Username"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:210
+msgid "Environment"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:211
+#, php-format
+msgid "WP %1$s · PHP %2$s"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:212
+#: includes/class-launchdek-audit-log.php:807
+msgid "Connection"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:213
+msgid "Last error"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:215
+msgid "App password"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:216
+#: includes/class-launchdek-audit-log.php:623
+#: includes/class-launchdek-settings.php:641
+msgid "Integration"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:217
+msgid "Tags"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:218
+msgid "Updated"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:219
+#: includes/class-launchdek-audit-log.php:570
+#: includes/class-launchdek-audit-log.php:1717
+msgid "Yes"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:220
+#: includes/class-launchdek-audit-log.php:570
+#: includes/class-launchdek-audit-log.php:1717
+msgid "No"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:221
+msgid "Configured"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:222
+msgid "Missing"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:227
+#: includes/class-launchdek-settings.php:712
+msgid "Enter a group name."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:228
+msgid "Group added."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:230
+msgid "Enter a tag name."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:233
+msgid "Select a checklist to push."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:234
+msgid "Checklist run started."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:235
+msgid "Fix the connection before pushing a checklist."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:236
+msgid "Checklist history"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:238
+msgid "Hide checklist history"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:239
+msgid "No checklist runs recorded for this site yet."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:240
+msgid "Load more"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:241
+msgid "Loading more…"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:243
+msgid "Steps"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:244
+#, php-format
+msgid "%1$d of %2$d steps completed"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:246
+#: includes/class-launchdek-admin.php:251
+#: includes/class-launchdek-audit-log.php:1184
+#: mu-plugin/launchdek-client/class-panel.php:187
+msgid "Completed"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:247
+msgid "Running"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:249
+msgid "Cancelled"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:250
+msgid "Started"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:252
+msgid "By"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:253
+msgid "View run"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:254
+msgid "More run actions"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:255
+msgid "Duplicate"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:256
+msgid "Export"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:257
+msgid "Archive"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:259
+msgid "Archive this run? It will be hidden from checklist history."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:260
+msgid "Delete this checklist run permanently?"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:261
+msgid "Confirm action"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:262
+msgid "Confirm"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:263
+msgid "Delete permanently"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:264
+msgid "Run archived."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:265
+msgid "Run deleted."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:266
+msgid "Built-in templates cannot be edited. Duplicate instead."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:267
+msgid "Open runner →"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:269
+#: includes/class-launchdek-client-push.php:256
+msgid "Checklist pushed to client admin panel."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:270
+msgid "Run started on the hub. Complete the one-time client panel setup on Sites to show the checklist on the client site."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:271
+msgid "Run started, but the client panel could not be updated."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:273
+msgid "Client panel is not installed yet. Download the bootstrap file, upload it to the client site, then retry panel install."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:274
+msgid "Client panel is installed and ready."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:275
+msgid "Client panel installed successfully."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:276
+msgid "Client panel install failed."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:277
+msgid "Save this site first, then retry panel install."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:278
+msgid "Bootstrap file downloaded. Upload it to wp-content/mu-plugins/ on the client site, then click Retry panel install."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:279
+msgid "Use Checklist"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:280
+msgid "Checklist created."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:281
+#: includes/class-launchdek-rest-api.php:1020
+msgid "Checklist title is required."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:282
+msgid "No custom checklists yet. Use a template or Start Blank in My Checklists."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:283
+msgid "No custom checklists saved yet. Create one under Checklists."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:284
+msgid "Edit Checklist"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:285
+msgid "Custom"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:286
+msgid "Checklist duplicated."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:287
+msgid "Are you sure you want to delete this checklist?"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:288
+msgid "Saved to vault."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:289
+msgid "No vault templates yet."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:290
+msgid "No templates in this category yet."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:291
+msgid "No templates match your search."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:292
+#, php-format
+msgid "Showing %d results across all categories."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:297
+msgid "All"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:298
+msgid "Template imported successfully."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:299
+msgid "Select a template to import."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:302
+msgid "This template has no steps yet."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:303
+#, php-format
+msgid "%d step"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:304
+#, php-format
+msgid "%d steps"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:305
+msgid "View steps"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:306
+#: mu-plugin/launchdek-client/class-panel.php:180
+msgid "Hide steps"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:307
+msgid "Checklist steps"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:308
+msgid "Step settings"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:309
+msgid "Role Target Mapping"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:310
+msgid "All roles"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:311
+#, php-format
+msgid "%d roles selected"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:312
+msgid "Select sites…"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:313
+#, php-format
+msgid "%d sites selected"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:314
+msgid "Auto-detected from step content."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:315
+msgid "Optional wp-admin path (e.g. options-permalink.php). LaunchDek auto-fills this from the step title, instructions, or API route when possible."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:316
+msgid "Choose how this step completes during a run. Manual steps wait for a person; API steps run automatically on the remote site."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:317
+msgid "Manual steps pause the run until someone marks them complete in the hub run tracker or the client checklist panel. Use for tasks that need human verification."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:318
+msgid "API steps run automatically when the checklist reaches this step. LaunchDek sends an authenticated REST request to the remote WordPress site using its saved Application Password—no client panel action required."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:319
+msgid "Configure the REST call LaunchDek makes on the client site. Use Validate API Step to dry-run checks before saving. Fields listed under Settings → Exclude Options are stripped from /wp/v2/settings payloads."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:320
+msgid "HTTP verb for the request. GET reads data without changes. POST, PUT, PATCH, and DELETE send the JSON payload to create, update, or remove resources."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:321
+msgid "WordPress REST API path on the remote site. Must start with / (for example, /wp/v2/settings for site options)."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:322
+msgid "Request body for mutating methods. For /wp/v2/settings, use WordPress setting field names (for example, {\"title\":\"My Site\"}). Use {} for GET requests."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:323
+msgid "Limit which WordPress roles can complete this step on the client panel. Leave empty to allow all logged-in users."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:324
+msgid "Show note field on client panel"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:325
+msgid "When enabled, clients can add text notes as evidence when completing this manual step."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:326
+msgid "Allow screenshot attachment on client panel"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:327
+msgid "When enabled, clients can attach a screenshot from the media library when saving a step note."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:334
+#, php-format
+msgid "Sync complete: %1$s created, %2$s updated, %3$s skipped. %4$s need credentials on the Sites page."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:335
+#, php-format
+msgid "Preview: %1$s would be created, %2$s updated, %3$s skipped out of %4$s platform sites."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:336
+#, php-format
+msgid "Client panel push finished: %1$s succeeded, %2$s failed, %3$s skipped."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:338
+msgid "Site sync is not available for this connector yet."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:339
+msgid "No sites were available to sync. See the hint below, then try Preview Sync again."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:340
+msgid "API token saved."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:341
+msgid "API token removed."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:342
+msgid "Save your API token before syncing sites."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:343
+msgid "Paste a new token to replace the saved token"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:363
+msgid "Status: Connected & Verified (OK)"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:364
+msgid "Status: Connection failed"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:365
+msgid "Status: Not tested yet"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:366
+msgid "Status: Testing…"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:368
+msgid "Add at least one checklist step before continuing."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:369
+msgid "Test the connection successfully before launching."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:370
+msgid "Using selected site:"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:372
+msgid "Auto-capture requires the client checklist panel on at least one site."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:373
+msgid "Choose a client site and start recording to capture configuration changes."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:374
+msgid "Recording — configure the client site in wp-admin. Changes are captured automatically."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:375
+msgid "Recording stopped. Review captured steps below."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:376
+msgid "Import 1 Captured Step"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:377
+#, php-format
+msgid "Import %d Captured Steps"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:378
+msgid "Captured steps imported into the checklist builder."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:379
+msgid "Captured Checklist"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:380
+msgid "Select at least one site and a checklist."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:381
+msgid "Select exactly one site to start a run."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:382
+msgid "No queued items to process."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:383
+msgid "Start a run first."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:384
+msgid "Batch queue processed."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:385
+#, php-format
+msgid "Run #%d started."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:387
+#, php-format
+msgid "Recent activity for %s."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:389
+msgid "View details"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:390
+msgid "View raw data"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:391
+msgid "View completed steps"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:392
+msgid "No steps completed yet for this run."
+msgstr ""
+
+#. translators: %s: client user display name
+#: includes/class-launchdek-admin.php:393
+#: includes/class-launchdek-webhook-dispatcher.php:82
+#, php-format
+msgid "by %s"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:394
+#: includes/class-launchdek-admin.php:395
+#: includes/class-launchdek-checklist-repository.php:386
+#, php-format
+msgid "Step %d"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:396
+msgid "No additional details."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:397
+msgid "No activity matches these filters."
+msgstr ""
+
+#: includes/class-launchdek-admin.php:398
+msgid "Load more activity"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:399
+msgid "Loading more activity…"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:487
+#: mu-plugin/launchdek-client/class-panel.php:177
+msgid "Collapse"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:488
+#: mu-plugin/launchdek-client/class-panel.php:199
+#, php-format
+msgid "Step %1$s of %2$s"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:489
+#: mu-plugin/launchdek-client/class-panel.php:183
+msgid "Mark complete"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:490
+#: mu-plugin/launchdek-client/class-panel.php:190
+msgid "Go to settings"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:491
+#: mu-plugin/launchdek-client/class-panel.php:191
+msgid "Toggle step details"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:492
+#: mu-plugin/launchdek-client/class-panel.php:188
+msgid "Waiting on agency"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:493
+#: mu-plugin/launchdek-client/class-panel.php:204
+msgid "Add notes"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:494
+#: mu-plugin/launchdek-client/class-panel.php:208
+msgid "Attach screenshot"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:495
+#: mu-plugin/launchdek-client/class-panel.php:205
+msgid "Add a note about this step…"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:513
+msgid "Docs"
+msgstr ""
+
+#: includes/class-launchdek-admin.php:565
+#: includes/class-launchdek-admin.php:578
+#: includes/class-launchdek-admin.php:591
+#: includes/class-launchdek-admin.php:599
+msgid "You do not have sufficient permissions."
+msgstr ""
+
+#: includes/class-launchdek-audit-log.php:535
+msgid "API step"
+msgstr ""
+
+#: includes/class-launchdek-audit-log.php:538
+msgid "Manual step"
+msgstr ""
+
+#: includes/class-launchdek-audit-log.php:597
+#: includes/class-launchdek-audit-log.php:599
+#: includes/class-launchdek-audit-log.php:1682
+#: includes/class-launchdek-audit-log.php:1684
+msgid "Checklist ID"
+msgstr ""
+
+#: includes/class-launchdek-audit-log.php:600
+#: includes/class-launchdek-audit-log.php:1685
+msgid "Run ID"
+msgstr ""
+
+#: includes/class-launchdek-audit-log.php:603
+#: includes/class-launchdek-audit-log.php:1688
+msgid "Name"
+msgstr ""
+
+#: includes/class-launchdek-audit-log.php:605
+#: includes/class-launchdek-audit-log.php:1690
+msgid "Title"
+msgstr ""
+
+#: includes/class-launchdek-audit-log.php:607
+#: includes/class-launchdek-audit-log.php:1692
+msgid "Message"
+msgstr ""
+
+#: includes/class-launchdek-audit-log.php:608
+#: includes/class-launchdek-audit-log.php:775
+msgid "HTTP method"
+msgstr ""
+
+#: includes/class-launchdek-audit-log.php:609
+#: includes/class-launchdek-audit-log.php:779
+msgid "API route"
+msgstr ""
+
+#: includes/class-launchdek-audit-log.php:610
+#: includes/class-launchdek-audit-log.php:783
+msgid "HTTP status"
+msgstr ""
+
+#: includes/class-launchdek-audit-log.php:611
+#: includes/class-launchdek-audit-log.php:649
+#: includes/class-launchdek-audit-log.php:1695
+msgid "Step"
+msgstr ""
+
+#: includes/class-launchdek-audit-log.php:612
+#: includes/class-launchdek-audit-log.php:665
+msgid "Step number"
+msgstr ""
+
+#: includes/class-launchdek-audit-log.php:613
+#: includes/class-launchdek-audit-log.php:681
+#: includes/class-launchdek-audit-log.php:1202
+#: includes/class-launchdek-audit-log.php:1224
+#: includes/class-launchdek-audit-log.php:1697
+msgid "Client user"
+msgstr ""
+
+#: includes/class-launchdek-audit-log.php:614
+#: includes/class-launchdek-audit-log.php:684
+msgid "Client email"
+msgstr ""
+
+#: includes/class-launchdek-audit-log.php:615
+msgid "Client user ID"
+msgstr ""
+
+#: includes/class-launchdek-audit-log.php:616
+#: includes/class-launchdek-audit-log.php:763
+#: includes/class-launchdek-audit-log.php:1698
+msgid "Note"
+msgstr ""
+
+#: includes/class-launchdek-audit-log.php:617
+#: includes/class-launchdek-audit-log.php:767
+msgid "Screenshot attached"
+msgstr ""
+
+#: includes/class-launchdek-audit-log.php:618
+#: includes/class-launchdek-audit-log.php:1699
+msgid "Count"
+msgstr ""
+
+#: includes/class-launchdek-audit-log.php:620
+msgid "WordPress version"
+msgstr ""
+
+#: includes/class-launchdek-audit-log.php:621
+msgid "PHP version"
+msgstr ""
+
+#: includes/class-launchdek-audit-log.php:622
+msgid "Client panel installed"
+msgstr ""
+
+#: includes/class-launchdek-audit-log.php:624
+#: includes/class-launchdek-audit-log.php:789
+msgid "Excluded fields"
+msgstr ""
+
+#: includes/class-launchdek-audit-log.php:625
+#: includes/class-launchdek-audit-log.php:795
+msgid "Request body"
+msgstr ""
+
+#: includes/class-launchdek-audit-log.php:626
+#: includes/class-launchdek-audit-log.php:847
+msgid "Results"
+msgstr ""
+
+#: includes/class-launchdek-audit-log.php:627
+msgid "Drift findings"
+msgstr ""
+
+#: includes/class-launchdek-audit-log.php:656
+#: mu-plugin/launchdek-client/class-panel.php:198
+msgid "Progress"
+msgstr ""
+
+#. translators: 1: step number, 2: total steps
+#: includes/class-launchdek-audit-log.php:659
+#, php-format
+msgid "Step %1$d of %2$d"
+msgstr ""
+
+#: includes/class-launchdek-audit-log.php:670
+msgid "Step type"
+msgstr ""
+
+#: includes/class-launchdek-audit-log.php:674
+msgid "Step completed"
+msgstr ""
+
+#: includes/class-launchdek-audit-log.php:688
+msgid "Reverted by"
+msgstr ""
+
+#: includes/class-launchdek-audit-log.php:689
+msgid "Completed by"
+msgstr ""
+
+#: includes/class-launchdek-audit-log.php:718
+msgid "Logged at"
+msgstr ""
+
+#: includes/class-launchdek-audit-log.php:732
+msgid "Run status"
+msgstr ""
+
+#: includes/class-launchdek-audit-log.php:742
+msgid "New status"
+msgstr ""
+
+#: includes/class-launchdek-audit-log.php:746
+msgid "Recorded by"
+msgstr ""
+
+#: includes/class-launchdek-audit-log.php:807
+msgid "Successful"
+msgstr ""
+
+#: includes/class-launchdek-audit-log.php:814
+msgid "Drift count"
+msgstr ""
+
+#. translators: %d: drift item number
+#: includes/class-launchdek-audit-log.php:823
+#, php-format
+msgid "Check %d"
+msgstr ""
+
+#. translators: %s: checklist title
+#: includes/class-launchdek-audit-log.php:1049
+#, php-format
+msgid "Checklist '%s' started"
+msgstr ""
+
+#. translators: 1: checklist title, 2: site name
+#: includes/class-launchdek-audit-log.php:1056
+#, php-format
+msgid "Checklist '%1$s' started on %2$s"
+msgstr ""
+
+#. translators: %s: checklist title
+#: includes/class-launchdek-audit-log.php:1071
+#, php-format
+msgid "Checklist '%s' completed"
+msgstr ""
+
+#. translators: 1: workflow title, 2: site name
+#: includes/class-launchdek-audit-log.php:1078
+#, php-format
+msgid "Checklist '%1$s' completed on %2$s"
+msgstr ""
+
+#. translators: %s: checklist title
+#: includes/class-launchdek-audit-log.php:1090
+#, php-format
+msgid "Checklist '%s' failed"
+msgstr ""
+
+#. translators: 1: workflow title, 2: site name
+#: includes/class-launchdek-audit-log.php:1097
+#, php-format
+msgid "Checklist '%1$s' failed on %2$s"
+msgstr ""
+
+#. translators: %s: status
+#: includes/class-launchdek-audit-log.php:1106
+#, php-format
+msgid "Run status changed to %s"
+msgstr ""
+
+#. translators: 1: status, 2: site name
+#: includes/class-launchdek-audit-log.php:1113
+#, php-format
+msgid "Run status changed to %1$s on %2$s"
+msgstr ""
+
+#: includes/class-launchdek-audit-log.php:1120
+#: includes/class-launchdek-audit-log.php:1738
+msgid "Site registered"
+msgstr ""
+
+#. translators: %s: site name
+#: includes/class-launchdek-audit-log.php:1125
+#, php-format
+msgid "Site %s registered"
+msgstr ""
+
+#: includes/class-launchdek-audit-log.php:1131
+#: includes/class-launchdek-audit-log.php:1739
+msgid "Site updated"
+msgstr ""
+
+#. translators: %s: site name
+#: includes/class-launchdek-audit-log.php:1136
+#, php-format
+msgid "Site %s updated"
+msgstr ""
+
+#: includes/class-launchdek-audit-log.php:1142
+#: includes/class-launchdek-audit-log.php:1740
+msgid "Site removed"
+msgstr ""
+
+#. translators: %s: site name
+#: includes/class-launchdek-audit-log.php:1147
+#, php-format
+msgid "Site %s removed"
+msgstr ""
+
+#. translators: %s: checklist title
+#: includes/class-launchdek-audit-log.php:1155
+#, php-format
+msgid "Checklist '%s' created"
+msgstr ""
+
+#. translators: 1: connector slug, 2: created count, 3: updated count
+#: includes/class-launchdek-audit-log.php:1165
+#, php-format
+msgid "%1$s sync: %2$s created, %3$s updated"
+msgstr ""
+
+#. translators: 1: connector slug, 2: success count, 3: failed count
+#: includes/class-launchdek-audit-log.php:1177
+#, php-format
+msgid "%1$s client panel push: %2$s succeeded, %3$s failed"
+msgstr ""
+
+#. translators: %s: result message
+#: includes/class-launchdek-audit-log.php:1189
+#, php-format
+msgid "Connection test: %s"
+msgstr ""
+
+#. translators: 1: site name, 2: result message
+#: includes/class-launchdek-audit-log.php:1196
+#, php-format
+msgid "Connection test on %1$s: %2$s"
+msgstr ""
+
+#: includes/class-launchdek-audit-log.php:1203
+#: includes/class-launchdek-audit-log.php:1225
+msgid "step"
+msgstr ""
+
+#. translators: 1: client user, 2: step title
+#: includes/class-launchdek-audit-log.php:1208
+#, php-format
+msgid "%1$s completed \"%2$s\""
+msgstr ""
+
+#. translators: 1: client user, 2: step title, 3: site name
+#: includes/class-launchdek-audit-log.php:1216
+#, php-format
+msgid "%1$s completed \"%2$s\" on %3$s"
+msgstr ""
+
+#. translators: 1: client user, 2: step title, 3: note preview
+#: includes/class-launchdek-audit-log.php:1231
+#, php-format
+msgid "%1$s added a note on \"%2$s\": %3$s"
+msgstr ""
+
+#. translators: 1: client user, 2: step title, 3: site name, 4: note preview
+#: includes/class-launchdek-audit-log.php:1240
+#, php-format
+msgid "%1$s added a note on \"%2$s\" (%3$s): %4$s"
+msgstr ""
+
+#. translators: 1: client user, 2: step title
+#: includes/class-launchdek-audit-log.php:1251
+#, php-format
+msgid "%1$s added a note on \"%2$s\""
+msgstr ""
+
+#. translators: 1: client user, 2: step title, 3: site name
+#: includes/class-launchdek-audit-log.php:1259
+#, php-format
+msgid "%1$s added a note on \"%2$s\" (%3$s)"
+msgstr ""
+
+#. translators: %s: checklist title
+#: includes/class-launchdek-audit-log.php:1271
+#, php-format
+msgid "Checklist '%s' pushed to client panel"
+msgstr ""
+
+#. translators: 1: checklist title, 2: site name
+#: includes/class-launchdek-audit-log.php:1278
+#, php-format
+msgid "Checklist '%1$s' pushed to %2$s"
+msgstr ""
+
+#. translators: %d: drift count
+#: includes/class-launchdek-audit-log.php:1290
+#, php-format
+msgid "%d drift issue(s) detected"
+msgstr ""
+
+#. translators: 1: drift count, 2: site name
+#: includes/class-launchdek-audit-log.php:1297
+#, php-format
+msgid "%1$d drift issue(s) detected on %2$s"
+msgstr ""
+
+#: includes/class-launchdek-audit-log.php:1304
+msgid "Drift check passed"
+msgstr ""
+
+#. translators: %s: site name
+#: includes/class-launchdek-audit-log.php:1309
+#, php-format
+msgid "Drift check passed on %s"
+msgstr ""
+
+#: includes/class-launchdek-audit-log.php:1315
+#: includes/class-launchdek-audit-log.php:1736
+msgid "Manual step completed"
+msgstr ""
+
+#. translators: %s: site name
+#: includes/class-launchdek-audit-log.php:1320
+#, php-format
+msgid "Manual step completed on %s"
+msgstr ""
+
+#. translators: 1: HTTP method, 2: route
+#: includes/class-launchdek-audit-log.php:1331
+#, php-format
+msgid "%1$s %2$s executed"
+msgstr ""
+
+#. translators: 1: HTTP method, 2: route, 3: site name
+#: includes/class-launchdek-audit-log.php:1339
+#, php-format
+msgid "%1$s %2$s executed on %3$s"
+msgstr ""
+
+#: includes/class-launchdek-audit-log.php:1437
+msgid "Unknown site"
+msgstr ""
+
+#. translators: 1: checklist title, 2: checklist ID
+#: includes/class-launchdek-audit-log.php:1514
+#, php-format
+msgid "Checklist: %1$s (ID %2$d)"
+msgstr ""
+
+#. translators: %s: checklist title
+#: includes/class-launchdek-audit-log.php:1521
+#: includes/class-launchdek-audit-log.php:1528
+#: includes/class-launchdek-audit-log.php:1571
+#: includes/class-launchdek-email-notifier.php:132
+#, php-format
+msgid "Checklist: %s"
+msgstr ""
+
+#. translators: %s: step title
+#: includes/class-launchdek-audit-log.php:1545
+#: includes/class-launchdek-email-notifier.php:137
+#, php-format
+msgid "Step: %s"
+msgstr ""
+
+#. translators: %s: site name
+#: includes/class-launchdek-audit-log.php:1559
+#: includes/class-launchdek-email-notifier.php:122
+#, php-format
+msgid "Site: %s"
+msgstr ""
+
+#. translators: %d: number of rules
+#: includes/class-launchdek-audit-log.php:1582
+#, php-format
+msgid "%d mapping rules saved"
+msgstr ""
+
+#. translators: %s: checklist title
+#: includes/class-launchdek-audit-log.php:1592
+#, php-format
+msgid "Checklist completed: %s"
+msgstr ""
+
+#. translators: %s: checklist title
+#: includes/class-launchdek-audit-log.php:1599
+#, php-format
+msgid "Checklist failed: %s"
+msgstr ""
+
+#. translators: 1: checklist title, 2: run status
+#: includes/class-launchdek-audit-log.php:1605
+#, php-format
+msgid "Checklist %1$s — status %2$s"
+msgstr ""
+
+#. translators: %s: run status
+#: includes/class-launchdek-audit-log.php:1612
+#, php-format
+msgid "Status changed to %s"
+msgstr ""
+
+#: includes/class-launchdek-audit-log.php:1637
+msgid "No drift detected."
+msgstr ""
+
+#. translators: 1: step title, 2: client user name
+#: includes/class-launchdek-audit-log.php:1648
+#, php-format
+msgid "Step %1$s completed by %2$s"
+msgstr ""
+
+#: includes/class-launchdek-audit-log.php:1659
+msgid "Includes screenshot attachment."
+msgstr ""
+
+#: includes/class-launchdek-audit-log.php:1693
+msgid "Method"
+msgstr ""
+
+#: includes/class-launchdek-audit-log.php:1694
+msgid "Route"
+msgstr ""
+
+#: includes/class-launchdek-audit-log.php:1696
+msgid "Step #"
+msgstr ""
+
+#: includes/class-launchdek-audit-log.php:1734
+msgid "Run started"
+msgstr ""
+
+#: includes/class-launchdek-audit-log.php:1735
+msgid "Run status changed"
+msgstr ""
+
+#: includes/class-launchdek-audit-log.php:1737
+msgid "Manual step uncompleted"
+msgstr ""
+
+#: includes/class-launchdek-audit-log.php:1741
+#: includes/class-launchdek-audit-log.php:1744
+msgid "Checklist created"
+msgstr ""
+
+#: includes/class-launchdek-audit-log.php:1742
+#: includes/class-launchdek-audit-log.php:1745
+msgid "Checklist updated"
+msgstr ""
+
+#: includes/class-launchdek-audit-log.php:1743
+#: includes/class-launchdek-audit-log.php:1746
+msgid "Checklist deleted"
+msgstr ""
+
+#: includes/class-launchdek-audit-log.php:1747
+msgid "Connection test"
+msgstr ""
+
+#: includes/class-launchdek-audit-log.php:1748
+msgid "Drift verification"
+msgstr ""
+
+#: includes/class-launchdek-audit-log.php:1749
+msgid "Integration push"
+msgstr ""
+
+#: includes/class-launchdek-audit-log.php:1750
+msgid "Integration sync"
+msgstr ""
+
+#: includes/class-launchdek-audit-log.php:1751
+msgid "Telemetry rules updated"
+msgstr ""
+
+#: includes/class-launchdek-audit-log.php:1752
+msgid "Checklist pushed to client"
+msgstr ""
+
+#: includes/class-launchdek-audit-log.php:1753
+#: includes/class-launchdek-webhook-dispatcher.php:58
+msgid "Client step completed"
+msgstr ""
+
+#: includes/class-launchdek-audit-log.php:1754
+msgid "Client step uncompleted"
+msgstr ""
+
+#: includes/class-launchdek-audit-log.php:1755
+msgid "Client step note added"
+msgstr ""
+
+#: includes/class-launchdek-audit-log.php:1826
+msgid "System"
+msgstr ""
+
+#: includes/class-launchdek-audit-log.php:1838
+msgid "Checklist completed"
+msgstr ""
+
+#: includes/class-launchdek-audit-log.php:1840
+msgid "Checklist failed"
+msgstr ""
+
+#: includes/class-launchdek-audit-log.php:1942
+msgid "Automated"
+msgstr ""
+
+#: includes/class-launchdek-auto-capture.php:73
+#: includes/class-launchdek-client-push.php:228
+#: includes/class-launchdek-mu-plugin-installer.php:35
+#: includes/class-launchdek-payload-mapper.php:29
+msgid "Unable to connect to remote site."
+msgstr ""
+
+#: includes/class-launchdek-auto-capture.php:80
+msgid "Auto-capture requires the client checklist panel on the remote site."
+msgstr ""
+
+#: includes/class-launchdek-capabilities.php:194
+msgid "Admin"
+msgstr ""
+
+#: includes/class-launchdek-capabilities.php:195
+msgid "Full platform access — manage sites, checklists, settings, and audit logs."
+msgstr ""
+
+#: includes/class-launchdek-capabilities.php:206
+msgid "Developer"
+msgstr ""
+
+#: includes/class-launchdek-capabilities.php:207
+msgid "Operational access — manage sites, build checklists, and execute runs."
+msgstr ""
+
+#: includes/class-launchdek-capabilities.php:216
+msgid "Auditor"
+msgstr ""
+
+#: includes/class-launchdek-capabilities.php:217
+msgid "Read-only oversight — view dashboard activity and immutable audit logs."
+msgstr ""
+
+#: includes/class-launchdek-capabilities.php:233
+msgid "View Dashboard"
+msgstr ""
+
+#: includes/class-launchdek-capabilities.php:235
+msgid "Edit Checklists"
+msgstr ""
+
+#: includes/class-launchdek-capabilities.php:236
+msgid "Execute Checklists"
+msgstr ""
+
+#: includes/class-launchdek-capabilities.php:237
+msgid "View Audit Log"
+msgstr ""
+
+#: includes/class-launchdek-capabilities.php:238
+msgid "Manage Settings"
+msgstr ""
+
+#: includes/class-launchdek-checklist-repository.php:208
+msgid "Untitled Checklist"
+msgstr ""
+
+#: includes/class-launchdek-checklist-repository.php:312
+msgid "Imported Checklist"
+msgstr ""
+
+#: includes/class-launchdek-checklist-runner.php:34
+#: includes/class-launchdek-checklist-runner.php:97
+#: includes/class-launchdek-rest-api.php:927
+#: includes/class-launchdek-rest-api.php:958
+#: includes/class-launchdek-rest-api.php:1060
+msgid "Checklist not found."
+msgstr ""
+
+#: includes/class-launchdek-checklist-runner.php:40
+msgid "Failed to create run."
+msgstr ""
+
+#: includes/class-launchdek-checklist-runner.php:91
+#: includes/class-launchdek-client-push.php:117
+#: includes/class-launchdek-client-push.php:196
+#: includes/class-launchdek-client-push.php:307
+#: includes/class-launchdek-client-push.php:430
+#: includes/class-launchdek-client-push.php:522
+#: includes/class-launchdek-rest-api.php:1117
+#: includes/class-launchdek-rest-api.php:1133
+#: includes/class-launchdek-rest-api.php:1154
+msgid "Run not found."
+msgstr ""
+
+#: includes/class-launchdek-checklist-runner.php:118
+msgid "All steps processed."
+msgstr ""
+
+#: includes/class-launchdek-client-push.php:206
+msgid "Client checklist panel is not installed on this site."
+msgstr ""
+
+#: includes/class-launchdek-client-push.php:319
+#: includes/class-launchdek-client-push.php:442
+#: includes/class-launchdek-client-push.php:542
+msgid "Step not found."
+msgstr ""
+
+#: includes/class-launchdek-client-push.php:325
+msgid "Only manual steps can be completed from the client panel."
+msgstr ""
+
+#: includes/class-launchdek-client-push.php:333
+#: mu-plugin/launchdek-client/class-rest-api.php:387
+msgid "This step cannot be marked complete."
+msgstr ""
+
+#: includes/class-launchdek-client-push.php:361
+#: includes/class-launchdek-client-push.php:476
+msgid "Failed to update step."
+msgstr ""
+
+#: includes/class-launchdek-client-push.php:448
+msgid "Only manual steps can be updated from the client panel."
+msgstr ""
+
+#: includes/class-launchdek-client-push.php:456
+#: mu-plugin/launchdek-client/class-rest-api.php:470
+msgid "This step is not marked complete."
+msgstr ""
+
+#: includes/class-launchdek-client-push.php:528
+msgid "This checklist run is no longer active."
+msgstr ""
+
+#: includes/class-launchdek-client-push.php:551
+#: mu-plugin/launchdek-client/class-panel.php:206
+#: mu-plugin/launchdek-client/class-rest-api.php:552
+msgid "Type a note before saving."
+msgstr ""
+
+#: includes/class-launchdek-client-push.php:577
+msgid "Failed to save note."
+msgstr ""
+
+#: includes/class-launchdek-connection-tester.php:29
+msgid "Site not found or missing credentials."
+msgstr ""
+
+#: includes/class-launchdek-drift-verifier.php:29
+#: mu-plugin/launchdek-client/class-auto-capture.php:465
+msgid "Permalink Structure"
+msgstr ""
+
+#: includes/class-launchdek-drift-verifier.php:34
+#: includes/class-launchdek-settings.php:285
+#: mu-plugin/launchdek-client/class-auto-capture.php:469
+msgid "Search Engine Visibility"
+msgstr ""
+
+#: includes/class-launchdek-drift-verifier.php:39
+#: includes/class-launchdek-settings.php:286
+msgid "Environment Type"
+msgstr ""
+
+#. translators: 1: event label
+#: includes/class-launchdek-email-notifier.php:91
+#: includes/class-launchdek-webhook-dispatcher.php:64
+#, php-format
+msgid "LaunchDek: %s"
+msgstr ""
+
+#. translators: 1: event label
+#: includes/class-launchdek-email-notifier.php:117
+#, php-format
+msgid "LaunchDek alert: %s"
+msgstr ""
+
+#. translators: %s: site URL
+#: includes/class-launchdek-email-notifier.php:127
+#, php-format
+msgid "URL: %s"
+msgstr ""
+
+#. translators: %s: client user display name
+#: includes/class-launchdek-email-notifier.php:142
+#, php-format
+msgid "Completed by: %s"
+msgstr ""
+
+#. translators: %s: note excerpt
+#: includes/class-launchdek-email-notifier.php:147
+#, php-format
+msgid "Note: %s"
+msgstr ""
+
+#. translators: %s: error message
+#: includes/class-launchdek-email-notifier.php:152
+#, php-format
+msgid "Error: %s"
+msgstr ""
+
+#. translators: %s: user display name
+#: includes/class-launchdek-email-notifier.php:157
+#, php-format
+msgid "Started by: %s"
+msgstr ""
+
+#. translators: %s: datetime
+#: includes/class-launchdek-email-notifier.php:162
+#, php-format
+msgid "Started: %s"
+msgstr ""
+
+#. translators: %s: datetime
+#: includes/class-launchdek-email-notifier.php:167
+#, php-format
+msgid "Completed: %s"
+msgstr ""
+
+#. translators: %s: admin URL
+#: includes/class-launchdek-email-notifier.php:176
+#, php-format
+msgid "View run: %s"
+msgstr ""
+
+#. translators: %s: site name
+#: includes/class-launchdek-email-notifier.php:181
+#, php-format
+msgid "Sent from %s"
+msgstr ""
+
+#: includes/class-launchdek-integration-sync.php:58
+msgid "This connector does not support site sync yet."
+msgstr ""
+
+#: includes/class-launchdek-integrations.php:124
+msgid "WP Version"
+msgstr ""
+
+#: includes/class-launchdek-integrations.php:125
+msgid "PHP Version"
+msgstr ""
+
+#: includes/class-launchdek-mu-plugin-installer.php:54
+msgid "Client checklist panel is installed, but the latest panel files could not be synced."
+msgstr ""
+
+#: includes/class-launchdek-mu-plugin-installer.php:62
+msgid "Client checklist panel updated."
+msgstr ""
+
+#: includes/class-launchdek-mu-plugin-installer.php:71
+#: includes/class-launchdek-mu-plugin-installer.php:152
+#: includes/integrations/class-launchdek-mainwp-agent.php:142
+msgid "Client panel bundle files are missing on the hub."
+msgstr ""
+
+#: includes/class-launchdek-mu-plugin-installer.php:101
+msgid "Client panel bootstrap required. Download launchdek-client.php from LaunchDek → Sites, upload it to wp-content/mu-plugins/ on the client site, then click Retry panel install."
+msgstr ""
+
+#: includes/class-launchdek-mu-plugin-installer.php:115
+msgid "Client panel files were written but the panel is still unavailable."
+msgstr ""
+
+#: includes/class-launchdek-mu-plugin-installer.php:187
+msgid "Client checklist panel installed via REST."
+msgstr ""
+
+#: includes/class-launchdek-mu-plugin-installer.php:206
+msgid "Could not resolve a local path for the client site. Install the panel via REST on first connect."
+msgstr ""
+
+#: includes/class-launchdek-mu-plugin-installer.php:216
+msgid "Could not create the client mu-plugins directory."
+msgstr ""
+
+#: includes/class-launchdek-mu-plugin-installer.php:230
+msgid "Could not create a client panel directory."
+msgstr ""
+
+#: includes/class-launchdek-mu-plugin-installer.php:237
+msgid "Could not write client panel files locally."
+msgstr ""
+
+#: includes/class-launchdek-mu-plugin-installer.php:246
+msgid "Client checklist panel installed locally on this server."
+msgstr ""
+
+#: includes/class-launchdek-payload-mapper.php:35
+msgid "API step missing route."
+msgstr ""
+
+#: includes/class-launchdek-payload-mapper.php:99
+msgid "Route is required for API steps."
+msgstr ""
+
+#: includes/class-launchdek-payload-mapper.php:103
+msgid "Route must start with /."
+msgstr ""
+
+#: includes/class-launchdek-payload-mapper.php:108
+msgid "Invalid HTTP method."
+msgstr ""
+
+#. translators: %s: comma-separated setting field names
+#: includes/class-launchdek-payload-mapper.php:124
+#, php-format
+msgid "These fields are excluded by hub settings and will be skipped on remote sites: %s"
+msgstr ""
+
+#. translators: %s: comma-separated setting field names
+#: includes/class-launchdek-payload-mapper.php:195
+#, php-format
+msgid "All settings in this step are excluded by hub settings: %s"
+msgstr ""
+
+#: includes/class-launchdek-remote-client.php:103
+msgid "Authentication failed."
+msgstr ""
+
+#: includes/class-launchdek-remote-client.php:148
+#: includes/class-launchdek-remote-client.php:164
+msgid "Connection verified."
+msgstr ""
+
+#: includes/class-launchdek-remote-client.php:194
+#, php-format
+msgid "Remote request failed with status %d."
+msgstr ""
+
+#: includes/class-launchdek-remote-client.php:234
+msgid "Missing remote credentials."
+msgstr ""
+
+#: includes/class-launchdek-rest-api.php:540
+#: includes/class-launchdek-rest-api.php:554
+msgid "Activity log entry not found."
+msgstr ""
+
+#: includes/class-launchdek-rest-api.php:675
+msgid "URL, username, and app password are required."
+msgstr ""
+
+#: includes/class-launchdek-rest-api.php:679
+msgid "Failed to create site."
+msgstr ""
+
+#: includes/class-launchdek-rest-api.php:725
+msgid "Failed to delete site."
+msgstr ""
+
+#: includes/class-launchdek-rest-api.php:806
+#: mu-plugin/launchdek-client/class-rest-api.php:644
+msgid "Invalid capture action."
+msgstr ""
+
+#: includes/class-launchdek-rest-api.php:851
+msgid "Client panel bootstrap file is missing from this LaunchDek install."
+msgstr ""
+
+#: includes/class-launchdek-rest-api.php:948
+msgid "Failed to create checklist."
+msgstr ""
+
+#: includes/class-launchdek-rest-api.php:964
+msgid "Built-in templates cannot be edited. Clone one to create a custom checklist."
+msgstr ""
+
+#: includes/class-launchdek-rest-api.php:982
+msgid "Failed to update checklist."
+msgstr ""
+
+#: includes/class-launchdek-rest-api.php:1000
+msgid "Invalid checklist data."
+msgstr ""
+
+#: includes/class-launchdek-rest-api.php:1030
+msgid "Failed to delete checklist."
+msgstr ""
+
+#: includes/class-launchdek-rest-api.php:1047
+msgid "Invalid checklist JSON."
+msgstr ""
+
+#: includes/class-launchdek-rest-api.php:1052
+msgid "Import failed."
+msgstr ""
+
+#: includes/class-launchdek-rest-api.php:1099
+msgid "Checklist ID and at least one site ID are required."
+msgstr ""
+
+#: includes/class-launchdek-rest-api.php:1137
+msgid "Failed to archive run."
+msgstr ""
+
+#: includes/class-launchdek-rest-api.php:1158
+msgid "Failed to delete run."
+msgstr ""
+
+#: includes/class-launchdek-rest-api.php:1391
+msgid "Checklist ID required."
+msgstr ""
+
+#: includes/class-launchdek-rest-api.php:1402
+msgid "Template not found."
+msgstr ""
+
+#: includes/class-launchdek-rest-api.php:1407
+msgid "Could not clone template."
+msgstr ""
+
+#: includes/class-launchdek-settings.php:282
+msgid "Admin Email"
+msgstr ""
+
+#: includes/class-launchdek-settings.php:283
+#: mu-plugin/launchdek-client/class-auto-capture.php:445
+msgid "Site Title"
+msgstr ""
+
+#: includes/class-launchdek-settings.php:284
+#: mu-plugin/launchdek-client/class-auto-capture.php:449
+msgid "Tagline"
+msgstr ""
+
+#: includes/class-launchdek-settings.php:287
+msgid "Site Logo"
+msgstr ""
+
+#: includes/class-launchdek-settings.php:288
+msgid "Site Icon"
+msgstr ""
+
+#: includes/class-launchdek-settings.php:314
+msgid "Right sidebar floater"
+msgstr ""
+
+#: includes/class-launchdek-settings.php:315
+msgid "Sticky panel on the right edge with a vertical expand tab when collapsed."
+msgstr ""
+
+#: includes/class-launchdek-settings.php:318
+msgid "Live top bar"
+msgstr ""
+
+#: includes/class-launchdek-settings.php:319
+msgid "Compact progress strip below the admin bar with a slide-down step drawer."
+msgstr ""
+
+#: includes/class-launchdek-settings.php:322
+msgid "Bottom dock"
+msgstr ""
+
+#: includes/class-launchdek-settings.php:323
+msgid "Slim progress bar docked above the footer with a slide-up step drawer."
+msgstr ""
+
+#: includes/class-launchdek-settings.php:326
+msgid "Floating pill"
+msgstr ""
+
+#: includes/class-launchdek-settings.php:327
+msgid "Small progress chip in the bottom-right corner that expands into a compact panel."
+msgstr ""
+
+#: includes/class-launchdek-settings.php:330
+msgid "Notification toast"
+msgstr ""
+
+#: includes/class-launchdek-settings.php:331
+msgid "Dismissible toast with current-step summary; expands into the full checklist on click."
+msgstr ""
+
+#: includes/class-launchdek-settings.php:334
+msgid "Admin bar flyout"
+msgstr ""
+
+#: includes/class-launchdek-settings.php:335
+msgid "Hidden until opened from the WordPress admin bar checklist shortcut."
+msgstr ""
+
+#: includes/class-launchdek-settings.php:338
+msgid "Fullscreen overlay"
+msgstr ""
+
+#: includes/class-launchdek-settings.php:339
+msgid "Modal takeover centered on screen for focused checklist completion."
+msgstr ""
+
+#: includes/class-launchdek-settings.php:342
+msgid "Focus mode"
+msgstr ""
+
+#: includes/class-launchdek-settings.php:343
+msgid "Single current-step card centered on screen with minimal distractions."
+msgstr ""
+
+#: includes/class-launchdek-settings.php:346
+msgid "Inline metabox"
+msgstr ""
+
+#: includes/class-launchdek-settings.php:347
+msgid "Embeds the checklist in the post/page editor sidebar metabox area."
+msgstr ""
+
+#: includes/class-launchdek-settings.php:432
+msgid "Checklist run started"
+msgstr ""
+
+#: includes/class-launchdek-settings.php:433
+msgid "Checklist run completed"
+msgstr ""
+
+#: includes/class-launchdek-settings.php:434
+msgid "Checklist run failed"
+msgstr ""
+
+#: includes/class-launchdek-settings.php:435
+msgid "Step failed"
+msgstr ""
+
+#: includes/class-launchdek-settings.php:436
+msgid "Configuration drift detected"
+msgstr ""
+
+#: includes/class-launchdek-settings.php:437
+msgid "Client completed a checklist step"
+msgstr ""
+
+#: includes/class-launchdek-settings.php:438
+msgid "Client added a step note"
+msgstr ""
+
+#: includes/class-launchdek-settings.php:450
+msgid "Notify when checklist completed"
+msgstr ""
+
+#: includes/class-launchdek-settings.php:451
+msgid "Email admin when a user finishes all steps of a checklist."
+msgstr ""
+
+#: includes/class-launchdek-settings.php:454
+msgid "Notify when checklist run starts"
+msgstr ""
+
+#: includes/class-launchdek-settings.php:455
+msgid "Email when a new checklist run begins on a connected site."
+msgstr ""
+
+#: includes/class-launchdek-settings.php:458
+msgid "Notify when checklist run fails"
+msgstr ""
+
+#: includes/class-launchdek-settings.php:459
+msgid "Email when a run stops with a failed status."
+msgstr ""
+
+#: includes/class-launchdek-settings.php:462
+msgid "Notify when a step fails"
+msgstr ""
+
+#: includes/class-launchdek-settings.php:463
+msgid "Email when an automated API step fails during a run."
+msgstr ""
+
+#: includes/class-launchdek-settings.php:466
+msgid "Notify when drift is detected"
+msgstr ""
+
+#: includes/class-launchdek-settings.php:467
+msgid "Email when scheduled drift verification finds configuration changes."
+msgstr ""
+
+#: includes/class-launchdek-settings.php:470
+msgid "Notify when client completes a step"
+msgstr ""
+
+#: includes/class-launchdek-settings.php:471
+msgid "Email when someone marks a manual step complete on the client panel."
+msgstr ""
+
+#: includes/class-launchdek-settings.php:474
+msgid "Notify when client adds a note"
+msgstr ""
+
+#: includes/class-launchdek-settings.php:475
+msgid "Email when a note is saved on a client checklist step."
+msgstr ""
+
+#: includes/class-launchdek-settings.php:579
+msgid "General"
+msgstr ""
+
+#: includes/class-launchdek-settings.php:580
+msgid "Client"
+msgstr ""
+
+#: includes/class-launchdek-settings.php:581
+msgid "Project Type"
+msgstr ""
+
+#: includes/class-launchdek-settings.php:582
+msgid "Hosting Tier"
+msgstr ""
+
+#: includes/class-launchdek-settings.php:720
+msgid "Group name must be 80 characters or fewer."
+msgstr ""
+
+#: includes/class-launchdek-settings.php:729
+msgid "Could not create a group from that name. Try a different name."
+msgstr ""
+
+#: includes/class-launchdek-settings.php:737
+msgid "That group name is reserved."
+msgstr ""
+
+#: includes/class-launchdek-settings.php:745
+msgid "A built-in group with that name already exists."
+msgstr ""
+
+#: includes/class-launchdek-settings.php:755
+msgid "A group with that name already exists."
+msgstr ""
+
+#: includes/class-launchdek-templates.php:27
+msgid "Security"
+msgstr ""
+
+#: includes/class-launchdek-templates.php:28
+msgid "Hardening, audits, and access controls for client sites."
+msgstr ""
+
+#: includes/class-launchdek-templates.php:31
+msgid "Launch & Migration"
+msgstr ""
+
+#: includes/class-launchdek-templates.php:32
+msgid "Go-live, migration, and client onboarding checklists."
+msgstr ""
+
+#: includes/class-launchdek-templates.php:35
+msgid "Performance"
+msgstr ""
+
+#: includes/class-launchdek-templates.php:36
+msgid "Speed, caching, and Core Web Vitals baselines."
+msgstr ""
+
+#: includes/class-launchdek-templates.php:39
+msgid "SEO & Growth"
+msgstr ""
+
+#: includes/class-launchdek-templates.php:40
+msgid "Search, analytics, and local visibility setup."
+msgstr ""
+
+#: includes/class-launchdek-templates.php:43
+msgid "E-Commerce"
+msgstr ""
+
+#: includes/class-launchdek-templates.php:44
+msgid "WooCommerce store launch and optimization."
+msgstr ""
+
+#: includes/class-launchdek-templates.php:47
+msgid "Maintenance"
+msgstr ""
+
+#: includes/class-launchdek-templates.php:48
+msgid "Recurring care, updates, and backup verification."
+msgstr ""
+
+#: includes/class-launchdek-templates.php:51
+msgid "Compliance & Privacy"
+msgstr ""
+
+#: includes/class-launchdek-templates.php:52
+msgid "GDPR, cookies, accessibility, and legal pages."
+msgstr ""
+
+#: includes/class-launchdek-templates.php:55
+msgid "Troubleshooting"
+msgstr ""
+
+#: includes/class-launchdek-templates.php:56
+msgid "Step-by-step fixes for common WordPress errors and outages."
+msgstr ""
+
+#: includes/class-launchdek-webhook-dispatcher.php:59
+msgid "Client note added"
+msgstr ""
+
+#: includes/integrations/class-launchdek-integration-mainwp.php:22
+msgid "MainWP Connector"
+msgstr ""
+
+#: includes/integrations/class-launchdek-integration-mainwp.php:41
+msgid "MainWP is not installed or its site table is unavailable."
+msgstr ""
+
+#: includes/integrations/class-launchdek-integration-mainwp.php:69
+msgid "MainWP is not installed."
+msgstr ""
+
+#: includes/integrations/class-launchdek-integration-mainwp.php:99
+msgid "No MainWP-linked LaunchDek sites were found to push. Sync sites from MainWP first."
+msgstr ""
+
+#: includes/integrations/class-launchdek-integration-mainwp.php:123
+msgid "Import child sites from MainWP and deploy the LaunchDek client checklist panel through the MainWP connection."
+msgstr ""
+
+#: includes/integrations/class-launchdek-integration-mainwp.php:141
+#: includes/integrations/class-launchdek-integration-wp-umbrella.php:226
+msgid "Invalid site."
+msgstr ""
+
+#: includes/integrations/class-launchdek-integration-mainwp.php:166
+msgid "Add Application Password credentials on Sites or sync this site from MainWP before pushing the client panel."
+msgstr ""
+
+#: includes/integrations/class-launchdek-integration-mainwp.php:233
+msgid "MainWP must be installed and activated on this same WordPress site as LaunchDek."
+msgstr ""
+
+#: includes/integrations/class-launchdek-integration-mainwp.php:263
+msgid "Add your child site in MainWP first (MainWP → Sites → Add New Site), then return here and click Sync Sites."
+msgstr ""
+
+#: includes/integrations/class-launchdek-integration-mainwp.php:265
+msgid "MainWP child sites exist but all are disconnected. Reconnect them in MainWP, then sync again."
+msgstr ""
+
+#: includes/integrations/class-launchdek-integration-mainwp.php:267
+msgid "MainWP has connected child sites. Open Setup and click Sync Sites to import them into LaunchDek → Sites."
+msgstr ""
+
+#: includes/integrations/class-launchdek-integration-mainwp.php:343
+msgid "MainWP site table was not found on this install."
+msgstr ""
+
+#: includes/integrations/class-launchdek-integration-mainwp.php:378
+msgid "Could not read MainWP child sites. Verify MainWP is installed and its site tables are intact."
+msgstr ""
+
+#: includes/integrations/class-launchdek-integration-managewp.php:22
+msgid "ManageWP Connector"
+msgstr ""
+
+#: includes/integrations/class-launchdek-integration-managewp.php:36
+msgid "ManageWP site sync is not available yet."
+msgstr ""
+
+#: includes/integrations/class-launchdek-integration-managewp.php:43
+msgid "ManageWP Worker is not detected on this site."
+msgstr ""
+
+#: includes/integrations/class-launchdek-integration-managewp.php:47
+msgid "ManageWP Worker detected. Use ManageWP dashboard to install LaunchDek on connected sites."
+msgstr ""
+
+#: includes/integrations/class-launchdek-integration-managewp.php:59
+msgid "Allows the ManageWP master site to push LaunchDek to child sites."
+msgstr ""
+
+#: includes/integrations/class-launchdek-integration-wp-engine.php:22
+msgid "WP Engine Connector"
+msgstr ""
+
+#: includes/integrations/class-launchdek-integration-wp-engine.php:44
+msgid "WP Engine site sync is not available yet."
+msgstr ""
+
+#: includes/integrations/class-launchdek-integration-wp-engine.php:53
+msgid "WP Engine environment detected. Use WP Engine portal or SSH gateway to deploy LaunchDek to staging/production sites."
+msgstr ""
+
+#: includes/integrations/class-launchdek-integration-wp-engine.php:55
+msgid "Configure WP Engine API credentials in Settings to enable remote deployment."
+msgstr ""
+
+#: includes/integrations/class-launchdek-integration-wp-engine.php:67
+msgid "Allows WP Engine to push LaunchDek to connected sites."
+msgstr ""
+
+#: includes/integrations/class-launchdek-integration-wp-umbrella.php:26
+msgid "WP Umbrella Connector"
+msgstr ""
+
+#: includes/integrations/class-launchdek-integration-wp-umbrella.php:41
+msgid "Add your WP Umbrella Public API token in connector setup before syncing sites."
+msgstr ""
+
+#: includes/integrations/class-launchdek-integration-wp-umbrella.php:93
+#: includes/integrations/class-launchdek-integration-wp-umbrella.php:340
+msgid "WP Umbrella API token is not configured."
+msgstr ""
+
+#: includes/integrations/class-launchdek-integration-wp-umbrella.php:123
+msgid "No WP Umbrella-linked LaunchDek sites were found to push. Sync sites from WP Umbrella first."
+msgstr ""
+
+#: includes/integrations/class-launchdek-integration-wp-umbrella.php:147
+msgid "Import sites from your WP Umbrella account and deploy the LaunchDek client checklist panel to connected sites with Application Passwords."
+msgstr ""
+
+#: includes/integrations/class-launchdek-integration-wp-umbrella.php:167
+msgid "Generate a Public API token in WP Umbrella (Profile → Public API for developers), paste it in connector setup, then click Sync Sites."
+msgstr ""
+
+#: includes/integrations/class-launchdek-integration-wp-umbrella.php:187
+msgid "Your WP Umbrella account has no connected projects yet. Add sites in WP Umbrella first, then sync again."
+msgstr ""
+
+#: includes/integrations/class-launchdek-integration-wp-umbrella.php:189
+msgid "WP Umbrella returned projects but none were eligible to import. Disconnected sites are skipped — reconnect them in WP Umbrella, then sync again."
+msgstr ""
+
+#: includes/integrations/class-launchdek-integration-wp-umbrella.php:233
+msgid "Add Application Password credentials on the Sites page before pushing the client panel."
+msgstr ""
+
+#: includes/integrations/class-launchdek-integration-wp-umbrella.php:365
+msgid "Could not reach the WP Umbrella API. Check your network connection and try again."
+msgstr ""
+
+#: includes/integrations/class-launchdek-integration-wp-umbrella.php:377
+msgid "WP Umbrella rejected the API token. Use the account token from Profile → Public API (for developers)—not the per-site connection key from WP Umbrella plugin settings. Regenerate the Public API token if needed, then save again."
+msgstr ""
+
+#: includes/integrations/class-launchdek-integration-wp-umbrella.php:385
+msgid "WP Umbrella rejected the request. Regenerate your Public API token in Profile → Public API (for developers) and ensure it includes the public_api scope, then save again."
+msgstr ""
+
+#: includes/integrations/class-launchdek-integration-wp-umbrella.php:391
+msgid "WP Umbrella API request failed."
+msgstr ""
+
+#: includes/integrations/class-launchdek-integration-wpvibe.php:22
+msgid "WPvibe Connector"
+msgstr ""
+
+#: includes/integrations/class-launchdek-integration-wpvibe.php:40
+msgid "WPvibe site sync is not available yet."
+msgstr ""
+
+#: includes/integrations/class-launchdek-integration-wpvibe.php:49
+msgid "WPvibe detected. Use WPvibe dashboard to distribute LaunchDek to managed sites."
+msgstr ""
+
+#: includes/integrations/class-launchdek-integration-wpvibe.php:51
+msgid "Install WPvibe to enable centralized LaunchDek deployment."
+msgstr ""
+
+#: includes/integrations/class-launchdek-integration-wpvibe.php:63
+msgid "Allows WPvibe to push LaunchDek to child sites."
+msgstr ""
+
+#: includes/integrations/class-launchdek-mainwp-agent.php:35
+msgid "This MainWP child site is disconnected or has sync errors."
+msgstr ""
+
+#: includes/integrations/class-launchdek-mainwp-agent.php:42
+msgid "MainWP Connect is unavailable. Update MainWP and try again."
+msgstr ""
+
+#: includes/integrations/class-launchdek-mainwp-agent.php:79
+msgid "Client checklist panel installed via MainWP."
+msgstr ""
+
+#: includes/integrations/class-launchdek-mainwp-agent.php:84
+msgid "MainWP could not install the client panel on this child site."
+msgstr ""
+
+#: includes/integrations/class-launchdek-mainwp-agent.php:111
+msgid "Invalid MainWP site ID."
+msgstr ""
+
+#: includes/integrations/class-launchdek-mainwp-agent.php:126
+msgid "MainWP child site not found."
+msgstr ""
+
+#: includes/integrations/class-launchdek-mainwp-agent.php:149
+msgid "ZipArchive is required to deploy the client panel via MainWP."
+msgstr ""
+
+#: includes/integrations/class-launchdek-mainwp-agent.php:159
+msgid "Could not create a temporary install package."
+msgstr ""
+
+#: includes/integrations/class-launchdek-mainwp-agent.php:170
+msgid "Could not create the MainWP install package."
+msgstr ""
+
+#: includes/integrations/class-launchdek-mainwp-agent.php:282
+msgid "Could not prepare the MainWP upload directory."
+msgstr ""
+
+#: includes/integrations/class-launchdek-mainwp-agent.php:291
+msgid "Could not stage the client panel install package for MainWP."
+msgstr ""
+
+#: includes/integrations/class-launchdek-mainwp-agent.php:314
+msgid "Could not prepare a temporary upload directory."
+msgstr ""
+
+#: includes/integrations/class-launchdek-mainwp-agent.php:323
+msgid "Could not stage the client panel install package."
+msgstr ""
+
+#. translators: %s: option label
+#: mu-plugin/launchdek-client/class-auto-capture.php:211
+#, php-format
+msgid "Set %s to the captured value when repeating this checklist."
+msgstr ""
+
+#. translators: %s: plugin name
+#: mu-plugin/launchdek-client/class-auto-capture.php:241
+#, php-format
+msgid "Activate %s"
+msgstr ""
+
+#: mu-plugin/launchdek-client/class-auto-capture.php:244
+msgid "Activate this plugin on the client site."
+msgstr ""
+
+#. translators: %s: plugin name
+#: mu-plugin/launchdek-client/class-auto-capture.php:272
+#, php-format
+msgid "Deactivate %s"
+msgstr ""
+
+#: mu-plugin/launchdek-client/class-auto-capture.php:275
+msgid "Deactivate this plugin on the client site."
+msgstr ""
+
+#: mu-plugin/launchdek-client/class-auto-capture.php:297
+msgid "LaunchDek auto-capture is recording."
+msgstr ""
+
+#. translators: %d: number of captured steps
+#: mu-plugin/launchdek-client/class-auto-capture.php:301
+#, php-format
+msgid "%d step captured so far."
+msgid_plural "%d steps captured so far."
+msgstr[0] ""
+msgstr[1] ""
+
+#: mu-plugin/launchdek-client/class-auto-capture.php:360
+msgid "Captured step"
+msgstr ""
+
+#. translators: 1: HTTP method, 2: REST route
+#: mu-plugin/launchdek-client/class-auto-capture.php:390
+#, php-format
+msgid "%1$s %2$s"
+msgstr ""
+
+#: mu-plugin/launchdek-client/class-auto-capture.php:394
+msgid "Repeat this REST API change on future client sites."
+msgstr ""
+
+#. translators: %s: comma-separated setting field names
+#: mu-plugin/launchdek-client/class-auto-capture.php:401
+#, php-format
+msgid "Update settings: %s"
+msgstr ""
+
+#: mu-plugin/launchdek-client/class-auto-capture.php:405
+msgid "Update site settings"
+msgstr ""
+
+#: mu-plugin/launchdek-client/class-auto-capture.php:407
+msgid "Apply the same WordPress settings change captured during recording."
+msgstr ""
+
+#: mu-plugin/launchdek-client/class-auto-capture.php:409
+msgid "Manage plugins"
+msgstr ""
+
+#: mu-plugin/launchdek-client/class-auto-capture.php:410
+msgid "Repeat the plugin change captured during recording."
+msgstr ""
+
+#: mu-plugin/launchdek-client/class-auto-capture.php:453
+msgid "Administration Email"
+msgstr ""
+
+#: mu-plugin/launchdek-client/class-auto-capture.php:457
+msgid "Membership Setting"
+msgstr ""
+
+#: mu-plugin/launchdek-client/class-auto-capture.php:461
+msgid "New User Default Role"
+msgstr ""
+
+#: mu-plugin/launchdek-client/class-auto-capture.php:473
+msgid "Homepage Displays"
+msgstr ""
+
+#: mu-plugin/launchdek-client/class-auto-capture.php:477
+msgid "Homepage"
+msgstr ""
+
+#: mu-plugin/launchdek-client/class-auto-capture.php:481
+msgid "Posts Page"
+msgstr ""
+
+#: mu-plugin/launchdek-client/class-auto-capture.php:485
+msgid "Default Comment Status"
+msgstr ""
+
+#: mu-plugin/launchdek-client/class-auto-capture.php:489
+msgid "Timezone"
+msgstr ""
+
+#: mu-plugin/launchdek-client/class-auto-capture.php:493
+msgid "Date Format"
+msgstr ""
+
+#: mu-plugin/launchdek-client/class-auto-capture.php:497
+msgid "Time Format"
+msgstr ""
+
+#: mu-plugin/launchdek-client/class-auto-capture.php:501
+msgid "Week Starts On"
+msgstr ""
+
+#: mu-plugin/launchdek-client/class-auto-capture.php:505
+msgid "Site Language"
+msgstr ""
+
+#: mu-plugin/launchdek-client/class-hub-client.php:51
+msgid "Hub connection details are missing for this checklist."
+msgstr ""
+
+#. translators: 1: error code, 2: HTTP status code
+#: mu-plugin/launchdek-client/class-hub-client.php:111
+#, php-format
+msgid "Hub error: %1$s (HTTP %2$d)."
+msgstr ""
+
+#: mu-plugin/launchdek-client/class-hub-client.php:119
+msgid "The hub rejected this request because the checklist token is invalid or expired. Re-push the checklist from the hub and try again."
+msgstr ""
+
+#: mu-plugin/launchdek-client/class-hub-client.php:123
+msgid "The hub could not find the checklist callback route. Re-push the checklist from the hub and confirm the hub REST API is reachable."
+msgstr ""
+
+#: mu-plugin/launchdek-client/class-hub-client.php:143
+msgid "The hub rejected the step completion request."
+msgstr ""
+
+#: mu-plugin/launchdek-client/class-hub-client.php:161
+msgid "The hub rejected the step update request."
+msgstr ""
+
+#: mu-plugin/launchdek-client/class-hub-client.php:195
+msgid "The hub rejected the note."
+msgstr ""
+
+#. translators: 1: completed steps, 2: total steps
+#: mu-plugin/launchdek-client/class-panel.php:56
+#: mu-plugin/launchdek-client/class-panel.php:200
+#, php-format
+msgid "Checklist %1$d/%2$d"
+msgstr ""
+
+#: mu-plugin/launchdek-client/class-panel.php:178
+msgid "Expand"
+msgstr ""
+
+#: mu-plugin/launchdek-client/class-panel.php:179
+msgid "Show steps"
+msgstr ""
+
+#: mu-plugin/launchdek-client/class-panel.php:181
+msgid "Current step"
+msgstr ""
+
+#: mu-plugin/launchdek-client/class-panel.php:182
+msgid "Open checklist"
+msgstr ""
+
+#: mu-plugin/launchdek-client/class-panel.php:184
+msgid "Mark not complete"
+msgstr ""
+
+#: mu-plugin/launchdek-client/class-panel.php:185
+#, php-format
+msgid "Completed by %1$s on %2$s"
+msgstr ""
+
+#: mu-plugin/launchdek-client/class-panel.php:186
+msgid "Unknown user"
+msgstr ""
+
+#: mu-plugin/launchdek-client/class-panel.php:189
+msgid "Open step"
+msgstr ""
+
+#: mu-plugin/launchdek-client/class-panel.php:192
+msgid "Could not update this step."
+msgstr ""
+
+#: mu-plugin/launchdek-client/class-panel.php:193
+msgid "Checklist complete!"
+msgstr ""
+
+#: mu-plugin/launchdek-client/class-panel.php:194
+msgid "Started:"
+msgstr ""
+
+#: mu-plugin/launchdek-client/class-panel.php:195
+msgid "Completed:"
+msgstr ""
+
+#: mu-plugin/launchdek-client/class-panel.php:196
+msgid "Dismiss"
+msgstr ""
+
+#: mu-plugin/launchdek-client/class-panel.php:197
+msgid "Could not dismiss this checklist."
+msgstr ""
+
+#: mu-plugin/launchdek-client/class-panel.php:201
+msgid "Show all steps"
+msgstr ""
+
+#: mu-plugin/launchdek-client/class-panel.php:202
+msgid "Focus current step"
+msgstr ""
+
+#: mu-plugin/launchdek-client/class-panel.php:203
+msgid "Add note"
+msgstr ""
+
+#: mu-plugin/launchdek-client/class-panel.php:207
+#, php-format
+msgid "%1$s · %2$s"
+msgstr ""
+
+#: mu-plugin/launchdek-client/class-panel.php:209
+msgid "Save note"
+msgstr ""
+
+#: mu-plugin/launchdek-client/class-panel.php:210
+msgid "Note saved."
+msgstr ""
+
+#: mu-plugin/launchdek-client/class-panel.php:211
+msgid "Note saved on this site. Hub sync will retry on the next checklist update."
+msgstr ""
+
+#: mu-plugin/launchdek-client/class-panel.php:212
+msgid "Notes"
+msgstr ""
+
+#: mu-plugin/launchdek-client/class-panel.php:213
+#, php-format
+msgid "%1$s (%2$s)"
+msgstr ""
+
+#: mu-plugin/launchdek-client/class-panel.php:214
+msgid "Remove screenshot"
+msgstr ""
+
+#: mu-plugin/launchdek-client/class-panel.php:215
+msgid "Could not open media library."
+msgstr ""
+
+#: mu-plugin/launchdek-client/class-rest-api.php:169
+msgid "No panel files were provided."
+msgstr ""
+
+#: mu-plugin/launchdek-client/class-rest-api.php:198
+msgid "Must-use plugins directory is not available."
+msgstr ""
+
+#: mu-plugin/launchdek-client/class-rest-api.php:233
+msgid "Could not create the client panel directory."
+msgstr ""
+
+#: mu-plugin/launchdek-client/class-rest-api.php:241
+msgid "Could not write the client panel files."
+msgstr ""
+
+#: mu-plugin/launchdek-client/class-rest-api.php:252
+msgid "No valid panel files were written."
+msgstr ""
+
+#: mu-plugin/launchdek-client/class-rest-api.php:318
+#: mu-plugin/launchdek-client/class-rest-api.php:353
+#: mu-plugin/launchdek-client/class-rest-api.php:436
+#: mu-plugin/launchdek-client/class-rest-api.php:513
+msgid "No active checklist is assigned to this site."
+msgstr ""
+
+#: mu-plugin/launchdek-client/class-rest-api.php:326
+msgid "Only completed checklists can be dismissed."
+msgstr ""
+
+#: mu-plugin/launchdek-client/class-rest-api.php:363
+#: mu-plugin/launchdek-client/class-rest-api.php:446
+#: mu-plugin/launchdek-client/class-rest-api.php:523
+msgid "Checklist step not found."
+msgstr ""
+
+#: mu-plugin/launchdek-client/class-rest-api.php:371
+msgid "You do not have permission to complete this step."
+msgstr ""
+
+#: mu-plugin/launchdek-client/class-rest-api.php:379
+msgid "Only manual steps can be completed here."
+msgstr ""
+
+#: mu-plugin/launchdek-client/class-rest-api.php:454
+msgid "You do not have permission to update this step."
+msgstr ""
+
+#: mu-plugin/launchdek-client/class-rest-api.php:462
+msgid "Only manual steps can be updated here."
+msgstr ""
+
+#: mu-plugin/launchdek-client/class-rest-api.php:531
+msgid "You do not have permission to add notes to this step."
+msgstr ""
+
+#: mu-plugin/launchdek-client/class-rest-api.php:539
+msgid "Notes can only be added to steps that are not yet complete."
+msgstr ""
+
+#: mu-plugin/launchdek-client/class-rest-api.php:562
+msgid "The screenshot attachment is not valid."
+msgstr ""
+
+#: mu-plugin/launchdek-client/class-rest-api.php:591
+msgid "Failed to save note locally."
+msgstr ""
+
+#: mu-plugin/launchdek-client/class-run-store.php:530
+msgid "Agency Checklist"
+msgstr ""

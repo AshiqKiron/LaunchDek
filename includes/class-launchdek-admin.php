@@ -270,7 +270,7 @@ class LAUNCHDEK_Admin {
 					'clientPushSkipped' => __( 'Run started on the hub. Complete the one-time client panel setup on Sites to show the checklist on the client site.', LAUNCHDEK_TEXT_DOMAIN ),
 					'clientPushFailed' => __( 'Run started, but the client panel could not be updated.', LAUNCHDEK_TEXT_DOMAIN ),
 					'panelSetupTitle' => __( 'Client checklist panel setup', LAUNCHDEK_TEXT_DOMAIN ),
-					'panelSetupNeeded' => __( 'Client panel is not installed yet. Download the bootstrap file, upload it to the client site, then retry panel install.', LAUNCHDEK_TEXT_DOMAIN ),
+					'panelSetupNeeded' => __( 'Client panel is not installed yet. Download the bootstrap file below, upload it to wp-content/mu-plugins/ on the client site, then retry panel install.', LAUNCHDEK_TEXT_DOMAIN ),
 					'panelSetupReady' => __( 'Client panel is installed and ready.', LAUNCHDEK_TEXT_DOMAIN ),
 					'panelInstallOk' => __( 'Client panel installed successfully.', LAUNCHDEK_TEXT_DOMAIN ),
 					'panelInstallFailed' => __( 'Client panel install failed.', LAUNCHDEK_TEXT_DOMAIN ),

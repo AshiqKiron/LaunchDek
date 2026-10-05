@@ -98,7 +98,7 @@ class LAUNCHDEK_Mu_Plugin_Installer {
 			if ( is_wp_error( $local ) ) {
 				return new WP_Error(
 					'launchdek_mu_bootstrap_required',
-					__( 'Client panel bootstrap required. Download launchdek-client.php from LaunchDek → Sites, upload it to wp-content/mu-plugins/ on the client site, then click Retry panel install.', LAUNCHDEK_TEXT_DOMAIN ),
+					__( 'Client panel bootstrap required. Download launchdek-client.php from onboarding or LaunchDek → Sites, upload it to wp-content/mu-plugins/ on the client site, then click Retry panel install.', LAUNCHDEK_TEXT_DOMAIN ),
 					array(
 						'status' => 404,
 						'remote' => $remote->get_error_message(),

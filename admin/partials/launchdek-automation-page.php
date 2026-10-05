@@ -149,6 +149,7 @@ $activity_logs_url = admin_url( 'admin.php?page=' . LAUNCHDEK_Admin::PAGE_SLUG .
 				</div>
 
 				<div class="launchdek-batch-queue">
+					<div class="launchdek-table-scroll">
 					<table class="wp-list-table widefat fixed striped" id="launchdek-batch-table">
 						<thead>
 							<tr>
@@ -165,6 +166,7 @@ $activity_logs_url = admin_url( 'admin.php?page=' . LAUNCHDEK_Admin::PAGE_SLUG .
 							</tr>
 						</tbody>
 					</table>
+					</div>
 				</div>
 				<div id="launchdek-batch-notice" class="launchdek-notice-area" aria-live="polite"></div>
 			</div>

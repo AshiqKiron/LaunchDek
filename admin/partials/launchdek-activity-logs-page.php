@@ -53,6 +53,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 				<button type="button" class="button button-primary" id="launchdek-activity-logs-filter"><?php esc_html_e( 'Apply Filters', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
 			</div>
 		</div>
+		<div class="launchdek-table-scroll">
 		<table class="wp-list-table widefat fixed striped launchdek-audit-table" id="launchdek-activity-logs-table">
 			<thead>
 				<tr>
@@ -66,6 +67,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 				<tr><td colspan="4" class="launchdek-muted"><?php esc_html_e( 'Loading activity…', LAUNCHDEK_TEXT_DOMAIN ); ?></td></tr>
 			</tbody>
 		</table>
+		</div>
 		<div class="launchdek-activity-logs-load-more-wrap" id="launchdek-activity-logs-load-more-wrap" hidden></div>
 	</div>
 </div>

@@ -145,6 +145,29 @@ body.launchdek-client-layout-live_topbar #wpadminbar #wp-admin-bar-launchdek-cli
 	}
 }
 
+@media screen and (max-width: 480px) {
+	.launchdek-client-panel:not(.is-collapsed) {
+		left: 8px;
+		right: 8px;
+		width: auto;
+		max-width: none;
+	}
+
+	.launchdek-client-panel-header {
+		flex-wrap: wrap;
+	}
+
+	.launchdek-client-step-head {
+		flex-wrap: wrap;
+		align-items: flex-start;
+	}
+
+	.launchdek-client-step-head-actions {
+		margin-left: 0;
+		flex-wrap: wrap;
+	}
+}
+
 .launchdek-client-panel.is-collapsed {
 	width: auto;
 	min-width: 0;

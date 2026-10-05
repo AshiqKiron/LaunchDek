@@ -177,7 +177,7 @@ class LAUNCHDEK_Admin_Ajax {
 	public static function handle_save_wp_umbrella_token() {
 		self::verify_request();
 
-		$token   = isset( $_POST['token'] ) ? sanitize_text_field( wp_unslash( $_POST['token'] ) ) : null;
+		$token   = isset( $_POST['token'] ) ? LAUNCHDEK_Settings::normalize_wp_umbrella_api_token( wp_unslash( $_POST['token'] ) ) : null;
 		$clear   = ! empty( $_POST['clear'] );
 		$payload = '';
 
@@ -192,6 +192,21 @@ class LAUNCHDEK_Admin_Ajax {
 				),
 				400
 			);
+		}
+
+		if ( '' !== $payload ) {
+			$integration = LAUNCHDEK_Integrations::get( 'wp-umbrella' );
+			if ( $integration instanceof LAUNCHDEK_Integration_WP_Umbrella ) {
+				$verified = $integration->verify_api_token( $payload );
+				if ( is_wp_error( $verified ) ) {
+					wp_send_json_error(
+						array(
+							'message' => $verified->get_error_message(),
+						),
+						400
+					);
+				}
+			}
 		}
 
 		$configured = LAUNCHDEK_Settings::save_wp_umbrella_api_token( $payload );

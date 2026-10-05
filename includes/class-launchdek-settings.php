@@ -78,6 +78,37 @@ class LAUNCHDEK_Settings {
 		}
 
 		// onboarding_dismissed is REST-only (POST /onboarding/dismiss|reset) — not a Settings form field.
+		if ( array_key_exists( 'onboarding_dismissed', $input ) ) {
+			$output['onboarding_dismissed'] = (bool) $input['onboarding_dismissed'];
+		}
+
+		// wp_umbrella_api_token_enc is admin-ajax only (launchdek_save_wp_umbrella_token) — not a Settings form field.
+		if ( array_key_exists( 'wp_umbrella_api_token_enc', $input ) ) {
+			// Encrypted blob — do not run sanitize_text_field (can alter base64 ciphertext).
+			$output['wp_umbrella_api_token_enc'] = is_string( $input['wp_umbrella_api_token_enc'] )
+				? str_replace( "\0", '', $input['wp_umbrella_api_token_enc'] )
+				: '';
+		}
+
+		if ( isset( $input['custom_site_groups'] ) && is_array( $input['custom_site_groups'] ) ) {
+			$clean_groups = array();
+			foreach ( $input['custom_site_groups'] as $group ) {
+				if ( ! is_array( $group ) ) {
+					continue;
+				}
+				$slug  = sanitize_key( (string) ( $group['slug'] ?? '' ) );
+				$label = sanitize_text_field( (string) ( $group['label'] ?? '' ) );
+				if ( '' === $slug || '' === $label ) {
+					continue;
+				}
+				$clean_groups[] = array(
+					'slug'  => $slug,
+					'label' => $label,
+				);
+			}
+			$output['custom_site_groups'] = $clean_groups;
+		}
+
 		$checkboxes = array( 'enabled', 'encrypt_credentials', 'drift_verification_enabled' );
 		foreach ( $checkboxes as $key ) {
 			if ( array_key_exists( $key, $input ) ) {
@@ -474,6 +505,27 @@ class LAUNCHDEK_Settings {
 	 * @return string[] Valid email addresses.
 	 */
 	/**
+	 * Normalize a WP Umbrella Public API token pasted in admin.
+	 *
+	 * Strips accidental "Bearer " prefixes and control characters without removing
+	 * valid JWT/base64 punctuation.
+	 *
+	 * @param mixed $token Raw token input.
+	 * @return string
+	 */
+	public static function normalize_wp_umbrella_api_token( $token ) {
+		$token = trim( (string) $token );
+
+		if ( preg_match( '/^bearer\s+(.+)$/i', $token, $matches ) ) {
+			$token = trim( $matches[1] );
+		}
+
+		$token = preg_replace( '/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/', '', $token );
+
+		return trim( (string) $token );
+	}
+
+	/**
 	 * Whether a WP Umbrella Public API token is stored.
 	 *
 	 * @return bool
@@ -491,8 +543,9 @@ class LAUNCHDEK_Settings {
 	 */
 	public static function get_wp_umbrella_api_token() {
 		$settings = self::get();
+		$token    = LAUNCHDEK_Credential_Vault::decrypt( $settings['wp_umbrella_api_token_enc'] ?? '' );
 
-		return LAUNCHDEK_Credential_Vault::decrypt( $settings['wp_umbrella_api_token_enc'] ?? '' );
+		return self::normalize_wp_umbrella_api_token( $token );
 	}
 
 	/**
@@ -503,7 +556,7 @@ class LAUNCHDEK_Settings {
 	 */
 	public static function save_wp_umbrella_api_token( $token ) {
 		$settings = self::get();
-		$token    = trim( (string) $token );
+		$token    = self::normalize_wp_umbrella_api_token( $token );
 
 		if ( '' === $token ) {
 			$settings['wp_umbrella_api_token_enc'] = '';

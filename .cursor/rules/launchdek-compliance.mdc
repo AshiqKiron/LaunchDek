@@ -14,9 +14,9 @@ See `launchdek-project.mdc` (architecture), `launchdek-standards.mdc` (quality),
 - Sanitize on input, escape on output, authorize before action.
 - REST: every route has `permission_callback`; use `LAUNCHDEK_Capabilities::current_user_can()`.
 - Admin UI auth: `X-WP-Nonce` with `wp_rest` nonce on all REST `fetch` calls; admin-ajax requests use `postAjax()` with the same `wp_rest` nonce in POST (`check_ajax_referer( 'wp_rest', 'nonce' )` server-side).
-- Never expose decrypted Application Passwords in REST responses, logs, or audit entries.
-- Store credentials via `LAUNCHDEK_Credential_Vault::encrypt()`; decrypt only at request time in `LAUNCHDEK_Remote_Client`.
-- Settings API: `sanitize_callback`, `show_in_rest => false`.
+- Never expose decrypted Application Passwords or WP Umbrella Public API tokens in REST responses, logs, or audit entries.
+- Store credentials via `LAUNCHDEK_Credential_Vault::encrypt()`; decrypt only at request time in `LAUNCHDEK_Remote_Client` (site app passwords) or WP Umbrella adapter / `LAUNCHDEK_Settings::get_wp_umbrella_api_token()` (hub connector outbound only).
+- Settings API: `sanitize_callback`, `show_in_rest => false`. When adding settings keys updated outside the Settings form (REST, admin-ajax, direct `update_option`), extend `LAUNCHDEK_Settings::sanitize()` so **Save Changes** on Settings does not strip them (`onboarding_dismissed`, `wp_umbrella_api_token_enc`, `custom_site_groups`). Encrypted values (`wp_umbrella_api_token_enc`) must not pass through `sanitize_text_field` — preserve the vault ciphertext (null-byte strip only).
 - Remote requests: validate URLs with `esc_url_raw()`; use `wp_remote_*` with timeouts; handle `WP_Error`.
 - SQL: `$wpdb->prepare()` only; no user input in table names.
 - Webhook URLs: sanitize with `esc_url_raw()`; only POST on configured user events.
@@ -40,7 +40,7 @@ See `launchdek-project.mdc` (architecture), `launchdek-standards.mdc` (quality),
 ## Directory & Privacy
 
 - No obfuscated code or undisclosed telemetry.
-- Outbound requests are limited to: user-registered remote sites (including mu-plugin deploy/push), user-configured webhook URLs, WordPress `wp_mail()` for opt-in email notifications (no third-party mail API unless the site configures SMTP), and integration adapters (user-initiated site sync and client panel push — MainWP uses MainWP Connect to child sites when hub Application Passwords are not configured).
+- Outbound requests are limited to: user-registered remote sites (including mu-plugin deploy/push), user-configured webhook URLs, WordPress `wp_mail()` for opt-in email notifications (no third-party mail API unless the site configures SMTP), and integration adapters (user-initiated site sync and client panel push — MainWP uses MainWP Connect to child sites when hub Application Passwords are not configured; WP Umbrella uses the user-configured Public API token at `public-api.wp-umbrella.com`, including a lightweight verify probe on token save).
 - Integrations **Telemetry Sync Mapping Rules** store field-mapping preferences only (`telemetry_sync_rules`); they do not emit tracking data.
 - Webhook and integration behavior must be documented in `readme.txt`. Email notification behavior (opt-in events, `wp_mail`, recipient fallback) must also be documented in `readme.txt`.
 - No spammy readme or deceptive behavior.
