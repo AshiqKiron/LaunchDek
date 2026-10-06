@@ -904,7 +904,7 @@
 
 	function renderProgressBar(percent) {
 		return '<div class="launchdek-client-progress-bar" role="progressbar" aria-valuenow="' + percent + '" aria-valuemin="0" aria-valuemax="100">' +
-			'<span class="launchdek-client-progress-fill" style="width:' + percent + '%"></span>' +
+			'<span class="launchdek-client-progress-fill" style="--launchdek-progress-pct:' + percent + '%"></span>' +
 		'</div>';
 	}
 

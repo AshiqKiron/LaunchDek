@@ -80,17 +80,19 @@ class LAUNCHDEK_REST_API {
 			'permission_callback' => array( __CLASS__, 'can_edit_checklists' ),
 		) );
 
-		register_rest_route( self::NAMESPACE, '/billing/summary', array(
-			'methods'             => 'GET',
-			'callback'            => array( __CLASS__, 'get_billing_summary' ),
-			'permission_callback' => array( __CLASS__, 'can_view_dashboard' ),
-		) );
+		if ( launchdek_includes_pro_package() ) {
+			register_rest_route( self::NAMESPACE, '/billing/summary', array(
+				'methods'             => 'GET',
+				'callback'            => array( __CLASS__, 'get_billing_summary' ),
+				'permission_callback' => array( __CLASS__, 'can_view_dashboard' ),
+			) );
 
-		register_rest_route( self::NAMESPACE, '/billing/plan', array(
-			'methods'             => 'POST',
-			'callback'            => array( __CLASS__, 'update_billing_plan' ),
-			'permission_callback' => array( __CLASS__, 'can_manage_settings' ),
-		) );
+			register_rest_route( self::NAMESPACE, '/billing/plan', array(
+				'methods'             => 'POST',
+				'callback'            => array( __CLASS__, 'update_billing_plan' ),
+				'permission_callback' => array( __CLASS__, 'can_manage_settings' ),
+			) );
+		}
 
 		// Sites.
 		register_rest_route( self::NAMESPACE, '/sites', array(
@@ -173,23 +175,25 @@ class LAUNCHDEK_REST_API {
 			'permission_callback' => array( __CLASS__, 'can_manage_sites' ),
 		) );
 
-		register_rest_route( self::NAMESPACE, '/sites/(?P<id>\d+)/capture', array(
-			array(
-				'methods'             => 'GET',
-				'callback'            => array( __CLASS__, 'get_site_capture' ),
-				'permission_callback' => array( __CLASS__, 'can_edit_checklists' ),
-			),
-			array(
-				'methods'             => 'POST',
-				'callback'            => array( __CLASS__, 'update_site_capture' ),
-				'permission_callback' => array( __CLASS__, 'can_edit_checklists' ),
-			),
-			array(
-				'methods'             => 'DELETE',
-				'callback'            => array( __CLASS__, 'clear_site_capture' ),
-				'permission_callback' => array( __CLASS__, 'can_edit_checklists' ),
-			),
-		) );
+		if ( launchdek_includes_pro_package() ) {
+			register_rest_route( self::NAMESPACE, '/sites/(?P<id>\d+)/capture', array(
+				array(
+					'methods'             => 'GET',
+					'callback'            => array( __CLASS__, 'get_site_capture' ),
+					'permission_callback' => array( __CLASS__, 'can_edit_checklists' ),
+				),
+				array(
+					'methods'             => 'POST',
+					'callback'            => array( __CLASS__, 'update_site_capture' ),
+					'permission_callback' => array( __CLASS__, 'can_edit_checklists' ),
+				),
+				array(
+					'methods'             => 'DELETE',
+					'callback'            => array( __CLASS__, 'clear_site_capture' ),
+					'permission_callback' => array( __CLASS__, 'can_edit_checklists' ),
+				),
+			) );
+		}
 
 		// Checklists.
 		register_rest_route( self::NAMESPACE, '/checklists', array(
@@ -373,18 +377,20 @@ class LAUNCHDEK_REST_API {
 			'permission_callback' => array( __CLASS__, 'can_edit_checklists' ),
 		) );
 
-		register_rest_route( self::NAMESPACE, '/templates/vault', array(
-			array(
-				'methods'             => 'GET',
-				'callback'            => array( __CLASS__, 'get_vault' ),
-				'permission_callback' => array( __CLASS__, 'can_edit_checklists' ),
-			),
-			array(
-				'methods'             => 'POST',
-				'callback'            => array( __CLASS__, 'save_to_vault' ),
-				'permission_callback' => array( __CLASS__, 'can_edit_checklists' ),
-			),
-		) );
+		if ( launchdek_includes_pro_package() ) {
+			register_rest_route( self::NAMESPACE, '/templates/vault', array(
+				array(
+					'methods'             => 'GET',
+					'callback'            => array( __CLASS__, 'get_vault' ),
+					'permission_callback' => array( __CLASS__, 'can_edit_checklists' ),
+				),
+				array(
+					'methods'             => 'POST',
+					'callback'            => array( __CLASS__, 'save_to_vault' ),
+					'permission_callback' => array( __CLASS__, 'can_edit_checklists' ),
+				),
+			) );
+		}
 
 		register_rest_route( self::NAMESPACE, '/templates/(?P<slug>[a-z0-9\-_]+)/clone', array(
 			'methods'             => 'POST',

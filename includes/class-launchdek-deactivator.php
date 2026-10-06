@@ -20,9 +20,13 @@ class LAUNCHDEK_Deactivator {
 	 * @return void
 	 */
 	public static function deactivate() {
-		require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-drift-cron.php';
+		if ( ! function_exists( 'launchdek_get_drift_cron_file' ) ) {
+			require_once LAUNCHDEK_PLUGIN_DIR . 'includes/launchdek-build.php';
+		}
+		require_once launchdek_get_drift_cron_file();
 
-		delete_transient( 'launchdek_activation_redirect' );
+		delete_option( LAUNCHDEK_Admin::ACTIVATION_REDIRECT_OPTION );
+		delete_transient( LAUNCHDEK_Admin::ACTIVATION_REDIRECT_OPTION );
 		LAUNCHDEK_Drift_Cron::deactivate();
 	}
 }

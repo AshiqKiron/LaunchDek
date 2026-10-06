@@ -49,6 +49,13 @@ class LAUNCHDEK_Licensing {
 			$stored = array();
 		}
 
+		if ( launchdek_is_community_build() ) {
+			return array(
+				'plan'        => self::PLAN_COMMUNITY,
+				'license_key' => '',
+			);
+		}
+
 		$plan = sanitize_key( (string) ( $stored['plan'] ?? self::PLAN_COMMUNITY ) );
 		if ( ! in_array( $plan, array( self::PLAN_COMMUNITY, self::PLAN_PRO, self::PLAN_AGENCY ), true ) ) {
 			$plan = self::PLAN_COMMUNITY;
@@ -77,6 +84,10 @@ class LAUNCHDEK_Licensing {
 	 * @return bool
 	 */
 	public static function has_pro_features() {
+		if ( launchdek_is_community_build() ) {
+			return false;
+		}
+
 		return in_array( self::get_plan(), array( self::PLAN_PRO, self::PLAN_AGENCY ), true );
 	}
 
@@ -645,6 +656,14 @@ class LAUNCHDEK_Licensing {
 	 * @return bool|WP_Error
 	 */
 	public static function set_plan( $plan ) {
+		if ( launchdek_is_community_build() ) {
+			return new WP_Error(
+				'launchdek_community_build',
+				__( 'Plan changes are not available in the Community edition.', LAUNCHDEK_TEXT_DOMAIN ),
+				array( 'status' => 403 )
+			);
+		}
+
 		$plan = sanitize_key( $plan );
 		if ( ! in_array( $plan, array( self::PLAN_COMMUNITY, self::PLAN_PRO, self::PLAN_AGENCY ), true ) ) {
 			return new WP_Error( 'invalid_plan', __( 'Invalid plan.', LAUNCHDEK_TEXT_DOMAIN ), array( 'status' => 400 ) );

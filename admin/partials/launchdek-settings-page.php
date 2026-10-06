@@ -27,14 +27,20 @@ $guard_caps    = array(
 );
 $exclude_options   = LAUNCHDEK_Settings::get_exclude_options();
 $exclude_labels    = LAUNCHDEK_Settings::get_exclude_option_labels();
-$panel_layouts     = LAUNCHDEK_Licensing::get_panel_layouts_for_plan();
-$panel_layout      = LAUNCHDEK_Settings::get_client_panel_layout();
-$billing_pro       = LAUNCHDEK_Licensing::has_pro_features();
+$panel_layouts            = LAUNCHDEK_Licensing::get_panel_layouts_for_plan();
+$panel_layout             = LAUNCHDEK_Settings::get_client_panel_layout();
+$show_notifications       = LAUNCHDEK_Licensing::can_use_notifications();
+$show_scheduled_drift     = LAUNCHDEK_Licensing::can_use_scheduled_drift();
 $section_tooltips = array(
-	'platform'        => __(
-		'Turn LaunchDek on or off for this hub and schedule automated drift checks that compare remote site state twice daily.',
-		LAUNCHDEK_TEXT_DOMAIN
-	),
+	'platform'        => $show_scheduled_drift
+		? __(
+			'Turn LaunchDek on or off for this hub and schedule automated drift checks that compare remote site state twice daily.',
+			LAUNCHDEK_TEXT_DOMAIN
+		)
+		: __(
+			'Turn LaunchDek on or off for this hub.',
+			LAUNCHDEK_TEXT_DOMAIN
+		),
 	'credential_vault' => __(
 		'AES-256-CBC encryption using local WordPress salts. When enabled, application passwords are encrypted at rest and decrypted only when a remote request is made.',
 		LAUNCHDEK_TEXT_DOMAIN
@@ -92,7 +98,9 @@ $channels        = array(
 		<nav class="launchdek-settings-nav nav-tab-wrapper" role="tablist" aria-label="<?php esc_attr_e( 'Settings sections', LAUNCHDEK_TEXT_DOMAIN ); ?>">
 			<button type="button" class="nav-tab nav-tab-active" id="launchdek-settings-tab-platform-security" data-launchdek-settings-tab="platform-security" role="tab" aria-selected="true" aria-controls="launchdek-settings-panel-platform-security"><?php esc_html_e( 'Platform & Security', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
 			<button type="button" class="nav-tab" id="launchdek-settings-tab-panel-exclude" data-launchdek-settings-tab="panel-exclude" role="tab" aria-selected="false" aria-controls="launchdek-settings-panel-panel-exclude"><?php esc_html_e( 'Panel layout & Exclude', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
+			<?php if ( $show_notifications ) : ?>
 			<button type="button" class="nav-tab" id="launchdek-settings-tab-webhooks-email" data-launchdek-settings-tab="webhooks-email" role="tab" aria-selected="false" aria-controls="launchdek-settings-panel-webhooks-email"><?php esc_html_e( 'Webhooks & Email', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
+			<?php endif; ?>
 			<button type="button" class="nav-tab" id="launchdek-settings-tab-access-roles" data-launchdek-settings-tab="access-roles" role="tab" aria-selected="false" aria-controls="launchdek-settings-panel-access-roles"><?php esc_html_e( 'Access & Roles', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
 		</nav>
 
@@ -109,10 +117,12 @@ $channels        = array(
 					<input type="checkbox" name="<?php echo esc_attr( $option_name ); ?>[enabled]" value="1" <?php checked( ! empty( $settings['enabled'] ) ); ?> />
 					<span><?php esc_html_e( 'Enable LaunchDek features', LAUNCHDEK_TEXT_DOMAIN ); ?></span>
 				</label>
+				<?php if ( $show_scheduled_drift ) : ?>
 				<label class="launchdek-settings-toggle">
 					<input type="checkbox" name="<?php echo esc_attr( $option_name ); ?>[drift_verification_enabled]" value="1" <?php checked( ! empty( $settings['drift_verification_enabled'] ) ); ?> />
 					<span><?php esc_html_e( 'Run automated drift checks twice daily', LAUNCHDEK_TEXT_DOMAIN ); ?></span>
 				</label>
+				<?php endif; ?>
 			</div>
 		</div>
 
@@ -242,21 +252,9 @@ $channels        = array(
 		</div>
 		</div>
 
+		<?php if ( $show_notifications ) : ?>
 		<div id="launchdek-settings-panel-webhooks-email" class="launchdek-settings-tab-panel" data-launchdek-settings-panel="webhooks-email" role="tabpanel" aria-labelledby="launchdek-settings-tab-webhooks-email" hidden>
-		<?php if ( ! $billing_pro ) : ?>
-			<div class="notice notice-info inline launchdek-billing-upgrade-notice">
-				<p>
-					<?php
-					printf(
-						/* translators: %s: Billing admin page link */
-						esc_html__( 'Email and webhook notifications are included on Pro and Agency plans. %s', LAUNCHDEK_TEXT_DOMAIN ),
-						'<a href="' . esc_url( admin_url( 'admin.php?page=' . LAUNCHDEK_Admin::PAGE_SLUG . '-billing' ) ) . '">' . esc_html__( 'View plans', LAUNCHDEK_TEXT_DOMAIN ) . '</a>'
-					);
-					?>
-				</p>
-			</div>
-		<?php endif; ?>
-		<div class="launchdek-card launchdek-settings-card<?php echo $billing_pro ? '' : ' launchdek-settings-card--disabled'; ?>">
+		<div class="launchdek-card launchdek-settings-card">
 			<div class="launchdek-card-heading-row launchdek-card-heading-row--info-first">
 				<button type="button" class="launchdek-field-info launchdek-has-tooltip" data-tooltip="<?php echo esc_attr( $section_tooltips['webhooks'] ); ?>" aria-label="<?php echo esc_attr( $section_tooltips['webhooks'] ); ?>">
 					<span class="dashicons dashicons-info-outline" aria-hidden="true"></span>
@@ -278,7 +276,6 @@ $channels        = array(
 							name="<?php echo esc_attr( $option_name ); ?>[<?php echo esc_attr( $key ); ?>_webhook]"
 							value="<?php echo esc_attr( $settings[ $key . '_webhook' ] ?? '' ); ?>"
 							placeholder="<?php echo esc_attr( $channel['placeholder'] ); ?>"
-							<?php disabled( ! $billing_pro ); ?>
 						/>
 					</div>
 				<?php endforeach; ?>
@@ -294,7 +291,6 @@ $channels        = array(
 								name="<?php echo esc_attr( $option_name ); ?>[notification_events][]"
 								value="<?php echo esc_attr( $event_key ); ?>"
 								<?php checked( in_array( $event_key, $active_events, true ) ); ?>
-								<?php disabled( ! $billing_pro ); ?>
 							/>
 							<span><?php echo esc_html( $event_label ); ?></span>
 						</label>
@@ -303,7 +299,7 @@ $channels        = array(
 			</div>
 		</div>
 
-		<div class="launchdek-card launchdek-settings-card<?php echo $billing_pro ? '' : ' launchdek-settings-card--disabled'; ?>">
+		<div class="launchdek-card launchdek-settings-card">
 			<div class="launchdek-card-heading-row launchdek-card-heading-row--info-first">
 				<button type="button" class="launchdek-field-info launchdek-has-tooltip" data-tooltip="<?php echo esc_attr( $section_tooltips['email_notifications'] ); ?>" aria-label="<?php echo esc_attr( $section_tooltips['email_notifications'] ); ?>">
 					<span class="dashicons dashicons-info-outline" aria-hidden="true"></span>
@@ -321,7 +317,6 @@ $channels        = array(
 								name="<?php echo esc_attr( $option_name ); ?>[email_notification_events][]"
 								value="<?php echo esc_attr( $event_key ); ?>"
 								<?php checked( in_array( $event_key, $active_email_events, true ) ); ?>
-								<?php disabled( ! $billing_pro ); ?>
 							/>
 							<span><?php echo esc_html( $event['label'] ); ?></span>
 						</label>
@@ -343,7 +338,6 @@ $channels        = array(
 					placeholder="<?php echo esc_attr( $default_admin_email ); ?>"
 					autocomplete="email"
 					inputmode="email"
-					<?php disabled( ! $billing_pro ); ?>
 				/>
 				<p class="launchdek-muted launchdek-settings-note">
 					<?php esc_html_e( 'Where these emails are sent. Separate multiple addresses with commas. Defaults to the site admin email.', LAUNCHDEK_TEXT_DOMAIN ); ?>
@@ -351,6 +345,7 @@ $channels        = array(
 			</div>
 		</div>
 		</div>
+		<?php endif; ?>
 
 		<div id="launchdek-settings-panel-access-roles" class="launchdek-settings-tab-panel" data-launchdek-settings-panel="access-roles" role="tabpanel" aria-labelledby="launchdek-settings-tab-access-roles" hidden>
 		<div class="launchdek-card launchdek-settings-card">
@@ -416,8 +411,8 @@ $channels        = array(
 													printf(
 														/* translators: 1: capability label, 2: role name */
 														esc_html__( 'Allow %1$s for %2$s', LAUNCHDEK_TEXT_DOMAIN ),
-														$cap_labels[ $cap ] ?? $cap,
-														translate_user_role( $role_name )
+														esc_html( $cap_labels[ $cap ] ?? $cap ),
+														esc_html( translate_user_role( $role_name ) )
 													);
 													?>
 												</span>

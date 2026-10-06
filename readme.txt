@@ -130,6 +130,8 @@ Yes, when enabled in Settings, application passwords are encrypted using your Wo
 = 1.0.48 =
 * Billing: Community (free, unlimited sites), Pro ($49/mo, 99 sites), and Agency ($99/mo, 199 sites) tiers with plan gates for templates, vault, auto-capture, notifications, scheduled drift, and panel layouts
 * Billing page: feature comparison table with plan columns, tooltips, and purchase links; REST `GET /billing/summary` and `POST /billing/plan` (manage settings) for license activation hook point
+* Community plan: Settings and Checklists admin screens show only free-tier controls—Pro-only sections (webhooks, email alerts, scheduled drift, vault, auto-capture) are omitted instead of disabled with upgrade prompts
+* Community zip build (`php bin/build-community-zip.php`): sets `LAUNCHDEK_BUILD` to `community`, omits Pro PHP (notifications, auto-capture, scheduled drift, billing UI), and ships only Community template categories
 
 = 1.0.47 =
 * Billing: plan comparison table (Free, Personal, Professional, Agency) with feature tooltips and purchase links

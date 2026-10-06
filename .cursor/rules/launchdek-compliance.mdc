@@ -13,7 +13,7 @@ See `launchdek-project.mdc` (architecture), `launchdek-standards.mdc` (quality),
 
 - Sanitize on input, escape on output, authorize before action.
 - REST: every route has `permission_callback`; use `LAUNCHDEK_Capabilities::current_user_can()`.
-- Admin UI auth: `X-WP-Nonce` with `wp_rest` nonce on all REST `fetch` calls; admin-ajax requests use `postAjax()` with the same `wp_rest` nonce in POST (`check_ajax_referer( 'wp_rest', 'nonce' )` server-side).
+- Admin UI auth: `X-WP-Nonce` with `wp_rest` nonce on all REST `fetch` calls; admin-ajax requests use `postAjax()` with the same `wp_rest` nonce in POST (`LAUNCHDEK_Admin_Ajax::verify_ajax_nonce()` — `wp_verify_nonce`; invalid nonce returns JSON error 403, not `-1`).
 - Never expose decrypted Application Passwords or WP Umbrella Public API tokens in REST responses, logs, or audit entries.
 - Store credentials via `LAUNCHDEK_Credential_Vault::encrypt()`; decrypt only at request time in `LAUNCHDEK_Remote_Client` (site app passwords) or WP Umbrella adapter / `LAUNCHDEK_Settings::get_wp_umbrella_api_token()` (hub connector outbound only).
 - Settings API: `sanitize_callback`, `show_in_rest => false`. When adding settings keys updated outside the Settings form (REST, admin-ajax, direct `update_option`), extend `LAUNCHDEK_Settings::sanitize()` so **Save Changes** on Settings does not strip them (`onboarding_dismissed`, `wp_umbrella_api_token_enc`, `custom_site_groups`). Encrypted values (`wp_umbrella_api_token_enc`) must not pass through `sanitize_text_field` — preserve the vault ciphertext (null-byte strip only).

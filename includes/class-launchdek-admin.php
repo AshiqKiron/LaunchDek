@@ -16,6 +16,9 @@ class LAUNCHDEK_Admin {
 
 	const PAGE_SLUG = LAUNCHDEK_PLUGIN_SLUG;
 
+	/** @var string Option flag set on activation for one-time onboarding redirect (user ID or 1). */
+	const ACTIVATION_REDIRECT_OPTION = 'launchdek_activation_redirect';
+
 	/**
 	 * Register the admin menu.
 	 *
@@ -40,9 +43,12 @@ class LAUNCHDEK_Admin {
 			self::PAGE_SLUG . '-checklists' => array( __( 'Checklists', LAUNCHDEK_TEXT_DOMAIN ), 'render_checklists_page' ),
 			self::PAGE_SLUG . '-automation' => array( __( 'Batch Run', LAUNCHDEK_TEXT_DOMAIN ), 'render_automation_page' ),
 			self::PAGE_SLUG . '-integrations' => array( __( 'Integrations', LAUNCHDEK_TEXT_DOMAIN ), 'render_integrations_page' ),
-			self::PAGE_SLUG . '-billing'   => array( __( 'Billing', LAUNCHDEK_TEXT_DOMAIN ), 'render_billing_page' ),
 			self::PAGE_SLUG . '-settings' => array( __( 'Settings', LAUNCHDEK_TEXT_DOMAIN ), 'render_settings_page' ),
 		);
+
+		if ( launchdek_includes_pro_package() ) {
+			$pages[ self::PAGE_SLUG . '-billing' ] = array( __( 'Billing', LAUNCHDEK_TEXT_DOMAIN ), 'render_billing_page' );
+		}
 
 		foreach ( $pages as $slug => $page ) {
 			add_submenu_page(
@@ -109,14 +115,41 @@ class LAUNCHDEK_Admin {
 		}
 	}
 
+	/**
+	 * Redirect to the dashboard onboarding wizard once after plugin activation.
+	 *
+	 * @return void
+	 */
 	public function maybe_activation_redirect() {
-		if ( ! get_transient( 'launchdek_activation_redirect' ) ) {
+		$redirect_flag = get_option( self::ACTIVATION_REDIRECT_OPTION, false );
+		if ( ! $redirect_flag ) {
+			delete_transient( self::ACTIVATION_REDIRECT_OPTION );
 			return;
 		}
-		delete_transient( 'launchdek_activation_redirect' );
+
+		delete_option( self::ACTIVATION_REDIRECT_OPTION );
+		delete_transient( self::ACTIVATION_REDIRECT_OPTION );
+
 		if ( wp_doing_ajax() || is_network_admin() || isset( $_GET['activate-multi'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 			return;
 		}
+
+		if ( ! LAUNCHDEK_Capabilities::current_user_can( LAUNCHDEK_Capabilities::VIEW_DASHBOARD ) ) {
+			return;
+		}
+
+		$redirect_user = absint( $redirect_flag );
+		if ( $redirect_user > 1 && get_current_user_id() !== $redirect_user ) {
+			return;
+		}
+
+		if ( isset( $_GET['page'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			$page = sanitize_key( wp_unslash( $_GET['page'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			if ( self::PAGE_SLUG === $page ) {
+				return;
+			}
+		}
+
 		wp_safe_redirect( admin_url( 'admin.php?page=' . self::PAGE_SLUG . '&onboarding=1' ) );
 		exit;
 	}
@@ -180,6 +213,7 @@ class LAUNCHDEK_Admin {
 					'siteDeleted'       => __( 'Site deleted.', LAUNCHDEK_TEXT_DOMAIN ),
 					'saved'          => __( 'Saved successfully.', LAUNCHDEK_TEXT_DOMAIN ),
 					'error'          => __( 'Something went wrong.', LAUNCHDEK_TEXT_DOMAIN ),
+					'sessionExpired' => __( 'Your session has expired. Please reload the page and try again.', LAUNCHDEK_TEXT_DOMAIN ),
 					'loading'        => __( 'Loading…', LAUNCHDEK_TEXT_DOMAIN ),
 					'noSites'        => __( 'No sites registered yet.', LAUNCHDEK_TEXT_DOMAIN ),
 					'noSitesFiltered' => __( 'No sites match the current filters. Try clearing tag or group filters.', LAUNCHDEK_TEXT_DOMAIN ),
@@ -415,8 +449,11 @@ class LAUNCHDEK_Admin {
 					'billingSiteLimit'            => __( 'Your plan has reached its site limit. Upgrade on Billing to add more sites.', LAUNCHDEK_TEXT_DOMAIN ),
 				),
 			'billing' => LAUNCHDEK_Licensing::get_summary(),
-			'billingUrl' => admin_url( 'admin.php?page=' . self::PAGE_SLUG . '-billing' ),
 		);
+
+		if ( launchdek_includes_pro_package() ) {
+			$localize['billingUrl'] = admin_url( 'admin.php?page=' . self::PAGE_SLUG . '-billing' );
+		}
 
 		if ( 'toplevel_page_' . self::PAGE_SLUG === $hook ) {
 			$localize['dashboard'] = array(

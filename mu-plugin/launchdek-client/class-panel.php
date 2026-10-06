@@ -121,6 +121,7 @@ class LAUNCHDEK_Client_Panel {
 	 * @return void
 	 */
 	public static function render_metabox() {
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Static mount point markup.
 		echo '<div id="launchdek-client-metabox-root" class="launchdek-client-metabox-root" aria-live="polite"></div>';
 	}
 
@@ -230,6 +231,7 @@ class LAUNCHDEK_Client_Panel {
 			return;
 		}
 
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Static mount point markup.
 		echo '<div id="launchdek-client-panel-root" class="launchdek-client-panel-root" aria-live="polite"></div>';
 	}
 }

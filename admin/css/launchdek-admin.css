@@ -793,6 +793,7 @@
 
 .launchdek-run-progress-fill {
 	display: block;
+	width: var(--launchdek-progress-pct, 0%);
 	height: 100%;
 	border-radius: 3px;
 	transition: width 0.2s ease;
@@ -2256,6 +2257,10 @@
 }
 
 .launchdek-step-config .launchdek-step-note-field-option input,
+.launchdek-step-config #ld-remove-step {
+	margin-top: 8px;
+}
+
 .launchdek-step-config .launchdek-multicheck-option input {
 	width: auto;
 	margin-top: 0;

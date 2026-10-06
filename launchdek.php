@@ -32,6 +32,8 @@ define( 'LAUNCHDEK_TEXT_DOMAIN', 'launchdek' );
 define( 'LAUNCHDEK_PLUGIN_DOCS_URL', 'https://asphaltthemes.com/launchdek/docs' );
 define( 'LAUNCHDEK_REST_NAMESPACE', 'launchdek/v1' );
 
+require_once LAUNCHDEK_PLUGIN_DIR . 'includes/launchdek-build.php';
+
 // Core.
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-settings.php';
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-admin-deep-links.php';
@@ -57,13 +59,12 @@ require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-step-executor.php'
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-checklist-runner.php';
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-client-push.php';
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-mu-plugin-installer.php';
-require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-auto-capture.php';
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-drift-verifier.php';
-require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-email-notifier.php';
-require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-webhook-dispatcher.php';
+launchdek_require_pro_modules();
+require_once launchdek_get_webhook_dispatcher_file();
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-templates.php';
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-integration-sync.php';
-require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-drift-cron.php';
+require_once launchdek_get_drift_cron_file();
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-rest-api.php';
 
 // Admin.

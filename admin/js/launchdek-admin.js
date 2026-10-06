@@ -204,6 +204,9 @@
 			body: body.toString()
 		}).then(function (res) {
 			return res.text().then(function (text) {
+				if (text === '0' || text === '-1') {
+					throw new Error(strings.sessionExpired || strings.error || 'Something went wrong.');
+				}
 				var parsed = null;
 				try {
 					parsed = JSON.parse(text);
@@ -1372,6 +1375,9 @@
 
 		function showTab(tabId, updateUrl) {
 			tabId = normalizeSettingsTabId(tabId);
+			if (!page.querySelector('[data-launchdek-settings-panel="' + tabId + '"]')) {
+				tabId = 'platform-security';
+			}
 			panels.forEach(function (panel) {
 				panel.hidden = panel.getAttribute('data-launchdek-settings-panel') !== tabId;
 			});
@@ -1680,7 +1686,7 @@
 				'<span class="launchdek-badge ' + escAttr(status) + '">' + escHtml(statusLabel) + '</span>' +
 			'</div>' +
 			'<div class="launchdek-run-progress-bar" role="progressbar" aria-valuenow="' + percent + '" aria-valuemin="0" aria-valuemax="100" aria-label="' + escAttr(progressLabel) + '">' +
-				'<span class="launchdek-run-progress-fill is-' + escAttr(status) + '" style="width:' + percent + '%"></span>' +
+				'<span class="launchdek-run-progress-fill is-' + escAttr(status) + '" style="--launchdek-progress-pct:' + percent + '%"></span>' +
 			'</div>' +
 			'</div>';
 	}
@@ -4263,22 +4269,22 @@
 			'<label class="launchdek-step-note-field-option" id="ld-step-show-note-wrap"><input type="checkbox" id="ld-step-show-note"' + (showNoteField ? ' checked' : '') + ' /><span class="launchdek-step-option-label">' + renderFieldInfo(strings.showNoteFieldHelp || 'When enabled, clients can add text notes as evidence when completing this manual step.') + escHtml(strings.showNoteField || 'Show note field on client panel') + '</span></label>' +
 			'<label class="launchdek-step-note-field-option" id="ld-step-show-screenshot-wrap"><input type="checkbox" id="ld-step-show-screenshot"' + (showScreenshotField ? ' checked' : '') + ' /><span class="launchdek-step-option-label">' + renderFieldInfo(strings.showScreenshotFieldHelp || 'When enabled, clients can attach a screenshot from the media library when saving a step note.') + escHtml(strings.showScreenshotField || 'Allow screenshot attachment on client panel') + '</span></label>' +
 			'</div>' +
-			'<div id="ld-api-config"' + (step.type === 'api' ? '' : ' style="display:none"') + '>' +
+			'<div id="ld-api-config"' + (step.type === 'api' ? '' : ' hidden') + '>' +
 			'<div class="launchdek-card-heading-row launchdek-config-subheading-row"><h4 class="launchdek-config-subheading">' + escHtml('API Payload Mapper') + '</h4>' + renderFieldInfo(strings.apiMapperHelp || 'Configure the REST call LaunchDek makes on the client site. Use Validate API Step to dry-run checks before saving. Fields listed under Settings → Exclude Options are stripped from /wp/v2/settings payloads.') + '</div>' +
 			'<label>' + renderFieldLabel('HTTP Method', strings.apiMethodHelp || 'HTTP verb for the request. GET reads data without changes. POST, PUT, PATCH, and DELETE send the JSON payload to create, update, or remove resources.') + '<select id="ld-api-method"><option' + sel(step.api && step.api.method, 'GET') + '>GET</option><option' + sel(step.api && step.api.method, 'POST') + '>POST</option><option' + sel(step.api && step.api.method, 'PUT') + '>PUT</option><option' + sel(step.api && step.api.method, 'PATCH') + '>PATCH</option><option' + sel(step.api && step.api.method, 'DELETE') + '>DELETE</option></select></label>' +
 			'<label>' + renderFieldLabel('REST Route', strings.apiRouteHelp || 'WordPress REST API path on the remote site. Must start with / (for example, /wp/v2/settings for site options).') + '<input type="text" id="ld-api-route" value="' + escAttr((step.api && step.api.route) || '') + '" placeholder="/wp/v2/settings" /></label>' +
 			'<label>' + renderFieldLabel('JSON Payload', strings.apiPayloadHelp || 'Request body for mutating methods. For /wp/v2/settings, use WordPress setting field names (for example, {"title":"My Site"}). Use {} for GET requests.') + '<textarea id="ld-api-payload" rows="4">' + escHtml(JSON.stringify((step.api && step.api.payload) || {}, null, 2)) + '</textarea></label>' +
 			'<button type="button" class="button" id="ld-validate-api">Validate API Step</button>' +
 			'</div>' +
-			'<button type="button" class="button" id="ld-remove-step" style="margin-top:8px">Remove Step</button>';
+			'<button type="button" class="button" id="ld-remove-step">Remove Step</button>';
 
 		function syncStepTypeFields() {
 			var stepType = document.getElementById('ld-step-type').value;
 			var isManual = stepType === 'manual';
-			document.getElementById('ld-api-config').style.display = isManual ? 'none' : '';
+			document.getElementById('ld-api-config').hidden = isManual;
 			var clientOptions = document.getElementById('ld-step-client-options');
 			if (clientOptions) {
-				clientOptions.style.display = isManual ? '' : 'none';
+				clientOptions.hidden = !isManual;
 			}
 			updateStepTypeHelpTooltip(stepType);
 		}
@@ -4291,7 +4297,7 @@
 				return;
 			}
 			var notesEnabled = noteInput.checked;
-			screenshotWrap.style.display = notesEnabled ? '' : 'none';
+			screenshotWrap.hidden = !notesEnabled;
 			if (!notesEnabled) {
 				screenshotInput.checked = false;
 			}
@@ -4429,6 +4435,9 @@
 
 		function showTab(tabId, updateUrl) {
 			tabId = normalizeChecklistTabId(tabId);
+			if (!document.querySelector('[data-launchdek-tab-panel="' + tabId + '"]')) {
+				tabId = 'templates';
+			}
 			panels.forEach(function (panel) {
 				panel.hidden = panel.getAttribute('data-launchdek-tab-panel') !== tabId;
 			});
@@ -4723,21 +4732,6 @@
 
 	function initAutoCapture() {
 		if (!document.getElementById('launchdek-auto-capture-site')) {
-			return;
-		}
-
-		var billing = launchdekAdmin.billing || {};
-		if (!billing.can_auto_capture) {
-			var panel = document.getElementById('launchdek-panel-auto-capture');
-			if (panel) {
-				panel.classList.add('launchdek-billing-gated');
-			}
-			var noticeEl = document.getElementById('launchdek-auto-capture-notice');
-			var upgradeMsg = strings.billingProRequired || 'This feature is available on Pro and Agency plans.';
-			if (launchdekAdmin.billingUrl) {
-				upgradeMsg += ' <a href="' + escAttr(launchdekAdmin.billingUrl) + '">' + escHtml(strings.billingViewPlans || 'View plans') + '</a>';
-			}
-			notice(noticeEl, upgradeMsg, 'error');
 			return;
 		}
 
@@ -5973,7 +5967,7 @@
 		if (!box) return;
 
 		if (Array.isArray(results)) {
-			box.innerHTML = '<pre style="background:#f6f7f7;padding:12px;overflow:auto;font-size:12px">' + escHtml(JSON.stringify(results, null, 2)) + '</pre>';
+			box.innerHTML = '<pre class="launchdek-audit-diff">' + escHtml(JSON.stringify(results, null, 2)) + '</pre>';
 			return;
 		}
 
@@ -6481,20 +6475,8 @@
 	}
 
 	function loadVaultTemplates() {
-		var billing = launchdekAdmin.billing || {};
-		if (!billing.can_vault) {
-			var grid = document.getElementById('launchdek-vault-list');
-			if (grid) {
-				var vaultMsg = strings.billingProRequired || 'This feature is available on Pro and Agency plans.';
-				if (launchdekAdmin.billingUrl) {
-					vaultMsg += ' <a href="' + escAttr(launchdekAdmin.billingUrl) + '">' + escHtml(strings.billingViewPlans || 'View plans') + '</a>';
-				}
-				grid.innerHTML = '<p class="launchdek-muted">' + vaultMsg + '</p>';
-			}
-			var saveVaultBtn = document.getElementById('launchdek-save-vault');
-			if (saveVaultBtn) {
-				saveVaultBtn.disabled = true;
-			}
+		var grid = document.getElementById('launchdek-vault-list');
+		if (!grid) {
 			return;
 		}
 
@@ -6538,19 +6520,22 @@
 		refreshCustomChecklistUi();
 		loadVaultTemplates();
 
-		document.getElementById('launchdek-save-vault').onclick = function () {
-			var id = document.getElementById('launchdek-vault-checklist').value;
-			var noticeEl = document.getElementById('launchdek-vault-notice');
-			if (!id) return;
-			post('/templates/vault', { checklist_id: parseInt(id, 10) }).then(function () {
-				notice(noticeEl, strings.savedToVault || 'Saved to vault.', 'success');
-				document.getElementById('launchdek-vault-checklist').value = '';
-				refreshCustomChecklistUi(true);
-				loadVaultTemplates();
-			}).catch(function (err) {
-				notice(noticeEl, err.message, 'error');
-			});
-		};
+		var saveVaultBtn = document.getElementById('launchdek-save-vault');
+		if (saveVaultBtn) {
+			saveVaultBtn.onclick = function () {
+				var id = document.getElementById('launchdek-vault-checklist').value;
+				var noticeEl = document.getElementById('launchdek-vault-notice');
+				if (!id) return;
+				post('/templates/vault', { checklist_id: parseInt(id, 10) }).then(function () {
+					notice(noticeEl, strings.savedToVault || 'Saved to vault.', 'success');
+					document.getElementById('launchdek-vault-checklist').value = '';
+					refreshCustomChecklistUi(true);
+					loadVaultTemplates();
+				}).catch(function (err) {
+					notice(noticeEl, err.message, 'error');
+				});
+			};
+		}
 	}
 
 	// ─── Integrations ────────────────────────────────────────

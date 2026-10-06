@@ -44,7 +44,7 @@ endif;
 if ( ! function_exists( 'launchdek_sites_status_html' ) ) :
 function launchdek_sites_status_html( $site ) {
 	$status     = sanitize_key( $site['health_status'] ?? 'unknown' );
-	$last_error = isset( $site['last_error'] ) ? (string) $site['last_error'] : '';
+	$last_error = isset( $site['last_error'] ) ? wp_strip_all_tags( (string) $site['last_error'] ) : '';
 
 	if ( 'healthy' === $status ) {
 		$label = __( 'Connection OK', LAUNCHDEK_TEXT_DOMAIN );

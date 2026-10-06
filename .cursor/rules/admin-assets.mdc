@@ -10,7 +10,7 @@ alwaysApply: false
 
 - Wrap in an IIFE with `'use strict'`; guard on `typeof launchdekAdmin`.
 - REST helpers: `request()`, `get()`, `post()`, `put()`, `del()` — all send `X-WP-Nonce` header. `buildApiUrl(path)` / `splitApiPath()` / `mergeExtraQuery()` build URLs for pretty (`/wp-json/`) and plain (`?rest_route=`) permalinks; `buildPlainPermalinkFallbackUrl()` retries on `rest_no_route` when pretty permalinks are configured but rewrites are broken (common on local MAMP).
-- Admin-ajax helper: `postAjax( action, data )` — POSTs to `launchdekAdmin.ajaxUrl` with `action`, `wp_rest` `nonce`, and URL-encoded fields (objects JSON-stringified); parses `{ success, data }` JSON responses. Used for integration sync/preview/push, telemetry rules, site run history, and Activity Logs list pagination to avoid full REST bootstrap on memory-constrained installs.
+- Admin-ajax helper: `postAjax( action, data )` — POSTs to `launchdekAdmin.ajaxUrl` with `action`, `wp_rest` `nonce`, and URL-encoded fields (objects JSON-stringified); parses `{ success, data }` JSON responses; treats bare `0`/`-1` body as expired session (`strings.sessionExpired`). Server validates nonce via `LAUNCHDEK_Admin_Ajax::verify_ajax_nonce()` (JSON 403 on failure). Used for integration sync/preview/push, telemetry rules, site run history, and Activity Logs list pagination to avoid full REST bootstrap on memory-constrained installs.
 - DOM helpers: `el( tag, attrs, children )`, `fillSelect( select, items, valueKey, labelKey, placeholder )`; notices via `notice( container, message, type )` — renders WordPress core `.notice` / `.notice-error` / `.notice-success` with `<p>` wrapper; pass empty message to clear.
 - Scope queries to `.launchdek-admin` or `[data-launchdek-page]`.
 - No jQuery unless WordPress already loads it.
@@ -43,9 +43,9 @@ Billing page (`data-launchdek-page="billing"`) has no dedicated page init — st
 
 Localized on every plugin screen: `launchdekAdmin.billing` (`LAUNCHDEK_Licensing::get_summary()` — `can_auto_capture`, `can_vault`, `can_add_site`, etc.), `launchdekAdmin.billingUrl`, strings `billingProRequired`, `billingViewPlans`, `billingSiteLimit`. Community gates:
 
-- `initAutoCapture()` — when `!billing.can_auto_capture`, adds `.launchdek-billing-gated` on `#launchdek-panel-auto-capture` and shows upgrade notice in `#launchdek-auto-capture-notice` (skips capture wiring).
-- `loadVaultTemplates()` — when `!billing.can_vault`, replaces `#launchdek-vault-list` with upgrade copy and disables `#launchdek-save-vault`.
-- Settings **Webhooks & Email** tab — PHP disables inputs and adds `.launchdek-settings-card--disabled` + `.launchdek-billing-upgrade-notice` when `!LAUNCHDEK_Licensing::has_pro_features()` (not JS).
+- `initAutoCapture()` — no-ops when Auto-Capture markup is absent (Community omits tab/panel in PHP).
+- `loadVaultTemplates()` — no-ops when `#launchdek-vault-list` is absent (Community omits vault card in PHP).
+- Settings **Webhooks & Email** tab — rendered only when `LAUNCHDEK_Licensing::can_use_notifications()`; scheduled drift toggle only when `can_use_scheduled_drift()` (Community sees no Pro placeholders in Settings).
 
 REST `403` responses with `launchdek_pro_required` / `launchdek_site_limit` should surface `strings.billingProRequired` / `strings.billingSiteLimit` with link to `billingUrl` where the UI handles errors.
 
@@ -218,7 +218,7 @@ Key elements: `#launchdek-template-picker-filters`, `#launchdek-template-picker-
 		activityLogsUrl: string // admin.php?page={slug}-activity-logs
 	},
 	strings: {
-		confirmDelete, confirmDeleteSite, saved, error, loading, restUnavailable,
+		confirmDelete, confirmDeleteSite, saved, error, sessionExpired, loading, restUnavailable,
 		healthOk, healthFail, healthUnknown, connectionOk, connectionFail, connectionDisconnected, connectionChecking,
 		useChecklist, checklistCreated, checklistTitleRequired, noCustomChecklists, noCustomTemplates,
 		editChecklist, customChecklistBadge, checklistDuplicated, confirmDeleteChecklist,
@@ -272,7 +272,7 @@ Prefix all selectors with `.launchdek-`.
 | `.launchdek-site-actions-dropdown`, `.launchdek-site-actions-split`, `.launchdek-site-actions-toggle`, `.launchdek-site-actions-menu` | Site row split-button action menu |
 | `.launchdek-site-more-info`, `.launchdek-site-info-body`, `.launchdek-site-info-list`, `.launchdek-site-info-row`, `#launchdek-site-info-modal` | **More info** site details modal |
 | `.launchdek-site-history-toggle`, `.launchdek-site-history-icon`, `.launchdek-site-runs-row`, `.launchdek-site-runs-panel`, `.launchdek-site-runs-heading`, `.launchdek-site-runs-table`, `.launchdek-site-runs-empty`, `.launchdek-site-runs-load-more` | Expandable per-site checklist run history (modifier `.is-history-open` on `.launchdek-site-row`) |
-| `.launchdek-run-progress`, `.launchdek-run-progress-meta`, `.launchdek-run-progress-label`, `.launchdek-run-progress-bar`, `.launchdek-run-progress-fill` | Run history Steps column (fraction + badge + bar; fill modifiers `.is-completed`, `.is-running`, `.is-failed`, `.is-cancelled`) |
+| `.launchdek-run-progress`, `.launchdek-run-progress-meta`, `.launchdek-run-progress-label`, `.launchdek-run-progress-bar`, `.launchdek-run-progress-fill` | Run history Steps column (fraction + badge + bar; fill width via CSS variable `--launchdek-progress-pct`; modifiers `.is-completed`, `.is-running`, `.is-failed`, `.is-cancelled`) |
 | `.launchdek-client-agent-badge` | Client panel indicator on site name |
 | `.launchdek-push-checklist` | Sites table **Push Checklist** action (in dropdown menu) |
 | `.launchdek-ticker-inline`, `.launchdek-ticker-chip`, `.launchdek-ticker-sep`, `.launchdek-ticker-dot` | Connection ticker (`#launchdek-ticker`) |
@@ -294,7 +294,7 @@ Prefix all selectors with `.launchdek-`.
 | `.launchdek-card-heading-row`, `.launchdek-config-subheading-row` | Card heading + inline info tooltip rows (vault, API mapper) |
 | `.launchdek-canvas-card`, `.launchdek-checklist-canvas`, `.launchdek-canvas-flow` | Vertical drag-and-drop checklist canvas (down-arrow connectors) |
 | `.launchdek-canvas-node`, `.launchdek-canvas-node-chevron`, `.launchdek-canvas-node-roles`, `.launchdek-canvas-connector` | Canvas step nodes + chevron (opens step config) + role badges + vertical flow arrows |
-| `.launchdek-step-config-sidebar`, `.launchdek-multicheck-dropdown`, `.launchdek-multicheck-toggle`, `.launchdek-multicheck-menu`, `.launchdek-multicheck-option`, `.launchdek-field-info`, `.launchdek-field-label-row`, `.launchdek-deeplink-hint`, `.launchdek-step-note-field-option`, `.launchdek-step-client-options` | Step config panel + multicheck role mapping dropdown + field tooltips + deep-link auto hint + manual-step client options (`show_note_field`, `show_screenshot_field`) |
+| `.launchdek-step-config-sidebar`, `.launchdek-multicheck-dropdown`, `.launchdek-multicheck-toggle`, `.launchdek-multicheck-menu`, `.launchdek-multicheck-option`, `.launchdek-field-info`, `.launchdek-field-label-row`, `.launchdek-deeplink-hint`, `.launchdek-step-note-field-option`, `.launchdek-step-client-options`, `#ld-remove-step` | Step config panel + multicheck role mapping dropdown + field tooltips + deep-link auto hint + manual-step client options (`show_note_field`, `show_screenshot_field`); API vs manual sections toggle via `[hidden]` on `#ld-api-config` / `#ld-step-client-options` (not inline `display`) |
 | `.launchdek-automation-nav`, `.launchdek-automation-wizard`, `.launchdek-automation-wizard-nav`, `.launchdek-automation-wizard-body`, `.launchdek-automation-progress`, `.launchdek-automation-progress-segments`, `.launchdek-automation-progress-segment`, `.launchdek-automation-step-panel`, `.launchdek-automation-step-footer`, `.launchdek-automation-run-hero`, `.launchdek-automation-run-activity`, `.launchdek-automation-run-activity-intro` | Batch Run page nav tabs + Run wizard (modifiers `.is-active`, `.is-complete` on segments) + step panels + run hero + site-scoped recent activity card |
 | `.launchdek-target-selector`, `.launchdek-batch-queue` | Batch Queue tab form + queue table |
 | `.launchdek-run-steps`, `.launchdek-run-step`, `.launchdek-run-step-notes`, `.launchdek-run-step-note`, `.launchdek-run-step-note-meta`, `.launchdek-run-step-note-attachment`, `.launchdek-double-tick`, `.launchdek-double-tick-icons`, `.launchdek-double-tick-icon` | Run step tracker, per-step notes (author · timestamp meta), client-completed manual indicator |

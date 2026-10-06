@@ -40,6 +40,11 @@ class LAUNCHDEK_Activator {
 		update_option( LAUNCHDEK_Settings::VERSION_OPTION, LAUNCHDEK_VERSION, false );
 		update_option( LAUNCHDEK_Installer::DB_VERSION_OPTION, LAUNCHDEK_Installer::DB_VERSION, false );
 
-		set_transient( 'launchdek_activation_redirect', 1, 30 );
+		$user_id = get_current_user_id();
+		update_option(
+			LAUNCHDEK_Admin::ACTIVATION_REDIRECT_OPTION,
+			$user_id > 0 ? $user_id : 1,
+			false
+		);
 	}
 }

@@ -40,12 +40,30 @@ class LAUNCHDEK_Admin_Ajax {
 	}
 
 	/**
+	 * Verify the admin-ajax REST nonce (returns JSON error instead of dying with -1).
+	 *
+	 * @return void
+	 */
+	protected static function verify_ajax_nonce() {
+		$nonce = isset( $_REQUEST['nonce'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['nonce'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Validated via wp_verify_nonce below.
+
+		if ( ! wp_verify_nonce( $nonce, 'wp_rest' ) ) {
+			wp_send_json_error(
+				array(
+					'message' => __( 'Your session has expired. Please reload the page and try again.', LAUNCHDEK_TEXT_DOMAIN ),
+				),
+				403
+			);
+		}
+	}
+
+	/**
 	 * Verify nonce and settings capability.
 	 *
 	 * @return void
 	 */
 	protected static function verify_request() {
-		check_ajax_referer( 'wp_rest', 'nonce' );
+		self::verify_ajax_nonce();
 
 		if ( ! LAUNCHDEK_Capabilities::current_user_can( LAUNCHDEK_Capabilities::MANAGE_SETTINGS ) ) {
 			wp_send_json_error(
@@ -63,7 +81,7 @@ class LAUNCHDEK_Admin_Ajax {
 	 * @return void
 	 */
 	protected static function verify_sites_request() {
-		check_ajax_referer( 'wp_rest', 'nonce' );
+		self::verify_ajax_nonce();
 
 		if ( ! LAUNCHDEK_Capabilities::current_user_can( LAUNCHDEK_Capabilities::MANAGE_SITES ) ) {
 			wp_send_json_error(
@@ -81,7 +99,7 @@ class LAUNCHDEK_Admin_Ajax {
 	 * @return void
 	 */
 	protected static function verify_dashboard_request() {
-		check_ajax_referer( 'wp_rest', 'nonce' );
+		self::verify_ajax_nonce();
 
 		if ( ! LAUNCHDEK_Capabilities::current_user_can( LAUNCHDEK_Capabilities::VIEW_DASHBOARD ) ) {
 			wp_send_json_error(
@@ -91,6 +109,38 @@ class LAUNCHDEK_Admin_Ajax {
 				403
 			);
 		}
+	}
+
+	/**
+	 * Read a POST field after verify_*() has validated nonce and capability.
+	 *
+	 * @param string $key     POST key.
+	 * @param mixed  $default Default when missing.
+	 * @return mixed
+	 */
+	protected static function post_input( $key, $default = '' ) {
+		if ( ! isset( $_POST[ $key ] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified in verify_*() before handlers read POST.
+			return $default;
+		}
+
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized, WordPress.Security.NonceVerification.Missing -- Raw POST; callers sanitize. Nonce verified in verify_*().
+		return wp_unslash( $_POST[ $key ] );
+	}
+
+	/**
+	 * Read a boolean POST flag after verify_*() has validated nonce and capability.
+	 *
+	 * @param string $key POST key.
+	 * @return bool
+	 */
+	protected static function post_bool( $key ) {
+		$value = self::post_input( $key, null );
+
+		if ( null === $value || '' === $value ) {
+			return false;
+		}
+
+		return filter_var( $value, FILTER_VALIDATE_BOOLEAN );
 	}
 
 	/**
@@ -111,7 +161,7 @@ class LAUNCHDEK_Admin_Ajax {
 	public static function handle_integration_sync() {
 		self::verify_request();
 
-		$slug = sanitize_key( wp_unslash( $_POST['slug'] ?? '' ) );
+		$slug = sanitize_key( (string) self::post_input( 'slug', '' ) );
 		if ( '' === $slug ) {
 			wp_send_json_error(
 				array(
@@ -121,7 +171,7 @@ class LAUNCHDEK_Admin_Ajax {
 			);
 		}
 
-		$dry_run = ! empty( $_POST['dry_run'] );
+		$dry_run = self::post_bool( 'dry_run' );
 		$result  = $dry_run
 			? LAUNCHDEK_Integration_Sync::preview( $slug )
 			: LAUNCHDEK_Integration_Sync::sync( $slug );
@@ -146,7 +196,7 @@ class LAUNCHDEK_Admin_Ajax {
 	public static function handle_integration_push() {
 		self::verify_request();
 
-		$slug = sanitize_key( wp_unslash( $_POST['slug'] ?? '' ) );
+		$slug        = sanitize_key( (string) self::post_input( 'slug', '' ) );
 		$integration = LAUNCHDEK_Integrations::get( $slug );
 
 		if ( ! $integration ) {
@@ -159,8 +209,9 @@ class LAUNCHDEK_Admin_Ajax {
 		}
 
 		$site_ids = array();
-		if ( ! empty( $_POST['site_ids'] ) ) {
-			$decoded = json_decode( wp_unslash( $_POST['site_ids'] ), true );
+		$site_ids_raw = self::post_input( 'site_ids', '' );
+		if ( '' !== $site_ids_raw ) {
+			$decoded = json_decode( (string) $site_ids_raw, true );
 			if ( is_array( $decoded ) ) {
 				$site_ids = array_map( 'absint', $decoded );
 			}
@@ -177,8 +228,9 @@ class LAUNCHDEK_Admin_Ajax {
 	public static function handle_save_wp_umbrella_token() {
 		self::verify_request();
 
-		$token   = isset( $_POST['token'] ) ? LAUNCHDEK_Settings::normalize_wp_umbrella_api_token( wp_unslash( $_POST['token'] ) ) : null;
-		$clear   = ! empty( $_POST['clear'] );
+		$token_raw = self::post_input( 'token', null );
+		$token     = null !== $token_raw ? LAUNCHDEK_Settings::normalize_wp_umbrella_api_token( (string) $token_raw ) : null;
+		$clear     = self::post_bool( 'clear' );
 		$payload = '';
 
 		if ( $clear ) {
@@ -246,8 +298,9 @@ class LAUNCHDEK_Admin_Ajax {
 		self::verify_request();
 
 		$rules = array();
-		if ( ! empty( $_POST['rules'] ) ) {
-			$decoded = json_decode( wp_unslash( $_POST['rules'] ), true );
+		$rules_raw = self::post_input( 'rules', '' );
+		if ( '' !== $rules_raw ) {
+			$decoded = json_decode( (string) $rules_raw, true );
 			if ( is_array( $decoded ) ) {
 				$rules = $decoded;
 			}
@@ -273,14 +326,14 @@ class LAUNCHDEK_Admin_Ajax {
 			LAUNCHDEK_Audit_Log::query(
 				LAUNCHDEK_Audit_Log::list_query_args_from_input(
 					array(
-						'site_id'         => wp_unslash( $_POST['site_id'] ?? 0 ),
-						'status'          => wp_unslash( $_POST['status'] ?? '' ),
-						'search'          => wp_unslash( $_POST['search'] ?? '' ),
-						'date_from'       => wp_unslash( $_POST['date_from'] ?? '' ),
-						'date_to'         => wp_unslash( $_POST['date_to'] ?? '' ),
-						'limit'           => wp_unslash( $_POST['limit'] ?? LAUNCHDEK_Audit_Log::LIST_DEFAULT_LIMIT ),
-						'offset'          => wp_unslash( $_POST['offset'] ?? 0 ),
-						'include_details' => wp_unslash( $_POST['include_details'] ?? '0' ),
+						'site_id'         => self::post_input( 'site_id', 0 ),
+						'status'          => self::post_input( 'status', '' ),
+						'search'          => self::post_input( 'search', '' ),
+						'date_from'       => self::post_input( 'date_from', '' ),
+						'date_to'         => self::post_input( 'date_to', '' ),
+						'limit'           => self::post_input( 'limit', LAUNCHDEK_Audit_Log::LIST_DEFAULT_LIMIT ),
+						'offset'          => self::post_input( 'offset', 0 ),
+						'include_details' => self::post_input( 'include_details', '0' ),
 					)
 				)
 			)
@@ -295,7 +348,7 @@ class LAUNCHDEK_Admin_Ajax {
 	public static function handle_get_site_runs() {
 		self::verify_sites_request();
 
-		$site_id = absint( wp_unslash( $_POST['site_id'] ?? 0 ) );
+		$site_id = absint( self::post_input( 'site_id', 0 ) );
 		$site    = LAUNCHDEK_Site_Repository::find( $site_id );
 
 		if ( ! $site ) {
@@ -307,8 +360,8 @@ class LAUNCHDEK_Admin_Ajax {
 			);
 		}
 
-		$limit  = absint( wp_unslash( $_POST['limit'] ?? 25 ) );
-		$offset = absint( wp_unslash( $_POST['offset'] ?? 0 ) );
+		$limit  = absint( self::post_input( 'limit', 25 ) );
+		$offset = absint( self::post_input( 'offset', 0 ) );
 
 		if ( $limit < 1 ) {
 			$limit = 25;
@@ -318,7 +371,7 @@ class LAUNCHDEK_Admin_Ajax {
 			LAUNCHDEK_Run_Repository::list_for_site_history(
 				$site_id,
 				array(
-					'status' => sanitize_key( wp_unslash( $_POST['status'] ?? '' ) ),
+					'status' => sanitize_key( (string) self::post_input( 'status', '' ) ),
 					'limit'  => min( 200, $limit ),
 					'offset' => $offset,
 				)

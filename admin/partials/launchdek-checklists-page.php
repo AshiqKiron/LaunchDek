@@ -11,6 +11,9 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
+
+$show_auto_capture = LAUNCHDEK_Licensing::can_use_auto_capture();
+$show_vault        = LAUNCHDEK_Licensing::can_use_agency_vault();
 ?>
 <div class="wrap launchdek-admin" data-launchdek-page="checklists">
 	<h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
@@ -18,7 +21,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	<nav class="launchdek-checklist-nav nav-tab-wrapper" role="tablist" aria-label="<?php esc_attr_e( 'Checklist sections', LAUNCHDEK_TEXT_DOMAIN ); ?>">
 		<button type="button" class="nav-tab nav-tab-active" id="launchdek-tab-templates" data-launchdek-tab="templates" role="tab" aria-selected="true" aria-controls="launchdek-panel-templates"><?php esc_html_e( 'Templates', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
 		<button type="button" class="nav-tab" id="launchdek-tab-my-checklists" data-launchdek-tab="my-checklists" role="tab" aria-selected="false" aria-controls="launchdek-panel-my-checklists"><?php esc_html_e( 'My Checklists', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
+		<?php if ( $show_auto_capture ) : ?>
 		<button type="button" class="nav-tab" id="launchdek-tab-auto-capture" data-launchdek-tab="auto-capture" role="tab" aria-selected="false" aria-controls="launchdek-panel-auto-capture"><?php esc_html_e( 'Auto-Capture', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
+		<?php endif; ?>
 	</nav>
 
 	<div id="launchdek-panel-templates" class="launchdek-tab-panel" data-launchdek-tab-panel="templates" role="tabpanel" aria-labelledby="launchdek-tab-templates">
@@ -42,6 +47,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 			<div id="launchdek-builtin-notice" class="launchdek-notice-area"></div>
 		</div>
 
+		<?php if ( $show_vault ) : ?>
 		<div class="launchdek-card">
 			<?php
 			$vault_help = __(
@@ -66,6 +72,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 			<div id="launchdek-vault-notice" class="launchdek-notice-area"></div>
 			<div id="launchdek-vault-list" class="launchdek-template-grid"></div>
 		</div>
+		<?php endif; ?>
 	</div>
 
 	<div id="launchdek-panel-my-checklists" class="launchdek-tab-panel" data-launchdek-tab-panel="my-checklists" role="tabpanel" aria-labelledby="launchdek-tab-my-checklists" hidden>
@@ -172,6 +179,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 		</div>
 	</div>
 
+	<?php if ( $show_auto_capture ) : ?>
 	<div id="launchdek-panel-auto-capture" class="launchdek-tab-panel" data-launchdek-tab-panel="auto-capture" role="tabpanel" aria-labelledby="launchdek-tab-auto-capture" hidden>
 		<div class="launchdek-card launchdek-auto-capture-panel">
 			<h2><?php esc_html_e( 'Auto-Capture Checklist Steps', LAUNCHDEK_TEXT_DOMAIN ); ?></h2>
@@ -193,6 +201,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 			</div>
 		</div>
 	</div>
+	<?php endif; ?>
 
 	<?php require LAUNCHDEK_PLUGIN_DIR . 'admin/partials/launchdek-template-picker-modal.php'; ?>
 </div>

@@ -64,6 +64,21 @@ class LAUNCHDEK_Settings {
 	}
 
 	/**
+	 * Whether the current request is saving this plugin's Settings API form.
+	 *
+	 * options.php verifies the form nonce before sanitize_callback runs.
+	 *
+	 * @return bool
+	 */
+	protected static function is_settings_form_submission() {
+		if ( ! isset( $_POST['option_page'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Verified by options.php before sanitize().
+			return false;
+		}
+
+		return self::SETTINGS_GROUP === sanitize_key( wp_unslash( $_POST['option_page'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Verified by options.php before sanitize().
+	}
+
+	/**
 	 * Sanitize settings before saving.
 	 *
 	 * @param mixed $input Raw settings input.
@@ -109,11 +124,14 @@ class LAUNCHDEK_Settings {
 			$output['custom_site_groups'] = $clean_groups;
 		}
 
-		$checkboxes = array( 'enabled', 'encrypt_credentials', 'drift_verification_enabled' );
+		$checkboxes = array( 'enabled', 'encrypt_credentials' );
+		if ( LAUNCHDEK_Licensing::can_use_scheduled_drift() ) {
+			$checkboxes[] = 'drift_verification_enabled';
+		}
 		foreach ( $checkboxes as $key ) {
 			if ( array_key_exists( $key, $input ) ) {
 				$output[ $key ] = (bool) $input[ $key ];
-			} elseif ( isset( $_POST['option_page'] ) && self::SETTINGS_GROUP === $_POST['option_page'] ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+			} elseif ( self::is_settings_form_submission() ) {
 				$output[ $key ] = false;
 			}
 		}
@@ -126,7 +144,7 @@ class LAUNCHDEK_Settings {
 				}
 			}
 
-			if ( isset( $_POST['option_page'] ) && self::SETTINGS_GROUP === $_POST['option_page'] ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+			if ( self::is_settings_form_submission() ) {
 				if ( isset( $input['notification_events'] ) && is_array( $input['notification_events'] ) ) {
 					$output['notification_events'] = array_map( 'sanitize_key', $input['notification_events'] );
 				} else {

@@ -24,6 +24,8 @@ delete_option( 'launchdek_templates_seeded' );
 delete_option( LAUNCHDEK_Templates::CATALOG_OPTION );
 delete_option( 'launchdek_drift_status' );
 delete_option( LAUNCHDEK_Installer::DB_VERSION_OPTION );
+delete_option( 'launchdek_activation_redirect' );
+delete_transient( 'launchdek_activation_redirect' );
 LAUNCHDEK_Dashboard_Cache::clear();
 
 LAUNCHDEK_Installer::uninstall();
