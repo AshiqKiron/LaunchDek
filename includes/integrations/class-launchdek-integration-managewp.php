@@ -19,7 +19,7 @@ class LAUNCHDEK_Integration_ManageWP implements LAUNCHDEK_Integration_Interface 
 	}
 
 	public function get_name() {
-		return __( 'ManageWP Connector', LAUNCHDEK_TEXT_DOMAIN );
+		return __( 'ManageWP Connector', 'launchdek' );
 	}
 
 	public function is_available() {
@@ -33,18 +33,18 @@ class LAUNCHDEK_Integration_ManageWP implements LAUNCHDEK_Integration_Interface 
 	public function fetch_platform_sites() {
 		return new WP_Error(
 			'launchdek_integration_sync_unsupported',
-			__( 'ManageWP site sync is not available yet.', LAUNCHDEK_TEXT_DOMAIN ),
+			__( 'ManageWP site sync is not available yet.', 'launchdek' ),
 			array( 'status' => 400 )
 		);
 	}
 
 	public function push_agent( $site_ids = array() ) {
 		if ( ! $this->is_available() ) {
-			return array( 'error' => __( 'ManageWP Worker is not detected on this site.', LAUNCHDEK_TEXT_DOMAIN ) );
+			return array( 'error' => __( 'ManageWP Worker is not detected on this site.', 'launchdek' ) );
 		}
 
 		$results = array(
-			'message' => __( 'ManageWP Worker detected. Use ManageWP dashboard to install LaunchDek on connected sites.', LAUNCHDEK_TEXT_DOMAIN ),
+			'message' => __( 'ManageWP Worker detected. Use ManageWP dashboard to install LaunchDek on connected sites.', 'launchdek' ),
 		);
 
 		do_action( 'launchdek_managewp_push_agent', $site_ids, $results );
@@ -56,7 +56,7 @@ class LAUNCHDEK_Integration_ManageWP implements LAUNCHDEK_Integration_Interface 
 
 	public function get_status() {
 		return array(
-			'description' => __( 'Allows the ManageWP master site to push LaunchDek to child sites.', LAUNCHDEK_TEXT_DOMAIN ),
+			'description' => __( 'Allows the ManageWP master site to push LaunchDek to child sites.', 'launchdek' ),
 			'docs_url'    => 'https://managewp.com/guide/',
 		);
 	}

@@ -70,14 +70,14 @@ class LAUNCHDEK_Auto_Capture {
 		if ( ! $client ) {
 			return new WP_Error(
 				'launchdek_no_client',
-				__( 'Unable to connect to remote site.', LAUNCHDEK_TEXT_DOMAIN )
+				__( 'Unable to connect to remote site.', 'launchdek' )
 			);
 		}
 
 		if ( ! LAUNCHDEK_Client_Push::agent_available( $site_id ) ) {
 			return new WP_Error(
 				'launchdek_capture_panel_required',
-				__( 'Auto-capture requires the client checklist panel on the remote site.', LAUNCHDEK_TEXT_DOMAIN ),
+				__( 'Auto-capture requires the client checklist panel on the remote site.', 'launchdek' ),
 				array( 'status' => 400 )
 			);
 		}

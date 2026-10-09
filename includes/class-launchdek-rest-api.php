@@ -555,7 +555,7 @@ class LAUNCHDEK_REST_API {
 		if ( $details_only ) {
 			$details = LAUNCHDEK_Audit_Log::get_decoded_details( $id );
 			if ( null === $details ) {
-				return new WP_Error( 'not_found', __( 'Activity log entry not found.', LAUNCHDEK_TEXT_DOMAIN ), array( 'status' => 404 ) );
+				return new WP_Error( 'not_found', __( 'Activity log entry not found.', 'launchdek' ), array( 'status' => 404 ) );
 			}
 
 			return rest_ensure_response(
@@ -569,7 +569,7 @@ class LAUNCHDEK_REST_API {
 
 		$entry = LAUNCHDEK_Audit_Log::find( $id, true );
 		if ( ! $entry ) {
-			return new WP_Error( 'not_found', __( 'Activity log entry not found.', LAUNCHDEK_TEXT_DOMAIN ), array( 'status' => 404 ) );
+			return new WP_Error( 'not_found', __( 'Activity log entry not found.', 'launchdek' ), array( 'status' => 404 ) );
 		}
 
 		return rest_ensure_response( $entry );
@@ -655,7 +655,7 @@ class LAUNCHDEK_REST_API {
 		$plan = is_array( $data ) ? sanitize_key( (string) ( $data['plan'] ?? '' ) ) : '';
 
 		if ( '' === $plan ) {
-			return new WP_Error( 'missing_plan', __( 'Plan is required.', LAUNCHDEK_TEXT_DOMAIN ), array( 'status' => 400 ) );
+			return new WP_Error( 'missing_plan', __( 'Plan is required.', 'launchdek' ), array( 'status' => 400 ) );
 		}
 
 		$result = LAUNCHDEK_Licensing::set_plan( $plan );
@@ -680,7 +680,7 @@ class LAUNCHDEK_REST_API {
 	public static function get_site( $request ) {
 		$site = LAUNCHDEK_Site_Repository::find( absint( $request['id'] ) );
 		if ( ! $site ) {
-			return new WP_Error( 'not_found', __( 'Site not found.', LAUNCHDEK_TEXT_DOMAIN ), array( 'status' => 404 ) );
+			return new WP_Error( 'not_found', __( 'Site not found.', 'launchdek' ), array( 'status' => 404 ) );
 		}
 		return rest_ensure_response( $site );
 	}
@@ -696,7 +696,7 @@ class LAUNCHDEK_REST_API {
 		$site    = LAUNCHDEK_Site_Repository::find( $site_id );
 
 		if ( ! $site ) {
-			return new WP_Error( 'not_found', __( 'Site not found.', LAUNCHDEK_TEXT_DOMAIN ), array( 'status' => 404 ) );
+			return new WP_Error( 'not_found', __( 'Site not found.', 'launchdek' ), array( 'status' => 404 ) );
 		}
 
 		$limit  = absint( $request->get_param( 'limit' ) );
@@ -725,11 +725,11 @@ class LAUNCHDEK_REST_API {
 
 		$data = $request->get_json_params();
 		if ( empty( $data['url'] ) || empty( $data['admin_username'] ) || empty( $data['app_password'] ) ) {
-			return new WP_Error( 'missing_fields', __( 'URL, username, and app password are required.', LAUNCHDEK_TEXT_DOMAIN ), array( 'status' => 400 ) );
+			return new WP_Error( 'missing_fields', __( 'URL, username, and app password are required.', 'launchdek' ), array( 'status' => 400 ) );
 		}
 		$id = LAUNCHDEK_Site_Repository::create( $data );
 		if ( ! $id ) {
-			return new WP_Error( 'create_failed', __( 'Failed to create site.', LAUNCHDEK_TEXT_DOMAIN ), array( 'status' => 500 ) );
+			return new WP_Error( 'create_failed', __( 'Failed to create site.', 'launchdek' ), array( 'status' => 500 ) );
 		}
 
 		$site  = LAUNCHDEK_Site_Repository::find( $id );
@@ -747,7 +747,7 @@ class LAUNCHDEK_REST_API {
 	public static function update_site( $request ) {
 		$id = absint( $request['id'] );
 		if ( ! LAUNCHDEK_Site_Repository::find( $id ) ) {
-			return new WP_Error( 'not_found', __( 'Site not found.', LAUNCHDEK_TEXT_DOMAIN ), array( 'status' => 404 ) );
+			return new WP_Error( 'not_found', __( 'Site not found.', 'launchdek' ), array( 'status' => 404 ) );
 		}
 		$data = $request->get_json_params();
 		LAUNCHDEK_Site_Repository::update( $id, $data );
@@ -771,11 +771,11 @@ class LAUNCHDEK_REST_API {
 		$id = absint( $request['id'] );
 
 		if ( ! LAUNCHDEK_Site_Repository::find( $id ) ) {
-			return new WP_Error( 'not_found', __( 'Site not found.', LAUNCHDEK_TEXT_DOMAIN ), array( 'status' => 404 ) );
+			return new WP_Error( 'not_found', __( 'Site not found.', 'launchdek' ), array( 'status' => 404 ) );
 		}
 
 		if ( ! LAUNCHDEK_Site_Repository::delete( $id ) ) {
-			return new WP_Error( 'delete_failed', __( 'Failed to delete site.', LAUNCHDEK_TEXT_DOMAIN ), array( 'status' => 500 ) );
+			return new WP_Error( 'delete_failed', __( 'Failed to delete site.', 'launchdek' ), array( 'status' => 500 ) );
 		}
 
 		return rest_ensure_response( array( 'deleted' => true ) );
@@ -795,7 +795,7 @@ class LAUNCHDEK_REST_API {
 		$id = absint( $request['id'] );
 
 		if ( ! LAUNCHDEK_Site_Repository::find( $id ) ) {
-			return new WP_Error( 'not_found', __( 'Site not found.', LAUNCHDEK_TEXT_DOMAIN ), array( 'status' => 404 ) );
+			return new WP_Error( 'not_found', __( 'Site not found.', 'launchdek' ), array( 'status' => 404 ) );
 		}
 
 		$panel = LAUNCHDEK_Mu_Plugin_Installer::ensure_installed( $id );
@@ -820,13 +820,13 @@ class LAUNCHDEK_REST_API {
 	 */
 	public static function get_site_capture( $request ) {
 		if ( ! LAUNCHDEK_Licensing::can_use_auto_capture() ) {
-			return LAUNCHDEK_Licensing::pro_required_error( __( 'Auto-capture', LAUNCHDEK_TEXT_DOMAIN ) );
+			return LAUNCHDEK_Licensing::pro_required_error( __( 'Auto-capture', 'launchdek' ) );
 		}
 
 		$id = absint( $request['id'] );
 
 		if ( ! LAUNCHDEK_Site_Repository::find( $id ) ) {
-			return new WP_Error( 'not_found', __( 'Site not found.', LAUNCHDEK_TEXT_DOMAIN ), array( 'status' => 404 ) );
+			return new WP_Error( 'not_found', __( 'Site not found.', 'launchdek' ), array( 'status' => 404 ) );
 		}
 
 		$result = LAUNCHDEK_Auto_Capture::get_status( $id );
@@ -846,7 +846,7 @@ class LAUNCHDEK_REST_API {
 	 */
 	public static function update_site_capture( $request ) {
 		if ( ! LAUNCHDEK_Licensing::can_use_auto_capture() ) {
-			return LAUNCHDEK_Licensing::pro_required_error( __( 'Auto-capture', LAUNCHDEK_TEXT_DOMAIN ) );
+			return LAUNCHDEK_Licensing::pro_required_error( __( 'Auto-capture', 'launchdek' ) );
 		}
 
 		$id   = absint( $request['id'] );
@@ -854,7 +854,7 @@ class LAUNCHDEK_REST_API {
 		$action = is_array( $data ) ? sanitize_key( $data['action'] ?? '' ) : '';
 
 		if ( ! LAUNCHDEK_Site_Repository::find( $id ) ) {
-			return new WP_Error( 'not_found', __( 'Site not found.', LAUNCHDEK_TEXT_DOMAIN ), array( 'status' => 404 ) );
+			return new WP_Error( 'not_found', __( 'Site not found.', 'launchdek' ), array( 'status' => 404 ) );
 		}
 
 		if ( 'start' === $action ) {
@@ -864,7 +864,7 @@ class LAUNCHDEK_REST_API {
 		} else {
 			return new WP_Error(
 				'launchdek_capture_action',
-				__( 'Invalid capture action.', LAUNCHDEK_TEXT_DOMAIN ),
+				__( 'Invalid capture action.', 'launchdek' ),
 				array( 'status' => 400 )
 			);
 		}
@@ -884,13 +884,13 @@ class LAUNCHDEK_REST_API {
 	 */
 	public static function clear_site_capture( $request ) {
 		if ( ! LAUNCHDEK_Licensing::can_use_auto_capture() ) {
-			return LAUNCHDEK_Licensing::pro_required_error( __( 'Auto-capture', LAUNCHDEK_TEXT_DOMAIN ) );
+			return LAUNCHDEK_Licensing::pro_required_error( __( 'Auto-capture', 'launchdek' ) );
 		}
 
 		$id = absint( $request['id'] );
 
 		if ( ! LAUNCHDEK_Site_Repository::find( $id ) ) {
-			return new WP_Error( 'not_found', __( 'Site not found.', LAUNCHDEK_TEXT_DOMAIN ), array( 'status' => 404 ) );
+			return new WP_Error( 'not_found', __( 'Site not found.', 'launchdek' ), array( 'status' => 404 ) );
 		}
 
 		$result = LAUNCHDEK_Auto_Capture::clear( $id );
@@ -913,7 +913,7 @@ class LAUNCHDEK_REST_API {
 		if ( ! is_readable( $path ) ) {
 			return new WP_Error(
 				'launchdek_bootstrap_missing',
-				__( 'Client panel bootstrap file is missing from this LaunchDek install.', LAUNCHDEK_TEXT_DOMAIN ),
+				__( 'Client panel bootstrap file is missing from this LaunchDek install.', 'launchdek' ),
 				array( 'status' => 500 )
 			);
 		}
@@ -989,7 +989,7 @@ class LAUNCHDEK_REST_API {
 	public static function get_checklist( $request ) {
 		$wf = LAUNCHDEK_Checklist_Repository::find( absint( $request['id'] ) );
 		if ( ! $wf ) {
-			return new WP_Error( 'not_found', __( 'Checklist not found.', LAUNCHDEK_TEXT_DOMAIN ), array( 'status' => 404 ) );
+			return new WP_Error( 'not_found', __( 'Checklist not found.', 'launchdek' ), array( 'status' => 404 ) );
 		}
 		return rest_ensure_response( $wf );
 	}
@@ -1010,7 +1010,7 @@ class LAUNCHDEK_REST_API {
 
 		$id = LAUNCHDEK_Checklist_Repository::create( $data );
 		if ( ! $id ) {
-			return new WP_Error( 'create_failed', __( 'Failed to create checklist.', LAUNCHDEK_TEXT_DOMAIN ), array( 'status' => 500 ) );
+			return new WP_Error( 'create_failed', __( 'Failed to create checklist.', 'launchdek' ), array( 'status' => 500 ) );
 		}
 		return rest_ensure_response( LAUNCHDEK_Checklist_Repository::find( $id ) );
 	}
@@ -1020,13 +1020,13 @@ class LAUNCHDEK_REST_API {
 		$existing = LAUNCHDEK_Checklist_Repository::find( $id );
 
 		if ( ! $existing ) {
-			return new WP_Error( 'not_found', __( 'Checklist not found.', LAUNCHDEK_TEXT_DOMAIN ), array( 'status' => 404 ) );
+			return new WP_Error( 'not_found', __( 'Checklist not found.', 'launchdek' ), array( 'status' => 404 ) );
 		}
 
 		if ( ! empty( $existing['is_template'] ) && ! empty( $existing['template_slug'] ) ) {
 			return new WP_Error(
 				'read_only_template',
-				__( 'Built-in templates cannot be edited. Clone one to create a custom checklist.', LAUNCHDEK_TEXT_DOMAIN ),
+				__( 'Built-in templates cannot be edited. Clone one to create a custom checklist.', 'launchdek' ),
 				array( 'status' => 403 )
 			);
 		}
@@ -1044,7 +1044,7 @@ class LAUNCHDEK_REST_API {
 		unset( $data['is_template'], $data['is_vault'] );
 
 		if ( ! LAUNCHDEK_Checklist_Repository::update( $id, $data ) ) {
-			return new WP_Error( 'update_failed', __( 'Failed to update checklist.', LAUNCHDEK_TEXT_DOMAIN ), array( 'status' => 500 ) );
+			return new WP_Error( 'update_failed', __( 'Failed to update checklist.', 'launchdek' ), array( 'status' => 500 ) );
 		}
 
 		return rest_ensure_response( LAUNCHDEK_Checklist_Repository::find( $id ) );
@@ -1062,7 +1062,7 @@ class LAUNCHDEK_REST_API {
 		if ( ! is_array( $data ) ) {
 			return new WP_Error(
 				'invalid_body',
-				__( 'Invalid checklist data.', LAUNCHDEK_TEXT_DOMAIN ),
+				__( 'Invalid checklist data.', 'launchdek' ),
 				array( 'status' => 400 )
 			);
 		}
@@ -1082,7 +1082,7 @@ class LAUNCHDEK_REST_API {
 		if ( '' === $title ) {
 			return new WP_Error(
 				'missing_title',
-				__( 'Checklist title is required.', LAUNCHDEK_TEXT_DOMAIN ),
+				__( 'Checklist title is required.', 'launchdek' ),
 				array( 'status' => 400 )
 			);
 		}
@@ -1092,7 +1092,7 @@ class LAUNCHDEK_REST_API {
 
 	public static function delete_checklist( $request ) {
 		if ( ! LAUNCHDEK_Checklist_Repository::delete( absint( $request['id'] ) ) ) {
-			return new WP_Error( 'delete_failed', __( 'Failed to delete checklist.', LAUNCHDEK_TEXT_DOMAIN ), array( 'status' => 500 ) );
+			return new WP_Error( 'delete_failed', __( 'Failed to delete checklist.', 'launchdek' ), array( 'status' => 500 ) );
 		}
 		return rest_ensure_response( array( 'deleted' => true ) );
 	}
@@ -1109,12 +1109,12 @@ class LAUNCHDEK_REST_API {
 		}
 
 		if ( ! is_array( $data ) ) {
-			return new WP_Error( 'invalid_json', __( 'Invalid checklist JSON.', LAUNCHDEK_TEXT_DOMAIN ), array( 'status' => 400 ) );
+			return new WP_Error( 'invalid_json', __( 'Invalid checklist JSON.', 'launchdek' ), array( 'status' => 400 ) );
 		}
 
 		$id = LAUNCHDEK_Checklist_Repository::import( $data );
 		if ( ! $id ) {
-			return new WP_Error( 'import_failed', __( 'Import failed.', LAUNCHDEK_TEXT_DOMAIN ), array( 'status' => 500 ) );
+			return new WP_Error( 'import_failed', __( 'Import failed.', 'launchdek' ), array( 'status' => 500 ) );
 		}
 		return rest_ensure_response( LAUNCHDEK_Checklist_Repository::find( $id ) );
 	}
@@ -1122,7 +1122,7 @@ class LAUNCHDEK_REST_API {
 	public static function export_checklist( $request ) {
 		$export = LAUNCHDEK_Checklist_Repository::export( absint( $request['id'] ) );
 		if ( ! $export ) {
-			return new WP_Error( 'not_found', __( 'Checklist not found.', LAUNCHDEK_TEXT_DOMAIN ), array( 'status' => 404 ) );
+			return new WP_Error( 'not_found', __( 'Checklist not found.', 'launchdek' ), array( 'status' => 404 ) );
 		}
 		return rest_ensure_response( $export );
 	}
@@ -1161,7 +1161,7 @@ class LAUNCHDEK_REST_API {
 		if ( ! $checklist_id || empty( $site_ids ) ) {
 			return new WP_Error(
 				'missing_params',
-				__( 'Checklist ID and at least one site ID are required.', LAUNCHDEK_TEXT_DOMAIN ),
+				__( 'Checklist ID and at least one site ID are required.', 'launchdek' ),
 				array( 'status' => 400 )
 			);
 		}
@@ -1179,7 +1179,7 @@ class LAUNCHDEK_REST_API {
 	public static function get_run( $request ) {
 		$run = LAUNCHDEK_Run_Repository::find( absint( $request['id'] ) );
 		if ( ! $run ) {
-			return new WP_Error( 'not_found', __( 'Run not found.', LAUNCHDEK_TEXT_DOMAIN ), array( 'status' => 404 ) );
+			return new WP_Error( 'not_found', __( 'Run not found.', 'launchdek' ), array( 'status' => 404 ) );
 		}
 		return rest_ensure_response( $run );
 	}
@@ -1195,11 +1195,11 @@ class LAUNCHDEK_REST_API {
 		$run = LAUNCHDEK_Run_Repository::find( $id );
 
 		if ( ! $run ) {
-			return new WP_Error( 'not_found', __( 'Run not found.', LAUNCHDEK_TEXT_DOMAIN ), array( 'status' => 404 ) );
+			return new WP_Error( 'not_found', __( 'Run not found.', 'launchdek' ), array( 'status' => 404 ) );
 		}
 
 		if ( ! LAUNCHDEK_Run_Repository::archive( $id ) ) {
-			return new WP_Error( 'archive_failed', __( 'Failed to archive run.', LAUNCHDEK_TEXT_DOMAIN ), array( 'status' => 500 ) );
+			return new WP_Error( 'archive_failed', __( 'Failed to archive run.', 'launchdek' ), array( 'status' => 500 ) );
 		}
 
 		return rest_ensure_response( array( 'archived' => true, 'id' => $id ) );
@@ -1216,11 +1216,11 @@ class LAUNCHDEK_REST_API {
 		$run = LAUNCHDEK_Run_Repository::find( $id );
 
 		if ( ! $run ) {
-			return new WP_Error( 'not_found', __( 'Run not found.', LAUNCHDEK_TEXT_DOMAIN ), array( 'status' => 404 ) );
+			return new WP_Error( 'not_found', __( 'Run not found.', 'launchdek' ), array( 'status' => 404 ) );
 		}
 
 		if ( ! LAUNCHDEK_Run_Repository::delete( $id ) ) {
-			return new WP_Error( 'delete_failed', __( 'Failed to delete run.', LAUNCHDEK_TEXT_DOMAIN ), array( 'status' => 500 ) );
+			return new WP_Error( 'delete_failed', __( 'Failed to delete run.', 'launchdek' ), array( 'status' => 500 ) );
 		}
 
 		return rest_ensure_response( array( 'deleted' => true, 'id' => $id ) );
@@ -1440,7 +1440,7 @@ class LAUNCHDEK_REST_API {
 
 	public static function get_vault() {
 		if ( ! LAUNCHDEK_Licensing::can_use_agency_vault() ) {
-			return LAUNCHDEK_Licensing::pro_required_error( __( 'Private Agency Vault', LAUNCHDEK_TEXT_DOMAIN ) );
+			return LAUNCHDEK_Licensing::pro_required_error( __( 'Private Agency Vault', 'launchdek' ) );
 		}
 
 		return rest_ensure_response(
@@ -1455,13 +1455,13 @@ class LAUNCHDEK_REST_API {
 
 	public static function save_to_vault( $request ) {
 		if ( ! LAUNCHDEK_Licensing::can_use_agency_vault() ) {
-			return LAUNCHDEK_Licensing::pro_required_error( __( 'Private Agency Vault', LAUNCHDEK_TEXT_DOMAIN ) );
+			return LAUNCHDEK_Licensing::pro_required_error( __( 'Private Agency Vault', 'launchdek' ) );
 		}
 
 		$data = $request->get_json_params();
 		$id   = absint( $data['checklist_id'] ?? 0 );
 		if ( ! $id ) {
-			return new WP_Error( 'missing_id', __( 'Checklist ID required.', LAUNCHDEK_TEXT_DOMAIN ), array( 'status' => 400 ) );
+			return new WP_Error( 'missing_id', __( 'Checklist ID required.', 'launchdek' ), array( 'status' => 400 ) );
 		}
 		LAUNCHDEK_Templates::save_to_vault( $id );
 		return rest_ensure_response( LAUNCHDEK_Checklist_Repository::find( $id ) );
@@ -1472,17 +1472,17 @@ class LAUNCHDEK_REST_API {
 		$template = LAUNCHDEK_Templates::get_builtin_by_slug( $slug );
 
 		if ( ! $template ) {
-			return new WP_Error( 'not_found', __( 'Template not found.', LAUNCHDEK_TEXT_DOMAIN ), array( 'status' => 404 ) );
+			return new WP_Error( 'not_found', __( 'Template not found.', 'launchdek' ), array( 'status' => 404 ) );
 		}
 
 		$category = LAUNCHDEK_Templates::normalize_category( $template['category'] ?? '' );
 		if ( ! LAUNCHDEK_Licensing::is_template_category_allowed( $category ) ) {
-			return LAUNCHDEK_Licensing::pro_required_error( __( 'This template category', LAUNCHDEK_TEXT_DOMAIN ) );
+			return LAUNCHDEK_Licensing::pro_required_error( __( 'This template category', 'launchdek' ) );
 		}
 
 		$id = LAUNCHDEK_Templates::clone_template( $template );
 		if ( ! $id ) {
-			return new WP_Error( 'clone_failed', __( 'Could not clone template.', LAUNCHDEK_TEXT_DOMAIN ), array( 'status' => 500 ) );
+			return new WP_Error( 'clone_failed', __( 'Could not clone template.', 'launchdek' ), array( 'status' => 500 ) );
 		}
 
 		return rest_ensure_response( LAUNCHDEK_Checklist_Repository::find( $id ) );
@@ -1525,7 +1525,7 @@ class LAUNCHDEK_REST_API {
 	public static function push_integration( $request ) {
 		$integration = LAUNCHDEK_Integrations::get( sanitize_key( $request['slug'] ) );
 		if ( ! $integration ) {
-			return new WP_Error( 'not_found', __( 'Integration not found.', LAUNCHDEK_TEXT_DOMAIN ), array( 'status' => 404 ) );
+			return new WP_Error( 'not_found', __( 'Integration not found.', 'launchdek' ), array( 'status' => 404 ) );
 		}
 		$data = $request->get_json_params();
 		if ( ! is_array( $data ) ) {

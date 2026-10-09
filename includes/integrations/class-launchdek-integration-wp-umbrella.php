@@ -23,7 +23,7 @@ class LAUNCHDEK_Integration_WP_Umbrella implements LAUNCHDEK_Integration_Interfa
 	}
 
 	public function get_name() {
-		return __( 'WP Umbrella Connector', LAUNCHDEK_TEXT_DOMAIN );
+		return __( 'WP Umbrella Connector', 'launchdek' );
 	}
 
 	public function is_available() {
@@ -38,7 +38,7 @@ class LAUNCHDEK_Integration_WP_Umbrella implements LAUNCHDEK_Integration_Interfa
 		if ( ! $this->is_available() ) {
 			return new WP_Error(
 				'launchdek_wp_umbrella_unconfigured',
-				__( 'Add your WP Umbrella Public API token in connector setup before syncing sites.', LAUNCHDEK_TEXT_DOMAIN ),
+				__( 'Add your WP Umbrella Public API token in connector setup before syncing sites.', 'launchdek' ),
 				array( 'status' => 400 )
 			);
 		}
@@ -90,7 +90,7 @@ class LAUNCHDEK_Integration_WP_Umbrella implements LAUNCHDEK_Integration_Interfa
 	public function push_agent( $site_ids = array() ) {
 		if ( ! $this->is_available() ) {
 			return array(
-				'error' => __( 'WP Umbrella API token is not configured.', LAUNCHDEK_TEXT_DOMAIN ),
+				'error' => __( 'WP Umbrella API token is not configured.', 'launchdek' ),
 			);
 		}
 
@@ -120,7 +120,7 @@ class LAUNCHDEK_Integration_WP_Umbrella implements LAUNCHDEK_Integration_Interfa
 		}
 
 		if ( empty( $targets ) ) {
-			$results['message'] = __( 'No WP Umbrella-linked LaunchDek sites were found to push. Sync sites from WP Umbrella first.', LAUNCHDEK_TEXT_DOMAIN );
+			$results['message'] = __( 'No WP Umbrella-linked LaunchDek sites were found to push. Sync sites from WP Umbrella first.', 'launchdek' );
 		}
 
 		/**
@@ -144,7 +144,7 @@ class LAUNCHDEK_Integration_WP_Umbrella implements LAUNCHDEK_Integration_Interfa
 
 	public function get_status() {
 		return array(
-			'description'          => __( 'Import sites from your WP Umbrella account and deploy the LaunchDek client checklist panel to connected sites with Application Passwords.', LAUNCHDEK_TEXT_DOMAIN ),
+			'description'          => __( 'Import sites from your WP Umbrella account and deploy the LaunchDek client checklist panel to connected sites with Application Passwords.', 'launchdek' ),
 			'docs_url'             => 'https://support.wp-umbrella.com/en/articles/3-how-to-use-the-wp-umbrella-public-api',
 			'supports_sync'        => true,
 			'api_token_configured' => LAUNCHDEK_Settings::has_wp_umbrella_api_token(),
@@ -164,7 +164,7 @@ class LAUNCHDEK_Integration_WP_Umbrella implements LAUNCHDEK_Integration_Interfa
 		);
 
 		if ( ! $diagnostics['api_token_configured'] ) {
-			$diagnostics['hint'] = __( 'Generate a Public API token in WP Umbrella (Profile → Public API for developers), paste it in connector setup, then click Sync Sites.', LAUNCHDEK_TEXT_DOMAIN );
+			$diagnostics['hint'] = __( 'Generate a Public API token in WP Umbrella (Profile → Public API for developers), paste it in connector setup, then click Sync Sites.', 'launchdek' );
 			return $diagnostics;
 		}
 
@@ -184,9 +184,9 @@ class LAUNCHDEK_Integration_WP_Umbrella implements LAUNCHDEK_Integration_Interfa
 		$total = isset( $probe['data'] ) && is_array( $probe['data'] ) ? count( $probe['data'] ) : 0;
 
 		if ( 0 === $total ) {
-			$diagnostics['hint'] = __( 'Your WP Umbrella account has no connected projects yet. Add sites in WP Umbrella first, then sync again.', LAUNCHDEK_TEXT_DOMAIN );
+			$diagnostics['hint'] = __( 'Your WP Umbrella account has no connected projects yet. Add sites in WP Umbrella first, then sync again.', 'launchdek' );
 		} else {
-			$diagnostics['hint'] = __( 'WP Umbrella returned projects but none were eligible to import. Disconnected sites are skipped — reconnect them in WP Umbrella, then sync again.', LAUNCHDEK_TEXT_DOMAIN );
+			$diagnostics['hint'] = __( 'WP Umbrella returned projects but none were eligible to import. Disconnected sites are skipped — reconnect them in WP Umbrella, then sync again.', 'launchdek' );
 		}
 
 		return $diagnostics;
@@ -223,14 +223,14 @@ class LAUNCHDEK_Integration_WP_Umbrella implements LAUNCHDEK_Integration_Interfa
 		if ( $site_id <= 0 ) {
 			return array(
 				'success' => false,
-				'message' => __( 'Invalid site.', LAUNCHDEK_TEXT_DOMAIN ),
+				'message' => __( 'Invalid site.', 'launchdek' ),
 			);
 		}
 
 		if ( ! LAUNCHDEK_Site_Repository::has_credentials( $site_id ) ) {
 			return array(
 				'skipped' => true,
-				'message' => __( 'Add Application Password credentials on the Sites page before pushing the client panel.', LAUNCHDEK_TEXT_DOMAIN ),
+				'message' => __( 'Add Application Password credentials on the Sites page before pushing the client panel.', 'launchdek' ),
 			);
 		}
 
@@ -337,7 +337,7 @@ class LAUNCHDEK_Integration_WP_Umbrella implements LAUNCHDEK_Integration_Interfa
 		if ( '' === $token ) {
 			return new WP_Error(
 				'launchdek_wp_umbrella_unconfigured',
-				__( 'WP Umbrella API token is not configured.', LAUNCHDEK_TEXT_DOMAIN ),
+				__( 'WP Umbrella API token is not configured.', 'launchdek' ),
 				array( 'status' => 400 )
 			);
 		}
@@ -362,7 +362,7 @@ class LAUNCHDEK_Integration_WP_Umbrella implements LAUNCHDEK_Integration_Interfa
 		if ( is_wp_error( $response ) ) {
 			return new WP_Error(
 				'launchdek_wp_umbrella_request_failed',
-				__( 'Could not reach the WP Umbrella API. Check your network connection and try again.', LAUNCHDEK_TEXT_DOMAIN ),
+				__( 'Could not reach the WP Umbrella API. Check your network connection and try again.', 'launchdek' ),
 				array( 'status' => 502 )
 			);
 		}
@@ -374,7 +374,7 @@ class LAUNCHDEK_Integration_WP_Umbrella implements LAUNCHDEK_Integration_Interfa
 		if ( 401 === $status ) {
 			return new WP_Error(
 				'launchdek_wp_umbrella_unauthorized',
-				__( 'WP Umbrella rejected the API token. Use the account token from Profile → Public API (for developers)—not the per-site connection key from WP Umbrella plugin settings. Regenerate the Public API token if needed, then save again.', LAUNCHDEK_TEXT_DOMAIN ),
+				__( 'WP Umbrella rejected the API token. Use the account token from Profile → Public API (for developers)—not the per-site connection key from WP Umbrella plugin settings. Regenerate the Public API token if needed, then save again.', 'launchdek' ),
 				array( 'status' => $status )
 			);
 		}
@@ -382,13 +382,13 @@ class LAUNCHDEK_Integration_WP_Umbrella implements LAUNCHDEK_Integration_Interfa
 		if ( 403 === $status ) {
 			return new WP_Error(
 				'launchdek_wp_umbrella_forbidden',
-				__( 'WP Umbrella rejected the request. Regenerate your Public API token in Profile → Public API (for developers) and ensure it includes the public_api scope, then save again.', LAUNCHDEK_TEXT_DOMAIN ),
+				__( 'WP Umbrella rejected the request. Regenerate your Public API token in Profile → Public API (for developers) and ensure it includes the public_api scope, then save again.', 'launchdek' ),
 				array( 'status' => $status )
 			);
 		}
 
 		if ( $status < 200 || $status >= 300 ) {
-			$message = __( 'WP Umbrella API request failed.', LAUNCHDEK_TEXT_DOMAIN );
+			$message = __( 'WP Umbrella API request failed.', 'launchdek' );
 
 			if ( is_array( $data ) && ! empty( $data['message'] ) ) {
 				$message = sanitize_text_field( (string) $data['message'] );

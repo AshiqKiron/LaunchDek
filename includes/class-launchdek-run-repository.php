@@ -43,9 +43,13 @@ class LAUNCHDEK_Run_Repository {
 	public static function find( $id ) {
 		global $wpdb;
 
-		$table = self::table();
-		$row   = $wpdb->get_row(
-			$wpdb->prepare( 'SELECT * FROM ' . $table . ' WHERE id = %d', absint( $id ) ), // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Table from self::table().
+		$row = $wpdb->get_row(
+			$wpdb->prepare(
+				'SELECT * FROM %i WHERE id = %d',
+				self::table(),
+				absint( $id )
+			),
 			ARRAY_A
 		);
 
@@ -93,10 +97,16 @@ class LAUNCHDEK_Run_Repository {
 			$where[] = 'is_archived = 0';
 		}
 
-		$sql = 'SELECT * FROM ' . self::table() . ' WHERE ' . implode( ' AND ', $where ) . ' ORDER BY started_at DESC LIMIT %d';
-		$vals[] = max( 1, absint( $args['limit'] ) );
+		$where_sql = implode( ' AND ', $where );
+		$vals[]    = max( 1, absint( $args['limit'] ) );
 
-		$rows = $wpdb->get_results( $wpdb->prepare( $sql, $vals ), ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$prepared = $wpdb->prepare(
+			'SELECT * FROM ' . self::table() . ' WHERE ' . $where_sql . ' ORDER BY started_at DESC LIMIT %d', // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Table from self::table(); filters use placeholders only.
+			$vals
+		);
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter
+		$rows = $wpdb->get_results( $prepared, ARRAY_A );
 
 		if ( ! is_array( $rows ) || empty( $rows ) ) {
 			return array();
@@ -142,8 +152,6 @@ class LAUNCHDEK_Run_Repository {
 		);
 
 		$args   = wp_parse_args( $args, $defaults );
-		$where  = array( 'r.site_id = %d', 'r.is_archived = 0' );
-		$vals   = array( $site_id );
 		$offset = max( 0, absint( $args['offset'] ) );
 		$limit  = min( 200, max( 1, absint( $args['limit'] ) ) );
 		$runs   = self::table();
@@ -151,24 +159,24 @@ class LAUNCHDEK_Run_Repository {
 		$users  = $wpdb->users;
 
 		if ( $args['status'] ) {
-			$where[] = 'r.status = %s';
-			$vals[]  = sanitize_key( $args['status'] );
+			$prepared = $wpdb->prepare(
+				'SELECT r.id, r.checklist_id, r.site_id, r.status, r.started_at, r.completed_at, c.title AS checklist_title, c.is_template AS checklist_is_template, c.template_slug AS checklist_template_slug, u.display_name AS started_by_name FROM ' . $runs . ' r LEFT JOIN ' . $checks . ' c ON c.id = r.checklist_id LEFT JOIN ' . $users . ' u ON u.ID = r.started_by WHERE r.site_id = %d AND r.is_archived = 0 AND r.status = %s ORDER BY r.started_at DESC LIMIT %d OFFSET %d', // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Plugin-owned table names; filters use placeholders only.
+				$site_id,
+				sanitize_key( $args['status'] ),
+				$limit + 1,
+				$offset
+			);
+		} else {
+			$prepared = $wpdb->prepare(
+				'SELECT r.id, r.checklist_id, r.site_id, r.status, r.started_at, r.completed_at, c.title AS checklist_title, c.is_template AS checklist_is_template, c.template_slug AS checklist_template_slug, u.display_name AS started_by_name FROM ' . $runs . ' r LEFT JOIN ' . $checks . ' c ON c.id = r.checklist_id LEFT JOIN ' . $users . ' u ON u.ID = r.started_by WHERE r.site_id = %d AND r.is_archived = 0 ORDER BY r.started_at DESC LIMIT %d OFFSET %d', // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Plugin-owned table names; filters use placeholders only.
+				$site_id,
+				$limit + 1,
+				$offset
+			);
 		}
 
-		$sql = 'SELECT r.id, r.checklist_id, r.site_id, r.status, r.started_at, r.completed_at,
-				c.title AS checklist_title, c.is_template AS checklist_is_template, c.template_slug AS checklist_template_slug,
-				u.display_name AS started_by_name
-			FROM ' . $runs . ' r
-			LEFT JOIN ' . $checks . ' c ON c.id = r.checklist_id
-			LEFT JOIN ' . $users . ' u ON u.ID = r.started_by
-			WHERE ' . implode( ' AND ', $where ) . '
-			ORDER BY r.started_at DESC
-			LIMIT %d OFFSET %d';
-
-		$vals[] = $limit + 1;
-		$vals[] = $offset;
-
-		$rows = $wpdb->get_results( $wpdb->prepare( $sql, $vals ), ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter
+		$rows = $wpdb->get_results( $prepared, ARRAY_A );
 
 		if ( ! is_array( $rows ) || empty( $rows ) ) {
 			return array_merge(
@@ -256,22 +264,18 @@ class LAUNCHDEK_Run_Repository {
 
 		global $wpdb;
 
-		$placeholders = implode( ', ', array_fill( 0, count( $run_ids ), '%d' ) );
-		$sql          = 'SELECT run_id,
-				COUNT(*) AS steps_total,
-				SUM( CASE WHEN status = %s THEN 1 ELSE 0 END ) AS steps_completed,
-				SUM( CASE WHEN status = %s THEN 1 ELSE 0 END ) AS steps_failed,
-				MAX( completed_at ) AS last_step_completed_at
-			FROM ' . self::steps_table() . '
-			WHERE run_id IN (' . $placeholders . ')
-			GROUP BY run_id';
+		$in_placeholders = implode( ', ', array_fill( 0, count( $run_ids ), '%d' ) );
 
-		$params = array_merge(
-			array( 'completed', 'failed' ),
-			$run_ids
+		$prepared = $wpdb->prepare(
+			'SELECT run_id, COUNT(*) AS steps_total, SUM( CASE WHEN status = %s THEN 1 ELSE 0 END ) AS steps_completed, SUM( CASE WHEN status = %s THEN 1 ELSE 0 END ) AS steps_failed, MAX( completed_at ) AS last_step_completed_at FROM %i WHERE run_id IN (' . $in_placeholders . ') GROUP BY run_id', // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Plugin-owned table via %i; run_id IN list uses %d placeholders only.
+			'completed',
+			'failed',
+			self::steps_table(),
+			...$run_ids
 		);
 
-		$rows = $wpdb->get_results( $wpdb->prepare( $sql, $params ), ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter
+		$rows = $wpdb->get_results( $prepared, ARRAY_A );
 
 		$map = array();
 
@@ -305,15 +309,24 @@ class LAUNCHDEK_Run_Repository {
 	public static function count_by_status( $status = '' ) {
 		global $wpdb;
 
-		$table = self::table();
-
 		if ( $status ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Table from self::table().
 			return (int) $wpdb->get_var(
-				$wpdb->prepare( 'SELECT COUNT(*) FROM ' . $table . ' WHERE status = %s AND is_archived = 0', sanitize_key( $status ) ) // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+				$wpdb->prepare(
+					'SELECT COUNT(*) FROM %i WHERE status = %s AND is_archived = 0',
+					self::table(),
+					sanitize_key( $status )
+				)
 			);
 		}
 
-		return (int) $wpdb->get_var( 'SELECT COUNT(*) FROM ' . $table . ' WHERE is_archived = 0' ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Table from self::table().
+		return (int) $wpdb->get_var(
+			$wpdb->prepare(
+				'SELECT COUNT(*) FROM %i WHERE is_archived = 0',
+				self::table()
+			)
+		);
 	}
 
 	/**
@@ -325,6 +338,7 @@ class LAUNCHDEK_Run_Repository {
 	public static function archive( $id ) {
 		global $wpdb;
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$result = $wpdb->update(
 			self::table(),
 			array( 'is_archived' => 1 ),
@@ -352,7 +366,9 @@ class LAUNCHDEK_Run_Repository {
 
 		$id = absint( $id );
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$wpdb->delete( self::steps_table(), array( 'run_id' => $id ), array( '%d' ) );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$result = $wpdb->delete( self::table(), array( 'id' => $id ), array( '%d' ) );
 
 		if ( $result ) {
@@ -377,10 +393,11 @@ class LAUNCHDEK_Run_Repository {
 			return;
 		}
 
-		$table   = self::table();
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Table from self::table().
 		$run_ids = $wpdb->get_col(
 			$wpdb->prepare(
-				'SELECT id FROM ' . $table . ' WHERE site_id = %d', // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+				'SELECT id FROM %i WHERE site_id = %d',
+				self::table(),
 				$site_id
 			)
 		);
@@ -389,15 +406,16 @@ class LAUNCHDEK_Run_Repository {
 			$run_ids      = array_map( 'absint', $run_ids );
 			$placeholders = implode( ', ', array_fill( 0, count( $run_ids ), '%d' ) );
 
-			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
-			$wpdb->query(
-				$wpdb->prepare(
-					'DELETE FROM ' . self::steps_table() . ' WHERE run_id IN (' . $placeholders . ')',
-					$run_ids
-				)
+			$prepared = $wpdb->prepare(
+				'DELETE FROM ' . self::steps_table() . ' WHERE run_id IN (' . $placeholders . ')', // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Table from self::steps_table(); run_id IN list uses %d placeholders only.
+				$run_ids
 			);
+
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter
+			$wpdb->query( $prepared );
 		}
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$wpdb->delete( self::table(), array( 'site_id' => $site_id ), array( '%d' ) );
 		LAUNCHDEK_Dashboard_Cache::invalidate_stats();
 	}
@@ -435,6 +453,7 @@ class LAUNCHDEK_Run_Repository {
 			return false;
 		}
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$result = $wpdb->insert(
 			self::table(),
 			array(
@@ -454,6 +473,7 @@ class LAUNCHDEK_Run_Repository {
 		$run_id = (int) $wpdb->insert_id;
 		$token  = wp_generate_password( 48, false, false );
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$wpdb->update(
 			self::table(),
 			array( 'client_run_token' => $token ),
@@ -463,6 +483,7 @@ class LAUNCHDEK_Run_Repository {
 		);
 
 		foreach ( $checklist['steps'] as $index => $step ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 			$wpdb->insert(
 				self::steps_table(),
 				array(
@@ -516,6 +537,7 @@ class LAUNCHDEK_Run_Repository {
 			$fields['completed_at'] = current_time( 'mysql', true );
 		}
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$result = $wpdb->update( self::table(), $fields, array( 'id' => absint( $id ) ), null, array( '%d' ) );
 
 		if ( false !== $result ) {
@@ -536,6 +558,7 @@ class LAUNCHDEK_Run_Repository {
 	public static function reopen( $id ) {
 		global $wpdb;
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$result = $wpdb->update(
 			self::table(),
 			array(
@@ -564,9 +587,11 @@ class LAUNCHDEK_Run_Repository {
 	public static function get_client_token( $run_id ) {
 		global $wpdb;
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Table from self::table().
 		$token = $wpdb->get_var(
 			$wpdb->prepare(
-				'SELECT client_run_token FROM ' . self::table() . ' WHERE id = %d',
+				'SELECT client_run_token FROM %i WHERE id = %d',
+				self::table(),
 				absint( $run_id )
 			)
 		);
@@ -591,6 +616,7 @@ class LAUNCHDEK_Run_Repository {
 
 		$token = wp_generate_password( 48, false, false );
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$wpdb->update(
 			self::table(),
 			array( 'client_run_token' => $token ),
@@ -611,9 +637,11 @@ class LAUNCHDEK_Run_Repository {
 	public static function get_steps( $run_id ) {
 		global $wpdb;
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Table from self::steps_table().
 		$rows = $wpdb->get_results(
 			$wpdb->prepare(
-				'SELECT * FROM ' . self::steps_table() . ' WHERE run_id = %d ORDER BY step_index ASC',
+				'SELECT * FROM %i WHERE run_id = %d ORDER BY step_index ASC',
+				self::steps_table(),
 				absint( $run_id )
 			),
 			ARRAY_A
@@ -679,6 +707,7 @@ class LAUNCHDEK_Run_Repository {
 			return false;
 		}
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		return false !== $wpdb->update(
 			self::steps_table(),
 			$fields,
@@ -702,9 +731,10 @@ class LAUNCHDEK_Run_Repository {
 	public static function add_step_note( $run_id, $step_index, $note ) {
 		global $wpdb;
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Table from self::steps_table().
 		$row = $wpdb->get_row(
 			$wpdb->prepare(
-				'SELECT notes_json FROM ' . self::steps_table() . ' WHERE run_id = %d AND step_index = %d',
+				'SELECT notes_json FROM ' . self::steps_table() . ' WHERE run_id = %d AND step_index = %d', // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter
 				absint( $run_id ),
 				absint( $step_index )
 			),

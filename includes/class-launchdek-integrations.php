@@ -116,10 +116,10 @@ class LAUNCHDEK_Integrations {
 	 */
 	public static function get_launchdek_fields() {
 		return array(
-			'name'        => __( 'Site Name', LAUNCHDEK_TEXT_DOMAIN ),
-			'url'         => __( 'Site URL', LAUNCHDEK_TEXT_DOMAIN ),
-			'wp_version'  => __( 'WP Version', LAUNCHDEK_TEXT_DOMAIN ),
-			'php_version' => __( 'PHP Version', LAUNCHDEK_TEXT_DOMAIN ),
+			'name'        => __( 'Site Name', 'launchdek' ),
+			'url'         => __( 'Site URL', 'launchdek' ),
+			'wp_version'  => __( 'WP Version', 'launchdek' ),
+			'php_version' => __( 'PHP Version', 'launchdek' ),
 		);
 	}
 

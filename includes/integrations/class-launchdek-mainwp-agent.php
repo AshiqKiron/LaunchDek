@@ -32,14 +32,14 @@ class LAUNCHDEK_MainWP_Agent {
 		if ( ! empty( $website->sync_errors ) ) {
 			return new WP_Error(
 				'launchdek_mainwp_site_disconnected',
-				__( 'This MainWP child site is disconnected or has sync errors.', LAUNCHDEK_TEXT_DOMAIN )
+				__( 'This MainWP child site is disconnected or has sync errors.', 'launchdek' )
 			);
 		}
 
 		if ( ! class_exists( 'MainWP\Dashboard\MainWP_Connect' ) ) {
 			return new WP_Error(
 				'launchdek_mainwp_connect_missing',
-				__( 'MainWP Connect is unavailable. Update MainWP and try again.', LAUNCHDEK_TEXT_DOMAIN )
+				__( 'MainWP Connect is unavailable. Update MainWP and try again.', 'launchdek' )
 			);
 		}
 
@@ -76,12 +76,12 @@ class LAUNCHDEK_MainWP_Agent {
 		if ( is_array( $information ) && isset( $information['installation'] ) && 'SUCCESS' === $information['installation'] ) {
 			return array(
 				'success' => true,
-				'message' => __( 'Client checklist panel installed via MainWP.', LAUNCHDEK_TEXT_DOMAIN ),
+				'message' => __( 'Client checklist panel installed via MainWP.', 'launchdek' ),
 				'method'  => 'mainwp',
 			);
 		}
 
-		$error = __( 'MainWP could not install the client panel on this child site.', LAUNCHDEK_TEXT_DOMAIN );
+		$error = __( 'MainWP could not install the client panel on this child site.', 'launchdek' );
 
 		if ( is_array( $information ) && ! empty( $information['error'] ) ) {
 			$error = sanitize_text_field( (string) $information['error'] );
@@ -108,7 +108,7 @@ class LAUNCHDEK_MainWP_Agent {
 		if ( $mainwp_site_id <= 0 ) {
 			return new WP_Error(
 				'launchdek_mainwp_invalid_site',
-				__( 'Invalid MainWP site ID.', LAUNCHDEK_TEXT_DOMAIN ),
+				__( 'Invalid MainWP site ID.', 'launchdek' ),
 				array( 'status' => 400 )
 			);
 		}
@@ -123,7 +123,7 @@ class LAUNCHDEK_MainWP_Agent {
 
 		return new WP_Error(
 			'launchdek_mainwp_site_not_found',
-			__( 'MainWP child site not found.', LAUNCHDEK_TEXT_DOMAIN ),
+			__( 'MainWP child site not found.', 'launchdek' ),
 			array( 'status' => 404 )
 		);
 	}
@@ -139,14 +139,14 @@ class LAUNCHDEK_MainWP_Agent {
 		if ( empty( $files ) ) {
 			return new WP_Error(
 				'launchdek_mu_bundle_missing',
-				__( 'Client panel bundle files are missing on the hub.', LAUNCHDEK_TEXT_DOMAIN )
+				__( 'Client panel bundle files are missing on the hub.', 'launchdek' )
 			);
 		}
 
 		if ( ! class_exists( 'ZipArchive' ) ) {
 			return new WP_Error(
 				'launchdek_zip_unavailable',
-				__( 'ZipArchive is required to deploy the client panel via MainWP.', LAUNCHDEK_TEXT_DOMAIN )
+				__( 'ZipArchive is required to deploy the client panel via MainWP.', 'launchdek' )
 			);
 		}
 
@@ -156,7 +156,7 @@ class LAUNCHDEK_MainWP_Agent {
 		if ( ! $tmp_path ) {
 			return new WP_Error(
 				'launchdek_zip_temp_failed',
-				__( 'Could not create a temporary install package.', LAUNCHDEK_TEXT_DOMAIN )
+				__( 'Could not create a temporary install package.', 'launchdek' )
 			);
 		}
 
@@ -167,7 +167,7 @@ class LAUNCHDEK_MainWP_Agent {
 		if ( true !== $zip->open( $tmp_path, ZipArchive::CREATE | ZipArchive::OVERWRITE ) ) {
 			return new WP_Error(
 				'launchdek_zip_open_failed',
-				__( 'Could not create the MainWP install package.', LAUNCHDEK_TEXT_DOMAIN )
+				__( 'Could not create the MainWP install package.', 'launchdek' )
 			);
 		}
 
@@ -279,7 +279,7 @@ PHP;
 			if ( ! wp_mkdir_p( $dir ) ) {
 				return new WP_Error(
 					'launchdek_mainwp_stage_failed',
-					__( 'Could not prepare the MainWP upload directory.', LAUNCHDEK_TEXT_DOMAIN )
+					__( 'Could not prepare the MainWP upload directory.', 'launchdek' )
 				);
 			}
 
@@ -288,7 +288,7 @@ PHP;
 			if ( ! copy( $zip_path, $target ) ) { // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_copy
 				return new WP_Error(
 					'launchdek_mainwp_stage_failed',
-					__( 'Could not stage the client panel install package for MainWP.', LAUNCHDEK_TEXT_DOMAIN )
+					__( 'Could not stage the client panel install package for MainWP.', 'launchdek' )
 				);
 			}
 
@@ -311,7 +311,7 @@ PHP;
 		if ( ! wp_mkdir_p( $dir ) ) {
 			return new WP_Error(
 				'launchdek_mainwp_stage_failed',
-				__( 'Could not prepare a temporary upload directory.', LAUNCHDEK_TEXT_DOMAIN )
+				__( 'Could not prepare a temporary upload directory.', 'launchdek' )
 			);
 		}
 
@@ -320,7 +320,7 @@ PHP;
 		if ( ! copy( $zip_path, $target ) ) { // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_copy
 			return new WP_Error(
 				'launchdek_mainwp_stage_failed',
-				__( 'Could not stage the client panel install package.', LAUNCHDEK_TEXT_DOMAIN )
+				__( 'Could not stage the client panel install package.', 'launchdek' )
 			);
 		}
 

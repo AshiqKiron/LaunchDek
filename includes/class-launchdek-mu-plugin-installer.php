@@ -32,7 +32,7 @@ class LAUNCHDEK_Mu_Plugin_Installer {
 		if ( ! $client ) {
 			return new WP_Error(
 				'launchdek_no_client',
-				__( 'Unable to connect to remote site.', LAUNCHDEK_TEXT_DOMAIN )
+				__( 'Unable to connect to remote site.', 'launchdek' )
 			);
 		}
 
@@ -51,7 +51,7 @@ class LAUNCHDEK_Mu_Plugin_Installer {
 			if ( is_wp_error( $sync ) ) {
 				return array(
 					'success' => true,
-					'message' => __( 'Client checklist panel is installed, but the latest panel files could not be synced.', LAUNCHDEK_TEXT_DOMAIN ),
+					'message' => __( 'Client checklist panel is installed, but the latest panel files could not be synced.', 'launchdek' ),
 					'method'  => 'existing',
 					'sync'    => $sync->get_error_message(),
 				);
@@ -59,7 +59,7 @@ class LAUNCHDEK_Mu_Plugin_Installer {
 
 			return array(
 				'success' => true,
-				'message' => __( 'Client checklist panel updated.', LAUNCHDEK_TEXT_DOMAIN ),
+				'message' => __( 'Client checklist panel updated.', 'launchdek' ),
 				'method'  => 'sync',
 				'written' => $sync['written'] ?? array(),
 			);
@@ -68,7 +68,7 @@ class LAUNCHDEK_Mu_Plugin_Installer {
 		if ( empty( $files ) ) {
 			return new WP_Error(
 				'launchdek_mu_bundle_missing',
-				__( 'Client panel bundle files are missing on the hub.', LAUNCHDEK_TEXT_DOMAIN )
+				__( 'Client panel bundle files are missing on the hub.', 'launchdek' )
 			);
 		}
 
@@ -98,7 +98,7 @@ class LAUNCHDEK_Mu_Plugin_Installer {
 			if ( is_wp_error( $local ) ) {
 				return new WP_Error(
 					'launchdek_mu_bootstrap_required',
-					__( 'Client panel bootstrap required. Download launchdek-client.php from onboarding or LaunchDek → Sites, upload it to wp-content/mu-plugins/ on the client site, then click Retry panel install.', LAUNCHDEK_TEXT_DOMAIN ),
+					__( 'Client panel bootstrap required. Download launchdek-client.php from onboarding or LaunchDek → Sites, upload it to wp-content/mu-plugins/ on the client site, then click Retry panel install.', 'launchdek' ),
 					array(
 						'status' => 404,
 						'remote' => $remote->get_error_message(),
@@ -112,7 +112,7 @@ class LAUNCHDEK_Mu_Plugin_Installer {
 		if ( ! self::panel_available( $client ) ) {
 			return new WP_Error(
 				'launchdek_mu_install_verify_failed',
-				__( 'Client panel files were written but the panel is still unavailable.', LAUNCHDEK_TEXT_DOMAIN )
+				__( 'Client panel files were written but the panel is still unavailable.', 'launchdek' )
 			);
 		}
 
@@ -149,7 +149,7 @@ class LAUNCHDEK_Mu_Plugin_Installer {
 		if ( empty( $files ) ) {
 			return new WP_Error(
 				'launchdek_mu_bundle_missing',
-				__( 'Client panel bundle files are missing on the hub.', LAUNCHDEK_TEXT_DOMAIN )
+				__( 'Client panel bundle files are missing on the hub.', 'launchdek' )
 			);
 		}
 
@@ -184,7 +184,7 @@ class LAUNCHDEK_Mu_Plugin_Installer {
 
 		return array(
 			'success' => true,
-			'message' => __( 'Client checklist panel installed via REST.', LAUNCHDEK_TEXT_DOMAIN ),
+			'message' => __( 'Client checklist panel installed via REST.', 'launchdek' ),
 			'method'  => 'rest',
 			'written' => $result['body']['written'] ?? array(),
 		);
@@ -203,7 +203,7 @@ class LAUNCHDEK_Mu_Plugin_Installer {
 		if ( ! $root ) {
 			return new WP_Error(
 				'launchdek_mu_local_path_unresolved',
-				__( 'Could not resolve a local path for the client site. Install the panel via REST on first connect.', LAUNCHDEK_TEXT_DOMAIN ),
+				__( 'Could not resolve a local path for the client site. Install the panel via REST on first connect.', 'launchdek' ),
 				array( 'status' => 404 )
 			);
 		}
@@ -213,7 +213,7 @@ class LAUNCHDEK_Mu_Plugin_Installer {
 		if ( ! wp_mkdir_p( $mu_dir ) ) {
 			return new WP_Error(
 				'launchdek_mu_local_mkdir_failed',
-				__( 'Could not create the client mu-plugins directory.', LAUNCHDEK_TEXT_DOMAIN )
+				__( 'Could not create the client mu-plugins directory.', 'launchdek' )
 			);
 		}
 
@@ -227,14 +227,14 @@ class LAUNCHDEK_Mu_Plugin_Installer {
 			if ( ! wp_mkdir_p( $dir ) ) {
 				return new WP_Error(
 					'launchdek_mu_local_write_failed',
-					__( 'Could not create a client panel directory.', LAUNCHDEK_TEXT_DOMAIN )
+					__( 'Could not create a client panel directory.', 'launchdek' )
 				);
 			}
 
 			if ( false === file_put_contents( $target, (string) $content ) ) { // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
 				return new WP_Error(
 					'launchdek_mu_local_write_failed',
-					__( 'Could not write client panel files locally.', LAUNCHDEK_TEXT_DOMAIN )
+					__( 'Could not write client panel files locally.', 'launchdek' )
 				);
 			}
 
@@ -243,7 +243,7 @@ class LAUNCHDEK_Mu_Plugin_Installer {
 
 		return array(
 			'success' => true,
-			'message' => __( 'Client checklist panel installed locally on this server.', LAUNCHDEK_TEXT_DOMAIN ),
+			'message' => __( 'Client checklist panel installed locally on this server.', 'launchdek' ),
 			'method'  => 'local',
 			'written' => $written,
 		);

@@ -11,6 +11,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- Admin view partial; variables are template-scoped.
+
 $option_name   = LAUNCHDEK_Settings::OPTION_NAME;
 $active_events       = (array) ( $settings['notification_events'] ?? array() );
 $active_email_events = (array) ( $settings['email_notification_events'] ?? array() );
@@ -35,56 +37,56 @@ $section_tooltips = array(
 	'platform'        => $show_scheduled_drift
 		? __(
 			'Turn LaunchDek on or off for this hub and schedule automated drift checks that compare remote site state twice daily.',
-			LAUNCHDEK_TEXT_DOMAIN
+			'launchdek'
 		)
 		: __(
 			'Turn LaunchDek on or off for this hub.',
-			LAUNCHDEK_TEXT_DOMAIN
+			'launchdek'
 		),
 	'credential_vault' => __(
 		'AES-256-CBC encryption using local WordPress salts. When enabled, application passwords are encrypted at rest and decrypted only when a remote request is made.',
-		LAUNCHDEK_TEXT_DOMAIN
+		'launchdek'
 	),
 	'client_panel'    => __(
 		'Choose how the optional checklist panel appears on connected client sites. Layout changes sync on the next checklist push or client panel refresh.',
-		LAUNCHDEK_TEXT_DOMAIN
+		'launchdek'
 	),
 	'exclude_options' => __(
 		'Sensitive settings the hub should never push to remote sites during API checklist steps. One REST field or legacy option name per line; matching fields are stripped from /wp/v2/settings payloads before they run.',
-		LAUNCHDEK_TEXT_DOMAIN
+		'launchdek'
 	),
 	'webhooks'        => __(
 		'Route LaunchDek events to Slack, Microsoft Teams, or Discord. Choose which run, step, drift, and client-panel events trigger a notification.',
-		LAUNCHDEK_TEXT_DOMAIN
+		'launchdek'
 	),
 	'access_guardrails' => __(
 		'Map WordPress roles to LaunchDek capabilities using agency presets. Administrators always retain full access regardless of this matrix.',
-		LAUNCHDEK_TEXT_DOMAIN
+		'launchdek'
 	),
 	'email_notifications' => __(
 		'Send email alerts for key checklist events on this hub. Choose which events trigger a message and enter one or more comma-separated recipient addresses.',
-		LAUNCHDEK_TEXT_DOMAIN
+		'launchdek'
 	),
 	'onboarding'      => __(
 		'Preview the first-run onboarding wizard without leaving Settings. Dismissal is stored separately and is not reset when you save these settings.',
-		LAUNCHDEK_TEXT_DOMAIN
+		'launchdek'
 	),
 );
 $panel_layout_help = __(
 	'Controls where and how the checklist panel appears in remote wp-admin. Use the preview to compare sidebar, top bar, dock, pill, and other layouts.',
-	LAUNCHDEK_TEXT_DOMAIN
+	'launchdek'
 );
 $channels        = array(
 	'slack'   => array(
-		'label'       => __( 'Slack', LAUNCHDEK_TEXT_DOMAIN ),
+		'label'       => __( 'Slack', 'launchdek' ),
 		'placeholder' => 'https://hooks.slack.com/services/...',
 	),
 	'teams'   => array(
-		'label'       => __( 'Microsoft Teams', LAUNCHDEK_TEXT_DOMAIN ),
+		'label'       => __( 'Microsoft Teams', 'launchdek' ),
 		'placeholder' => 'https://outlook.office.com/webhook/...',
 	),
 	'discord' => array(
-		'label'       => __( 'Discord', LAUNCHDEK_TEXT_DOMAIN ),
+		'label'       => __( 'Discord', 'launchdek' ),
 		'placeholder' => 'https://discord.com/api/webhooks/...',
 	),
 );
@@ -95,13 +97,13 @@ $channels        = array(
 	<form method="post" action="options.php" class="launchdek-settings-form">
 		<?php settings_fields( LAUNCHDEK_Settings::SETTINGS_GROUP ); ?>
 
-		<nav class="launchdek-settings-nav nav-tab-wrapper" role="tablist" aria-label="<?php esc_attr_e( 'Settings sections', LAUNCHDEK_TEXT_DOMAIN ); ?>">
-			<button type="button" class="nav-tab nav-tab-active" id="launchdek-settings-tab-platform-security" data-launchdek-settings-tab="platform-security" role="tab" aria-selected="true" aria-controls="launchdek-settings-panel-platform-security"><?php esc_html_e( 'Platform & Security', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
-			<button type="button" class="nav-tab" id="launchdek-settings-tab-panel-exclude" data-launchdek-settings-tab="panel-exclude" role="tab" aria-selected="false" aria-controls="launchdek-settings-panel-panel-exclude"><?php esc_html_e( 'Panel layout & Exclude', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
+		<nav class="launchdek-settings-nav nav-tab-wrapper" role="tablist" aria-label="<?php esc_attr_e( 'Settings sections', 'launchdek' ); ?>">
+			<button type="button" class="nav-tab nav-tab-active" id="launchdek-settings-tab-platform-security" data-launchdek-settings-tab="platform-security" role="tab" aria-selected="true" aria-controls="launchdek-settings-panel-platform-security"><?php esc_html_e( 'Platform & Security', 'launchdek' ); ?></button>
+			<button type="button" class="nav-tab" id="launchdek-settings-tab-panel-exclude" data-launchdek-settings-tab="panel-exclude" role="tab" aria-selected="false" aria-controls="launchdek-settings-panel-panel-exclude"><?php esc_html_e( 'Panel layout & Exclude', 'launchdek' ); ?></button>
 			<?php if ( $show_notifications ) : ?>
-			<button type="button" class="nav-tab" id="launchdek-settings-tab-webhooks-email" data-launchdek-settings-tab="webhooks-email" role="tab" aria-selected="false" aria-controls="launchdek-settings-panel-webhooks-email"><?php esc_html_e( 'Webhooks & Email', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
+			<button type="button" class="nav-tab" id="launchdek-settings-tab-webhooks-email" data-launchdek-settings-tab="webhooks-email" role="tab" aria-selected="false" aria-controls="launchdek-settings-panel-webhooks-email"><?php esc_html_e( 'Webhooks & Email', 'launchdek' ); ?></button>
 			<?php endif; ?>
-			<button type="button" class="nav-tab" id="launchdek-settings-tab-access-roles" data-launchdek-settings-tab="access-roles" role="tab" aria-selected="false" aria-controls="launchdek-settings-panel-access-roles"><?php esc_html_e( 'Access & Roles', LAUNCHDEK_TEXT_DOMAIN ); ?></button>
+			<button type="button" class="nav-tab" id="launchdek-settings-tab-access-roles" data-launchdek-settings-tab="access-roles" role="tab" aria-selected="false" aria-controls="launchdek-settings-panel-access-roles"><?php esc_html_e( 'Access & Roles', 'launchdek' ); ?></button>
 		</nav>
 
 		<div id="launchdek-settings-panel-platform-security" class="launchdek-settings-tab-panel" data-launchdek-settings-panel="platform-security" role="tabpanel" aria-labelledby="launchdek-settings-tab-platform-security">
@@ -110,17 +112,17 @@ $channels        = array(
 				<button type="button" class="launchdek-field-info launchdek-has-tooltip" data-tooltip="<?php echo esc_attr( $section_tooltips['platform'] ); ?>" aria-label="<?php echo esc_attr( $section_tooltips['platform'] ); ?>">
 					<span class="dashicons dashicons-info-outline" aria-hidden="true"></span>
 				</button>
-				<h2><?php esc_html_e( 'Platform', LAUNCHDEK_TEXT_DOMAIN ); ?></h2>
+				<h2><?php esc_html_e( 'Platform', 'launchdek' ); ?></h2>
 			</div>
 			<div class="launchdek-settings-toggles">
 				<label class="launchdek-settings-toggle">
 					<input type="checkbox" name="<?php echo esc_attr( $option_name ); ?>[enabled]" value="1" <?php checked( ! empty( $settings['enabled'] ) ); ?> />
-					<span><?php esc_html_e( 'Enable LaunchDek features', LAUNCHDEK_TEXT_DOMAIN ); ?></span>
+					<span><?php esc_html_e( 'Enable LaunchDek features', 'launchdek' ); ?></span>
 				</label>
 				<?php if ( $show_scheduled_drift ) : ?>
 				<label class="launchdek-settings-toggle">
 					<input type="checkbox" name="<?php echo esc_attr( $option_name ); ?>[drift_verification_enabled]" value="1" <?php checked( ! empty( $settings['drift_verification_enabled'] ) ); ?> />
-					<span><?php esc_html_e( 'Run automated drift checks twice daily', LAUNCHDEK_TEXT_DOMAIN ); ?></span>
+					<span><?php esc_html_e( 'Run automated drift checks twice daily', 'launchdek' ); ?></span>
 				</label>
 				<?php endif; ?>
 			</div>
@@ -131,10 +133,10 @@ $channels        = array(
 				<button type="button" class="launchdek-field-info launchdek-has-tooltip" data-tooltip="<?php echo esc_attr( $section_tooltips['onboarding'] ); ?>" aria-label="<?php echo esc_attr( $section_tooltips['onboarding'] ); ?>">
 					<span class="dashicons dashicons-info-outline" aria-hidden="true"></span>
 				</button>
-				<h2><?php esc_html_e( 'Onboarding', LAUNCHDEK_TEXT_DOMAIN ); ?></h2>
+				<h2><?php esc_html_e( 'Onboarding', 'launchdek' ); ?></h2>
 			</div>
 			<button type="button" class="button button-secondary" id="launchdek-show-onboarding">
-				<?php esc_html_e( 'Show onboarding wizard', LAUNCHDEK_TEXT_DOMAIN ); ?>
+				<?php esc_html_e( 'Show onboarding wizard', 'launchdek' ); ?>
 			</button>
 		</div>
 
@@ -143,14 +145,14 @@ $channels        = array(
 				<button type="button" class="launchdek-field-info launchdek-has-tooltip" data-tooltip="<?php echo esc_attr( $section_tooltips['credential_vault'] ); ?>" aria-label="<?php echo esc_attr( $section_tooltips['credential_vault'] ); ?>">
 					<span class="dashicons dashicons-info-outline" aria-hidden="true"></span>
 				</button>
-				<h2><?php esc_html_e( 'Credential Vault Security', LAUNCHDEK_TEXT_DOMAIN ); ?></h2>
+				<h2><?php esc_html_e( 'Credential Vault Security', 'launchdek' ); ?></h2>
 			</div>
 			<label class="launchdek-settings-toggle">
 				<input type="checkbox" name="<?php echo esc_attr( $option_name ); ?>[encrypt_credentials]" value="1" <?php checked( ! empty( $settings['encrypt_credentials'] ) ); ?> />
-				<span><?php esc_html_e( 'Encrypt stored application passwords at rest (recommended)', LAUNCHDEK_TEXT_DOMAIN ); ?></span>
+				<span><?php esc_html_e( 'Encrypt stored application passwords at rest (recommended)', 'launchdek' ); ?></span>
 			</label>
 			<p class="launchdek-muted launchdek-settings-note">
-				<?php esc_html_e( 'Credentials are encrypted with OpenSSL AES-256-CBC and a key derived from your site salts. Decryption happens only when a remote request is made.', LAUNCHDEK_TEXT_DOMAIN ); ?>
+				<?php esc_html_e( 'Credentials are encrypted with OpenSSL AES-256-CBC and a key derived from your site salts. Decryption happens only when a remote request is made.', 'launchdek' ); ?>
 			</p>
 		</div>
 		</div>
@@ -161,7 +163,7 @@ $channels        = array(
 				<button type="button" class="launchdek-field-info launchdek-has-tooltip" data-tooltip="<?php echo esc_attr( $section_tooltips['client_panel'] ); ?>" aria-label="<?php echo esc_attr( $section_tooltips['client_panel'] ); ?>">
 					<span class="dashicons dashicons-info-outline" aria-hidden="true"></span>
 				</button>
-				<h2><?php esc_html_e( 'Client Checklist Panel', LAUNCHDEK_TEXT_DOMAIN ); ?></h2>
+				<h2><?php esc_html_e( 'Client Checklist Panel', 'launchdek' ); ?></h2>
 			</div>
 			<div class="launchdek-settings-panel-layout-picker">
 				<label for="launchdek-panel-layout" class="launchdek-settings-panel-layout-label">
@@ -169,7 +171,7 @@ $channels        = array(
 						<button type="button" class="launchdek-field-info launchdek-has-tooltip" data-tooltip="<?php echo esc_attr( $panel_layout_help ); ?>" aria-label="<?php echo esc_attr( $panel_layout_help ); ?>">
 							<span class="dashicons dashicons-info-outline" aria-hidden="true"></span>
 						</button>
-						<span><?php esc_html_e( 'Panel layout', LAUNCHDEK_TEXT_DOMAIN ); ?></span>
+						<span><?php esc_html_e( 'Panel layout', 'launchdek' ); ?></span>
 					</span>
 				</label>
 				<div class="launchdek-settings-panel-layout-body">
@@ -220,9 +222,9 @@ $channels        = array(
 				<button type="button" class="launchdek-field-info launchdek-has-tooltip" data-tooltip="<?php echo esc_attr( $section_tooltips['exclude_options'] ); ?>" aria-label="<?php echo esc_attr( $section_tooltips['exclude_options'] ); ?>">
 					<span class="dashicons dashicons-info-outline" aria-hidden="true"></span>
 				</button>
-				<h2><?php esc_html_e( 'Exclude Options', LAUNCHDEK_TEXT_DOMAIN ); ?></h2>
+				<h2><?php esc_html_e( 'Exclude Options', 'launchdek' ); ?></h2>
 			</div>
-			<label for="launchdek-exclude-options" class="screen-reader-text"><?php esc_html_e( 'Excluded settings fields', LAUNCHDEK_TEXT_DOMAIN ); ?></label>
+			<label for="launchdek-exclude-options" class="screen-reader-text"><?php esc_html_e( 'Excluded settings fields', 'launchdek' ); ?></label>
 			<textarea
 				class="large-text code launchdek-settings-exclude-options"
 				id="launchdek-exclude-options"
@@ -232,12 +234,12 @@ $channels        = array(
 				placeholder="<?php echo esc_attr( LAUNCHDEK_Settings::format_exclude_options_textarea( LAUNCHDEK_Settings::get_default_exclude_options() ) ); ?>"
 			><?php echo esc_textarea( LAUNCHDEK_Settings::format_exclude_options_textarea( $exclude_options ) ); ?></textarea>
 			<p class="launchdek-muted launchdek-settings-note">
-				<?php esc_html_e( 'One field per line. Use WordPress REST settings names (url, email, title) or legacy option names (siteurl, admin_email). Matching fields are removed from /wp/v2/settings API step payloads before they run on client sites.', LAUNCHDEK_TEXT_DOMAIN ); ?>
+				<?php esc_html_e( 'One field per line. Use WordPress REST settings names (url, email, title) or legacy option names (siteurl, admin_email). Matching fields are removed from /wp/v2/settings API step payloads before they run on client sites.', 'launchdek' ); ?>
 			</p>
 			<?php if ( ! empty( $exclude_labels ) ) : ?>
 				<div class="launchdek-settings-exclude-hints">
 					<p class="launchdek-muted launchdek-settings-note launchdek-settings-exclude-hints-label">
-						<?php esc_html_e( 'Common fields:', LAUNCHDEK_TEXT_DOMAIN ); ?>
+						<?php esc_html_e( 'Common fields:', 'launchdek' ); ?>
 					</p>
 					<ul class="launchdek-settings-exclude-common-fields">
 						<?php foreach ( $exclude_labels as $key => $label ) : ?>
@@ -259,11 +261,11 @@ $channels        = array(
 				<button type="button" class="launchdek-field-info launchdek-has-tooltip" data-tooltip="<?php echo esc_attr( $section_tooltips['webhooks'] ); ?>" aria-label="<?php echo esc_attr( $section_tooltips['webhooks'] ); ?>">
 					<span class="dashicons dashicons-info-outline" aria-hidden="true"></span>
 				</button>
-				<h2><?php esc_html_e( 'Webhooks & Notifications', LAUNCHDEK_TEXT_DOMAIN ); ?></h2>
+				<h2><?php esc_html_e( 'Webhooks & Notifications', 'launchdek' ); ?></h2>
 			</div>
-			<p class="launchdek-settings-lead"><?php esc_html_e( 'Channel Routing', LAUNCHDEK_TEXT_DOMAIN ); ?></p>
+			<p class="launchdek-settings-lead"><?php esc_html_e( 'Channel Routing', 'launchdek' ); ?></p>
 
-			<div class="launchdek-settings-channels" role="group" aria-label="<?php esc_attr_e( 'Notification channel routing', LAUNCHDEK_TEXT_DOMAIN ); ?>">
+			<div class="launchdek-settings-channels" role="group" aria-label="<?php esc_attr_e( 'Notification channel routing', 'launchdek' ); ?>">
 				<?php foreach ( $channels as $key => $channel ) : ?>
 					<div class="launchdek-settings-channel">
 						<label for="launchdek-webhook-<?php echo esc_attr( $key ); ?>">
@@ -282,7 +284,7 @@ $channels        = array(
 			</div>
 
 			<div class="launchdek-settings-events">
-				<h3><?php esc_html_e( 'Notification Events', LAUNCHDEK_TEXT_DOMAIN ); ?></h3>
+				<h3><?php esc_html_e( 'Notification Events', 'launchdek' ); ?></h3>
 				<div class="launchdek-settings-event-grid">
 					<?php foreach ( LAUNCHDEK_Settings::get_notification_events() as $event_key => $event_label ) : ?>
 						<label class="launchdek-settings-toggle">
@@ -304,11 +306,11 @@ $channels        = array(
 				<button type="button" class="launchdek-field-info launchdek-has-tooltip" data-tooltip="<?php echo esc_attr( $section_tooltips['email_notifications'] ); ?>" aria-label="<?php echo esc_attr( $section_tooltips['email_notifications'] ); ?>">
 					<span class="dashicons dashicons-info-outline" aria-hidden="true"></span>
 				</button>
-				<h2><?php esc_html_e( 'Email Notifications', LAUNCHDEK_TEXT_DOMAIN ); ?></h2>
+				<h2><?php esc_html_e( 'Email Notifications', 'launchdek' ); ?></h2>
 			</div>
-			<p class="launchdek-settings-lead"><?php esc_html_e( 'Send email alerts for key checklist events on this site.', LAUNCHDEK_TEXT_DOMAIN ); ?></p>
+			<p class="launchdek-settings-lead"><?php esc_html_e( 'Send email alerts for key checklist events on this site.', 'launchdek' ); ?></p>
 
-			<div class="launchdek-settings-email-events" role="group" aria-label="<?php esc_attr_e( 'Email notification events', LAUNCHDEK_TEXT_DOMAIN ); ?>">
+			<div class="launchdek-settings-email-events" role="group" aria-label="<?php esc_attr_e( 'Email notification events', 'launchdek' ); ?>">
 				<?php foreach ( LAUNCHDEK_Settings::get_email_notification_events() as $event_key => $event ) : ?>
 					<div class="launchdek-settings-email-event">
 						<label class="launchdek-settings-email-event-label">
@@ -327,7 +329,7 @@ $channels        = array(
 
 			<div class="launchdek-settings-email-address">
 				<label for="launchdek-email-notification-address">
-					<strong><?php esc_html_e( 'Notification email addresses', LAUNCHDEK_TEXT_DOMAIN ); ?></strong>
+					<strong><?php esc_html_e( 'Notification email addresses', 'launchdek' ); ?></strong>
 				</label>
 				<input
 					type="text"
@@ -340,7 +342,7 @@ $channels        = array(
 					inputmode="email"
 				/>
 				<p class="launchdek-muted launchdek-settings-note">
-					<?php esc_html_e( 'Where these emails are sent. Separate multiple addresses with commas. Defaults to the site admin email.', LAUNCHDEK_TEXT_DOMAIN ); ?>
+					<?php esc_html_e( 'Where these emails are sent. Separate multiple addresses with commas. Defaults to the site admin email.', 'launchdek' ); ?>
 				</p>
 			</div>
 		</div>
@@ -353,9 +355,9 @@ $channels        = array(
 				<button type="button" class="launchdek-field-info launchdek-has-tooltip" data-tooltip="<?php echo esc_attr( $section_tooltips['access_guardrails'] ); ?>" aria-label="<?php echo esc_attr( $section_tooltips['access_guardrails'] ); ?>">
 					<span class="dashicons dashicons-info-outline" aria-hidden="true"></span>
 				</button>
-				<h2><?php esc_html_e( 'Access Guardrails', LAUNCHDEK_TEXT_DOMAIN ); ?></h2>
+				<h2><?php esc_html_e( 'Access Guardrails', 'launchdek' ); ?></h2>
 			</div>
-			<p class="launchdek-settings-lead"><?php esc_html_e( 'Agency Role Permissions (Admin vs. Developer vs. Auditor)', LAUNCHDEK_TEXT_DOMAIN ); ?></p>
+			<p class="launchdek-settings-lead"><?php esc_html_e( 'Agency Role Permissions (Admin vs. Developer vs. Auditor)', 'launchdek' ); ?></p>
 
 			<div class="launchdek-settings-role-presets">
 				<?php foreach ( LAUNCHDEK_Capabilities::get_agency_role_presets() as $preset ) : ?>
@@ -379,15 +381,15 @@ $channels        = array(
 				<button type="button" class="launchdek-field-info launchdek-has-tooltip" data-tooltip="<?php echo esc_attr( $section_tooltips['access_guardrails'] ); ?>" aria-label="<?php echo esc_attr( $section_tooltips['access_guardrails'] ); ?>">
 					<span class="dashicons dashicons-info-outline" aria-hidden="true"></span>
 				</button>
-				<h2><?php esc_html_e( 'WordPress Roles', LAUNCHDEK_TEXT_DOMAIN ); ?></h2>
+				<h2><?php esc_html_e( 'WordPress Roles', 'launchdek' ); ?></h2>
 			</div>
-			<p class="launchdek-muted"><?php esc_html_e( 'Map each WordPress role to LaunchDek capabilities. Administrators always retain full access.', LAUNCHDEK_TEXT_DOMAIN ); ?></p>
+			<p class="launchdek-muted"><?php esc_html_e( 'Map each WordPress role to LaunchDek capabilities. Administrators always retain full access.', 'launchdek' ); ?></p>
 
-				<div class="launchdek-settings-perm-scroll" tabindex="0" role="region" aria-label="<?php esc_attr_e( 'WordPress role permission matrix', LAUNCHDEK_TEXT_DOMAIN ); ?>">
+				<div class="launchdek-settings-perm-scroll" tabindex="0" role="region" aria-label="<?php esc_attr_e( 'WordPress role permission matrix', 'launchdek' ); ?>">
 					<table class="launchdek-settings-perm-table widefat">
 						<thead>
 							<tr>
-								<th scope="col"><?php esc_html_e( 'Capability', LAUNCHDEK_TEXT_DOMAIN ); ?></th>
+								<th scope="col"><?php esc_html_e( 'Capability', 'launchdek' ); ?></th>
 								<?php foreach ( $wp_roles as $role_slug => $role_name ) : ?>
 									<?php if ( 'administrator' === $role_slug ) : ?>
 										<?php continue; ?>
@@ -410,7 +412,7 @@ $channels        = array(
 													<?php
 													printf(
 														/* translators: 1: capability label, 2: role name */
-														esc_html__( 'Allow %1$s for %2$s', LAUNCHDEK_TEXT_DOMAIN ),
+														esc_html__( 'Allow %1$s for %2$s', 'launchdek' ),
 														esc_html( $cap_labels[ $cap ] ?? $cap ),
 														esc_html( translate_user_role( $role_name ) )
 													);

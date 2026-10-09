@@ -166,7 +166,7 @@ class LAUNCHDEK_Client_REST_API {
 		if ( empty( $files ) ) {
 			return new WP_Error(
 				'launchdek_client_no_files',
-				__( 'No panel files were provided.', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+				__( 'No panel files were provided.', 'launchdek' ),
 				array( 'status' => 400 )
 			);
 		}
@@ -195,7 +195,7 @@ class LAUNCHDEK_Client_REST_API {
 		if ( ! defined( 'WPMU_PLUGIN_DIR' ) ) {
 			return new WP_Error(
 				'launchdek_client_no_mu_dir',
-				__( 'Must-use plugins directory is not available.', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+				__( 'Must-use plugins directory is not available.', 'launchdek' ),
 				array( 'status' => 500 )
 			);
 		}
@@ -230,7 +230,7 @@ class LAUNCHDEK_Client_REST_API {
 			if ( ! wp_mkdir_p( $dir ) ) {
 				return new WP_Error(
 					'launchdek_client_write_failed',
-					__( 'Could not create the client panel directory.', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+					__( 'Could not create the client panel directory.', 'launchdek' ),
 					array( 'status' => 500 )
 				);
 			}
@@ -238,7 +238,7 @@ class LAUNCHDEK_Client_REST_API {
 			if ( false === file_put_contents( $target, (string) $content ) ) { // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
 				return new WP_Error(
 					'launchdek_client_write_failed',
-					__( 'Could not write the client panel files.', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+					__( 'Could not write the client panel files.', 'launchdek' ),
 					array( 'status' => 500 )
 				);
 			}
@@ -249,7 +249,7 @@ class LAUNCHDEK_Client_REST_API {
 		if ( empty( $written ) ) {
 			return new WP_Error(
 				'launchdek_client_no_valid_files',
-				__( 'No valid panel files were written.', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+				__( 'No valid panel files were written.', 'launchdek' ),
 				array( 'status' => 400 )
 			);
 		}
@@ -315,7 +315,7 @@ class LAUNCHDEK_Client_REST_API {
 		if ( ! $run ) {
 			return new WP_Error(
 				'launchdek_client_no_run',
-				__( 'No active checklist is assigned to this site.', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+				__( 'No active checklist is assigned to this site.', 'launchdek' ),
 				array( 'status' => 404 )
 			);
 		}
@@ -323,7 +323,7 @@ class LAUNCHDEK_Client_REST_API {
 		if ( 'completed' !== ( $run['run_status'] ?? '' ) && ! LAUNCHDEK_Client_Run_Store::all_steps_completed( $run ) ) {
 			return new WP_Error(
 				'launchdek_client_not_completed',
-				__( 'Only completed checklists can be dismissed.', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+				__( 'Only completed checklists can be dismissed.', 'launchdek' ),
 				array( 'status' => 409 )
 			);
 		}
@@ -350,7 +350,7 @@ class LAUNCHDEK_Client_REST_API {
 		if ( ! $run ) {
 			return new WP_Error(
 				'launchdek_client_no_run',
-				__( 'No active checklist is assigned to this site.', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+				__( 'No active checklist is assigned to this site.', 'launchdek' ),
 				array( 'status' => 404 )
 			);
 		}
@@ -360,7 +360,7 @@ class LAUNCHDEK_Client_REST_API {
 		if ( ! $step ) {
 			return new WP_Error(
 				'launchdek_client_step_not_found',
-				__( 'Checklist step not found.', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+				__( 'Checklist step not found.', 'launchdek' ),
 				array( 'status' => 404 )
 			);
 		}
@@ -368,7 +368,7 @@ class LAUNCHDEK_Client_REST_API {
 		if ( ! LAUNCHDEK_Client_Run_Store::user_can_complete_step( $step ) ) {
 			return new WP_Error(
 				'launchdek_client_forbidden',
-				__( 'You do not have permission to complete this step.', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+				__( 'You do not have permission to complete this step.', 'launchdek' ),
 				array( 'status' => 403 )
 			);
 		}
@@ -376,7 +376,7 @@ class LAUNCHDEK_Client_REST_API {
 		if ( 'manual' !== ( $step['type'] ?? 'manual' ) ) {
 			return new WP_Error(
 				'launchdek_client_not_manual',
-				__( 'Only manual steps can be completed here.', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+				__( 'Only manual steps can be completed here.', 'launchdek' ),
 				array( 'status' => 400 )
 			);
 		}
@@ -384,7 +384,7 @@ class LAUNCHDEK_Client_REST_API {
 		if ( ! in_array( $step['status'] ?? '', array( 'pending', 'awaiting_manual', 'running' ), true ) ) {
 			return new WP_Error(
 				'launchdek_client_not_ready',
-				__( 'This step cannot be marked complete.', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+				__( 'This step cannot be marked complete.', 'launchdek' ),
 				array( 'status' => 409 )
 			);
 		}
@@ -433,7 +433,7 @@ class LAUNCHDEK_Client_REST_API {
 		if ( ! $run ) {
 			return new WP_Error(
 				'launchdek_client_no_run',
-				__( 'No active checklist is assigned to this site.', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+				__( 'No active checklist is assigned to this site.', 'launchdek' ),
 				array( 'status' => 404 )
 			);
 		}
@@ -443,7 +443,7 @@ class LAUNCHDEK_Client_REST_API {
 		if ( ! $step ) {
 			return new WP_Error(
 				'launchdek_client_step_not_found',
-				__( 'Checklist step not found.', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+				__( 'Checklist step not found.', 'launchdek' ),
 				array( 'status' => 404 )
 			);
 		}
@@ -451,7 +451,7 @@ class LAUNCHDEK_Client_REST_API {
 		if ( ! LAUNCHDEK_Client_Run_Store::user_can_complete_step( $step ) ) {
 			return new WP_Error(
 				'launchdek_client_forbidden',
-				__( 'You do not have permission to update this step.', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+				__( 'You do not have permission to update this step.', 'launchdek' ),
 				array( 'status' => 403 )
 			);
 		}
@@ -459,7 +459,7 @@ class LAUNCHDEK_Client_REST_API {
 		if ( 'manual' !== ( $step['type'] ?? 'manual' ) ) {
 			return new WP_Error(
 				'launchdek_client_not_manual',
-				__( 'Only manual steps can be updated here.', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+				__( 'Only manual steps can be updated here.', 'launchdek' ),
 				array( 'status' => 400 )
 			);
 		}
@@ -467,7 +467,7 @@ class LAUNCHDEK_Client_REST_API {
 		if ( 'completed' !== ( $step['status'] ?? '' ) ) {
 			return new WP_Error(
 				'launchdek_client_not_completed',
-				__( 'This step is not marked complete.', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+				__( 'This step is not marked complete.', 'launchdek' ),
 				array( 'status' => 409 )
 			);
 		}
@@ -510,7 +510,7 @@ class LAUNCHDEK_Client_REST_API {
 		if ( ! $run ) {
 			return new WP_Error(
 				'launchdek_client_no_run',
-				__( 'No active checklist is assigned to this site.', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+				__( 'No active checklist is assigned to this site.', 'launchdek' ),
 				array( 'status' => 404 )
 			);
 		}
@@ -520,7 +520,7 @@ class LAUNCHDEK_Client_REST_API {
 		if ( ! $step ) {
 			return new WP_Error(
 				'launchdek_client_step_not_found',
-				__( 'Checklist step not found.', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+				__( 'Checklist step not found.', 'launchdek' ),
 				array( 'status' => 404 )
 			);
 		}
@@ -528,7 +528,7 @@ class LAUNCHDEK_Client_REST_API {
 		if ( ! LAUNCHDEK_Client_Run_Store::user_can_complete_step( $step ) ) {
 			return new WP_Error(
 				'launchdek_client_forbidden',
-				__( 'You do not have permission to add notes to this step.', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+				__( 'You do not have permission to add notes to this step.', 'launchdek' ),
 				array( 'status' => 403 )
 			);
 		}
@@ -536,7 +536,7 @@ class LAUNCHDEK_Client_REST_API {
 		if ( ! in_array( $step['status'] ?? '', array( 'pending', 'awaiting_manual', 'running' ), true ) ) {
 			return new WP_Error(
 				'launchdek_client_not_ready',
-				__( 'Notes can only be added to steps that are not yet complete.', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+				__( 'Notes can only be added to steps that are not yet complete.', 'launchdek' ),
 				array( 'status' => 409 )
 			);
 		}
@@ -549,7 +549,7 @@ class LAUNCHDEK_Client_REST_API {
 		if ( '' === $text ) {
 			return new WP_Error(
 				'launchdek_client_note_empty',
-				__( 'Type a note before saving.', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+				__( 'Type a note before saving.', 'launchdek' ),
 				array( 'status' => 400 )
 			);
 		}
@@ -559,7 +559,7 @@ class LAUNCHDEK_Client_REST_API {
 			if ( ! $attachment || 'attachment' !== $attachment->post_type ) {
 				return new WP_Error(
 					'launchdek_client_invalid_attachment',
-					__( 'The screenshot attachment is not valid.', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+					__( 'The screenshot attachment is not valid.', 'launchdek' ),
 					array( 'status' => 400 )
 				);
 			}
@@ -588,7 +588,7 @@ class LAUNCHDEK_Client_REST_API {
 		if ( ! $local_run ) {
 			return new WP_Error(
 				'launchdek_client_note_save_failed',
-				__( 'Failed to save note locally.', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+				__( 'Failed to save note locally.', 'launchdek' ),
 				array( 'status' => 500 )
 			);
 		}
@@ -641,7 +641,7 @@ class LAUNCHDEK_Client_REST_API {
 
 		return new WP_Error(
 			'launchdek_client_capture_action',
-			__( 'Invalid capture action.', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+			__( 'Invalid capture action.', 'launchdek' ),
 			array( 'status' => 400 )
 		);
 	}

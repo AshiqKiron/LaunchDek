@@ -33,9 +33,13 @@ class LAUNCHDEK_Checklist_Repository {
 	public static function find( $id ) {
 		global $wpdb;
 
-		$table = self::table();
-		$row   = $wpdb->get_row(
-			$wpdb->prepare( 'SELECT * FROM ' . $table . ' WHERE id = %d', absint( $id ) ), // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+		$row = $wpdb->get_row(
+			$wpdb->prepare(
+				'SELECT * FROM %i WHERE id = %d',
+				self::table(),
+				absint( $id )
+			),
 			ARRAY_A
 		);
 
@@ -58,7 +62,6 @@ class LAUNCHDEK_Checklist_Repository {
 		);
 
 		$args  = wp_parse_args( $args, $defaults );
-		$table = self::table();
 		$where = array( '1=1' );
 		$vals  = array();
 
@@ -72,10 +75,15 @@ class LAUNCHDEK_Checklist_Repository {
 			$vals[]  = $args['is_vault'] ? 1 : 0;
 		}
 
-		$sql = 'SELECT * FROM ' . $table . ' WHERE ' . implode( ' AND ', $where ) . ' ORDER BY title ASC LIMIT %d';
 		$vals[] = max( 1, absint( $args['limit'] ) );
 
-		$rows = $wpdb->get_results( $wpdb->prepare( $sql, $vals ), ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$prepared = $wpdb->prepare(
+			'SELECT * FROM ' . self::table() . ' WHERE ' . implode( ' AND ', $where ) . ' ORDER BY title ASC LIMIT %d', // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Table from self::table(); filters use %d placeholders only.
+			$vals
+		);
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter
+		$rows = $wpdb->get_results( $prepared, ARRAY_A );
 
 		return is_array( $rows ) ? array_map( array( __CLASS__, 'format' ), $rows ) : array();
 	}
@@ -96,7 +104,6 @@ class LAUNCHDEK_Checklist_Repository {
 		);
 
 		$args  = wp_parse_args( $args, $defaults );
-		$table = self::table();
 		$where = array( '1=1' );
 		$vals  = array();
 
@@ -110,10 +117,16 @@ class LAUNCHDEK_Checklist_Repository {
 			$vals[]  = $args['is_vault'] ? 1 : 0;
 		}
 
-		$sql    = 'SELECT id, title, description, steps_json FROM ' . $table . ' WHERE ' . implode( ' AND ', $where ) . ' ORDER BY title ASC LIMIT %d';
 		$vals[] = max( 1, absint( $args['limit'] ) );
 
-		$rows = $wpdb->get_results( $wpdb->prepare( $sql, $vals ), ARRAY_A ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Table from self::table(); filters use %d placeholders only.
+		$prepared = $wpdb->prepare(
+			'SELECT id, title, description, steps_json FROM ' . self::table() . ' WHERE ' . implode( ' AND ', $where ) . ' ORDER BY title ASC LIMIT %d', // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Table from self::table(); filters use %d placeholders only.
+			$vals
+		);
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter
+		$rows = $wpdb->get_results( $prepared, ARRAY_A );
 
 		return is_array( $rows ) ? array_map( array( __CLASS__, 'format_summary' ), $rows ) : array();
 	}
@@ -158,9 +171,14 @@ class LAUNCHDEK_Checklist_Repository {
 	public static function picker_list() {
 		global $wpdb;
 
-		$table = self::table();
-		$rows  = $wpdb->get_results(
-			'SELECT id, title FROM ' . $table . ' WHERE is_template = 0 ORDER BY title ASC LIMIT 100', // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
+		$rows = $wpdb->get_results(
+			$wpdb->prepare(
+				'SELECT id, title FROM %i WHERE is_template = %d ORDER BY title ASC LIMIT %d',
+				self::table(),
+				0,
+				100
+			),
 			ARRAY_A
 		);
 
@@ -187,8 +205,13 @@ class LAUNCHDEK_Checklist_Repository {
 	public static function count_active() {
 		global $wpdb;
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
 		return (int) $wpdb->get_var(
-			'SELECT COUNT(*) FROM ' . self::table() . ' WHERE is_template = 0' // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			$wpdb->prepare(
+				'SELECT COUNT(*) FROM %i WHERE is_template = %d',
+				self::table(),
+				0
+			)
 		);
 	}
 
@@ -203,10 +226,11 @@ class LAUNCHDEK_Checklist_Repository {
 
 		$steps = self::normalize_steps( $data['steps'] ?? array() );
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$result = $wpdb->insert(
 			self::table(),
 			array(
-				'title'         => sanitize_text_field( $data['title'] ?? __( 'Untitled Checklist', LAUNCHDEK_TEXT_DOMAIN ) ),
+				'title'         => sanitize_text_field( $data['title'] ?? __( 'Untitled Checklist', 'launchdek' ) ),
 				'description'   => sanitize_textarea_field( $data['description'] ?? '' ),
 				'steps_json'    => wp_json_encode( $steps ),
 				'is_template'   => ! empty( $data['is_template'] ) ? 1 : 0,
@@ -266,6 +290,7 @@ class LAUNCHDEK_Checklist_Repository {
 			}
 		}
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$result = $wpdb->update( self::table(), $fields, array( 'id' => absint( $id ) ), $format, array( '%d' ) );
 
 		if ( false !== $result ) {
@@ -286,6 +311,7 @@ class LAUNCHDEK_Checklist_Repository {
 	public static function delete( $id ) {
 		global $wpdb;
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$result = $wpdb->delete( self::table(), array( 'id' => absint( $id ) ), array( '%d' ) );
 
 		if ( $result ) {
@@ -310,7 +336,7 @@ class LAUNCHDEK_Checklist_Repository {
 
 		return self::create(
 			array(
-				'title'       => $payload['title'] ?? __( 'Imported Checklist', LAUNCHDEK_TEXT_DOMAIN ),
+				'title'       => $payload['title'] ?? __( 'Imported Checklist', 'launchdek' ),
 				'description' => $payload['description'] ?? '',
 				'steps'       => $payload['steps'] ?? array(),
 				'version'     => $payload['version'] ?? '1.0.0',
@@ -384,7 +410,13 @@ class LAUNCHDEK_Checklist_Repository {
 
 			$normalized[] = array(
 				'id'              => ! empty( $step['id'] ) ? sanitize_key( $step['id'] ) : 'step_' . ( $index + 1 ),
-				'title'           => sanitize_text_field( $step['title'] ?? sprintf( __( 'Step %d', LAUNCHDEK_TEXT_DOMAIN ), $index + 1 ) ),
+				'title'           => sanitize_text_field(
+					$step['title'] ?? sprintf(
+						/* translators: %d: step number. */
+						__( 'Step %d', 'launchdek' ),
+						$index + 1
+					)
+				),
 				'instructions'    => sanitize_textarea_field( $step['instructions'] ?? '' ),
 				'deep_link'       => $deep_link,
 				'type'            => $type,

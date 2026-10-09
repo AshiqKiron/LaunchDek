@@ -300,14 +300,14 @@ class LAUNCHDEK_Settings {
 	 */
 	public static function get_exclude_option_labels() {
 		return array(
-			'url'                 => __( 'Site URL', LAUNCHDEK_TEXT_DOMAIN ),
-			'email'               => __( 'Admin Email', LAUNCHDEK_TEXT_DOMAIN ),
-			'title'               => __( 'Site Title', LAUNCHDEK_TEXT_DOMAIN ),
-			'description'         => __( 'Tagline', LAUNCHDEK_TEXT_DOMAIN ),
-			'blog_public'         => __( 'Search Engine Visibility', LAUNCHDEK_TEXT_DOMAIN ),
-			'wp_environment_type' => __( 'Environment Type', LAUNCHDEK_TEXT_DOMAIN ),
-			'site_logo'           => __( 'Site Logo', LAUNCHDEK_TEXT_DOMAIN ),
-			'site_icon'           => __( 'Site Icon', LAUNCHDEK_TEXT_DOMAIN ),
+			'url'                 => __( 'Site URL', 'launchdek' ),
+			'email'               => __( 'Admin Email', 'launchdek' ),
+			'title'               => __( 'Site Title', 'launchdek' ),
+			'description'         => __( 'Tagline', 'launchdek' ),
+			'blog_public'         => __( 'Search Engine Visibility', 'launchdek' ),
+			'wp_environment_type' => __( 'Environment Type', 'launchdek' ),
+			'site_logo'           => __( 'Site Logo', 'launchdek' ),
+			'site_icon'           => __( 'Site Icon', 'launchdek' ),
 		);
 	}
 
@@ -333,40 +333,40 @@ class LAUNCHDEK_Settings {
 	public static function get_client_panel_layouts() {
 		return array(
 			'sidebar'        => array(
-				'label'       => __( 'Right sidebar floater', LAUNCHDEK_TEXT_DOMAIN ),
-				'description' => __( 'Sticky panel on the right edge with a vertical expand tab when collapsed.', LAUNCHDEK_TEXT_DOMAIN ),
+				'label'       => __( 'Right sidebar floater', 'launchdek' ),
+				'description' => __( 'Sticky panel on the right edge with a vertical expand tab when collapsed.', 'launchdek' ),
 			),
 			'live_topbar'    => array(
-				'label'       => __( 'Live top bar', LAUNCHDEK_TEXT_DOMAIN ),
-				'description' => __( 'Compact progress strip below the admin bar with a slide-down step drawer.', LAUNCHDEK_TEXT_DOMAIN ),
+				'label'       => __( 'Live top bar', 'launchdek' ),
+				'description' => __( 'Compact progress strip below the admin bar with a slide-down step drawer.', 'launchdek' ),
 			),
 			'bottom_dock'    => array(
-				'label'       => __( 'Bottom dock', LAUNCHDEK_TEXT_DOMAIN ),
-				'description' => __( 'Slim progress bar docked above the footer with a slide-up step drawer.', LAUNCHDEK_TEXT_DOMAIN ),
+				'label'       => __( 'Bottom dock', 'launchdek' ),
+				'description' => __( 'Slim progress bar docked above the footer with a slide-up step drawer.', 'launchdek' ),
 			),
 			'floating_pill'  => array(
-				'label'       => __( 'Floating pill', LAUNCHDEK_TEXT_DOMAIN ),
-				'description' => __( 'Small progress chip in the bottom-right corner that expands into a compact panel.', LAUNCHDEK_TEXT_DOMAIN ),
+				'label'       => __( 'Floating pill', 'launchdek' ),
+				'description' => __( 'Small progress chip in the bottom-right corner that expands into a compact panel.', 'launchdek' ),
 			),
 			'toast'          => array(
-				'label'       => __( 'Notification toast', LAUNCHDEK_TEXT_DOMAIN ),
-				'description' => __( 'Dismissible toast with current-step summary; expands into the full checklist on click.', LAUNCHDEK_TEXT_DOMAIN ),
+				'label'       => __( 'Notification toast', 'launchdek' ),
+				'description' => __( 'Dismissible toast with current-step summary; expands into the full checklist on click.', 'launchdek' ),
 			),
 			'admin_menu'     => array(
-				'label'       => __( 'Admin bar flyout', LAUNCHDEK_TEXT_DOMAIN ),
-				'description' => __( 'Hidden until opened from the WordPress admin bar checklist shortcut.', LAUNCHDEK_TEXT_DOMAIN ),
+				'label'       => __( 'Admin bar flyout', 'launchdek' ),
+				'description' => __( 'Hidden until opened from the WordPress admin bar checklist shortcut.', 'launchdek' ),
 			),
 			'fullscreen'     => array(
-				'label'       => __( 'Fullscreen overlay', LAUNCHDEK_TEXT_DOMAIN ),
-				'description' => __( 'Modal takeover centered on screen for focused checklist completion.', LAUNCHDEK_TEXT_DOMAIN ),
+				'label'       => __( 'Fullscreen overlay', 'launchdek' ),
+				'description' => __( 'Modal takeover centered on screen for focused checklist completion.', 'launchdek' ),
 			),
 			'focus_mode'     => array(
-				'label'       => __( 'Focus mode', LAUNCHDEK_TEXT_DOMAIN ),
-				'description' => __( 'Single current-step card centered on screen with minimal distractions.', LAUNCHDEK_TEXT_DOMAIN ),
+				'label'       => __( 'Focus mode', 'launchdek' ),
+				'description' => __( 'Single current-step card centered on screen with minimal distractions.', 'launchdek' ),
 			),
 			'inline_metabox' => array(
-				'label'       => __( 'Inline metabox', LAUNCHDEK_TEXT_DOMAIN ),
-				'description' => __( 'Embeds the checklist in the post/page editor sidebar metabox area.', LAUNCHDEK_TEXT_DOMAIN ),
+				'label'       => __( 'Inline metabox', 'launchdek' ),
+				'description' => __( 'Embeds the checklist in the post/page editor sidebar metabox area.', 'launchdek' ),
 			),
 		);
 	}
@@ -446,14 +446,14 @@ class LAUNCHDEK_Settings {
 
 	public static function get_notification_events() {
 		return array(
-			'run_started'           => __( 'Checklist run started', LAUNCHDEK_TEXT_DOMAIN ),
-			'run_completed'         => __( 'Checklist run completed', LAUNCHDEK_TEXT_DOMAIN ),
-			'run_failed'            => __( 'Checklist run failed', LAUNCHDEK_TEXT_DOMAIN ),
-			'run_cancelled'         => __( 'Checklist run cancelled', LAUNCHDEK_TEXT_DOMAIN ),
-			'step_failed'           => __( 'Step failed', LAUNCHDEK_TEXT_DOMAIN ),
-			'drift_detected'        => __( 'Configuration drift detected', LAUNCHDEK_TEXT_DOMAIN ),
-			'client_step_completed' => __( 'Client completed a checklist step', LAUNCHDEK_TEXT_DOMAIN ),
-			'client_note_added'     => __( 'Client added a step note', LAUNCHDEK_TEXT_DOMAIN ),
+			'run_started'           => __( 'Checklist run started', 'launchdek' ),
+			'run_completed'         => __( 'Checklist run completed', 'launchdek' ),
+			'run_failed'            => __( 'Checklist run failed', 'launchdek' ),
+			'run_cancelled'         => __( 'Checklist run cancelled', 'launchdek' ),
+			'step_failed'           => __( 'Step failed', 'launchdek' ),
+			'drift_detected'        => __( 'Configuration drift detected', 'launchdek' ),
+			'client_step_completed' => __( 'Client completed a checklist step', 'launchdek' ),
+			'client_note_added'     => __( 'Client added a step note', 'launchdek' ),
 		);
 	}
 
@@ -465,36 +465,36 @@ class LAUNCHDEK_Settings {
 	public static function get_email_notification_events() {
 		return array(
 			'run_completed'         => array(
-				'label'       => __( 'Notify when checklist completed', LAUNCHDEK_TEXT_DOMAIN ),
-				'description' => __( 'Email admin when a user finishes all steps of a checklist.', LAUNCHDEK_TEXT_DOMAIN ),
+				'label'       => __( 'Notify when checklist completed', 'launchdek' ),
+				'description' => __( 'Email admin when a user finishes all steps of a checklist.', 'launchdek' ),
 			),
 			'run_started'           => array(
-				'label'       => __( 'Notify when checklist run starts', LAUNCHDEK_TEXT_DOMAIN ),
-				'description' => __( 'Email when a new checklist run begins on a connected site.', LAUNCHDEK_TEXT_DOMAIN ),
+				'label'       => __( 'Notify when checklist run starts', 'launchdek' ),
+				'description' => __( 'Email when a new checklist run begins on a connected site.', 'launchdek' ),
 			),
 			'run_failed'            => array(
-				'label'       => __( 'Notify when checklist run fails', LAUNCHDEK_TEXT_DOMAIN ),
-				'description' => __( 'Email when a run stops with a failed status.', LAUNCHDEK_TEXT_DOMAIN ),
+				'label'       => __( 'Notify when checklist run fails', 'launchdek' ),
+				'description' => __( 'Email when a run stops with a failed status.', 'launchdek' ),
 			),
 			'run_cancelled'         => array(
-				'label'       => __( 'Notify when checklist run is cancelled', LAUNCHDEK_TEXT_DOMAIN ),
-				'description' => __( 'Email when a run is marked cancelled.', LAUNCHDEK_TEXT_DOMAIN ),
+				'label'       => __( 'Notify when checklist run is cancelled', 'launchdek' ),
+				'description' => __( 'Email when a run is marked cancelled.', 'launchdek' ),
 			),
 			'step_failed'           => array(
-				'label'       => __( 'Notify when a step fails', LAUNCHDEK_TEXT_DOMAIN ),
-				'description' => __( 'Email when an automated API step fails during a run.', LAUNCHDEK_TEXT_DOMAIN ),
+				'label'       => __( 'Notify when a step fails', 'launchdek' ),
+				'description' => __( 'Email when an automated API step fails during a run.', 'launchdek' ),
 			),
 			'drift_detected'        => array(
-				'label'       => __( 'Notify when drift is detected', LAUNCHDEK_TEXT_DOMAIN ),
-				'description' => __( 'Email when scheduled drift verification finds configuration changes.', LAUNCHDEK_TEXT_DOMAIN ),
+				'label'       => __( 'Notify when drift is detected', 'launchdek' ),
+				'description' => __( 'Email when scheduled drift verification finds configuration changes.', 'launchdek' ),
 			),
 			'client_step_completed' => array(
-				'label'       => __( 'Notify when client completes a step', LAUNCHDEK_TEXT_DOMAIN ),
-				'description' => __( 'Email when someone marks a manual step complete on the client panel.', LAUNCHDEK_TEXT_DOMAIN ),
+				'label'       => __( 'Notify when client completes a step', 'launchdek' ),
+				'description' => __( 'Email when someone marks a manual step complete on the client panel.', 'launchdek' ),
 			),
 			'client_note_added'     => array(
-				'label'       => __( 'Notify when client adds a note', LAUNCHDEK_TEXT_DOMAIN ),
-				'description' => __( 'Email when a note is saved on a client checklist step.', LAUNCHDEK_TEXT_DOMAIN ),
+				'label'       => __( 'Notify when client adds a note', 'launchdek' ),
+				'description' => __( 'Email when a note is saved on a client checklist step.', 'launchdek' ),
 			),
 		);
 	}
@@ -598,10 +598,10 @@ class LAUNCHDEK_Settings {
 	 */
 	public static function get_builtin_site_groups() {
 		return array(
-			'general' => __( 'General', LAUNCHDEK_TEXT_DOMAIN ),
-			'client'  => __( 'Client', LAUNCHDEK_TEXT_DOMAIN ),
-			'project' => __( 'Project Type', LAUNCHDEK_TEXT_DOMAIN ),
-			'tier'    => __( 'Hosting Tier', LAUNCHDEK_TEXT_DOMAIN ),
+			'general' => __( 'General', 'launchdek' ),
+			'client'  => __( 'Client', 'launchdek' ),
+			'project' => __( 'Project Type', 'launchdek' ),
+			'tier'    => __( 'Hosting Tier', 'launchdek' ),
 		);
 	}
 
@@ -660,7 +660,7 @@ class LAUNCHDEK_Settings {
 		}
 
 		if ( 'integration' === $slug ) {
-			return __( 'Integration', LAUNCHDEK_TEXT_DOMAIN );
+			return __( 'Integration', 'launchdek' );
 		}
 
 		foreach ( self::get_custom_site_groups() as $group ) {
@@ -731,7 +731,7 @@ class LAUNCHDEK_Settings {
 		if ( '' === $label ) {
 			return new WP_Error(
 				'site_group_name_required',
-				__( 'Enter a group name.', LAUNCHDEK_TEXT_DOMAIN ),
+				__( 'Enter a group name.', 'launchdek' ),
 				array( 'status' => 400 )
 			);
 		}
@@ -739,7 +739,7 @@ class LAUNCHDEK_Settings {
 		if ( mb_strlen( $label ) > 80 ) {
 			return new WP_Error(
 				'site_group_name_too_long',
-				__( 'Group name must be 80 characters or fewer.', LAUNCHDEK_TEXT_DOMAIN ),
+				__( 'Group name must be 80 characters or fewer.', 'launchdek' ),
 				array( 'status' => 400 )
 			);
 		}
@@ -748,7 +748,7 @@ class LAUNCHDEK_Settings {
 		if ( '' === $slug ) {
 			return new WP_Error(
 				'site_group_invalid',
-				__( 'Could not create a group from that name. Try a different name.', LAUNCHDEK_TEXT_DOMAIN ),
+				__( 'Could not create a group from that name. Try a different name.', 'launchdek' ),
 				array( 'status' => 400 )
 			);
 		}
@@ -756,7 +756,7 @@ class LAUNCHDEK_Settings {
 		if ( in_array( $slug, self::get_reserved_site_group_slugs(), true ) ) {
 			return new WP_Error(
 				'site_group_reserved',
-				__( 'That group name is reserved.', LAUNCHDEK_TEXT_DOMAIN ),
+				__( 'That group name is reserved.', 'launchdek' ),
 				array( 'status' => 400 )
 			);
 		}
@@ -764,7 +764,7 @@ class LAUNCHDEK_Settings {
 		if ( isset( self::get_builtin_site_groups()[ $slug ] ) ) {
 			return new WP_Error(
 				'site_group_exists',
-				__( 'A built-in group with that name already exists.', LAUNCHDEK_TEXT_DOMAIN ),
+				__( 'A built-in group with that name already exists.', 'launchdek' ),
 				array( 'status' => 400 )
 			);
 		}
@@ -774,7 +774,7 @@ class LAUNCHDEK_Settings {
 			if ( $group['slug'] === $slug ) {
 				return new WP_Error(
 					'site_group_exists',
-					__( 'A group with that name already exists.', LAUNCHDEK_TEXT_DOMAIN ),
+					__( 'A group with that name already exists.', 'launchdek' ),
 					array( 'status' => 400 )
 				);
 			}

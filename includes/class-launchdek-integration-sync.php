@@ -47,7 +47,7 @@ class LAUNCHDEK_Integration_Sync {
 		if ( ! $integration ) {
 			return new WP_Error(
 				'launchdek_integration_not_found',
-				__( 'Integration not found.', LAUNCHDEK_TEXT_DOMAIN ),
+				__( 'Integration not found.', 'launchdek' ),
 				array( 'status' => 404 )
 			);
 		}
@@ -55,7 +55,7 @@ class LAUNCHDEK_Integration_Sync {
 		if ( ! $integration->supports_site_sync() ) {
 			return new WP_Error(
 				'launchdek_integration_sync_unsupported',
-				__( 'This connector does not support site sync yet.', LAUNCHDEK_TEXT_DOMAIN ),
+				__( 'This connector does not support site sync yet.', 'launchdek' ),
 				array( 'status' => 400 )
 			);
 		}

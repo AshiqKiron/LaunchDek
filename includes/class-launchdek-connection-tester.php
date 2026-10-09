@@ -26,7 +26,7 @@ class LAUNCHDEK_Connection_Tester {
 		if ( ! $client ) {
 			return array(
 				'success' => false,
-				'message' => __( 'Site not found or missing credentials.', LAUNCHDEK_TEXT_DOMAIN ),
+				'message' => __( 'Site not found or missing credentials.', 'launchdek' ),
 			);
 		}
 
@@ -78,13 +78,13 @@ class LAUNCHDEK_Connection_Tester {
 			if ( LAUNCHDEK_Mu_Plugin_Installer::panel_available( $client ) ) {
 				$result['client_panel'] = array(
 					'success' => true,
-					'message' => __( 'Client checklist panel is installed and ready.', LAUNCHDEK_TEXT_DOMAIN ),
+					'message' => __( 'Client checklist panel is installed and ready.', 'launchdek' ),
 				);
 				$result['client_agent'] = true;
 			} else {
 				$result['client_panel'] = array(
 					'success' => false,
-					'message' => __( 'Client panel is not installed yet. Download the bootstrap file, upload it to the client site, then retry panel install after saving the site.', LAUNCHDEK_TEXT_DOMAIN ),
+					'message' => __( 'Client panel is not installed yet. Download the bootstrap file, upload it to the client site, then retry panel install after saving the site.', 'launchdek' ),
 				);
 			}
 		}

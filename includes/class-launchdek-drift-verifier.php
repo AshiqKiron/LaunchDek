@@ -26,17 +26,17 @@ class LAUNCHDEK_Drift_Verifier {
 			'permalink_structure' => array(
 				'route'   => '/wp/v2/settings',
 				'field'   => 'permalink_structure',
-				'label'   => __( 'Permalink Structure', LAUNCHDEK_TEXT_DOMAIN ),
+				'label'   => __( 'Permalink Structure', 'launchdek' ),
 			),
 			'blog_public' => array(
 				'route'   => '/wp/v2/settings',
 				'field'   => 'blog_public',
-				'label'   => __( 'Search Engine Visibility', LAUNCHDEK_TEXT_DOMAIN ),
+				'label'   => __( 'Search Engine Visibility', 'launchdek' ),
 			),
 			'environment_type' => array(
 				'route'   => '/wp/v2/settings',
 				'field'   => 'wp_environment_type',
-				'label'   => __( 'Environment Type', LAUNCHDEK_TEXT_DOMAIN ),
+				'label'   => __( 'Environment Type', 'launchdek' ),
 			),
 		);
 	}
@@ -54,7 +54,7 @@ class LAUNCHDEK_Drift_Verifier {
 		if ( ! $client || ! $site ) {
 			return array(
 				'success' => false,
-				'message' => __( 'Site not found.', LAUNCHDEK_TEXT_DOMAIN ),
+				'message' => __( 'Site not found.', 'launchdek' ),
 			);
 		}
 

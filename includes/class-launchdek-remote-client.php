@@ -100,7 +100,7 @@ class LAUNCHDEK_Remote_Client {
 		$body = json_decode( wp_remote_retrieve_body( $response ), true );
 
 		if ( $code < 200 || $code >= 300 ) {
-			$message = is_array( $body ) && ! empty( $body['message'] ) ? $body['message'] : __( 'Authentication failed.', LAUNCHDEK_TEXT_DOMAIN );
+			$message = is_array( $body ) && ! empty( $body['message'] ) ? $body['message'] : __( 'Authentication failed.', 'launchdek' );
 			$this->log_connection( 'error', $message );
 			return array(
 				'success' => false,
@@ -145,7 +145,7 @@ class LAUNCHDEK_Remote_Client {
 			}
 		}
 
-		$this->log_connection( 'success', __( 'Connection verified.', LAUNCHDEK_TEXT_DOMAIN ) );
+		$this->log_connection( 'success', __( 'Connection verified.', 'launchdek' ) );
 
 		LAUNCHDEK_Site_Repository::update(
 			$this->site_id,
@@ -161,7 +161,7 @@ class LAUNCHDEK_Remote_Client {
 
 		return array(
 			'success'      => true,
-			'message'      => __( 'Connection verified.', LAUNCHDEK_TEXT_DOMAIN ),
+			'message'      => __( 'Connection verified.', 'launchdek' ),
 			'user'         => is_array( $body ) ? $body : array(),
 			'wp_version'   => $wp_version,
 			'php_version'  => $php_version,
@@ -191,7 +191,11 @@ class LAUNCHDEK_Remote_Client {
 		if ( $code < 200 || $code >= 300 ) {
 			$message = is_array( $parsed_body ) && ! empty( $parsed_body['message'] )
 				? $parsed_body['message']
-				: sprintf( __( 'Remote request failed with status %d.', LAUNCHDEK_TEXT_DOMAIN ), $code );
+				: sprintf(
+					/* translators: %d: HTTP status code. */
+					__( 'Remote request failed with status %d.', 'launchdek' ),
+					$code
+				);
 
 			return new WP_Error( 'launchdek_remote_error', $message, array(
 				'status' => $code,
@@ -231,7 +235,7 @@ class LAUNCHDEK_Remote_Client {
 	 */
 	protected function request( $method, $route, $body = array() ) {
 		if ( empty( $this->url ) || empty( $this->username ) || empty( $this->password ) ) {
-			return new WP_Error( 'launchdek_missing_creds', __( 'Missing remote credentials.', LAUNCHDEK_TEXT_DOMAIN ) );
+			return new WP_Error( 'launchdek_missing_creds', __( 'Missing remote credentials.', 'launchdek' ) );
 		}
 
 		$route  = '/' . ltrim( $route, '/' );
@@ -302,6 +306,7 @@ class LAUNCHDEK_Remote_Client {
 	protected function log_connection( $status, $message ) {
 		global $wpdb;
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$wpdb->insert(
 			$wpdb->prefix . 'launchdek_connection_events',
 			array(
@@ -335,10 +340,11 @@ class LAUNCHDEK_Remote_Client {
 	public static function get_connection_ticker( $limit = 20 ) {
 		global $wpdb;
 
-		$table = $wpdb->prefix . 'launchdek_connection_events';
-		$rows  = $wpdb->get_results(
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Plugin-owned table name; limit via prepare().
+		$rows = $wpdb->get_results(
 			$wpdb->prepare(
-				"SELECT * FROM {$table} ORDER BY created_at DESC LIMIT %d", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				'SELECT * FROM %i ORDER BY created_at DESC LIMIT %d',
+				$wpdb->prefix . 'launchdek_connection_events',
 				max( 1, absint( $limit ) )
 			),
 			ARRAY_A

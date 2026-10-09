@@ -50,7 +50,7 @@ class LAUNCHDEK_Admin_Ajax {
 		if ( ! wp_verify_nonce( $nonce, 'wp_rest' ) ) {
 			wp_send_json_error(
 				array(
-					'message' => __( 'Your session has expired. Please reload the page and try again.', LAUNCHDEK_TEXT_DOMAIN ),
+					'message' => __( 'Your session has expired. Please reload the page and try again.', 'launchdek' ),
 				),
 				403
 			);
@@ -68,7 +68,7 @@ class LAUNCHDEK_Admin_Ajax {
 		if ( ! LAUNCHDEK_Capabilities::current_user_can( LAUNCHDEK_Capabilities::MANAGE_SETTINGS ) ) {
 			wp_send_json_error(
 				array(
-					'message' => __( 'You do not have permission to manage integrations.', LAUNCHDEK_TEXT_DOMAIN ),
+					'message' => __( 'You do not have permission to manage integrations.', 'launchdek' ),
 				),
 				403
 			);
@@ -86,7 +86,7 @@ class LAUNCHDEK_Admin_Ajax {
 		if ( ! LAUNCHDEK_Capabilities::current_user_can( LAUNCHDEK_Capabilities::MANAGE_SITES ) ) {
 			wp_send_json_error(
 				array(
-					'message' => __( 'You do not have permission to manage sites.', LAUNCHDEK_TEXT_DOMAIN ),
+					'message' => __( 'You do not have permission to manage sites.', 'launchdek' ),
 				),
 				403
 			);
@@ -104,7 +104,7 @@ class LAUNCHDEK_Admin_Ajax {
 		if ( ! LAUNCHDEK_Capabilities::current_user_can( LAUNCHDEK_Capabilities::VIEW_DASHBOARD ) ) {
 			wp_send_json_error(
 				array(
-					'message' => __( 'You do not have permission to view activity logs.', LAUNCHDEK_TEXT_DOMAIN ),
+					'message' => __( 'You do not have permission to view activity logs.', 'launchdek' ),
 				),
 				403
 			);
@@ -165,7 +165,7 @@ class LAUNCHDEK_Admin_Ajax {
 		if ( '' === $slug ) {
 			wp_send_json_error(
 				array(
-					'message' => __( 'Integration not found.', LAUNCHDEK_TEXT_DOMAIN ),
+					'message' => __( 'Integration not found.', 'launchdek' ),
 				),
 				400
 			);
@@ -202,7 +202,7 @@ class LAUNCHDEK_Admin_Ajax {
 		if ( ! $integration ) {
 			wp_send_json_error(
 				array(
-					'message' => __( 'Integration not found.', LAUNCHDEK_TEXT_DOMAIN ),
+					'message' => __( 'Integration not found.', 'launchdek' ),
 				),
 				404
 			);
@@ -240,7 +240,7 @@ class LAUNCHDEK_Admin_Ajax {
 		} else {
 			wp_send_json_error(
 				array(
-					'message' => __( 'API token is required.', LAUNCHDEK_TEXT_DOMAIN ),
+					'message' => __( 'API token is required.', 'launchdek' ),
 				),
 				400
 			);
@@ -267,8 +267,8 @@ class LAUNCHDEK_Admin_Ajax {
 			array(
 				'api_token_configured' => $configured,
 				'message'              => $configured
-					? __( 'WP Umbrella API token saved.', LAUNCHDEK_TEXT_DOMAIN )
-					: __( 'WP Umbrella API token removed.', LAUNCHDEK_TEXT_DOMAIN ),
+					? __( 'WP Umbrella API token saved.', 'launchdek' )
+					: __( 'WP Umbrella API token removed.', 'launchdek' ),
 			)
 		);
 	}
@@ -354,7 +354,7 @@ class LAUNCHDEK_Admin_Ajax {
 		if ( ! $site ) {
 			wp_send_json_error(
 				array(
-					'message' => __( 'Site not found.', LAUNCHDEK_TEXT_DOMAIN ),
+					'message' => __( 'Site not found.', 'launchdek' ),
 				),
 				404
 			);

@@ -24,6 +24,8 @@ class LAUNCHDEK_Activator {
 		require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-installer.php';
 		require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-capabilities.php';
 		require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-site-repository.php';
+		require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-checklist-repository.php';
+		require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-run-repository.php';
 		require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-licensing.php';
 		require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-drift-cron.php';
 

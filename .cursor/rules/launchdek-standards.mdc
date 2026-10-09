@@ -18,8 +18,8 @@ Cross-cutting quality standards. See also: `launchdek-project.mdc` (architecture
 
 ## I18N
 
-- All user-facing strings must be translatable via `LAUNCHDEK_TEXT_DOMAIN`.
-- Use `__()`, `_e()`, `esc_html__()`, `esc_attr__()`, etc. appropriately.
+- All user-facing strings must be translatable with text domain `launchdek` (matches `LAUNCHDEK_TEXT_DOMAIN` / `LAUNCHDEK_PLUGIN_SLUG` in bootstrap).
+- In PHP translation functions (`__()`, `_e()`, `esc_html__()`, `esc_attr__()`, etc.), prefer the literal `'launchdek'` domain string — WPCS / Plugin Check text-domain sniffs expect a string literal, not the `LAUNCHDEK_TEXT_DOMAIN` constant.
 - REST error messages returned to admin UI must also be translatable.
 
 ## Accessibility

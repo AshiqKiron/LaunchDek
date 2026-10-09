@@ -26,13 +26,13 @@ class LAUNCHDEK_Payload_Mapper {
 		$client = LAUNCHDEK_Remote_Client::from_site( $site_id );
 
 		if ( ! $client ) {
-			return new WP_Error( 'launchdek_no_client', __( 'Unable to connect to remote site.', LAUNCHDEK_TEXT_DOMAIN ) );
+			return new WP_Error( 'launchdek_no_client', __( 'Unable to connect to remote site.', 'launchdek' ) );
 		}
 
 		$api = $step['api'] ?? array();
 
 		if ( empty( $api['route'] ) ) {
-			return new WP_Error( 'launchdek_no_route', __( 'API step missing route.', LAUNCHDEK_TEXT_DOMAIN ) );
+			return new WP_Error( 'launchdek_no_route', __( 'API step missing route.', 'launchdek' ) );
 		}
 
 		$method  = strtoupper( $api['method'] ?? 'GET' );
@@ -96,16 +96,16 @@ class LAUNCHDEK_Payload_Mapper {
 		$warnings = array();
 
 		if ( empty( $api['route'] ) ) {
-			$errors[] = __( 'Route is required for API steps.', LAUNCHDEK_TEXT_DOMAIN );
+			$errors[] = __( 'Route is required for API steps.', 'launchdek' );
 		}
 
 		if ( ! empty( $api['route'] ) && '/' !== $api['route'][0] ) {
-			$errors[] = __( 'Route must start with /.', LAUNCHDEK_TEXT_DOMAIN );
+			$errors[] = __( 'Route must start with /.', 'launchdek' );
 		}
 
 		$method = strtoupper( $api['method'] ?? 'GET' );
 		if ( ! in_array( $method, array( 'GET', 'POST', 'PUT', 'PATCH', 'DELETE' ), true ) ) {
-			$errors[] = __( 'Invalid HTTP method.', LAUNCHDEK_TEXT_DOMAIN );
+			$errors[] = __( 'Invalid HTTP method.', 'launchdek' );
 		}
 
 		if ( empty( $errors ) ) {
@@ -121,7 +121,7 @@ class LAUNCHDEK_Payload_Mapper {
 			} elseif ( ! empty( $filtered['stripped'] ) ) {
 				$warnings[] = sprintf(
 					/* translators: %s: comma-separated setting field names */
-					__( 'These fields are excluded by hub settings and will be skipped on remote sites: %s', LAUNCHDEK_TEXT_DOMAIN ),
+					__( 'These fields are excluded by hub settings and will be skipped on remote sites: %s', 'launchdek' ),
 					implode( ', ', $filtered['stripped'] )
 				);
 			}
@@ -192,7 +192,7 @@ class LAUNCHDEK_Payload_Mapper {
 				'launchdek_all_fields_excluded',
 				sprintf(
 					/* translators: %s: comma-separated setting field names */
-					__( 'All settings in this step are excluded by hub settings: %s', LAUNCHDEK_TEXT_DOMAIN ),
+					__( 'All settings in this step are excluded by hub settings: %s', 'launchdek' ),
 					implode( ', ', $stripped )
 				)
 			);

@@ -6,7 +6,7 @@
  * Plugin URI: https://asphaltthemes.com/launchdek
  * Description: Remote WordPress site orchestration for agencies — checklists, audit, and integrations.
  * Version: 1.0.0
- * Requires at least: 6.0
+ * Requires at least: 6.2
  * Requires PHP: 7.4
  * Author: ashiquzzaman
  * Author URI: https://asphaltthemes.com
@@ -41,7 +41,6 @@ if ( ! launchdek_is_community_build() ) {
 // Core.
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-settings.php';
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-admin-deep-links.php';
-require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-installer.php';
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-capabilities.php';
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-credential-vault.php';
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-audit-log.php';
@@ -53,6 +52,7 @@ require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-site-repository.ph
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-checklist-repository.php';
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-licensing.php';
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-run-repository.php';
+require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-installer.php';
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-dashboard-cache.php';
 
 // Remote & engine.

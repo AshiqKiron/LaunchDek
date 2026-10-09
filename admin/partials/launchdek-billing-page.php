@@ -15,8 +15,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 $current_plan   = LAUNCHDEK_Licensing::get_plan();
 $plan_slugs     = LAUNCHDEK_Licensing::get_compare_plan_slugs();
 $compare_rows   = LAUNCHDEK_Licensing::get_compare_features();
-$included_label = esc_attr__( 'Included', LAUNCHDEK_TEXT_DOMAIN );
-$not_included   = esc_attr__( 'Not included', LAUNCHDEK_TEXT_DOMAIN );
+$included_label = esc_attr__( 'Included', 'launchdek' );
+$not_included   = esc_attr__( 'Not included', 'launchdek' );
 
 /**
  * Render one comparison table cell.
@@ -51,7 +51,7 @@ $launchdek_render_compare_cell = function ( $cell ) use ( $included_label, $not_
 	<h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
 
 	<p class="launchdek-billing-intro">
-		<?php esc_html_e( 'Compare Community and paid plans below. Purchase Pro or Agency on our website for expanded templates, automation alerts, and higher licensed site limits.', LAUNCHDEK_TEXT_DOMAIN ); ?>
+		<?php esc_html_e( 'Compare Community and paid plans below. Purchase Pro or Agency on our website for expanded templates, automation alerts, and higher licensed site limits.', 'launchdek' ); ?>
 	</p>
 
 	<div class="launchdek-billing-compare-wrap">
@@ -59,7 +59,7 @@ $launchdek_render_compare_cell = function ( $cell ) use ( $included_label, $not_
 			<thead>
 				<tr>
 					<th scope="col" class="launchdek-billing-compare-feature-col">
-						<?php esc_html_e( 'Features', LAUNCHDEK_TEXT_DOMAIN ); ?>
+						<?php esc_html_e( 'Features', 'launchdek' ); ?>
 					</th>
 					<?php foreach ( $plan_slugs as $plan_slug ) : ?>
 						<th scope="col" class="launchdek-billing-compare-plan-col">
@@ -103,7 +103,7 @@ $launchdek_render_compare_cell = function ( $cell ) use ( $included_label, $not_
 						<td class="launchdek-billing-compare-value-col launchdek-billing-compare-cta-cell">
 							<?php if ( $current_plan === $plan_slug ) : ?>
 								<button type="button" class="button launchdek-billing-cta launchdek-billing-cta--current" disabled>
-									<?php esc_html_e( 'Current plan', LAUNCHDEK_TEXT_DOMAIN ); ?>
+									<?php esc_html_e( 'Current plan', 'launchdek' ); ?>
 								</button>
 							<?php elseif ( LAUNCHDEK_Licensing::PLAN_COMMUNITY !== $plan_slug ) : ?>
 								<a

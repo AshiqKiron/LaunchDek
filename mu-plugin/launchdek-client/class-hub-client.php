@@ -48,7 +48,7 @@ class LAUNCHDEK_Client_Hub_Client {
 		$token  = (string) ( $run['client_token'] ?? '' );
 
 		if ( ! $run_id || '' === $token ) {
-			return new WP_Error( 'launchdek_client_missing_hub', __( 'Hub connection details are missing for this checklist.', LAUNCHDEK_CLIENT_TEXT_DOMAIN ) );
+			return new WP_Error( 'launchdek_client_missing_hub', __( 'Hub connection details are missing for this checklist.', 'launchdek' ) );
 		}
 
 		$body = array_merge(
@@ -108,7 +108,7 @@ class LAUNCHDEK_Client_Hub_Client {
 			if ( ! empty( $body['code'] ) ) {
 				return sprintf(
 					/* translators: 1: error code, 2: HTTP status code */
-					__( 'Hub error: %1$s (HTTP %2$d).', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+					__( 'Hub error: %1$s (HTTP %2$d).', 'launchdek' ),
 					(string) $body['code'],
 					(int) $code
 				);
@@ -116,11 +116,11 @@ class LAUNCHDEK_Client_Hub_Client {
 		}
 
 		if ( 401 === (int) $code || 403 === (int) $code ) {
-			return __( 'The hub rejected this request because the checklist token is invalid or expired. Re-push the checklist from the hub and try again.', LAUNCHDEK_CLIENT_TEXT_DOMAIN );
+			return __( 'The hub rejected this request because the checklist token is invalid or expired. Re-push the checklist from the hub and try again.', 'launchdek' );
 		}
 
 		if ( 404 === (int) $code ) {
-			return __( 'The hub could not find the checklist callback route. Re-push the checklist from the hub and confirm the hub REST API is reachable.', LAUNCHDEK_CLIENT_TEXT_DOMAIN );
+			return __( 'The hub could not find the checklist callback route. Re-push the checklist from the hub and confirm the hub REST API is reachable.', 'launchdek' );
 		}
 
 		return $fallback;
@@ -140,7 +140,7 @@ class LAUNCHDEK_Client_Hub_Client {
 			'client-runs/' . absint( $run['run_id'] ?? 0 ) . '/steps/' . absint( $step_index ) . '/complete',
 			array(),
 			$user,
-			__( 'The hub rejected the step completion request.', LAUNCHDEK_CLIENT_TEXT_DOMAIN )
+			__( 'The hub rejected the step completion request.', 'launchdek' )
 		);
 	}
 
@@ -158,7 +158,7 @@ class LAUNCHDEK_Client_Hub_Client {
 			'client-runs/' . absint( $run['run_id'] ?? 0 ) . '/steps/' . absint( $step_index ) . '/uncomplete',
 			array(),
 			$user,
-			__( 'The hub rejected the step update request.', LAUNCHDEK_CLIENT_TEXT_DOMAIN )
+			__( 'The hub rejected the step update request.', 'launchdek' )
 		);
 	}
 
@@ -192,7 +192,7 @@ class LAUNCHDEK_Client_Hub_Client {
 			'client-runs/' . absint( $run['run_id'] ?? 0 ) . '/steps/' . absint( $step_index ) . '/notes',
 			$body,
 			$user,
-			__( 'The hub rejected the note.', LAUNCHDEK_CLIENT_TEXT_DOMAIN )
+			__( 'The hub rejected the note.', 'launchdek' )
 		);
 	}
 }

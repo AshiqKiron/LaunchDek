@@ -1,7 +1,7 @@
 === LaunchDek ===
 Contributors: ashiquzzaman
 Tags: agency, checklist, site management, onboarding, workflow
-Requires at least: 6.0
+Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
 Stable tag: 1.0.0
@@ -259,6 +259,7 @@ Purchase from [Asphalt Themes](https://asphaltthemes.com/launchdek), install the
 == Changelog ==
 
 = 1.0.48 =
+* Requires WordPress 6.2+ (wpdb `%i` table identifiers for custom-table queries and Plugin Check database sniffs)
 * Billing: Community (free, unlimited sites), Pro ($49/mo, 99 sites), and Agency ($99/mo, 199 sites) tiers with plan gates for templates, vault, auto-capture, notifications, scheduled drift, and panel layouts
 * Billing page: feature comparison table with plan columns, tooltips, and purchase links; REST `GET /billing/summary` and `POST /billing/plan` (manage settings) for license activation hook point
 * Community plan: Settings and Checklists admin screens show only free-tier controls—Pro-only sections (webhooks, email alerts, scheduled drift, vault, auto-capture) are omitted instead of disabled with upgrade prompts

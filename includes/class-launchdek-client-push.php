@@ -114,7 +114,7 @@ class LAUNCHDEK_Client_Push {
 		$run = LAUNCHDEK_Run_Repository::find( $run_id );
 
 		if ( ! $run ) {
-			return new WP_Error( 'launchdek_run_not_found', __( 'Run not found.', LAUNCHDEK_TEXT_DOMAIN ) );
+			return new WP_Error( 'launchdek_run_not_found', __( 'Run not found.', 'launchdek' ) );
 		}
 
 		$checklist = LAUNCHDEK_Checklist_Repository::find( $run['checklist_id'] );
@@ -193,7 +193,7 @@ class LAUNCHDEK_Client_Push {
 		$run = LAUNCHDEK_Run_Repository::find( $run_id );
 
 		if ( ! $run ) {
-			return new WP_Error( 'launchdek_run_not_found', __( 'Run not found.', LAUNCHDEK_TEXT_DOMAIN ) );
+			return new WP_Error( 'launchdek_run_not_found', __( 'Run not found.', 'launchdek' ) );
 		}
 
 		if ( null === $sync_bundle ) {
@@ -203,7 +203,7 @@ class LAUNCHDEK_Client_Push {
 		if ( ! self::site_has_client_panel( $run['site_id'] ) ) {
 			return new WP_Error(
 				'launchdek_no_client_panel',
-				__( 'Client checklist panel is not installed on this site.', LAUNCHDEK_TEXT_DOMAIN ),
+				__( 'Client checklist panel is not installed on this site.', 'launchdek' ),
 				array( 'status' => 404 )
 			);
 		}
@@ -225,7 +225,7 @@ class LAUNCHDEK_Client_Push {
 		$client = LAUNCHDEK_Remote_Client::from_site( $run['site_id'] );
 
 		if ( ! $client ) {
-			return new WP_Error( 'launchdek_no_client', __( 'Unable to connect to remote site.', LAUNCHDEK_TEXT_DOMAIN ) );
+			return new WP_Error( 'launchdek_no_client', __( 'Unable to connect to remote site.', 'launchdek' ) );
 		}
 
 		$result = $client->rest( 'POST', self::CLIENT_RUN_ROUTE, $snapshot );
@@ -253,7 +253,7 @@ class LAUNCHDEK_Client_Push {
 
 		return array(
 			'success'  => true,
-			'message'  => __( 'Checklist pushed to client admin panel.', LAUNCHDEK_TEXT_DOMAIN ),
+			'message'  => __( 'Checklist pushed to client admin panel.', 'launchdek' ),
 			'run'      => LAUNCHDEK_Run_Repository::find( $run_id ),
 			'snapshot' => $snapshot,
 		);
@@ -304,7 +304,7 @@ class LAUNCHDEK_Client_Push {
 		$run = LAUNCHDEK_Run_Repository::find( $run_id );
 
 		if ( ! $run ) {
-			return new WP_Error( 'launchdek_run_not_found', __( 'Run not found.', LAUNCHDEK_TEXT_DOMAIN ), array( 'status' => 404 ) );
+			return new WP_Error( 'launchdek_run_not_found', __( 'Run not found.', 'launchdek' ), array( 'status' => 404 ) );
 		}
 
 		$step = null;
@@ -316,13 +316,13 @@ class LAUNCHDEK_Client_Push {
 		}
 
 		if ( ! $step ) {
-			return new WP_Error( 'launchdek_step_not_found', __( 'Step not found.', LAUNCHDEK_TEXT_DOMAIN ), array( 'status' => 404 ) );
+			return new WP_Error( 'launchdek_step_not_found', __( 'Step not found.', 'launchdek' ), array( 'status' => 404 ) );
 		}
 
 		if ( 'manual' !== $step['step_type'] ) {
 			return new WP_Error(
 				'launchdek_step_not_manual',
-				__( 'Only manual steps can be completed from the client panel.', LAUNCHDEK_TEXT_DOMAIN ),
+				__( 'Only manual steps can be completed from the client panel.', 'launchdek' ),
 				array( 'status' => 400 )
 			);
 		}
@@ -330,7 +330,7 @@ class LAUNCHDEK_Client_Push {
 		if ( ! in_array( $step['status'], array( 'pending', 'awaiting_manual', 'running' ), true ) ) {
 			return new WP_Error(
 				'launchdek_step_not_ready',
-				__( 'This step cannot be marked complete.', LAUNCHDEK_TEXT_DOMAIN ),
+				__( 'This step cannot be marked complete.', 'launchdek' ),
 				array( 'status' => 409 )
 			);
 		}
@@ -358,7 +358,7 @@ class LAUNCHDEK_Client_Push {
 		);
 
 		if ( ! $ok ) {
-			return new WP_Error( 'launchdek_step_update_failed', __( 'Failed to update step.', LAUNCHDEK_TEXT_DOMAIN ), array( 'status' => 500 ) );
+			return new WP_Error( 'launchdek_step_update_failed', __( 'Failed to update step.', 'launchdek' ), array( 'status' => 500 ) );
 		}
 
 		LAUNCHDEK_Audit_Log::log(
@@ -427,7 +427,7 @@ class LAUNCHDEK_Client_Push {
 		$run = LAUNCHDEK_Run_Repository::find( $run_id );
 
 		if ( ! $run ) {
-			return new WP_Error( 'launchdek_run_not_found', __( 'Run not found.', LAUNCHDEK_TEXT_DOMAIN ), array( 'status' => 404 ) );
+			return new WP_Error( 'launchdek_run_not_found', __( 'Run not found.', 'launchdek' ), array( 'status' => 404 ) );
 		}
 
 		$step = null;
@@ -439,13 +439,13 @@ class LAUNCHDEK_Client_Push {
 		}
 
 		if ( ! $step ) {
-			return new WP_Error( 'launchdek_step_not_found', __( 'Step not found.', LAUNCHDEK_TEXT_DOMAIN ), array( 'status' => 404 ) );
+			return new WP_Error( 'launchdek_step_not_found', __( 'Step not found.', 'launchdek' ), array( 'status' => 404 ) );
 		}
 
 		if ( 'manual' !== $step['step_type'] ) {
 			return new WP_Error(
 				'launchdek_step_not_manual',
-				__( 'Only manual steps can be updated from the client panel.', LAUNCHDEK_TEXT_DOMAIN ),
+				__( 'Only manual steps can be updated from the client panel.', 'launchdek' ),
 				array( 'status' => 400 )
 			);
 		}
@@ -453,7 +453,7 @@ class LAUNCHDEK_Client_Push {
 		if ( 'completed' !== $step['status'] || empty( $step['manual_checked'] ) ) {
 			return new WP_Error(
 				'launchdek_step_not_completed',
-				__( 'This step is not marked complete.', LAUNCHDEK_TEXT_DOMAIN ),
+				__( 'This step is not marked complete.', 'launchdek' ),
 				array( 'status' => 409 )
 			);
 		}
@@ -473,7 +473,7 @@ class LAUNCHDEK_Client_Push {
 		);
 
 		if ( ! $ok ) {
-			return new WP_Error( 'launchdek_step_update_failed', __( 'Failed to update step.', LAUNCHDEK_TEXT_DOMAIN ), array( 'status' => 500 ) );
+			return new WP_Error( 'launchdek_step_update_failed', __( 'Failed to update step.', 'launchdek' ), array( 'status' => 500 ) );
 		}
 
 		LAUNCHDEK_Audit_Log::log(
@@ -519,13 +519,13 @@ class LAUNCHDEK_Client_Push {
 		$run = LAUNCHDEK_Run_Repository::find( $run_id );
 
 		if ( ! $run ) {
-			return new WP_Error( 'launchdek_run_not_found', __( 'Run not found.', LAUNCHDEK_TEXT_DOMAIN ), array( 'status' => 404 ) );
+			return new WP_Error( 'launchdek_run_not_found', __( 'Run not found.', 'launchdek' ), array( 'status' => 404 ) );
 		}
 
 		if ( in_array( $run['status'], array( 'completed', 'failed', 'cancelled' ), true ) ) {
 			return new WP_Error(
 				'launchdek_run_closed',
-				__( 'This checklist run is no longer active.', LAUNCHDEK_TEXT_DOMAIN ),
+				__( 'This checklist run is no longer active.', 'launchdek' ),
 				array( 'status' => 409 )
 			);
 		}
@@ -539,7 +539,7 @@ class LAUNCHDEK_Client_Push {
 		}
 
 		if ( ! $step ) {
-			return new WP_Error( 'launchdek_step_not_found', __( 'Step not found.', LAUNCHDEK_TEXT_DOMAIN ), array( 'status' => 404 ) );
+			return new WP_Error( 'launchdek_step_not_found', __( 'Step not found.', 'launchdek' ), array( 'status' => 404 ) );
 		}
 
 		$text = trim( sanitize_textarea_field( $meta['text'] ?? '' ) );
@@ -548,7 +548,7 @@ class LAUNCHDEK_Client_Push {
 		if ( '' === $text ) {
 			return new WP_Error(
 				'launchdek_note_empty',
-				__( 'Type a note before saving.', LAUNCHDEK_TEXT_DOMAIN ),
+				__( 'Type a note before saving.', 'launchdek' ),
 				array( 'status' => 400 )
 			);
 		}
@@ -574,7 +574,7 @@ class LAUNCHDEK_Client_Push {
 		$notes = LAUNCHDEK_Run_Repository::add_step_note( $run_id, $step_index, $note );
 
 		if ( false === $notes ) {
-			return new WP_Error( 'launchdek_note_save_failed', __( 'Failed to save note.', LAUNCHDEK_TEXT_DOMAIN ), array( 'status' => 500 ) );
+			return new WP_Error( 'launchdek_note_save_failed', __( 'Failed to save note.', 'launchdek' ), array( 'status' => 500 ) );
 		}
 
 		LAUNCHDEK_Audit_Log::log(

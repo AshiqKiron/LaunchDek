@@ -208,7 +208,7 @@ class LAUNCHDEK_Client_Auto_Capture {
 				'title'        => $meta['title'],
 				'instructions' => sprintf(
 					/* translators: %s: option label */
-					__( 'Set %s to the captured value when repeating this checklist.', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+					__( 'Set %s to the captured value when repeating this checklist.', 'launchdek' ),
 					$meta['title']
 				),
 				'deep_link'    => $meta['deep_link'],
@@ -238,10 +238,10 @@ class LAUNCHDEK_Client_Auto_Capture {
 				'source'       => 'plugin',
 				'title'        => sprintf(
 					/* translators: %s: plugin name */
-					__( 'Activate %s', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+					__( 'Activate %s', 'launchdek' ),
 					$name
 				),
-				'instructions' => __( 'Activate this plugin on the client site.', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+				'instructions' => __( 'Activate this plugin on the client site.', 'launchdek' ),
 				'deep_link'    => 'plugins.php',
 				'type'         => 'manual',
 			)
@@ -269,10 +269,10 @@ class LAUNCHDEK_Client_Auto_Capture {
 				'source'       => 'plugin',
 				'title'        => sprintf(
 					/* translators: %s: plugin name */
-					__( 'Deactivate %s', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+					__( 'Deactivate %s', 'launchdek' ),
 					$name
 				),
-				'instructions' => __( 'Deactivate this plugin on the client site.', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+				'instructions' => __( 'Deactivate this plugin on the client site.', 'launchdek' ),
 				'deep_link'    => 'plugins.php',
 				'type'         => 'manual',
 			)
@@ -294,11 +294,11 @@ class LAUNCHDEK_Client_Auto_Capture {
 
 		printf(
 			'<div class="notice notice-info launchdek-client-capture-notice"><p><strong>%s</strong> %s</p></div>',
-			esc_html__( 'LaunchDek auto-capture is recording.', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+			esc_html__( 'LaunchDek auto-capture is recording.', 'launchdek' ),
 			esc_html(
 				sprintf(
 					/* translators: %d: number of captured steps */
-					_n( '%d step captured so far.', '%d steps captured so far.', $count, LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+					_n( '%d step captured so far.', '%d steps captured so far.', $count, 'launchdek' ),
 					$count
 				)
 			)
@@ -357,7 +357,7 @@ class LAUNCHDEK_Client_Auto_Capture {
 	private static function entry_to_checklist_step( array $entry, $index ) {
 		$step = array(
 			'id'           => 'capture_' . ( $index + 1 ),
-			'title'        => $entry['title'] ?? __( 'Captured step', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+			'title'        => $entry['title'] ?? __( 'Captured step', 'launchdek' ),
 			'instructions' => $entry['instructions'] ?? '',
 			'deep_link'    => $entry['deep_link'] ?? '',
 			'target_roles' => array(),
@@ -387,27 +387,27 @@ class LAUNCHDEK_Client_Auto_Capture {
 		$rest_route = self::normalize_rest_route( $route );
 		$title      = sprintf(
 			/* translators: 1: HTTP method, 2: REST route */
-			__( '%1$s %2$s', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+			__( '%1$s %2$s', 'launchdek' ),
 			$method,
 			$rest_route
 		);
-		$instructions = __( 'Repeat this REST API change on future client sites.', LAUNCHDEK_CLIENT_TEXT_DOMAIN );
+		$instructions = __( 'Repeat this REST API change on future client sites.', 'launchdek' );
 
 		if ( '/wp/v2/settings' === $rest_route ) {
 			$fields = array_keys( $payload );
 			if ( ! empty( $fields ) ) {
 				$title = sprintf(
 					/* translators: %s: comma-separated setting field names */
-					__( 'Update settings: %s', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+					__( 'Update settings: %s', 'launchdek' ),
 					implode( ', ', $fields )
 				);
 			} else {
-				$title = __( 'Update site settings', LAUNCHDEK_CLIENT_TEXT_DOMAIN );
+				$title = __( 'Update site settings', 'launchdek' );
 			}
-			$instructions = __( 'Apply the same WordPress settings change captured during recording.', LAUNCHDEK_CLIENT_TEXT_DOMAIN );
+			$instructions = __( 'Apply the same WordPress settings change captured during recording.', 'launchdek' );
 		} elseif ( 0 === strpos( $rest_route, '/wp/v2/plugins' ) ) {
-			$title        = __( 'Manage plugins', LAUNCHDEK_CLIENT_TEXT_DOMAIN );
-			$instructions = __( 'Repeat the plugin change captured during recording.', LAUNCHDEK_CLIENT_TEXT_DOMAIN );
+			$title        = __( 'Manage plugins', 'launchdek' );
+			$instructions = __( 'Repeat the plugin change captured during recording.', 'launchdek' );
 		}
 
 		return array(
@@ -442,67 +442,67 @@ class LAUNCHDEK_Client_Auto_Capture {
 	private static function get_known_options() {
 		return array(
 			'blogname'                => array(
-				'title'      => __( 'Site Title', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+				'title'      => __( 'Site Title', 'launchdek' ),
 				'deep_link'  => 'options-general.php',
 			),
 			'blogdescription'         => array(
-				'title'      => __( 'Tagline', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+				'title'      => __( 'Tagline', 'launchdek' ),
 				'deep_link'  => 'options-general.php',
 			),
 			'admin_email'             => array(
-				'title'      => __( 'Administration Email', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+				'title'      => __( 'Administration Email', 'launchdek' ),
 				'deep_link'  => 'options-general.php',
 			),
 			'users_can_register'      => array(
-				'title'      => __( 'Membership Setting', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+				'title'      => __( 'Membership Setting', 'launchdek' ),
 				'deep_link'  => 'options-general.php',
 			),
 			'default_role'            => array(
-				'title'      => __( 'New User Default Role', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+				'title'      => __( 'New User Default Role', 'launchdek' ),
 				'deep_link'  => 'options-general.php',
 			),
 			'permalink_structure'     => array(
-				'title'      => __( 'Permalink Structure', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+				'title'      => __( 'Permalink Structure', 'launchdek' ),
 				'deep_link'  => 'options-permalink.php',
 			),
 			'blog_public'             => array(
-				'title'      => __( 'Search Engine Visibility', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+				'title'      => __( 'Search Engine Visibility', 'launchdek' ),
 				'deep_link'  => 'options-reading.php',
 			),
 			'show_on_front'           => array(
-				'title'      => __( 'Homepage Displays', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+				'title'      => __( 'Homepage Displays', 'launchdek' ),
 				'deep_link'  => 'options-reading.php',
 			),
 			'page_on_front'           => array(
-				'title'      => __( 'Homepage', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+				'title'      => __( 'Homepage', 'launchdek' ),
 				'deep_link'  => 'options-reading.php',
 			),
 			'page_for_posts'          => array(
-				'title'      => __( 'Posts Page', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+				'title'      => __( 'Posts Page', 'launchdek' ),
 				'deep_link'  => 'options-reading.php',
 			),
 			'default_comment_status'  => array(
-				'title'      => __( 'Default Comment Status', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+				'title'      => __( 'Default Comment Status', 'launchdek' ),
 				'deep_link'  => 'options-discussion.php',
 			),
 			'timezone_string'         => array(
-				'title'      => __( 'Timezone', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+				'title'      => __( 'Timezone', 'launchdek' ),
 				'deep_link'  => 'options-general.php',
 			),
 			'date_format'             => array(
-				'title'      => __( 'Date Format', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+				'title'      => __( 'Date Format', 'launchdek' ),
 				'deep_link'  => 'options-general.php',
 			),
 			'time_format'             => array(
-				'title'      => __( 'Time Format', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+				'title'      => __( 'Time Format', 'launchdek' ),
 				'deep_link'  => 'options-general.php',
 			),
 			'start_of_week'           => array(
-				'title'      => __( 'Week Starts On', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+				'title'      => __( 'Week Starts On', 'launchdek' ),
 				'deep_link'  => 'options-general.php',
 			),
 			'WPLANG'                  => array(
-				'title'      => __( 'Site Language', LAUNCHDEK_CLIENT_TEXT_DOMAIN ),
+				'title'      => __( 'Site Language', 'launchdek' ),
 				'deep_link'  => 'options-general.php',
 			),
 		);

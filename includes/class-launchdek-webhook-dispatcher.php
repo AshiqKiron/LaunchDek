@@ -59,14 +59,14 @@ class LAUNCHDEK_Webhook_Dispatcher {
 	 */
 	protected static function format_message( $event, $data ) {
 		$event_labels = array(
-			'drift_detected'        => __( 'Configuration drift detected', LAUNCHDEK_TEXT_DOMAIN ),
-			'client_step_completed' => __( 'Client step completed', LAUNCHDEK_TEXT_DOMAIN ),
-			'client_note_added'     => __( 'Client note added', LAUNCHDEK_TEXT_DOMAIN ),
+			'drift_detected'        => __( 'Configuration drift detected', 'launchdek' ),
+			'client_step_completed' => __( 'Client step completed', 'launchdek' ),
+			'client_note_added'     => __( 'Client note added', 'launchdek' ),
 		);
 
 		$label = $event_labels[ $event ] ?? $event;
 		/* translators: 1: event label */
-		$base = sprintf( __( 'LaunchDek: %s', LAUNCHDEK_TEXT_DOMAIN ), $label );
+		$base = sprintf( __( 'LaunchDek: %s', 'launchdek' ), $label );
 
 		if ( ! empty( $data['site_name'] ) ) {
 			$base .= ' — ' . $data['site_name'];
@@ -84,7 +84,7 @@ class LAUNCHDEK_Webhook_Dispatcher {
 
 		if ( ! empty( $data['client_user'] ) ) {
 			/* translators: %s: client user display name */
-			$base .= ' — ' . sprintf( __( 'by %s', LAUNCHDEK_TEXT_DOMAIN ), $data['client_user'] );
+			$base .= ' — ' . sprintf( __( 'by %s', 'launchdek' ), $data['client_user'] );
 		}
 
 		if ( ! empty( $data['note'] ) ) {

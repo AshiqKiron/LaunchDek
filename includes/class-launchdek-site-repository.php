@@ -64,9 +64,13 @@ class LAUNCHDEK_Site_Repository {
 			return null;
 		}
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Plugin-owned table name; URL via prepare().
 		$row = $wpdb->get_row(
-			$wpdb->prepare( 'SELECT * FROM ' . self::table() . ' WHERE url = %s', $url ), // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			$wpdb->prepare(
+				'SELECT * FROM %i WHERE url = %s',
+				self::table(),
+				$url
+			),
 			ARRAY_A
 		);
 
@@ -90,10 +94,11 @@ class LAUNCHDEK_Site_Repository {
 			return null;
 		}
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Plugin-owned table name; integration fields via prepare().
 		$row = $wpdb->get_row(
 			$wpdb->prepare(
-				'SELECT * FROM ' . self::table() . ' WHERE integration_source = %s AND external_id = %s', // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+				'SELECT * FROM %i WHERE integration_source = %s AND external_id = %s',
+				self::table(),
 				$source,
 				$external_id
 			),
@@ -255,10 +260,11 @@ class LAUNCHDEK_Site_Repository {
 		global $wpdb;
 
 		$source = sanitize_key( $source );
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Plugin-owned table name; source via prepare().
 		$rows = $wpdb->get_results(
 			$wpdb->prepare(
-				'SELECT * FROM ' . self::table() . ' WHERE integration_source = %s ORDER BY name ASC', // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+				'SELECT * FROM %i WHERE integration_source = %s ORDER BY name ASC',
+				self::table(),
 				$source
 			),
 			ARRAY_A
@@ -275,9 +281,12 @@ class LAUNCHDEK_Site_Repository {
 	public static function count_by_integration_sources() {
 		global $wpdb;
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Plugin-owned table name; static aggregate query (no user input).
 		$rows = $wpdb->get_results(
-			'SELECT integration_source, COUNT(*) AS site_count FROM ' . self::table() . " WHERE integration_source IS NOT NULL AND integration_source <> '' GROUP BY integration_source", // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			$wpdb->prepare(
+				"SELECT integration_source, COUNT(*) AS site_count FROM %i WHERE integration_source IS NOT NULL AND integration_source <> '' GROUP BY integration_source",
+				self::table()
+			),
 			ARRAY_A
 		);
 
@@ -297,9 +306,13 @@ class LAUNCHDEK_Site_Repository {
 	public static function find( $id ) {
 		global $wpdb;
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Plugin-owned table name; ID via prepare().
 		$row = $wpdb->get_row(
-			$wpdb->prepare( 'SELECT * FROM ' . self::table() . ' WHERE id = %d', absint( $id ) ), // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			$wpdb->prepare(
+				'SELECT * FROM %i WHERE id = %d',
+				self::table(),
+				absint( $id )
+			),
 			ARRAY_A
 		);
 
@@ -335,8 +348,9 @@ class LAUNCHDEK_Site_Repository {
 			)
 		);
 
-		$prepared = $wpdb->prepare( $sql, $vals ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared
-		$rows     = $wpdb->get_results( $prepared, ARRAY_A ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared
+		$prepared = $wpdb->prepare( $sql, $vals ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- FROM/WHERE built in build_list_query_parts(); filter values in $vals.
+		$rows     = $wpdb->get_results( $prepared, ARRAY_A );
 
 		return is_array( $rows ) ? array_map( array( __CLASS__, 'format' ), $rows ) : array();
 	}
@@ -349,10 +363,12 @@ class LAUNCHDEK_Site_Repository {
 	public static function picker_list() {
 		global $wpdb;
 
-		$table = self::table();
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		$rows  = $wpdb->get_results(
-			'SELECT id, name FROM ' . $table . ' ORDER BY name ASC LIMIT 100', // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Plugin-owned table name; static picker query.
+		$rows = $wpdb->get_results(
+			$wpdb->prepare(
+				'SELECT id, name FROM %i ORDER BY name ASC LIMIT 100',
+				self::table()
+			),
 			ARRAY_A
 		);
 
@@ -392,10 +408,11 @@ class LAUNCHDEK_Site_Repository {
 		$sql   = 'SELECT COUNT(DISTINCT s.id) ' . $parts['from_where'];
 
 		if ( $parts['vals'] ) {
-			$sql = $wpdb->prepare( $sql, $parts['vals'] ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared
+			$sql = $wpdb->prepare( $sql, $parts['vals'] ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 		}
 
-		return (int) $wpdb->get_var( $sql ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- FROM/WHERE from build_list_query_parts(); filter values in $parts['vals'].
+		return (int) $wpdb->get_var( $sql );
 	}
 
 	/**
@@ -406,10 +423,12 @@ class LAUNCHDEK_Site_Repository {
 	public static function health_counts() {
 		global $wpdb;
 
-		$table = self::table();
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		$rows  = $wpdb->get_results(
-			"SELECT health_status, COUNT(*) AS count FROM {$table} GROUP BY health_status", // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Plugin-owned table name; static aggregate query.
+		$rows = $wpdb->get_results(
+			$wpdb->prepare(
+				'SELECT health_status, COUNT(*) AS count FROM %i GROUP BY health_status',
+				self::table()
+			),
 			ARRAY_A
 		);
 
@@ -489,7 +508,14 @@ class LAUNCHDEK_Site_Repository {
 	 */
 	public static function count() {
 		global $wpdb;
-		return (int) $wpdb->get_var( 'SELECT COUNT(*) FROM ' . self::table() ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Plugin-owned table name; static count query.
+		return (int) $wpdb->get_var(
+			$wpdb->prepare(
+				'SELECT COUNT(*) FROM %i',
+				self::table()
+			)
+		);
 	}
 
 	/**
@@ -694,10 +720,11 @@ class LAUNCHDEK_Site_Repository {
 	public static function get_tags( $site_id ) {
 		global $wpdb;
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Plugin-owned table name; site ID via prepare().
 		$rows = $wpdb->get_results(
 			$wpdb->prepare(
-				'SELECT tag, group_type FROM ' . self::tags_table() . ' WHERE site_id = %d ORDER BY group_type, tag', // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+				'SELECT tag, group_type FROM %i WHERE site_id = %d ORDER BY group_type, tag',
+				self::tags_table(),
 				absint( $site_id )
 			),
 			ARRAY_A
@@ -755,9 +782,12 @@ class LAUNCHDEK_Site_Repository {
 	public static function get_all_tags() {
 		global $wpdb;
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Plugin-owned table name; static distinct query.
 		$rows = $wpdb->get_results(
-			'SELECT DISTINCT tag, group_type FROM ' . self::tags_table() . ' ORDER BY group_type, tag', // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			$wpdb->prepare(
+				'SELECT DISTINCT tag, group_type FROM %i ORDER BY group_type, tag',
+				self::tags_table()
+			),
 			ARRAY_A
 		);
 
@@ -772,9 +802,12 @@ class LAUNCHDEK_Site_Repository {
 	public static function get_distinct_group_types() {
 		global $wpdb;
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Plugin-owned table name; static distinct query.
 		$rows = $wpdb->get_col(
-			'SELECT DISTINCT group_type FROM ' . self::tags_table() . ' ORDER BY group_type' // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			$wpdb->prepare(
+				'SELECT DISTINCT group_type FROM %i ORDER BY group_type',
+				self::tags_table()
+			)
 		);
 
 		if ( ! is_array( $rows ) ) {
@@ -801,9 +834,13 @@ class LAUNCHDEK_Site_Repository {
 	public static function get_credentials( $id ) {
 		global $wpdb;
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Plugin-owned table name; ID via prepare().
 		$row = $wpdb->get_row(
-			$wpdb->prepare( 'SELECT url, admin_username, app_password_enc FROM ' . self::table() . ' WHERE id = %d', absint( $id ) ), // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			$wpdb->prepare(
+				'SELECT url, admin_username, app_password_enc FROM %i WHERE id = %d',
+				self::table(),
+				absint( $id )
+			),
 			ARRAY_A
 		);
 

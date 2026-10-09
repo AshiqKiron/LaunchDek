@@ -19,7 +19,7 @@ class LAUNCHDEK_Integration_WP_Engine implements LAUNCHDEK_Integration_Interface
 	}
 
 	public function get_name() {
-		return __( 'WP Engine Connector', LAUNCHDEK_TEXT_DOMAIN );
+		return __( 'WP Engine Connector', 'launchdek' );
 	}
 
 	public function is_available() {
@@ -41,7 +41,7 @@ class LAUNCHDEK_Integration_WP_Engine implements LAUNCHDEK_Integration_Interface
 	public function fetch_platform_sites() {
 		return new WP_Error(
 			'launchdek_integration_sync_unsupported',
-			__( 'WP Engine site sync is not available yet.', LAUNCHDEK_TEXT_DOMAIN ),
+			__( 'WP Engine site sync is not available yet.', 'launchdek' ),
 			array( 'status' => 400 )
 		);
 	}
@@ -50,9 +50,9 @@ class LAUNCHDEK_Integration_WP_Engine implements LAUNCHDEK_Integration_Interface
 		$results = array();
 
 		if ( $this->is_available() ) {
-			$results['message'] = __( 'WP Engine environment detected. Use WP Engine portal or SSH gateway to deploy LaunchDek to staging/production sites.', LAUNCHDEK_TEXT_DOMAIN );
+			$results['message'] = __( 'WP Engine environment detected. Use WP Engine portal or SSH gateway to deploy LaunchDek to staging/production sites.', 'launchdek' );
 		} else {
-			$results['message'] = __( 'Configure WP Engine API credentials in Settings to enable remote deployment.', LAUNCHDEK_TEXT_DOMAIN );
+			$results['message'] = __( 'Configure WP Engine API credentials in Settings to enable remote deployment.', 'launchdek' );
 		}
 
 		do_action( 'launchdek_wp_engine_push_agent', $site_ids, $results );
@@ -64,7 +64,7 @@ class LAUNCHDEK_Integration_WP_Engine implements LAUNCHDEK_Integration_Interface
 
 	public function get_status() {
 		return array(
-			'description' => __( 'Allows WP Engine to push LaunchDek to connected sites.', LAUNCHDEK_TEXT_DOMAIN ),
+			'description' => __( 'Allows WP Engine to push LaunchDek to connected sites.', 'launchdek' ),
 			'docs_url'    => 'https://wpengine.com/support/',
 		);
 	}

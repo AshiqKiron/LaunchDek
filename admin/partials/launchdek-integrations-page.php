@@ -13,6 +13,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- Admin view partial; variables are template-scoped.
+
 $integrations_bootstrap = isset( $integrations_bootstrap ) && is_array( $integrations_bootstrap )
 	? $integrations_bootstrap
 	: LAUNCHDEK_Integrations::get_page_bootstrap();

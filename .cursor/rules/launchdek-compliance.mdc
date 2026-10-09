@@ -18,7 +18,7 @@ See `launchdek-project.mdc` (architecture), `launchdek-standards.mdc` (quality),
 - Store credentials via `LAUNCHDEK_Credential_Vault::encrypt()`; decrypt only at request time in `LAUNCHDEK_Remote_Client` (site app passwords) or WP Umbrella adapter / `LAUNCHDEK_Settings::get_wp_umbrella_api_token()` (hub connector outbound only).
 - Settings API: `sanitize_callback`, `show_in_rest => false`. When adding settings keys updated outside the Settings form (REST, admin-ajax, direct `update_option`), extend `LAUNCHDEK_Settings::sanitize()` so **Save Changes** on Settings does not strip them (`onboarding_dismissed`, `wp_umbrella_api_token_enc`, `custom_site_groups`). Encrypted values (`wp_umbrella_api_token_enc`) must not pass through `sanitize_text_field` — preserve the vault ciphertext (null-byte strip only).
 - Remote requests: validate URLs with `esc_url_raw()`; use `wp_remote_*` with timeouts; handle `WP_Error`.
-- SQL: `$wpdb->prepare()` only; no user input in table names.
+- SQL: `$wpdb->prepare()` only; no user input in table names. Plugin-owned tables: resolve names via repository `::table()` / `::steps_table()` helpers and pass with the `%i` identifier placeholder (WP 6.2+). For dynamic `IN (...)` lists, use `%d`/`%s` placeholders only — table names must never come from request input.
 - Webhook URLs: sanitize with `esc_url_raw()`; only POST on configured user events.
 - Email notification addresses: sanitize via `LAUNCHDEK_Settings::sanitize_email_notification_addresses()` (`sanitize_email` per comma-separated entry); recipients resolved by `get_email_notification_addresses()` (falls back to site admin email when unset).
 
@@ -58,11 +58,11 @@ See `launchdek-project.mdc` (architecture), `launchdek-standards.mdc` (quality),
 - [ ] No WordPress core modifications
 - [ ] GPL-compatible
 - [ ] Human-readable, reviewable code
-- [ ] User-facing strings translatable (`LAUNCHDEK_TEXT_DOMAIN`)
+- [ ] User-facing strings translatable (text domain `launchdek`)
 - [ ] REST routes: capability checks on every endpoint
 - [ ] Credentials encrypted at rest when enabled; never leaked in API responses
 - [ ] Input sanitized; output escaped
-- [ ] SQL prepared in repositories
+- [ ] SQL prepared in repositories (and `LAUNCHDEK_Audit_Log`); plugin tables via `%i` where supported
 - [ ] Remote calls use timeouts and error handling
 - [ ] Webhooks and email notifications opt-in and user-configured
 - [ ] Uninstall via `LAUNCHDEK_Uninstaller::run()` drops all tables, plugin options, and capabilities (Community `register_uninstall_hook`; full Freemius `after_uninstall`)

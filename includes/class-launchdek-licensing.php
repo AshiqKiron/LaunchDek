@@ -157,11 +157,11 @@ class LAUNCHDEK_Licensing {
 	public static function get_plan_cta_label( $plan ) {
 		switch ( sanitize_key( $plan ) ) {
 			case self::PLAN_PRO:
-				return __( 'Get Pro', LAUNCHDEK_TEXT_DOMAIN );
+				return __( 'Get Pro', 'launchdek' );
 			case self::PLAN_AGENCY:
-				return __( 'Get Agency', LAUNCHDEK_TEXT_DOMAIN );
+				return __( 'Get Agency', 'launchdek' );
 			default:
-				return __( 'Current plan', LAUNCHDEK_TEXT_DOMAIN );
+				return __( 'Current plan', 'launchdek' );
 		}
 	}
 
@@ -237,12 +237,12 @@ class LAUNCHDEK_Licensing {
 
 		$rows = array(
 			array(
-				'label'   => __( 'Connected sites', LAUNCHDEK_TEXT_DOMAIN ),
-				'tooltip' => __( 'Maximum client sites you can register on this hub. Community has no cap; paid plans include a higher licensed limit.', LAUNCHDEK_TEXT_DOMAIN ),
+				'label'   => __( 'Connected sites', 'launchdek' ),
+				'tooltip' => __( 'Maximum client sites you can register on this hub. Community has no cap; paid plans include a higher licensed limit.', 'launchdek' ),
 				'values'  => array(
 					self::PLAN_COMMUNITY => array(
 						'type'  => 'text',
-						'value' => __( 'Unlimited', LAUNCHDEK_TEXT_DOMAIN ),
+						'value' => __( 'Unlimited', 'launchdek' ),
 					),
 					self::PLAN_PRO       => array(
 						'type'  => 'text',
@@ -255,8 +255,8 @@ class LAUNCHDEK_Licensing {
 				),
 			),
 			array(
-				'label'   => __( 'Built-in template categories', LAUNCHDEK_TEXT_DOMAIN ),
-				'tooltip' => __( 'Standard checklist library groupings on the Checklists → Templates tab.', LAUNCHDEK_TEXT_DOMAIN ),
+				'label'   => __( 'Built-in template categories', 'launchdek' ),
+				'tooltip' => __( 'Standard checklist library groupings on the Checklists → Templates tab.', 'launchdek' ),
 				'values'  => array(
 					self::PLAN_COMMUNITY => array(
 						'type'  => 'text',
@@ -273,8 +273,8 @@ class LAUNCHDEK_Licensing {
 				),
 			),
 			array(
-				'label'   => __( 'Built-in checklist templates', LAUNCHDEK_TEXT_DOMAIN ),
-				'tooltip' => __( 'Pre-built SOP stacks you can clone into My Checklists.', LAUNCHDEK_TEXT_DOMAIN ),
+				'label'   => __( 'Built-in checklist templates', 'launchdek' ),
+				'tooltip' => __( 'Pre-built SOP stacks you can clone into My Checklists.', 'launchdek' ),
 				'values'  => array(
 					self::PLAN_COMMUNITY => array(
 						'type'  => 'text',
@@ -291,28 +291,28 @@ class LAUNCHDEK_Licensing {
 				),
 			),
 			array(
-				'label'   => __( 'Private Agency Vault', LAUNCHDEK_TEXT_DOMAIN ),
-				'tooltip' => __( 'Save reusable agency checklists to a private vault on the Templates tab.', LAUNCHDEK_TEXT_DOMAIN ),
+				'label'   => __( 'Private Agency Vault', 'launchdek' ),
+				'tooltip' => __( 'Save reusable agency checklists to a private vault on the Templates tab.', 'launchdek' ),
 				'values'  => self::compare_bool_row( false, true, true ),
 			),
 			array(
-				'label'   => __( 'Auto-capture', LAUNCHDEK_TEXT_DOMAIN ),
-				'tooltip' => __( 'Record admin actions on a connected client site and import them as checklist steps.', LAUNCHDEK_TEXT_DOMAIN ),
+				'label'   => __( 'Auto-capture', 'launchdek' ),
+				'tooltip' => __( 'Record admin actions on a connected client site and import them as checklist steps.', 'launchdek' ),
 				'values'  => self::compare_bool_row( false, true, true ),
 			),
 			array(
-				'label'   => __( 'Email & webhook notifications', LAUNCHDEK_TEXT_DOMAIN ),
-				'tooltip' => __( 'Opt-in Slack, Discord, Teams webhooks and email alerts for checklist run events.', LAUNCHDEK_TEXT_DOMAIN ),
+				'label'   => __( 'Email & webhook notifications', 'launchdek' ),
+				'tooltip' => __( 'Opt-in Slack, Discord, Teams webhooks and email alerts for checklist run events.', 'launchdek' ),
 				'values'  => self::compare_bool_row( false, true, true ),
 			),
 			array(
-				'label'   => __( 'Scheduled drift verification', LAUNCHDEK_TEXT_DOMAIN ),
-				'tooltip' => __( 'Twice-daily automated configuration drift checks across connected sites.', LAUNCHDEK_TEXT_DOMAIN ),
+				'label'   => __( 'Scheduled drift verification', 'launchdek' ),
+				'tooltip' => __( 'Twice-daily automated configuration drift checks across connected sites.', 'launchdek' ),
 				'values'  => self::compare_bool_row( false, true, true ),
 			),
 			array(
-				'label'   => __( 'Client panel layouts', LAUNCHDEK_TEXT_DOMAIN ),
-				'tooltip' => __( 'How the checklist panel appears in client wp-admin (sidebar, top bar, dock, and more).', LAUNCHDEK_TEXT_DOMAIN ),
+				'label'   => __( 'Client panel layouts', 'launchdek' ),
+				'tooltip' => __( 'How the checklist panel appears in client wp-admin (sidebar, top bar, dock, and more).', 'launchdek' ),
 				'values'  => array(
 					self::PLAN_COMMUNITY => array(
 						'type'  => 'text',
@@ -329,38 +329,38 @@ class LAUNCHDEK_Licensing {
 				),
 			),
 			array(
-				'label'   => __( 'Sites registry & connection tests', LAUNCHDEK_TEXT_DOMAIN ),
-				'tooltip' => __( 'Register remote sites with Application Passwords and monitor connection health.', LAUNCHDEK_TEXT_DOMAIN ),
+				'label'   => __( 'Sites registry & connection tests', 'launchdek' ),
+				'tooltip' => __( 'Register remote sites with Application Passwords and monitor connection health.', 'launchdek' ),
 				'values'  => self::compare_bool_row( true, true, true ),
 			),
 			array(
-				'label'   => __( 'Custom checklists & import/export', LAUNCHDEK_TEXT_DOMAIN ),
-				'tooltip' => __( 'Build your own checklists, export JSON, and import on other hubs.', LAUNCHDEK_TEXT_DOMAIN ),
+				'label'   => __( 'Custom checklists & import/export', 'launchdek' ),
+				'tooltip' => __( 'Build your own checklists, export JSON, and import on other hubs.', 'launchdek' ),
 				'values'  => self::compare_bool_row( true, true, true ),
 			),
 			array(
-				'label'   => __( 'Batch run & manual drift monitor', LAUNCHDEK_TEXT_DOMAIN ),
-				'tooltip' => __( 'Run checklists from the hub, queue batch jobs, and verify drift on demand.', LAUNCHDEK_TEXT_DOMAIN ),
+				'label'   => __( 'Batch run & manual drift monitor', 'launchdek' ),
+				'tooltip' => __( 'Run checklists from the hub, queue batch jobs, and verify drift on demand.', 'launchdek' ),
 				'values'  => self::compare_bool_row( true, true, true ),
 			),
 			array(
-				'label'   => __( 'MainWP & WP Umbrella sync', LAUNCHDEK_TEXT_DOMAIN ),
-				'tooltip' => __( 'Import site inventory from supported connectors and push the client panel.', LAUNCHDEK_TEXT_DOMAIN ),
+				'label'   => __( 'MainWP & WP Umbrella sync', 'launchdek' ),
+				'tooltip' => __( 'Import site inventory from supported connectors and push the client panel.', 'launchdek' ),
 				'values'  => self::compare_bool_row( true, true, true ),
 			),
 			array(
-				'label'   => __( 'Activity logs & audit trail', LAUNCHDEK_TEXT_DOMAIN ),
-				'tooltip' => __( 'Immutable-style activity history with filters and detail views.', LAUNCHDEK_TEXT_DOMAIN ),
+				'label'   => __( 'Activity logs & audit trail', 'launchdek' ),
+				'tooltip' => __( 'Immutable-style activity history with filters and detail views.', 'launchdek' ),
 				'values'  => self::compare_bool_row( true, true, true ),
 			),
 			array(
-				'label'   => __( 'Role permission matrix', LAUNCHDEK_TEXT_DOMAIN ),
-				'tooltip' => __( 'Map LaunchDek capabilities to agency roles in Settings.', LAUNCHDEK_TEXT_DOMAIN ),
+				'label'   => __( 'Role permission matrix', 'launchdek' ),
+				'tooltip' => __( 'Map LaunchDek capabilities to agency roles in Settings.', 'launchdek' ),
 				'values'  => self::compare_bool_row( true, true, true ),
 			),
 			array(
-				'label'   => __( 'Encrypted credential vault', LAUNCHDEK_TEXT_DOMAIN ),
-				'tooltip' => __( 'Optional AES-256 encryption for stored Application Passwords.', LAUNCHDEK_TEXT_DOMAIN ),
+				'label'   => __( 'Encrypted credential vault', 'launchdek' ),
+				'tooltip' => __( 'Optional AES-256 encryption for stored Application Passwords.', 'launchdek' ),
 				'values'  => self::compare_bool_row( true, true, true ),
 			),
 		);
@@ -409,12 +409,12 @@ class LAUNCHDEK_Licensing {
 		$price = self::get_plan_prices()[ sanitize_key( $plan ) ] ?? 0;
 
 		if ( 0 === (int) $price ) {
-			return __( '$0', LAUNCHDEK_TEXT_DOMAIN );
+			return __( '$0', 'launchdek' );
 		}
 
 		return sprintf(
 			/* translators: %d: USD price per month */
-			__( '$%d', LAUNCHDEK_TEXT_DOMAIN ),
+			__( '$%d', 'launchdek' ),
 			(int) $price
 		);
 	}
@@ -430,11 +430,11 @@ class LAUNCHDEK_Licensing {
 
 		switch ( $plan ) {
 			case self::PLAN_PRO:
-				return __( 'Pro', LAUNCHDEK_TEXT_DOMAIN );
+				return __( 'Pro', 'launchdek' );
 			case self::PLAN_AGENCY:
-				return __( 'Agency', LAUNCHDEK_TEXT_DOMAIN );
+				return __( 'Agency', 'launchdek' );
 			default:
-				return __( 'Community', LAUNCHDEK_TEXT_DOMAIN );
+				return __( 'Community', 'launchdek' );
 		}
 	}
 
@@ -464,7 +464,7 @@ class LAUNCHDEK_Licensing {
 			'launchdek_site_limit',
 			sprintf(
 				/* translators: %d: maximum sites allowed on the current plan */
-				__( 'Your %1$s plan allows up to %2$d connected sites. Upgrade on Billing to add more.', LAUNCHDEK_TEXT_DOMAIN ),
+				__( 'Your %1$s plan allows up to %2$d connected sites. Upgrade on Billing to add more.', 'launchdek' ),
 				self::get_plan_label(),
 				(int) $limit
 			),
@@ -487,7 +487,7 @@ class LAUNCHDEK_Licensing {
 			'launchdek_pro_required',
 			sprintf(
 				/* translators: %s: feature name */
-				__( '%s is available on LaunchDek Pro and Agency plans.', LAUNCHDEK_TEXT_DOMAIN ),
+				__( '%s is available on LaunchDek Pro and Agency plans.', 'launchdek' ),
 				$feature_name
 			),
 			array(
@@ -659,14 +659,14 @@ class LAUNCHDEK_Licensing {
 		if ( launchdek_is_community_build() ) {
 			return new WP_Error(
 				'launchdek_community_build',
-				__( 'Plan changes are not available in the Community edition.', LAUNCHDEK_TEXT_DOMAIN ),
+				__( 'Plan changes are not available in the Community edition.', 'launchdek' ),
 				array( 'status' => 403 )
 			);
 		}
 
 		$plan = sanitize_key( $plan );
 		if ( ! in_array( $plan, array( self::PLAN_COMMUNITY, self::PLAN_PRO, self::PLAN_AGENCY ), true ) ) {
-			return new WP_Error( 'invalid_plan', __( 'Invalid plan.', LAUNCHDEK_TEXT_DOMAIN ), array( 'status' => 400 ) );
+			return new WP_Error( 'invalid_plan', __( 'Invalid plan.', 'launchdek' ), array( 'status' => 400 ) );
 		}
 
 		$billing         = self::get_billing();

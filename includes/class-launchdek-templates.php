@@ -24,36 +24,36 @@ class LAUNCHDEK_Templates {
 	public static function get_categories() {
 		return array(
 			'security'    => array(
-				'label'       => __( 'Security', LAUNCHDEK_TEXT_DOMAIN ),
-				'description' => __( 'Hardening, audits, and access controls for client sites.', LAUNCHDEK_TEXT_DOMAIN ),
+				'label'       => __( 'Security', 'launchdek' ),
+				'description' => __( 'Hardening, audits, and access controls for client sites.', 'launchdek' ),
 			),
 			'launch'      => array(
-				'label'       => __( 'Launch & Migration', LAUNCHDEK_TEXT_DOMAIN ),
-				'description' => __( 'Go-live, migration, and client onboarding checklists.', LAUNCHDEK_TEXT_DOMAIN ),
+				'label'       => __( 'Launch & Migration', 'launchdek' ),
+				'description' => __( 'Go-live, migration, and client onboarding checklists.', 'launchdek' ),
 			),
 			'performance' => array(
-				'label'       => __( 'Performance', LAUNCHDEK_TEXT_DOMAIN ),
-				'description' => __( 'Speed, caching, and Core Web Vitals baselines.', LAUNCHDEK_TEXT_DOMAIN ),
+				'label'       => __( 'Performance', 'launchdek' ),
+				'description' => __( 'Speed, caching, and Core Web Vitals baselines.', 'launchdek' ),
 			),
 			'seo'         => array(
-				'label'       => __( 'SEO & Growth', LAUNCHDEK_TEXT_DOMAIN ),
-				'description' => __( 'Search, analytics, and local visibility setup.', LAUNCHDEK_TEXT_DOMAIN ),
+				'label'       => __( 'SEO & Growth', 'launchdek' ),
+				'description' => __( 'Search, analytics, and local visibility setup.', 'launchdek' ),
 			),
 			'ecommerce'   => array(
-				'label'       => __( 'E-Commerce', LAUNCHDEK_TEXT_DOMAIN ),
-				'description' => __( 'WooCommerce store launch and optimization.', LAUNCHDEK_TEXT_DOMAIN ),
+				'label'       => __( 'E-Commerce', 'launchdek' ),
+				'description' => __( 'WooCommerce store launch and optimization.', 'launchdek' ),
 			),
 			'maintenance' => array(
-				'label'       => __( 'Maintenance', LAUNCHDEK_TEXT_DOMAIN ),
-				'description' => __( 'Recurring care, updates, and backup verification.', LAUNCHDEK_TEXT_DOMAIN ),
+				'label'       => __( 'Maintenance', 'launchdek' ),
+				'description' => __( 'Recurring care, updates, and backup verification.', 'launchdek' ),
 			),
 			'compliance'  => array(
-				'label'       => __( 'Compliance & Privacy', LAUNCHDEK_TEXT_DOMAIN ),
-				'description' => __( 'GDPR, cookies, accessibility, and legal pages.', LAUNCHDEK_TEXT_DOMAIN ),
+				'label'       => __( 'Compliance & Privacy', 'launchdek' ),
+				'description' => __( 'GDPR, cookies, accessibility, and legal pages.', 'launchdek' ),
 			),
 			'troubleshooting' => array(
-				'label'       => __( 'Troubleshooting', LAUNCHDEK_TEXT_DOMAIN ),
-				'description' => __( 'Step-by-step fixes for common WordPress errors and outages.', LAUNCHDEK_TEXT_DOMAIN ),
+				'label'       => __( 'Troubleshooting', 'launchdek' ),
+				'description' => __( 'Step-by-step fixes for common WordPress errors and outages.', 'launchdek' ),
 			),
 		);
 	}

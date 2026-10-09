@@ -81,22 +81,46 @@ class LAUNCHDEK_Installer {
 	protected static function migrate_site_integration_columns() {
 		global $wpdb;
 
-		$sites_table = $wpdb->prefix . 'launchdek_sites';
-
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		$source_col = $wpdb->get_results( "SHOW COLUMNS FROM `{$sites_table}` LIKE 'integration_source'" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$source_col = $wpdb->get_results(
+			$wpdb->prepare(
+				'SHOW COLUMNS FROM %i LIKE %s',
+				LAUNCHDEK_Site_Repository::table(),
+				'integration_source'
+			)
+		);
 		if ( empty( $source_col ) ) {
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.NotPrepared
-			$wpdb->query( "ALTER TABLE `{$sites_table}` ADD `integration_source` varchar(32) NOT NULL DEFAULT '' AFTER `client_agent`" );
+			$wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+				$wpdb->prepare(
+					'ALTER TABLE %i ADD `integration_source` varchar(32) NOT NULL DEFAULT %s AFTER `client_agent`', // phpcs:ignore WordPress.DB.DirectDatabaseQuery.SchemaChange
+					LAUNCHDEK_Site_Repository::table(),
+					''
+				)
+			);
 		}
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		$external_col = $wpdb->get_results( "SHOW COLUMNS FROM `{$sites_table}` LIKE 'external_id'" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$external_col = $wpdb->get_results(
+			$wpdb->prepare(
+				'SHOW COLUMNS FROM %i LIKE %s',
+				LAUNCHDEK_Site_Repository::table(),
+				'external_id'
+			)
+		);
 		if ( empty( $external_col ) ) {
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.NotPrepared
-			$wpdb->query( "ALTER TABLE `{$sites_table}` ADD `external_id` varchar(64) NOT NULL DEFAULT '' AFTER `integration_source`" );
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.NotPrepared
-			$wpdb->query( "ALTER TABLE `{$sites_table}` ADD KEY integration_source_external (integration_source, external_id)" );
+			$wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+				$wpdb->prepare(
+					'ALTER TABLE %i ADD `external_id` varchar(64) NOT NULL DEFAULT %s AFTER `integration_source`', // phpcs:ignore WordPress.DB.DirectDatabaseQuery.SchemaChange
+					LAUNCHDEK_Site_Repository::table(),
+					''
+				)
+			);
+			$wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+				$wpdb->prepare(
+					'ALTER TABLE %i ADD KEY integration_source_external (integration_source, external_id)', // phpcs:ignore WordPress.DB.DirectDatabaseQuery.SchemaChange
+					LAUNCHDEK_Site_Repository::table()
+				)
+			);
 		}
 	}
 
@@ -108,13 +132,21 @@ class LAUNCHDEK_Installer {
 	protected static function migrate_run_archive_column() {
 		global $wpdb;
 
-		$runs_table = $wpdb->prefix . 'launchdek_runs';
-
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		$archived_col = $wpdb->get_results( "SHOW COLUMNS FROM `{$runs_table}` LIKE 'is_archived'" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$archived_col = $wpdb->get_results(
+			$wpdb->prepare(
+				'SHOW COLUMNS FROM %i LIKE %s',
+				LAUNCHDEK_Run_Repository::table(),
+				'is_archived'
+			)
+		);
 		if ( empty( $archived_col ) ) {
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.NotPrepared
-			$wpdb->query( "ALTER TABLE `{$runs_table}` ADD `is_archived` tinyint(1) NOT NULL DEFAULT 0 AFTER `client_run_token`" );
+			$wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+				$wpdb->prepare(
+					'ALTER TABLE %i ADD `is_archived` tinyint(1) NOT NULL DEFAULT 0 AFTER `client_run_token`', // phpcs:ignore WordPress.DB.DirectDatabaseQuery.SchemaChange
+					LAUNCHDEK_Run_Repository::table()
+				)
+			);
 		}
 	}
 
@@ -126,13 +158,21 @@ class LAUNCHDEK_Installer {
 	protected static function migrate_step_notes_column() {
 		global $wpdb;
 
-		$steps_table = $wpdb->prefix . 'launchdek_run_steps';
-
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		$notes_col = $wpdb->get_results( "SHOW COLUMNS FROM `{$steps_table}` LIKE 'notes_json'" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$notes_col = $wpdb->get_results(
+			$wpdb->prepare(
+				'SHOW COLUMNS FROM %i LIKE %s',
+				LAUNCHDEK_Run_Repository::steps_table(),
+				'notes_json'
+			)
+		);
 		if ( empty( $notes_col ) ) {
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.NotPrepared
-			$wpdb->query( "ALTER TABLE `{$steps_table}` ADD `notes_json` longtext AFTER `response_json`" );
+			$wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+				$wpdb->prepare(
+					'ALTER TABLE %i ADD `notes_json` longtext AFTER `response_json`', // phpcs:ignore WordPress.DB.DirectDatabaseQuery.SchemaChange
+					LAUNCHDEK_Run_Repository::steps_table()
+				)
+			);
 		}
 	}
 
@@ -144,21 +184,39 @@ class LAUNCHDEK_Installer {
 	protected static function migrate_client_agent_columns() {
 		global $wpdb;
 
-		$runs_table  = $wpdb->prefix . 'launchdek_runs';
-		$sites_table = $wpdb->prefix . 'launchdek_sites';
-
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		$run_token = $wpdb->get_results( "SHOW COLUMNS FROM `{$runs_table}` LIKE 'client_run_token'" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$run_token = $wpdb->get_results(
+			$wpdb->prepare(
+				'SHOW COLUMNS FROM %i LIKE %s',
+				LAUNCHDEK_Run_Repository::table(),
+				'client_run_token'
+			)
+		);
 		if ( empty( $run_token ) ) {
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.NotPrepared
-			$wpdb->query( "ALTER TABLE `{$runs_table}` ADD `client_run_token` varchar(64) NOT NULL DEFAULT '' AFTER `notes`" );
+			$wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+				$wpdb->prepare(
+					'ALTER TABLE %i ADD `client_run_token` varchar(64) NOT NULL DEFAULT %s AFTER `notes`', // phpcs:ignore WordPress.DB.DirectDatabaseQuery.SchemaChange
+					LAUNCHDEK_Run_Repository::table(),
+					''
+				)
+			);
 		}
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		$client_agent = $wpdb->get_results( "SHOW COLUMNS FROM `{$sites_table}` LIKE 'client_agent'" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$client_agent = $wpdb->get_results(
+			$wpdb->prepare(
+				'SHOW COLUMNS FROM %i LIKE %s',
+				LAUNCHDEK_Site_Repository::table(),
+				'client_agent'
+			)
+		);
 		if ( empty( $client_agent ) ) {
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.NotPrepared
-			$wpdb->query( "ALTER TABLE `{$sites_table}` ADD `client_agent` tinyint(1) NOT NULL DEFAULT 0 AFTER `last_error`" );
+			$wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+				$wpdb->prepare(
+					'ALTER TABLE %i ADD `client_agent` tinyint(1) NOT NULL DEFAULT 0 AFTER `last_error`', // phpcs:ignore WordPress.DB.DirectDatabaseQuery.SchemaChange
+					LAUNCHDEK_Site_Repository::table()
+				)
+			);
 		}
 	}
 
@@ -170,29 +228,61 @@ class LAUNCHDEK_Installer {
 	protected static function migrate_workflows_to_checklists() {
 		global $wpdb;
 
-		$old_table  = $wpdb->prefix . 'launchdek_workflows';
-		$new_table  = $wpdb->prefix . 'launchdek_checklists';
-		$runs_table = $wpdb->prefix . 'launchdek_runs';
-
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		$old_exists = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $old_table ) );
+		$old_exists = $wpdb->get_var(
+			$wpdb->prepare(
+				'SHOW TABLES LIKE %s',
+				self::legacy_workflows_table()
+			)
+		);
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		$new_exists = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $new_table ) );
+		$new_exists = $wpdb->get_var(
+			$wpdb->prepare(
+				'SHOW TABLES LIKE %s',
+				LAUNCHDEK_Checklist_Repository::table()
+			)
+		);
 
-		if ( $old_exists === $old_table && $new_exists !== $new_table ) {
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.NotPrepared
-			$wpdb->query( "RENAME TABLE `{$old_table}` TO `{$new_table}`" );
+		if ( self::legacy_workflows_table() === $old_exists && LAUNCHDEK_Checklist_Repository::table() !== $new_exists ) {
+			$wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+				$wpdb->prepare(
+					'RENAME TABLE %i TO %i', // phpcs:ignore WordPress.DB.DirectDatabaseQuery.SchemaChange
+					self::legacy_workflows_table(),
+					LAUNCHDEK_Checklist_Repository::table()
+				)
+			);
 		}
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-		$column = $wpdb->get_results( "SHOW COLUMNS FROM `{$runs_table}` LIKE 'workflow_id'" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		$column = $wpdb->get_results(
+			$wpdb->prepare(
+				'SHOW COLUMNS FROM %i LIKE %s',
+				LAUNCHDEK_Run_Repository::table(),
+				'workflow_id'
+			)
+		);
 
 		if ( ! empty( $column ) ) {
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.NotPrepared
-			$wpdb->query( "ALTER TABLE `{$runs_table}` CHANGE `workflow_id` `checklist_id` bigint(20) unsigned NOT NULL" );
+			$wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+				$wpdb->prepare(
+					'ALTER TABLE %i CHANGE `workflow_id` `checklist_id` bigint(20) unsigned NOT NULL', // phpcs:ignore WordPress.DB.DirectDatabaseQuery.SchemaChange
+					LAUNCHDEK_Run_Repository::table()
+				)
+			);
 		}
 
 		LAUNCHDEK_Capabilities::migrate_workflow_caps();
+	}
+
+	/**
+	 * Legacy workflows table name (pre-1.1.0 migrations only).
+	 *
+	 * @return string
+	 */
+	private static function legacy_workflows_table() {
+		global $wpdb;
+
+		return $wpdb->prefix . 'launchdek_workflows';
 	}
 
 	/**
@@ -354,7 +444,12 @@ class LAUNCHDEK_Installer {
 		);
 
 		foreach ( $tables as $table ) {
-			$wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}{$table}" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			$wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
+				$wpdb->prepare(
+					'DROP TABLE IF EXISTS %i', // phpcs:ignore WordPress.DB.DirectDatabaseQuery.SchemaChange
+					$wpdb->prefix . $table
+				)
+			);
 		}
 
 		delete_option( self::DB_VERSION_OPTION );

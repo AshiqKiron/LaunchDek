@@ -191,8 +191,8 @@ class LAUNCHDEK_Capabilities {
 	public static function get_agency_role_presets() {
 		return array(
 			'admin'     => array(
-				'label'       => __( 'Admin', LAUNCHDEK_TEXT_DOMAIN ),
-				'description' => __( 'Full platform access — manage sites, checklists, settings, and audit logs.', LAUNCHDEK_TEXT_DOMAIN ),
+				'label'       => __( 'Admin', 'launchdek' ),
+				'description' => __( 'Full platform access — manage sites, checklists, settings, and audit logs.', 'launchdek' ),
 				'caps'        => array(
 					self::VIEW_DASHBOARD,
 					self::MANAGE_SITES,
@@ -203,8 +203,8 @@ class LAUNCHDEK_Capabilities {
 				),
 			),
 			'developer' => array(
-				'label'       => __( 'Developer', LAUNCHDEK_TEXT_DOMAIN ),
-				'description' => __( 'Operational access — manage sites, build checklists, and execute runs.', LAUNCHDEK_TEXT_DOMAIN ),
+				'label'       => __( 'Developer', 'launchdek' ),
+				'description' => __( 'Operational access — manage sites, build checklists, and execute runs.', 'launchdek' ),
 				'caps'        => array(
 					self::VIEW_DASHBOARD,
 					self::MANAGE_SITES,
@@ -213,8 +213,8 @@ class LAUNCHDEK_Capabilities {
 				),
 			),
 			'auditor'   => array(
-				'label'       => __( 'Auditor', LAUNCHDEK_TEXT_DOMAIN ),
-				'description' => __( 'Read-only oversight — view dashboard activity and immutable audit logs.', LAUNCHDEK_TEXT_DOMAIN ),
+				'label'       => __( 'Auditor', 'launchdek' ),
+				'description' => __( 'Read-only oversight — view dashboard activity and immutable audit logs.', 'launchdek' ),
 				'caps'        => array(
 					self::VIEW_DASHBOARD,
 					self::VIEW_AUDIT,
@@ -230,12 +230,12 @@ class LAUNCHDEK_Capabilities {
 	 */
 	public static function get_capability_labels() {
 		return array(
-			self::VIEW_DASHBOARD    => __( 'View Dashboard', LAUNCHDEK_TEXT_DOMAIN ),
-			self::MANAGE_SITES      => __( 'Manage Sites', LAUNCHDEK_TEXT_DOMAIN ),
-			self::EDIT_CHECKLISTS    => __( 'Edit Checklists', LAUNCHDEK_TEXT_DOMAIN ),
-			self::EXECUTE_CHECKLISTS => __( 'Execute Checklists', LAUNCHDEK_TEXT_DOMAIN ),
-			self::VIEW_AUDIT        => __( 'View Audit Log', LAUNCHDEK_TEXT_DOMAIN ),
-			self::MANAGE_SETTINGS   => __( 'Manage Settings', LAUNCHDEK_TEXT_DOMAIN ),
+			self::VIEW_DASHBOARD    => __( 'View Dashboard', 'launchdek' ),
+			self::MANAGE_SITES      => __( 'Manage Sites', 'launchdek' ),
+			self::EDIT_CHECKLISTS    => __( 'Edit Checklists', 'launchdek' ),
+			self::EXECUTE_CHECKLISTS => __( 'Execute Checklists', 'launchdek' ),
+			self::VIEW_AUDIT        => __( 'View Audit Log', 'launchdek' ),
+			self::MANAGE_SETTINGS   => __( 'Manage Settings', 'launchdek' ),
 		);
 	}
 }

@@ -527,7 +527,7 @@ class LAUNCHDEK_Client_Run_Store {
 	 * @return string
 	 */
 	public static function get_default_panel_title() {
-		return __( 'Agency Checklist', LAUNCHDEK_CLIENT_TEXT_DOMAIN );
+		return __( 'Agency Checklist', 'launchdek' );
 	}
 
 	/**

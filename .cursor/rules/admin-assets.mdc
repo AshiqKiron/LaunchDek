@@ -14,7 +14,7 @@ alwaysApply: false
 - DOM helpers: `el( tag, attrs, children )`, `fillSelect( select, items, valueKey, labelKey, placeholder )`; notices via `notice( container, message, type )` — renders WordPress core `.notice` / `.notice-error` / `.notice-success` with `<p>` wrapper; pass empty message to clear.
 - Scope queries to `.launchdek-admin` or `[data-launchdek-page]`.
 - No jQuery unless WordPress already loads it.
-- On `DOMContentLoaded`: set `data-launchdek-ready="true"`, then call global modal inits (`initTemplatePicker`, `initOnboarding`, `initConfirmModal`) before page inits; `initSettings()` runs last.
+- On `DOMContentLoaded`: set `data-launchdek-ready="true"`, then call global inits (`initTemplatePicker`, `initOnboarding`, `initConfirmModal`, `initFieldTooltips`) before page inits; `initSettings()` runs last.
 
 ### Global modal inits (any screen with modal markup)
 
@@ -23,6 +23,7 @@ alwaysApply: false
 | `initTemplatePicker()` | `#launchdek-template-picker-modal` | Runs when modal partial is present; exposes `window.launchdekOpenTemplatePicker(callbacks)` |
 | `initOnboarding()` | `#launchdek-onboarding-modal` | Runs when modal partial is present; exposes `window.launchdekOpenOnboarding()` |
 | `initConfirmModal()` | `#launchdek-wp-confirm-root` | Always runs on plugin screens; mounts `wp.components.__experimentalConfirmDialog` via `wp.element.createRoot()`; `openConfirmModal({ message, title?, confirmText?, destructive?, onConfirm })` — pauses open `.launchdek-modal` nodes while open, supports async `onConfirm` Promise, falls back to `window.confirm()` when ConfirmDialog unavailable |
+| `initFieldTooltips()` | `#launchdek-field-tooltip` | Always runs on plugin screens; fixed-position portal for `.launchdek-has-tooltip` / `data-tooltip` (Settings, Integrations section headings, builder field info) — avoids overflow clipping in sidebars and tables |
 
 ### Page init functions
 
@@ -41,7 +42,7 @@ Billing page (`data-launchdek-page="billing"`) has no dedicated page init — st
 
 ### Plan gating (all plugin screens)
 
-Localized on every plugin screen: `launchdekAdmin.billing` (`LAUNCHDEK_Licensing::get_summary()` — `can_auto_capture`, `can_vault`, `can_add_site`, etc.), `launchdekAdmin.billingUrl`, strings `billingProRequired`, `billingViewPlans`, `billingSiteLimit`. Community gates:
+Localized on every plugin screen: `launchdekAdmin.billing` (`LAUNCHDEK_Licensing::get_summary()` — `can_auto_capture`, `can_vault`, `can_add_site`, etc.), billing gate strings `billingProRequired`, `billingViewPlans`, `billingSiteLimit`; `billingUrl` only when `launchdek_includes_pro_package()`. Community gates:
 
 - `initAutoCapture()` — no-ops when Auto-Capture markup is absent (Community omits tab/panel in PHP).
 - `loadVaultTemplates()` — no-ops when `#launchdek-vault-list` is absent (Community omits vault card in PHP).
@@ -171,6 +172,13 @@ Key elements: `#launchdek-template-picker-filters`, `#launchdek-template-picker-
 	adminUrl: string,
 	pageSlug: string,
 	roles: object,      // WP role slug => translated label (for step target_roles UI)
+	billing: object,    // LAUNCHDEK_Licensing::get_summary() — all plugin screens
+	billingUrl?: string, // admin Billing page URL — only when launchdek_includes_pro_package()
+	templates?: {       // dashboard, checklists, settings — template picker / built-in grid preload
+		preloaded: boolean,
+		builtin: array,
+		categories: object
+	},
 	dashboard: {              // present only on dashboard screen (toplevel_page_{slug})
 		stats: object,        // sites_connected, active_checklists, runs_in_progress, completion_rate
 		connections: object,  // healthy, unhealthy, unknown, total
@@ -310,7 +318,7 @@ Prefix all selectors with `.launchdek-`.
 | `.launchdek-template-steps-preview`, `.launchdek-template-steps-toggle`, `.launchdek-template-steps-list` | Step preview on template cards (hover or toggle) |
 | `.launchdek-connector-list`, `.launchdek-connector-row`, `.launchdek-connector-meta`, `.launchdek-connector-sync-count`, `.launchdek-connector-actions`, `#launchdek-connectors-notice`, `#launchdek-connector-modal`, `#launchdek-connector-sync`, `#launchdek-connector-preview`, `#launchdek-connector-push`, `#launchdek-telemetry-notice` | Platform Connectors Hub + inline notices + setup modal actions |
 | `#launchdek-telemetry-rules-table` | Telemetry sync mapping rules table |
-| `.launchdek-card-heading-row--info-first`, `.launchdek-field-info`, `.launchdek-has-tooltip` | Section heading info tooltips on Settings and Integrations (`data-tooltip`; card rows use tooltip below icon via `.launchdek-card-heading-row .launchdek-field-info.launchdek-has-tooltip::after`) |
+| `.launchdek-card-heading-row--info-first`, `.launchdek-field-info`, `.launchdek-has-tooltip`, `#launchdek-field-tooltip`, `.launchdek-field-tooltip-portal` | Section heading and builder field info tooltips (`data-tooltip`; card rows use tooltip below icon via `.launchdek-card-heading-row .launchdek-field-info.launchdek-has-tooltip::after`); fixed portal rendered by `initFieldTooltips()` |
 | `.launchdek-integration-card` | Legacy integration card style (prefer connector list) |
 | `.launchdek-import-export` | Checklist import/export controls |
 | `.launchdek-settings-*`, `.launchdek-settings-nav`, `.launchdek-settings-tab-panel`, `.launchdek-settings-exclude-options`, `.launchdek-settings-exclude-hints`, `.launchdek-settings-exclude-hints-label`, `.launchdek-settings-exclude-common-fields`, `.launchdek-settings-panel-layout-picker`, `.launchdek-settings-panel-layout-controls`, `.launchdek-settings-panel-layout-select`, `.launchdek-panel-layout-preview`, `.launchdek-panel-layout-preview-frame`, `.launchdek-panel-layout-preview-description`, `.launchdek-settings-email-events`, `.launchdek-settings-email-event`, `.launchdek-settings-email-address` | Settings page nav tabs + cards, toggles, exclude-options textarea (`#launchdek-exclude-options`; value via `LAUNCHDEK_Settings::format_exclude_options_textarea()`; common-field hints list), client panel layout picker (`#launchdek-panel-layout`, `#launchdek-panel-layout-preview` with `data-layout`), webhook channels, email notifications (`#launchdek-email-notification-address`), role presets, perm table |
@@ -327,7 +335,7 @@ Hub admin CSS uses stacked toolbars/forms and horizontal scroll on wide tables b
 
 ## Partials (`admin/partials/`)
 
-Thin shells only — no business logic. Each page partial sets `data-launchdek-page` on `.launchdek-admin` root (including `settings` and `billing`). Settings page uses Settings API form, not REST-driven CRUD. Billing page is static PHP (three-column feature comparison + purchase CTAs); no modal partials.
+Thin shells only — no business logic. Each page partial sets `data-launchdek-page` on `.launchdek-admin` root (including `settings`; `billing` only when `launchdek_includes_pro_package()`). Settings page uses Settings API form, not REST-driven CRUD. Billing page is static PHP (three-column feature comparison + purchase CTAs); no modal partials; submenu omitted on Community builds.
 
 Shared modal partials (require at end of page partial, do not duplicate markup):
 

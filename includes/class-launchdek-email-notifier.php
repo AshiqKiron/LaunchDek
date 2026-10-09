@@ -88,7 +88,7 @@ class LAUNCHDEK_Email_Notifier {
 		$label  = $labels[ $event ]['label'] ?? $event;
 
 		/* translators: 1: event label */
-		$subject = sprintf( __( 'LaunchDek: %s', LAUNCHDEK_TEXT_DOMAIN ), $label );
+		$subject = sprintf( __( 'LaunchDek: %s', 'launchdek' ), $label );
 
 		if ( ! empty( $data['site_name'] ) ) {
 			$subject .= ' — ' . $data['site_name'];
@@ -114,62 +114,62 @@ class LAUNCHDEK_Email_Notifier {
 		$lines  = array();
 
 		/* translators: 1: event label */
-		$lines[] = sprintf( __( 'LaunchDek alert: %s', LAUNCHDEK_TEXT_DOMAIN ), $label );
+		$lines[] = sprintf( __( 'LaunchDek alert: %s', 'launchdek' ), $label );
 		$lines[] = '';
 
 		if ( ! empty( $data['site_name'] ) ) {
 			/* translators: %s: site name */
-			$lines[] = sprintf( __( 'Site: %s', LAUNCHDEK_TEXT_DOMAIN ), $data['site_name'] );
+			$lines[] = sprintf( __( 'Site: %s', 'launchdek' ), $data['site_name'] );
 		}
 
 		if ( ! empty( $data['site_url'] ) ) {
 			/* translators: %s: site URL */
-			$lines[] = sprintf( __( 'URL: %s', LAUNCHDEK_TEXT_DOMAIN ), $data['site_url'] );
+			$lines[] = sprintf( __( 'URL: %s', 'launchdek' ), $data['site_url'] );
 		}
 
 		if ( ! empty( $data['checklist'] ) ) {
 			/* translators: %s: checklist title */
-			$lines[] = sprintf( __( 'Checklist: %s', LAUNCHDEK_TEXT_DOMAIN ), $data['checklist'] );
+			$lines[] = sprintf( __( 'Checklist: %s', 'launchdek' ), $data['checklist'] );
 		}
 
 		if ( ! empty( $data['step_title'] ) ) {
 			/* translators: %s: step title */
-			$lines[] = sprintf( __( 'Step: %s', LAUNCHDEK_TEXT_DOMAIN ), $data['step_title'] );
+			$lines[] = sprintf( __( 'Step: %s', 'launchdek' ), $data['step_title'] );
 		}
 
 		if ( ! empty( $data['client_user'] ) ) {
 			/* translators: %s: client user display name */
-			$lines[] = sprintf( __( 'Completed by: %s', LAUNCHDEK_TEXT_DOMAIN ), $data['client_user'] );
+			$lines[] = sprintf( __( 'Completed by: %s', 'launchdek' ), $data['client_user'] );
 		}
 
 		if ( ! empty( $data['note'] ) ) {
 			/* translators: %s: note excerpt */
-			$lines[] = sprintf( __( 'Note: %s', LAUNCHDEK_TEXT_DOMAIN ), wp_trim_words( $data['note'], 40, '…' ) );
+			$lines[] = sprintf( __( 'Note: %s', 'launchdek' ), wp_trim_words( $data['note'], 40, '…' ) );
 		}
 
 		if ( ! empty( $data['drift_summary'] ) ) {
 			/* translators: %s: comma-separated setting labels */
-			$lines[] = sprintf( __( 'Drift: %s', LAUNCHDEK_TEXT_DOMAIN ), $data['drift_summary'] );
+			$lines[] = sprintf( __( 'Drift: %s', 'launchdek' ), $data['drift_summary'] );
 		}
 
 		if ( ! empty( $data['error'] ) ) {
 			/* translators: %s: error message */
-			$lines[] = sprintf( __( 'Error: %s', LAUNCHDEK_TEXT_DOMAIN ), $data['error'] );
+			$lines[] = sprintf( __( 'Error: %s', 'launchdek' ), $data['error'] );
 		}
 
 		if ( ! empty( $data['started_by_name'] ) ) {
 			/* translators: %s: user display name */
-			$lines[] = sprintf( __( 'Started by: %s', LAUNCHDEK_TEXT_DOMAIN ), $data['started_by_name'] );
+			$lines[] = sprintf( __( 'Started by: %s', 'launchdek' ), $data['started_by_name'] );
 		}
 
 		if ( ! empty( $data['started_at'] ) ) {
 			/* translators: %s: datetime */
-			$lines[] = sprintf( __( 'Started: %s', LAUNCHDEK_TEXT_DOMAIN ), $data['started_at'] );
+			$lines[] = sprintf( __( 'Started: %s', 'launchdek' ), $data['started_at'] );
 		}
 
 		if ( ! empty( $data['completed_at'] ) ) {
 			/* translators: %s: datetime */
-			$lines[] = sprintf( __( 'Completed: %s', LAUNCHDEK_TEXT_DOMAIN ), $data['completed_at'] );
+			$lines[] = sprintf( __( 'Completed: %s', 'launchdek' ), $data['completed_at'] );
 		}
 
 		if ( ! empty( $data['run_id'] ) ) {
@@ -178,12 +178,12 @@ class LAUNCHDEK_Email_Notifier {
 			);
 			$lines[] = '';
 			/* translators: %s: admin URL */
-			$lines[] = sprintf( __( 'View run: %s', LAUNCHDEK_TEXT_DOMAIN ), $run_url );
+			$lines[] = sprintf( __( 'View run: %s', 'launchdek' ), $run_url );
 		}
 
 		$lines[] = '';
 		/* translators: %s: site name */
-		$lines[] = sprintf( __( 'Sent from %s', LAUNCHDEK_TEXT_DOMAIN ), get_bloginfo( 'name' ) );
+		$lines[] = sprintf( __( 'Sent from %s', 'launchdek' ), get_bloginfo( 'name' ) );
 
 		return implode( "\n", $lines );
 	}

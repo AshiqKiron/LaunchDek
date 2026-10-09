@@ -25,19 +25,19 @@ class LAUNCHDEK_Checklist_Runner {
 		$site = LAUNCHDEK_Site_Repository::find( $site_id );
 
 		if ( ! $site ) {
-			return new WP_Error( 'launchdek_site_not_found', __( 'Site not found.', LAUNCHDEK_TEXT_DOMAIN ) );
+			return new WP_Error( 'launchdek_site_not_found', __( 'Site not found.', 'launchdek' ) );
 		}
 
 		$checklist = LAUNCHDEK_Checklist_Repository::find( $checklist_id );
 
 		if ( ! $checklist ) {
-			return new WP_Error( 'launchdek_checklist_not_found', __( 'Checklist not found.', LAUNCHDEK_TEXT_DOMAIN ) );
+			return new WP_Error( 'launchdek_checklist_not_found', __( 'Checklist not found.', 'launchdek' ) );
 		}
 
 		$run_id = LAUNCHDEK_Run_Repository::create( $checklist_id, $site_id );
 
 		if ( ! $run_id ) {
-			return new WP_Error( 'launchdek_run_failed', __( 'Failed to create run.', LAUNCHDEK_TEXT_DOMAIN ) );
+			return new WP_Error( 'launchdek_run_failed', __( 'Failed to create run.', 'launchdek' ) );
 		}
 
 		return array(
@@ -88,13 +88,13 @@ class LAUNCHDEK_Checklist_Runner {
 		$run = LAUNCHDEK_Run_Repository::find( $run_id );
 
 		if ( ! $run ) {
-			return new WP_Error( 'launchdek_run_not_found', __( 'Run not found.', LAUNCHDEK_TEXT_DOMAIN ) );
+			return new WP_Error( 'launchdek_run_not_found', __( 'Run not found.', 'launchdek' ) );
 		}
 
 		$checklist = LAUNCHDEK_Checklist_Repository::find( $run['checklist_id'] );
 
 		if ( ! $checklist ) {
-			return new WP_Error( 'launchdek_checklist_not_found', __( 'Checklist not found.', LAUNCHDEK_TEXT_DOMAIN ) );
+			return new WP_Error( 'launchdek_checklist_not_found', __( 'Checklist not found.', 'launchdek' ) );
 		}
 
 		foreach ( $run['steps'] as $step ) {
@@ -115,7 +115,7 @@ class LAUNCHDEK_Checklist_Runner {
 
 		return array(
 			'success' => true,
-			'message' => __( 'All steps processed.', LAUNCHDEK_TEXT_DOMAIN ),
+			'message' => __( 'All steps processed.', 'launchdek' ),
 			'run'     => LAUNCHDEK_Run_Repository::find( $run_id ),
 		);
 	}
