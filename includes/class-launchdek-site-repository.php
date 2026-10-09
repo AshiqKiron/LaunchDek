@@ -15,6 +15,27 @@ if ( ! defined( 'ABSPATH' ) ) {
 class LAUNCHDEK_Site_Repository {
 
 	/**
+	 * Default sites list page size.
+	 *
+	 * @var int
+	 */
+	const LIST_DEFAULT_LIMIT = 500;
+
+	/**
+	 * Maximum sites list page size.
+	 *
+	 * @var int
+	 */
+	const LIST_MAX_LIMIT = 1000;
+
+	/**
+	 * Quick-launch picker cap.
+	 *
+	 * @var int
+	 */
+	const PICKER_LIMIT = 500;
+
+	/**
 	 * Get table name.
 	 *
 	 * @return string
@@ -333,17 +354,17 @@ class LAUNCHDEK_Site_Repository {
 			'group_type' => '',
 			'health'     => '',
 			'search'     => '',
-			'limit'      => 100,
+			'limit'      => self::LIST_DEFAULT_LIMIT,
 			'offset'     => 0,
 		);
 
 		$args  = wp_parse_args( $args, $defaults );
 		$parts = self::build_list_query_parts( $args );
-		$sql   = 'SELECT s.* ' . $parts['from_where'] . ' ORDER BY s.name ASC LIMIT %d OFFSET %d';
+		$sql   = 'SELECT ' . self::list_select_columns() . ' ' . $parts['from_where'] . ' ORDER BY s.name ASC LIMIT %d OFFSET %d';
 		$vals  = array_merge(
 			$parts['vals'],
 			array(
-				max( 1, absint( $args['limit'] ) ),
+				min( self::LIST_MAX_LIMIT, max( 1, absint( $args['limit'] ) ) ),
 				max( 0, absint( $args['offset'] ) ),
 			)
 		);
@@ -352,7 +373,7 @@ class LAUNCHDEK_Site_Repository {
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- FROM/WHERE built in build_list_query_parts(); filter values in $vals.
 		$rows     = $wpdb->get_results( $prepared, ARRAY_A );
 
-		return is_array( $rows ) ? array_map( array( __CLASS__, 'format' ), $rows ) : array();
+		return is_array( $rows ) ? self::format_list( $rows ) : array();
 	}
 
 	/**
@@ -366,8 +387,9 @@ class LAUNCHDEK_Site_Repository {
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Plugin-owned table name; static picker query.
 		$rows = $wpdb->get_results(
 			$wpdb->prepare(
-				'SELECT id, name FROM %i ORDER BY name ASC LIMIT 100',
-				self::table()
+				'SELECT id, name FROM %i ORDER BY name ASC LIMIT %d',
+				self::table(),
+				self::PICKER_LIMIT
 			),
 			ARRAY_A
 		);
@@ -718,19 +740,107 @@ class LAUNCHDEK_Site_Repository {
 	 * @return array
 	 */
 	public static function get_tags( $site_id ) {
+		$map = self::get_tags_map( array( absint( $site_id ) ) );
+
+		return $map[ absint( $site_id ) ] ?? array();
+	}
+
+	/**
+	 * Batch-load tags for many sites (avoids N+1 queries on list screens).
+	 *
+	 * @param int[] $site_ids Site IDs.
+	 * @return array<int, array<int, array{tag:string, group_type:string}>>
+	 */
+	public static function get_tags_map( array $site_ids ) {
 		global $wpdb;
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Plugin-owned table name; site ID via prepare().
-		$rows = $wpdb->get_results(
-			$wpdb->prepare(
-				'SELECT tag, group_type FROM %i WHERE site_id = %d ORDER BY group_type, tag',
-				self::tags_table(),
-				absint( $site_id )
-			),
-			ARRAY_A
+		$site_ids = array_values( array_filter( array_map( 'absint', $site_ids ) ) );
+		$map      = array();
+
+		if ( empty( $site_ids ) ) {
+			return $map;
+		}
+
+		foreach ( $site_ids as $site_id ) {
+			$map[ $site_id ] = array();
+		}
+
+		$placeholders = implode( ',', array_fill( 0, count( $site_ids ), '%d' ) );
+		$prepared     = $wpdb->prepare(
+			'SELECT site_id, tag, group_type FROM ' . self::tags_table() . ' WHERE site_id IN (' . $placeholders . ') ORDER BY site_id ASC, group_type ASC, tag ASC', // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Table from tags_table(); site_id IN list uses %d placeholders only.
+			...$site_ids
 		);
 
-		return is_array( $rows ) ? $rows : array();
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter
+		$rows = $wpdb->get_results( $prepared, ARRAY_A );
+
+		if ( ! is_array( $rows ) ) {
+			return $map;
+		}
+
+		foreach ( $rows as $row ) {
+			$site_id = (int) $row['site_id'];
+			if ( ! isset( $map[ $site_id ] ) ) {
+				$map[ $site_id ] = array();
+			}
+			$map[ $site_id ][] = array(
+				'tag'        => (string) $row['tag'],
+				'group_type' => (string) $row['group_type'],
+			);
+		}
+
+		return $map;
+	}
+
+	/**
+	 * Column list for site list queries (excludes encrypted credential blob).
+	 *
+	 * @return string
+	 */
+	private static function list_select_columns() {
+		return "s.id, s.name, s.url, s.admin_username, s.wp_version, s.php_version, s.health_status, s.last_ping_at, s.last_error, s.client_agent, s.integration_source, s.external_id, s.created_at, s.updated_at, (CASE WHEN TRIM(s.app_password_enc) <> '' THEN 1 ELSE 0 END) AS has_credentials_flag";
+	}
+
+	/**
+	 * Whether a raw row has stored credentials without decrypting the vault.
+	 *
+	 * @param array $row Raw DB row.
+	 * @return bool
+	 */
+	public static function row_has_stored_credentials( array $row ) {
+		if ( array_key_exists( 'has_credentials_flag', $row ) ) {
+			return ! empty( $row['has_credentials_flag'] );
+		}
+
+		return '' !== trim( (string) ( $row['app_password_enc'] ?? '' ) );
+	}
+
+	/**
+	 * Format many site rows with batched tag lookups.
+	 *
+	 * @param array $rows Raw rows.
+	 * @return array
+	 */
+	public static function format_list( array $rows ) {
+		if ( empty( $rows ) ) {
+			return array();
+		}
+
+		$tags_map = self::get_tags_map( wp_list_pluck( $rows, 'id' ) );
+		$out      = array();
+
+		foreach ( $rows as $row ) {
+			$site_id = (int) $row['id'];
+			$out[]   = self::format(
+				$row,
+				array(
+					'tags'            => $tags_map[ $site_id ] ?? array(),
+					'list_credentials' => true,
+				)
+			);
+		}
+
+		return $out;
 	}
 
 	/**
@@ -858,12 +968,27 @@ class LAUNCHDEK_Site_Repository {
 	/**
 	 * Format site row for output (no password).
 	 *
-	 * @param array $row Raw row.
+	 * @param array $row     Raw row.
+	 * @param array $context Optional preloaded tags or list credential flag.
 	 * @return array
 	 */
-	public static function format( $row ) {
+	public static function format( $row, $context = array() ) {
+		$site_id = (int) $row['id'];
+
+		if ( isset( $context['tags'] ) && is_array( $context['tags'] ) ) {
+			$tags = $context['tags'];
+		} else {
+			$tags = self::get_tags( $site_id );
+		}
+
+		if ( ! empty( $context['list_credentials'] ) ) {
+			$has_credentials = self::row_has_stored_credentials( $row );
+		} else {
+			$has_credentials = '' !== trim( LAUNCHDEK_Credential_Vault::decrypt( $row['app_password_enc'] ?? '' ) );
+		}
+
 		return array(
-			'id'            => (int) $row['id'],
+			'id'            => $site_id,
 			'name'          => $row['name'],
 			'url'           => $row['url'],
 			'admin_username' => $row['admin_username'],
@@ -875,8 +1000,8 @@ class LAUNCHDEK_Site_Repository {
 			'client_agent'        => ! empty( $row['client_agent'] ),
 			'integration_source'  => (string) ( $row['integration_source'] ?? '' ),
 			'external_id'         => (string) ( $row['external_id'] ?? '' ),
-			'has_credentials'     => '' !== trim( LAUNCHDEK_Credential_Vault::decrypt( $row['app_password_enc'] ?? '' ) ),
-			'tags'                => self::get_tags( (int) $row['id'] ),
+			'has_credentials'     => $has_credentials,
+			'tags'                => $tags,
 			'created_at'    => $row['created_at'],
 			'updated_at'    => $row['updated_at'],
 		);

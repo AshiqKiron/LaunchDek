@@ -265,14 +265,13 @@ class LAUNCHDEK_Run_Repository {
 		global $wpdb;
 
 		$in_placeholders = implode( ', ', array_fill( 0, count( $run_ids ), '%d' ) );
-
-		$prepared = $wpdb->prepare(
-			'SELECT run_id, COUNT(*) AS steps_total, SUM( CASE WHEN status = %s THEN 1 ELSE 0 END ) AS steps_completed, SUM( CASE WHEN status = %s THEN 1 ELSE 0 END ) AS steps_failed, MAX( completed_at ) AS last_step_completed_at FROM %i WHERE run_id IN (' . $in_placeholders . ') GROUP BY run_id', // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Plugin-owned table via %i; run_id IN list uses %d placeholders only.
-			'completed',
-			'failed',
-			self::steps_table(),
-			...$run_ids
+		$sql             = 'SELECT run_id, COUNT(*) AS steps_total, SUM( CASE WHEN status = %s THEN 1 ELSE 0 END ) AS steps_completed, SUM( CASE WHEN status = %s THEN 1 ELSE 0 END ) AS steps_failed, MAX( completed_at ) AS last_step_completed_at FROM %i WHERE run_id IN (' . $in_placeholders . ') GROUP BY run_id';
+		$query_vals      = array_merge(
+			array( 'completed', 'failed', self::steps_table() ),
+			$run_ids
 		);
+
+		$prepared = $wpdb->prepare( $sql, $query_vals ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber -- Plugin-owned table via %i; run_id IN list uses %d placeholders only.
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter
 		$rows = $wpdb->get_results( $prepared, ARRAY_A );
@@ -426,13 +425,24 @@ class LAUNCHDEK_Run_Repository {
 	 * @return float
 	 */
 	public static function completion_rate() {
-		$total = self::count_by_status();
+		global $wpdb;
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Plugin-owned table; single aggregate query.
+		$row = $wpdb->get_row(
+			$wpdb->prepare(
+				'SELECT COUNT(*) AS total, SUM( CASE WHEN status = %s THEN 1 ELSE 0 END ) AS completed FROM %i WHERE is_archived = 0',
+				'completed',
+				self::table()
+			),
+			ARRAY_A
+		);
+
+		$total = is_array( $row ) ? (int) ( $row['total'] ?? 0 ) : 0;
 		if ( 0 === $total ) {
 			return 0.0;
 		}
 
-		$completed = self::count_by_status( 'completed' );
+		$completed = (int) ( $row['completed'] ?? 0 );
 
 		return round( ( $completed / $total ) * 100, 1 );
 	}

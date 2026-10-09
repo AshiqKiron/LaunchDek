@@ -19,7 +19,7 @@ class LAUNCHDEK_Installer {
 	 *
 	 * @var string
 	 */
-	const DB_VERSION = '1.5.0';
+	const DB_VERSION = '1.6.0';
 
 	/**
 	 * Option key storing installed DB version.
@@ -71,6 +71,77 @@ class LAUNCHDEK_Installer {
 		if ( '' === $installed || version_compare( $installed, '1.5.0', '<' ) ) {
 			self::migrate_site_integration_columns();
 		}
+
+		if ( '' === $installed || version_compare( $installed, '1.6.0', '<' ) ) {
+			self::migrate_performance_indexes();
+		}
+	}
+
+	/**
+	 * Add composite indexes for list, history, and audit queries at scale.
+	 *
+	 * @return void
+	 */
+	protected static function migrate_performance_indexes() {
+		self::add_index_if_missing(
+			LAUNCHDEK_Run_Repository::table(),
+			'site_history',
+			'site_id, is_archived, started_at'
+		);
+		self::add_index_if_missing(
+			LAUNCHDEK_Run_Repository::table(),
+			'status_archived',
+			'status, is_archived'
+		);
+		self::add_index_if_missing(
+			LAUNCHDEK_Run_Repository::steps_table(),
+			'run_step',
+			'run_id, step_index'
+		);
+		self::add_index_if_missing(
+			LAUNCHDEK_Audit_Log::table_name(),
+			'site_created',
+			'site_id, created_at'
+		);
+		self::add_index_if_missing(
+			LAUNCHDEK_Site_Repository::tags_table(),
+			'group_tag_site',
+			'group_type, tag, site_id'
+		);
+
+		if ( class_exists( 'LAUNCHDEK_Dashboard_Cache' ) ) {
+			LAUNCHDEK_Dashboard_Cache::invalidate_sites_list();
+			LAUNCHDEK_Dashboard_Cache::invalidate_quick_launch_picker();
+		}
+	}
+
+	/**
+	 * Create a secondary index when missing (idempotent upgrades).
+	 *
+	 * @param string $table       Plugin table name.
+	 * @param string $index_name  Index identifier.
+	 * @param string $columns_sql Comma-separated column list (trusted).
+	 * @return void
+	 */
+	protected static function add_index_if_missing( $table, $index_name, $columns_sql ) {
+		global $wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$existing = $wpdb->get_results(
+			$wpdb->prepare(
+				'SHOW INDEX FROM %i WHERE Key_name = %s',
+				$table,
+				$index_name
+			)
+		);
+
+		if ( ! empty( $existing ) ) {
+			return;
+		}
+
+		$wpdb->query( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, PluginCheck.Security.DirectDB.UnescapedDBParameter
+			'ALTER TABLE `' . esc_sql( $table ) . '` ADD KEY `' . esc_sql( $index_name ) . '` (' . $columns_sql . ')' // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.DirectDatabaseQuery.SchemaChange, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Index columns are code-defined only.
+		);
 	}
 
 	/**
@@ -334,7 +405,8 @@ class LAUNCHDEK_Installer {
 			PRIMARY KEY  (id),
 			KEY site_id (site_id),
 			KEY group_type (group_type),
-			KEY tag (tag)
+			KEY tag (tag),
+			KEY group_tag_site (group_type, tag, site_id)
 		) {$charset_collate};
 
 		CREATE TABLE {$checklists} (
@@ -371,7 +443,9 @@ class LAUNCHDEK_Installer {
 			KEY site_id (site_id),
 			KEY status (status),
 			KEY started_at (started_at),
-			KEY is_archived (is_archived)
+			KEY is_archived (is_archived),
+			KEY site_history (site_id, is_archived, started_at),
+			KEY status_archived (status, is_archived)
 		) {$charset_collate};
 
 		CREATE TABLE {$run_steps} (
@@ -390,7 +464,8 @@ class LAUNCHDEK_Installer {
 			completed_at datetime DEFAULT NULL,
 			PRIMARY KEY  (id),
 			KEY run_id (run_id),
-			KEY status (status)
+			KEY status (status),
+			KEY run_step (run_id, step_index)
 		) {$charset_collate};
 
 		CREATE TABLE {$audit} (
@@ -407,7 +482,8 @@ class LAUNCHDEK_Installer {
 			KEY site_id (site_id),
 			KEY run_id (run_id),
 			KEY action (action),
-			KEY created_at (created_at)
+			KEY created_at (created_at),
+			KEY site_created (site_id, created_at)
 		) {$charset_collate};
 
 		CREATE TABLE {$connections} (

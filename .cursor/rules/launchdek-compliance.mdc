@@ -17,8 +17,9 @@ See `launchdek-project.mdc` (architecture), `launchdek-standards.mdc` (quality),
 - Never expose decrypted Application Passwords or WP Umbrella Public API tokens in REST responses, logs, or audit entries.
 - Store credentials via `LAUNCHDEK_Credential_Vault::encrypt()`; decrypt only at request time in `LAUNCHDEK_Remote_Client` (site app passwords) or WP Umbrella adapter / `LAUNCHDEK_Settings::get_wp_umbrella_api_token()` (hub connector outbound only).
 - Settings API: `sanitize_callback`, `show_in_rest => false`. When adding settings keys updated outside the Settings form (REST, admin-ajax, direct `update_option`), extend `LAUNCHDEK_Settings::sanitize()` so **Save Changes** on Settings does not strip them (`onboarding_dismissed`, `wp_umbrella_api_token_enc`, `custom_site_groups`). Encrypted values (`wp_umbrella_api_token_enc`) must not pass through `sanitize_text_field` — preserve the vault ciphertext (null-byte strip only).
-- Remote requests: validate URLs with `esc_url_raw()`; use `wp_remote_*` with timeouts; handle `WP_Error`.
-- SQL: `$wpdb->prepare()` only; no user input in table names. Plugin-owned tables: resolve names via repository `::table()` / `::steps_table()` helpers and pass with the `%i` identifier placeholder (WP 6.2+). For dynamic `IN (...)` lists, use `%d`/`%s` placeholders only — table names must never come from request input.
+- Remote requests: validate URLs with `esc_url_raw()`; use `wp_remote_*` with timeouts; handle `WP_Error`. Strip HTML from remote/transport error text via `LAUNCHDEK_Remote_Client::sanitize_remote_message()` before connection event logs, `last_error`, or REST/admin-facing messages (`request()`, `test_connection()`, `log_connection()`).
+- Admin JS notices: use `notice()` for plain text (HTML-escaped) or `noticeHtml()` with `escHtml()` / `escAttr()` for trusted inline links — do not inject unescaped API or remote error strings into notice HTML.
+- SQL: `$wpdb->prepare()` only; no user input in table names. Plugin-owned tables: resolve names via repository `::table()` / `::steps_table()` / `LAUNCHDEK_Audit_Log::table_name()` and pass with the `%i` identifier placeholder (WP 6.2+). For dynamic `IN (...)` lists, use `%d`/`%s` placeholders only — table names must never come from request input.
 - Webhook URLs: sanitize with `esc_url_raw()`; only POST on configured user events.
 - Email notification addresses: sanitize via `LAUNCHDEK_Settings::sanitize_email_notification_addresses()` (`sanitize_email` per comma-separated entry); recipients resolved by `get_email_notification_addresses()` (falls back to site admin email when unset).
 
@@ -27,6 +28,7 @@ See `launchdek-project.mdc` (architecture), `launchdek-standards.mdc` (quality),
 - Core automation model: WordPress core REST API + Application Passwords for API checklist steps, connection tests, and drift reads.
 - Client checklist panel (bundled mu-plugin): required on each managed site for checklist UI in client wp-admin; hub auto-deploys to `wp-content/mu-plugins/` when a site is saved or tested with credentials, on initial checklist push, or via manual **Refresh Client Panel** — user-initiated via site registration or run push, not undisclosed. When auto-deploy fails, admin UI surfaces **Client checklist panel setup** (bootstrap download + manual upload + **Retry panel install**). Panel files are whitelisted bundle copies only; install route validates paths and requires hub Application Password auth. Routine step toggles and hub `sync_run()` do not reinstall the bundle (`push_run( $id, false, false )`).
 - Connection tests must not leak credentials in error messages shown to non-privileged users.
+- Client checklist panel UI and client REST routes (`can_view_panel`, `LAUNCHDEK_Client_Run_Store::user_can_view_panel()`) require `read`; `manage_options` always sees the run; with a valid step list, the user must match at least one step `target_roles` (empty `target_roles` = any logged-in user with `read`, same as step completion); empty/malformed snapshots require `edit_posts`; panel assets and render hooks must not load for users who fail this check.
 - Payload mapper must whitelist/validate endpoint paths and methods before remote execution. Mutating `/wp/v2/settings` payloads must pass through `LAUNCHDEK_Payload_Mapper::filter_excluded_payload()` so hub `exclude_options` strip sensitive fields before remote execution; audit `api_step_executed` may include `excluded_fields` when fields were stripped.
 - Checklist `deep_link` values are wp-admin paths — store via `LAUNCHDEK_Admin_Deep_Links::normalize_stored_path()`, not `esc_url_raw()` (which strips bare paths like `options-general.php`). Full URLs are built at display/push time via `LAUNCHDEK_Remote_Client::admin_link()` or client `admin_url()`.
 - Drift verification reads remote state for comparison only — no arbitrary code execution.
@@ -62,7 +64,7 @@ See `launchdek-project.mdc` (architecture), `launchdek-standards.mdc` (quality),
 - [ ] REST routes: capability checks on every endpoint
 - [ ] Credentials encrypted at rest when enabled; never leaked in API responses
 - [ ] Input sanitized; output escaped
-- [ ] SQL prepared in repositories (and `LAUNCHDEK_Audit_Log`); plugin tables via `%i` where supported
+- [ ] SQL prepared in repositories (and `LAUNCHDEK_Audit_Log`); plugin tables via `%i` where supported (`::table()` / `::table_name()` helpers)
 - [ ] Remote calls use timeouts and error handling
 - [ ] Webhooks and email notifications opt-in and user-configured
 - [ ] Uninstall via `LAUNCHDEK_Uninstaller::run()` drops all tables, plugin options, and capabilities (Community `register_uninstall_hook`; full Freemius `after_uninstall`)

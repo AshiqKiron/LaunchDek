@@ -240,11 +240,11 @@
 		return node;
 	}
 
-	function notice(container, message, type) {
+	function noticeHtml(container, innerHtml, type) {
 		if (!container) {
 			return;
 		}
-		if (!message) {
+		if (!innerHtml) {
 			container.innerHTML = '';
 			return;
 		}
@@ -254,7 +254,17 @@
 		} else if (type === 'success') {
 			classes.push('notice-success');
 		}
-		container.innerHTML = '<div class="' + classes.join(' ') + '"><p>' + message + '</p></div>';
+		container.innerHTML = '<div class="' + classes.join(' ') + '"><p>' + innerHtml + '</p></div>';
+	}
+
+	function notice(container, message, type) {
+		if (!message) {
+			if (container) {
+				container.innerHTML = '';
+			}
+			return;
+		}
+		noticeHtml(container, escHtml(message), type);
 	}
 
 	var PANEL_SETUP_SITES = {
@@ -369,6 +379,10 @@
 
 	function escHtml(value) {
 		return String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+	}
+
+	function escAttr(value) {
+		return escHtml(value);
 	}
 
 	function renderDoubleTickIcon() {
@@ -1301,7 +1315,12 @@
 			}
 			post('/runs', { site_id: parseInt(siteId, 10), checklist_id: parseInt(wfId, 10) })
 				.then(function (data) {
-					notice(result, 'Run #' + data.run_id + ' started. <a href="' + launchdekAdmin.adminUrl + '?page=' + launchdekAdmin.pageSlug + '-automation">Open runner →</a>', 'success');
+					var runnerUrl = launchdekAdmin.adminUrl + '?page=' + launchdekAdmin.pageSlug + '-automation';
+					noticeHtml(
+						result,
+						escHtml('Run #' + data.run_id + ' started. ') + '<a href="' + escAttr(runnerUrl) + '">' + escHtml(strings.openRunner || 'Open runner →') + '</a>',
+						'success'
+					);
 					refreshDashboardStats(page).catch(function () {});
 					refreshLogFeed().catch(function () {});
 				})
@@ -3237,7 +3256,11 @@
 							message += ' ' + (strings.clientPushFailed || data.client_push.message);
 						}
 					}
-					notice(result, message + ' <a href="' + automationUrl + '">' + (strings.openRunner || 'Open runner →') + '</a>', 'success');
+					noticeHtml(
+						result,
+						escHtml(message) + ' <a href="' + escAttr(automationUrl) + '">' + escHtml(strings.openRunner || 'Open runner →') + '</a>',
+						'success'
+					);
 					invalidateSiteRunsCache(pushChecklistSiteId);
 				})
 				.catch(function (err) {
@@ -4385,8 +4408,6 @@
 	}
 
 	function sel(val, expected) { return val === expected ? ' selected' : ''; }
-	function escAttr(s) { return String(s).replace(/"/g, '&quot;').replace(/</g, '&lt;'); }
-	function escHtml(s) { return String(s).replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
 
 	function saveStepFromForm() {
 		if (selectedStepIndex === null) return;

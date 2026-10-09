@@ -11,7 +11,7 @@ alwaysApply: false
 - Wrap in an IIFE with `'use strict'`; guard on `typeof launchdekAdmin`.
 - REST helpers: `request()`, `get()`, `post()`, `put()`, `del()` — all send `X-WP-Nonce` header. `buildApiUrl(path)` / `splitApiPath()` / `mergeExtraQuery()` build URLs for pretty (`/wp-json/`) and plain (`?rest_route=`) permalinks; `buildPlainPermalinkFallbackUrl()` retries on `rest_no_route` when pretty permalinks are configured but rewrites are broken (common on local MAMP).
 - Admin-ajax helper: `postAjax( action, data )` — POSTs to `launchdekAdmin.ajaxUrl` with `action`, `wp_rest` `nonce`, and URL-encoded fields (objects JSON-stringified); parses `{ success, data }` JSON responses; treats bare `0`/`-1` body as expired session (`strings.sessionExpired`). Server validates nonce via `LAUNCHDEK_Admin_Ajax::verify_ajax_nonce()` (JSON 403 on failure). Used for integration sync/preview/push, telemetry rules, site run history, and Activity Logs list pagination to avoid full REST bootstrap on memory-constrained installs.
-- DOM helpers: `el( tag, attrs, children )`, `fillSelect( select, items, valueKey, labelKey, placeholder )`; notices via `notice( container, message, type )` — renders WordPress core `.notice` / `.notice-error` / `.notice-success` with `<p>` wrapper; pass empty message to clear.
+- DOM helpers: `el( tag, attrs, children )`, `fillSelect( select, items, valueKey, labelKey, placeholder )`, `escHtml()` / `escAttr()` (shared escaping for dynamic markup); notices via `notice( container, message, type )` (HTML-escapes message) or `noticeHtml( container, innerHtml, type )` for trusted inline markup such as admin links; renders WordPress core `.notice` / `.notice-error` / `.notice-success` with `<p>` wrapper; pass empty message to clear.
 - Scope queries to `.launchdek-admin` or `[data-launchdek-page]`.
 - No jQuery unless WordPress already loads it.
 - On `DOMContentLoaded`: set `data-launchdek-ready="true"`, then call global inits (`initTemplatePicker`, `initOnboarding`, `initConfirmModal`, `initFieldTooltips`) before page inits; `initSettings()` runs last.
@@ -184,8 +184,8 @@ Key elements: `#launchdek-template-picker-filters`, `#launchdek-template-picker-
 		connections: object,  // healthy, unhealthy, unknown, total
 		feed: array,          // latest 15 log entries (FEED_LIMIT)
 		quickLaunch: {        // cached picker options (also rendered server-side in dashboard partial)
-			sites: array,     // { id, name } max 100
-			checklists: array // { id, title } max 100 non-template
+			sites: array,     // { id, name } max 500 (PICKER_LIMIT)
+			checklists: array // { id, title } max 500 non-template
 		}
 	},
 	customChecklists: {         // present only on checklists screen
@@ -194,7 +194,7 @@ Key elements: `#launchdek-template-picker-filters`, `#launchdek-template-picker-
 	},
 	sites: {                    // present only on sites screen
 		preloaded: boolean,
-		list: array,            // dashboard cache sites list payload
+		list: array,            // LAUNCHDEK_Dashboard_Cache::get_sites_list() payload (batched tags, list credential flags)
 		groups: array           // { slug, label, builtin } from get_site_group_catalog()
 	},
 	activityLogs: {             // present only on activity-logs screen
@@ -243,7 +243,7 @@ Key elements: `#launchdek-template-picker-filters`, `#launchdek-template-picker-
 		automationStep1Label, automationStep1Hint, automationStep2Label, automationStep2Hint, automationStep3Label, automationStep3Hint,
 		connected, notDetected, setup, integrationSyncEmptyHint,
 		integrationSyncSummary, integrationPreviewSummary, integrationPushSummary, integrationSyncedSites,
-		pushChecklist, pushChecklistSelect, pushChecklistNeed, pushChecklistStarted, pushChecklistBlocked,
+		pushChecklist, pushChecklistSelect, pushChecklistNeed, pushChecklistStarted, pushChecklistBlocked, openRunner,
 		clientPanelBadge, clientPushOk, clientPushSkipped, clientPushFailed,
 		panelSetupTitle, panelSetupNeeded, panelSetupReady, panelRetryNeedsSave, panelBootstrapDownloaded,
 		editSite, testSite, siteActionsMenu,
@@ -349,7 +349,7 @@ Dashboard and settings include both onboarding + template picker modals (onboard
 
 ## Client panel assets (`mu-plugin/launchdek-client/`)
 
-Bundled mu-plugin admin UI — not loaded by hub `launchdek-admin` handle. Enqueued on remote wp-admin only when `LAUNCHDEK_Client_Run_Store::get()` returns an active snapshot.
+Bundled mu-plugin admin UI — not loaded by hub `launchdek-admin` handle. Enqueued on remote wp-admin only when `LAUNCHDEK_Client_Run_Store::get()` returns an active snapshot and `user_can_view_panel()` passes for the current user.
 
 | File | Role |
 |------|------|

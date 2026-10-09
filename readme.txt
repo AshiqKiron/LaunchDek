@@ -258,6 +258,16 @@ Purchase from [Asphalt Themes](https://asphaltthemes.com/launchdek), install the
 
 == Changelog ==
 
+= 1.0.50 =
+* Performance: database indexes for site run history, audit log filters, run steps, and site tag filters (DB 1.6.0)
+* Performance: sites list loads tags in one query and skips credential decryption on list screens; higher default list limits (500 sites/checklists, 500 quick-launch picker entries)
+* Performance: dashboard audit feed and completion-rate stats use leaner SQL
+
+= 1.0.49 =
+* Security: remote site REST error messages are stripped of HTML before storage and admin display; hub admin notices escape user-facing text (trusted link notices use a separate HTML helper)
+* Security: client checklist panel REST and UI require read capability and step role alignment (site admins always see the run)
+* Performance: built-in template sync skips public front-end requests after initial seed (admin, REST, cron, and ajax still sync new JSON templates)
+
 = 1.0.48 =
 * Requires WordPress 6.2+ (wpdb `%i` table identifiers for custom-table queries and Plugin Check database sniffs)
 * Billing: Community (free, unlimited sites), Pro ($49/mo, 99 sites), and Agency ($99/mo, 199 sites) tiers with plan gates for templates, vault, auto-capture, notifications, scheduled drift, and panel layouts

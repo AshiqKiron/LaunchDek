@@ -185,6 +185,41 @@ class LAUNCHDEK_Client_Run_Store {
 	}
 
 	/**
+	 * Whether the current user may view the client checklist panel and run snapshot.
+	 *
+	 * Site administrators always see the run; other users must match at least one step target_roles
+	 * (empty target_roles = any logged-in user with read, same as step completion).
+	 *
+	 * @param array|null $run Optional run snapshot; defaults to the active run.
+	 * @return bool
+	 */
+	public static function user_can_view_panel( $run = null ) {
+		if ( ! is_user_logged_in() || ! current_user_can( 'read' ) ) {
+			return false;
+		}
+
+		if ( null === $run ) {
+			$run = self::get();
+		}
+
+		if ( ! is_array( $run ) || empty( $run['steps'] ) || ! is_array( $run['steps'] ) ) {
+			return current_user_can( 'edit_posts' );
+		}
+
+		if ( current_user_can( 'manage_options' ) ) {
+			return true;
+		}
+
+		foreach ( $run['steps'] as $step ) {
+			if ( self::user_can_complete_step( $step ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
 	 * Find a step in the active run.
 	 *
 	 * @param int $step_index Step index.

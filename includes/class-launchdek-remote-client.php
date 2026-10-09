@@ -89,10 +89,11 @@ class LAUNCHDEK_Remote_Client {
 		$response = $this->request( 'GET', '/wp/v2/users/me' );
 
 		if ( is_wp_error( $response ) ) {
-			$this->log_connection( 'error', $response->get_error_message() );
+			$message = $this->sanitize_remote_message( $response->get_error_message() );
+			$this->log_connection( 'error', $message );
 			return array(
 				'success' => false,
-				'message' => $response->get_error_message(),
+				'message' => $message,
 			);
 		}
 
@@ -100,7 +101,9 @@ class LAUNCHDEK_Remote_Client {
 		$body = json_decode( wp_remote_retrieve_body( $response ), true );
 
 		if ( $code < 200 || $code >= 300 ) {
-			$message = is_array( $body ) && ! empty( $body['message'] ) ? $body['message'] : __( 'Authentication failed.', 'launchdek' );
+			$message = is_array( $body ) && ! empty( $body['message'] )
+				? $this->sanitize_remote_message( $body['message'] )
+				: __( 'Authentication failed.', 'launchdek' );
 			$this->log_connection( 'error', $message );
 			return array(
 				'success' => false,
@@ -190,7 +193,7 @@ class LAUNCHDEK_Remote_Client {
 
 		if ( $code < 200 || $code >= 300 ) {
 			$message = is_array( $parsed_body ) && ! empty( $parsed_body['message'] )
-				? $parsed_body['message']
+				? $this->sanitize_remote_message( $parsed_body['message'] )
 				: sprintf(
 					/* translators: %d: HTTP status code. */
 					__( 'Remote request failed with status %d.', 'launchdek' ),
@@ -306,6 +309,8 @@ class LAUNCHDEK_Remote_Client {
 	protected function log_connection( $status, $message ) {
 		global $wpdb;
 
+		$message = $this->sanitize_remote_message( $message );
+
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$wpdb->insert(
 			$wpdb->prefix . 'launchdek_connection_events',
@@ -329,6 +334,20 @@ class LAUNCHDEK_Remote_Client {
 				)
 			);
 		}
+	}
+
+	/**
+	 * Strip markup from remote or transport error text before storage or REST output.
+	 *
+	 * @param mixed $message Raw message.
+	 * @return string
+	 */
+	protected function sanitize_remote_message( $message ) {
+		if ( ! is_scalar( $message ) ) {
+			return '';
+		}
+
+		return sanitize_textarea_field( wp_strip_all_tags( (string) $message ) );
 	}
 
 	/**

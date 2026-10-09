@@ -665,11 +665,11 @@ class LAUNCHDEK_Client_REST_API {
 	}
 
 	/**
-	 * Client panel permission — any logged-in admin user.
+	 * Client panel permission — read capability plus step role alignment (see Run_Store::user_can_view_panel).
 	 *
 	 * @return bool
 	 */
 	public static function can_view_panel() {
-		return is_user_logged_in();
+		return LAUNCHDEK_Client_Run_Store::user_can_view_panel();
 	}
 }

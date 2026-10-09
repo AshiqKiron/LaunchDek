@@ -351,6 +351,22 @@ class LAUNCHDEK_Templates {
 	}
 
 	/**
+	 * Seed templates on first run; sync new JSON slugs only in admin, REST, cron, or ajax.
+	 *
+	 * @return void
+	 */
+	public static function bootstrap_builtin_templates() {
+		if ( ! get_option( 'launchdek_templates_seeded' ) ) {
+			self::seed_builtin();
+			return;
+		}
+
+		if ( LAUNCHDEK_Plugin::should_sync_builtin_templates() ) {
+			self::sync_builtin();
+		}
+	}
+
+	/**
 	 * Ensure any new built-in JSON templates exist in the database.
 	 *
 	 * @return void

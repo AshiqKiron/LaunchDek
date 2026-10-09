@@ -33,10 +33,19 @@ class LAUNCHDEK_Audit_Log {
 	 *
 	 * @return string
 	 */
-	private static function table() {
+	public static function table_name() {
 		global $wpdb;
 
 		return $wpdb->prefix . 'launchdek_audit_log';
+	}
+
+	/**
+	 * Audit log table name (including blog prefix).
+	 *
+	 * @return string
+	 */
+	private static function table() {
+		return self::table_name();
 	}
 
 	/**
@@ -169,11 +178,10 @@ class LAUNCHDEK_Audit_Log {
 			$vals[]  = absint( $args['user_id'] );
 		}
 
-		$site_scope_join = '';
 		if ( $args['site_id'] ) {
 			$filtered_site_id = absint( $args['site_id'] );
-			$site_scope_join  = ' LEFT JOIN ' . $wpdb->prefix . 'launchdek_runs AS launchdek_audit_runs ON launchdek_audit_runs.id = lau.run_id ';
-			$where[]          = '(lau.site_id = %d OR launchdek_audit_runs.site_id = %d)';
+			$runs_table       = LAUNCHDEK_Run_Repository::table();
+			$where[]          = '(lau.site_id = %d OR EXISTS (SELECT 1 FROM ' . $runs_table . ' launchdek_audit_runs WHERE launchdek_audit_runs.id = lau.run_id AND launchdek_audit_runs.site_id = %d))';
 			$vals[]           = $filtered_site_id;
 			$vals[]           = $filtered_site_id;
 		}
@@ -223,7 +231,7 @@ class LAUNCHDEK_Audit_Log {
 		$vals[] = $offset;
 
 		$query_vals = array_merge( array( self::table() ), $vals );
-		$sql        = 'SELECT lau.id, lau.user_id, lau.site_id, lau.run_id, lau.action, lau.details_json, lau.payload_hash, lau.created_at FROM %i AS lau' . $site_scope_join . ' WHERE ' . $where_sql . ' ORDER BY lau.created_at ' . $order . ' LIMIT %d OFFSET %d';
+		$sql        = 'SELECT lau.id, lau.user_id, lau.site_id, lau.run_id, lau.action, lau.details_json, lau.payload_hash, lau.created_at FROM %i AS lau WHERE ' . $where_sql . ' ORDER BY lau.created_at ' . $order . ' LIMIT %d OFFSET %d';
 		$prepared   = $wpdb->prepare( $sql, $query_vals ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Plugin-owned table via %i; join/order are trusted; WHERE placeholders match $query_vals.
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter
@@ -972,17 +980,20 @@ class LAUNCHDEK_Audit_Log {
 		}
 
 		$placeholders = implode( ',', array_fill( 0, count( $run_ids ), '%d' ) );
-		$prepared     = $wpdb->prepare(
-			'SELECT r.id, r.status, r.site_id, c.title AS checklist_title, s.name AS site_name
+		$sql          = 'SELECT r.id, r.status, r.site_id, c.title AS checklist_title, s.name AS site_name
 			FROM %i r
 			LEFT JOIN %i c ON c.id = r.checklist_id
 			LEFT JOIN %i s ON s.id = r.site_id
-			WHERE r.id IN (' . $placeholders . ')', // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Plugin-owned tables via %i; id IN list uses %d placeholders only.
-			LAUNCHDEK_Run_Repository::table(),
-			LAUNCHDEK_Checklist_Repository::table(),
-			LAUNCHDEK_Site_Repository::table(),
-			...$run_ids
+			WHERE r.id IN (' . $placeholders . ')';
+		$query_vals   = array_merge(
+			array(
+				LAUNCHDEK_Run_Repository::table(),
+				LAUNCHDEK_Checklist_Repository::table(),
+				LAUNCHDEK_Site_Repository::table(),
+			),
+			$run_ids
 		);
+		$prepared     = $wpdb->prepare( $sql, $query_vals ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Plugin-owned tables via %i; id IN list uses %d placeholders only.
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter
 		$rows = $wpdb->get_results( $prepared, ARRAY_A );
@@ -1010,7 +1021,12 @@ class LAUNCHDEK_Audit_Log {
 	 * @return array
 	 */
 	public static function get_feed( $limit = 15 ) {
-		$entries = self::query( array( 'limit' => $limit ) );
+		$entries = self::query(
+			array(
+				'limit'           => $limit,
+				'include_details' => false,
+			)
+		);
 
 		return array_map(
 			function ( $entry ) {

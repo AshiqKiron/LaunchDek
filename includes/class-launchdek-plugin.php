@@ -50,8 +50,28 @@ class LAUNCHDEK_Plugin {
 	public function init() {
 		LAUNCHDEK_Installer::maybe_install();
 		LAUNCHDEK_Capabilities::register();
-		LAUNCHDEK_Templates::seed_builtin();
-		LAUNCHDEK_Templates::sync_builtin();
+		LAUNCHDEK_Templates::bootstrap_builtin_templates();
 		LAUNCHDEK_Licensing::sync_drift_cron();
+	}
+
+	/**
+	 * Whether built-in template sync should run on this request (skip public front-end views).
+	 *
+	 * @return bool
+	 */
+	public static function should_sync_builtin_templates() {
+		if ( is_admin() ) {
+			return true;
+		}
+
+		if ( wp_doing_cron() || wp_doing_ajax() ) {
+			return true;
+		}
+
+		if ( defined( 'REST_REQUEST' ) && REST_REQUEST ) {
+			return true;
+		}
+
+		return false;
 	}
 }

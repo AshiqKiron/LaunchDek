@@ -15,6 +15,27 @@ if ( ! defined( 'ABSPATH' ) ) {
 class LAUNCHDEK_Checklist_Repository {
 
 	/**
+	 * Default checklist list page size.
+	 *
+	 * @var int
+	 */
+	const LIST_DEFAULT_LIMIT = 500;
+
+	/**
+	 * Maximum checklist list page size.
+	 *
+	 * @var int
+	 */
+	const LIST_MAX_LIMIT = 1000;
+
+	/**
+	 * Quick-launch picker cap.
+	 *
+	 * @var int
+	 */
+	const PICKER_LIMIT = 500;
+
+	/**
 	 * Get table name.
 	 *
 	 * @return string
@@ -58,7 +79,7 @@ class LAUNCHDEK_Checklist_Repository {
 		$defaults = array(
 			'is_template' => null,
 			'is_vault'    => null,
-			'limit'       => 100,
+			'limit'       => self::LIST_DEFAULT_LIMIT,
 		);
 
 		$args  = wp_parse_args( $args, $defaults );
@@ -75,7 +96,7 @@ class LAUNCHDEK_Checklist_Repository {
 			$vals[]  = $args['is_vault'] ? 1 : 0;
 		}
 
-		$vals[] = max( 1, absint( $args['limit'] ) );
+		$vals[] = min( self::LIST_MAX_LIMIT, max( 1, absint( $args['limit'] ) ) );
 
 		$prepared = $wpdb->prepare(
 			'SELECT * FROM ' . self::table() . ' WHERE ' . implode( ' AND ', $where ) . ' ORDER BY title ASC LIMIT %d', // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Table from self::table(); filters use %d placeholders only.
@@ -100,7 +121,7 @@ class LAUNCHDEK_Checklist_Repository {
 		$defaults = array(
 			'is_template' => null,
 			'is_vault'    => null,
-			'limit'       => 100,
+			'limit'       => self::LIST_DEFAULT_LIMIT,
 		);
 
 		$args  = wp_parse_args( $args, $defaults );
@@ -117,7 +138,7 @@ class LAUNCHDEK_Checklist_Repository {
 			$vals[]  = $args['is_vault'] ? 1 : 0;
 		}
 
-		$vals[] = max( 1, absint( $args['limit'] ) );
+		$vals[] = min( self::LIST_MAX_LIMIT, max( 1, absint( $args['limit'] ) ) );
 
 		// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Table from self::table(); filters use %d placeholders only.
 		$prepared = $wpdb->prepare(
@@ -177,7 +198,7 @@ class LAUNCHDEK_Checklist_Repository {
 				'SELECT id, title FROM %i WHERE is_template = %d ORDER BY title ASC LIMIT %d',
 				self::table(),
 				0,
-				100
+				self::PICKER_LIMIT
 			),
 			ARRAY_A
 		);

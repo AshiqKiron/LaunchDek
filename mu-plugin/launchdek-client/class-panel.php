@@ -37,7 +37,7 @@ class LAUNCHDEK_Client_Panel {
 		$layout = LAUNCHDEK_Client_Run_Store::get_panel_layout( $run );
 		$bar_layouts = array( 'live_topbar', 'admin_menu', 'fullscreen', 'toast', 'floating_pill', 'bottom_dock' );
 
-		if ( ! $run || ! is_user_logged_in() || ! in_array( $layout, $bar_layouts, true ) ) {
+		if ( ! $run || ! LAUNCHDEK_Client_Run_Store::user_can_view_panel( $run ) || ! in_array( $layout, $bar_layouts, true ) ) {
 			return;
 		}
 
@@ -80,7 +80,7 @@ class LAUNCHDEK_Client_Panel {
 	public static function admin_body_class( $classes ) {
 		$run = LAUNCHDEK_Client_Run_Store::get();
 
-		if ( ! $run || ! is_user_logged_in() ) {
+		if ( ! $run || ! LAUNCHDEK_Client_Run_Store::user_can_view_panel( $run ) ) {
 			return $classes;
 		}
 
@@ -97,7 +97,7 @@ class LAUNCHDEK_Client_Panel {
 	public static function register_metabox() {
 		$run = LAUNCHDEK_Client_Run_Store::get();
 
-		if ( ! $run || ! is_user_logged_in() || 'inline_metabox' !== LAUNCHDEK_Client_Run_Store::get_panel_layout( $run ) ) {
+		if ( ! $run || ! LAUNCHDEK_Client_Run_Store::user_can_view_panel( $run ) || 'inline_metabox' !== LAUNCHDEK_Client_Run_Store::get_panel_layout( $run ) ) {
 			return;
 		}
 
@@ -136,7 +136,7 @@ class LAUNCHDEK_Client_Panel {
 
 		$run = LAUNCHDEK_Client_Run_Store::get();
 
-		if ( ! $run || ! is_user_logged_in() ) {
+		if ( ! $run || ! LAUNCHDEK_Client_Run_Store::user_can_view_panel( $run ) ) {
 			return;
 		}
 
@@ -232,7 +232,7 @@ class LAUNCHDEK_Client_Panel {
 	public static function render_panel() {
 		$run = LAUNCHDEK_Client_Run_Store::get();
 
-		if ( ! $run || ! is_user_logged_in() ) {
+		if ( ! $run || ! LAUNCHDEK_Client_Run_Store::user_can_view_panel( $run ) ) {
 			return;
 		}
 
