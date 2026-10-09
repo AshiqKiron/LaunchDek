@@ -21,17 +21,6 @@ require_once LAUNCHDEK_CLIENT_PANEL_DIR . 'class-auto-capture.php';
 require_once LAUNCHDEK_CLIENT_PANEL_DIR . 'class-rest-api.php';
 require_once LAUNCHDEK_CLIENT_PANEL_DIR . 'class-panel.php';
 
-add_action(
-	'init',
-	static function () {
-		load_plugin_textdomain(
-			LAUNCHDEK_CLIENT_TEXT_DOMAIN,
-			false,
-			'mu-plugins/launchdek-client/languages'
-		);
-	}
-);
-
 LAUNCHDEK_Client_Auto_Capture::register();
 LAUNCHDEK_Client_REST_API::register();
 LAUNCHDEK_Client_Panel::register();

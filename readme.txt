@@ -1,33 +1,31 @@
 === LaunchDek ===
 Contributors: ashiquzzaman
-Tags: agency, checklist, onboarding, site management, workflow
+Tags: agency, checklist, site management, onboarding, workflow
 Requires at least: 6.0
-Tested up to: 7.1.1
+Tested up to: 7.1
 Requires PHP: 7.4
 Stable tag: 1.0.0
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
-Push checklists to client wp-admin from your hub. Every connected site uses LaunchDek’s bundled must-use client panel so clients see a clear, step-by-step checklist UI.
+Agency hub for remote WordPress sites — build checklists, push runs to a bundled client panel in wp-admin, and track launches with audit logs.
 
 
 == Description ==
 
-In simple terms: **LaunchDek** is a hub plugin plus a **must-use client panel** on every managed site. You build checklists on your main WordPress dashboard, install the bundled mu-plugin on each client site once, then push runs so the checklist appears inside client wp-admin—not in email, PDFs, or a separate SaaS app.
+**LaunchDek** is a self-hosted WordPress **agency hub** for teams who manage multiple client sites. Install it once on your command-center WordPress install, connect remote properties with Application Passwords, deploy LaunchDek’s bundled **must-use client checklist panel** on each site, and deliver launches, migrations, security work, and maintenance through checklists your clients actually see inside their own wp-admin—not buried in email threads, Notion pages, or a separate SaaS dashboard.
 
-LaunchDek is a master-site WordPress plugin built for agencies, freelancers, and web teams who manage multiple client sites every day. Install LaunchDek on your hub, register each remote site with Application Passwords, deploy the **client checklist panel** (bundled must-use plugin) to `wp-content/mu-plugins/`, and orchestrate launches, migrations, security hardening, and maintenance with checklists your clients actually see and follow in their WordPress admin.
+Stop copying the same SOP into chat every time a site goes live. LaunchDek turns procedures into structured **checklists** you build once, clone from **86 built-in templates**, save to a private vault, or import from JSON. Push a **run** to a connected site and the checklist appears in the client panel with progress, manual completion, optional notes and screenshots, and deep links into the right wp-admin screens. Your hub orchestrates API automation, connection health, batch execution, drift checks, and an immutable-style **activity log**—all on infrastructure you control.
 
-Stop copying the same SOP into Notion or chat every time a site goes live. LaunchDek turns procedures into structured checklists you build once, clone from templates, and **push to the client panel** on each site. Manual steps, progress bars, notes, and deep links live in that wp-admin UI; the hub uses Application Passwords and the REST API to deploy the panel bundle, sync run snapshots, execute API steps, test connections, and verify drift. The client panel is included with LaunchDek—there is no separate wordpress.org download for remote sites.
-
-**Built for Repeatable Delivery, Designed for Your Infrastructure:** LaunchDek keeps site credentials, checklist definitions, run history, and audit logs on the WordPress install you control. Outbound traffic is limited to sites you register, webhooks and email alerts you configure, and integration sync you start from the admin—no undisclosed telemetry and no mandatory SaaS dashboard. Whether you run five sites or fifty, you get a single place to test connections, tag sites by client or tier, launch a checklist from the dashboard, and review what happened in Activity Logs.
+**Built for Repeatable Delivery, Designed for WordPress:** Checklists combine **manual** checkpoints with **core REST API** steps through a guided payload mapper. Sensitive remote settings can stay protected via hub **exclude-options**. Outbound traffic is limited to sites you register, webhooks and email alerts you configure, and integration sync you start from the admin—no undisclosed telemetry. Whether you run five sites or fifty, you get one place to test connections, tag sites by client or tier, quick-launch from the dashboard, and answer “who did what, on which site, and when?” from Activity Logs.
 
 #### Why Choose a Self-Hosted Agency Checklist Hub?
 
-* **Own Your Workflow Data:** Checklists, runs, notes, and audit entries live in your hub database. Export checklists, reuse an agency vault, and keep client delivery consistent without locking SOPs inside a third-party project tool.
-* **Connect With WordPress-Native Auth:** Application Passwords and core REST endpoints connect the hub to each client site, deploy the must-use panel, and power checklist runs—no proprietary connector keys required for LaunchDek’s hub-to-client flow.
-* **Manual and API Steps in One Run:** Combine human tasks (with optional deep links into wp-admin settings screens) with automated REST mutations through a payload mapper, while sensitive settings fields can stay excluded from remote pushes.
-* **Must-Use Client Panel (Required):** Every managed client site runs LaunchDek’s bundled mu-plugin. Checklists are **shown** in wp-admin through that panel—manual completion, notes, screenshots, progress, and deep links—kept in sync when you push or refresh runs from the hub.
-* **Audit-Ready Activity History:** Immutable-style activity logging with readable summaries, filters, and detail views helps you answer “who changed what, on which site, and when?” after launches and maintenance windows.
+* **Own Your Workflow Data:** Checklists, runs, step notes, and audit entries live in your hub database. Export JSON, reuse templates, and keep delivery consistent without locking SOPs inside a third-party project tool.
+* **WordPress-Native Remote Auth:** Application Passwords and core REST endpoints connect the hub to each client site, deploy the must-use panel, sync run snapshots, and execute API steps—no proprietary connector keys required for LaunchDek’s hub-to-client flow.
+* **Manual and API Steps in One Run:** Blend human tasks (with inferred or explicit wp-admin deep links) with automated REST mutations while blocking sensitive `/wp/v2/settings` fields from remote pushes when you configure exclude-options.
+* **Must-Use Client Panel (Required):** Every managed client site runs LaunchDek’s bundled mu-plugin. Checklists are **shown** in wp-admin through that panel—manual completion, notes, progress, and deep links—kept in sync when you push or refresh runs from the hub.
+* **Audit-Ready Activity History:** Filterable activity logs with readable summaries, labeled detail fields, and optional raw JSON help you review launches, API steps, client completions, and drift events after the fact.
 * **Role Guardrails for Teams:** Map LaunchDek capabilities to agency roles so developers, account leads, and auditors see only what they should—from dashboard visibility to checklist editing and run execution.
 
 #### How It Works
@@ -35,17 +33,17 @@ Stop copying the same SOP into Notion or chat every time a site goes live. Launc
 1. **Install LaunchDek on Your Hub Site:** Activate on the WordPress install you use as your agency command center (local, staging, or production).
 2. **Connect Each Client Site:** Add URL, username, and Application Password; run a connection test.
 3. **Deploy the Must-Use Client Panel:** Complete the one-time mu-plugin setup on every remote site (see FAQ). LaunchDek does not deliver checklists to client wp-admin without this panel installed.
-4. **Build or Import Checklists:** Start from 86 built-in templates (security, launch, SEO, WooCommerce, maintenance, troubleshooting, and more), paste SOP text in onboarding, or use the drag-and-drop builder with API payload mapping.
+4. **Build or Import Checklists:** Start from built-in templates (security, launch, SEO, WooCommerce, maintenance, troubleshooting, and more), paste SOP text in onboarding, or use the three-column builder with live client-panel preview and API payload mapping.
 5. **Push Runs and Execute:** Launch from the Dashboard or Batch Run—checklists appear in the client panel; track the same run on the hub with the step tracker, batch queue, and drift monitor.
-6. **Review and Notify:** Watch the dashboard feed, open Activity Logs for filtered audit tables, and optionally send email or Slack, Discord, and Teams webhooks on run and step events you choose.
+6. **Review and Notify:** Watch the dashboard feed, open Activity Logs for filtered audit tables, and optionally send email or Slack, Discord, and Teams webhooks on run and step events you choose (Pro and Agency).
 
 #### Designed for Every Agency Workflow
 
-* **For Launch and Go-Live Projects:** Run go-live, migration, SMTP, caching, and SEO setup checklists so nothing ships without DNS, SSL, redirects, and analytics steps accounted for.
-* **For Security and Compliance Engagements:** Apply hardening, access audit, and GDPR-oriented templates, with exclude-options protection so hub checklist API steps cannot overwrite sensitive remote settings you block in Settings.
-* **For Ongoing Maintenance:** Schedule-style operational discipline via monthly maintenance, backup verification, plugin health, and safe-update routine checklists—run after updates or on a cadence your team defines.
-* **For Troubleshooting and Recovery:** Use built-in troubleshooting stacks for common errors (white screen, REST blocked, email delivery, WooCommerce, Elementor, and dozens more) so junior developers follow the same diagnostic path seniors would.
-* **For Agencies Standardizing SOPs:** Save private vault checklists, import and export JSON, and use Auto-Capture on a connected client site (client panel required) to record admin actions into draft steps during a live session.
+* **For Launch and Go-Live Projects:** Run go-live, migration, SMTP, caching, and SEO setup checklists so DNS, SSL, redirects, and analytics steps stay accounted for.
+* **For Security and Compliance Engagements:** Apply hardening, access audit, and GDPR-oriented templates, with exclude-options protection so API checklist steps cannot overwrite sensitive remote settings you block in Settings.
+* **For Ongoing Maintenance:** Operational discipline via monthly maintenance, backup verification, plugin health, and safe-update routine checklists—run after updates or on a cadence your team defines.
+* **For Troubleshooting and Recovery:** Built-in troubleshooting stacks for common errors (white screen, REST blocked, email delivery, WooCommerce, Elementor, and dozens more) so junior developers follow the same diagnostic path seniors would.
+* **For Agencies Standardizing SOPs:** Save private vault checklists, import and export JSON, and use Auto-Capture on a connected client site (Pro and Agency; client panel required) to record admin actions into draft steps during a live session.
 * **For Teams Already on MainWP or WP Umbrella:** Sync site inventory into LaunchDek, map telemetry fields to site records, and deploy or refresh the must-use client panel on synced properties before pushing checklists.
 
 #### Comprehensive Checklist Builder
@@ -54,76 +52,209 @@ Shape every delivery playbook with a three-column builder (canvas, step configur
 
 * **Steps Canvas:** Reorder steps with drag-and-drop; mix manual checkpoints and API automation in a single checklist.
 * **Step Configuration:** Set instructions, inferred or explicit wp-admin deep links, target roles for client completion, optional note and screenshot fields, and API routes with a guided payload mapper.
-* **Templates and Vault:** Browse built-in standard stacks by category, search across all template text, clone into My Checklists, and maintain a private agency vault for practice-specific stacks.
+* **Templates and Vault:** Browse built-in standard stacks by category, search across all template text, clone into My Checklists, and maintain a private agency vault for practice-specific stacks (Pro and Agency).
 * **Import and Export:** Move checklist JSON between hubs or environments; validate API steps before production runs.
 * **Client Panel Branding:** Customize panel layout and heading (for example “Agency Checklist”) from Settings and the builder; snapshots sync on push and refresh actions.
 
 #### Sites, Runs, and Operations
 
-* **Sites Registry:** Store connection health, WordPress and PHP versions, tags, custom groups, integration source metadata, and expandable per-site checklist run history with progress bars and completion timestamps.
+* **Sites Registry:** Connection health, WordPress and PHP versions, tags, custom groups, integration metadata, and expandable per-site checklist run history with progress bars and completion timestamps.
 * **Dashboard Command Center:** At-a-glance stats, connection ticker, cached quick-launch bar for site plus checklist pairs, and a live activity feed with links into full Activity Logs.
-* **Batch Run:** Run Checklist wizard for single-target execution, Batch Queue for multi-site work, and Drift Monitor to compare remote state against expectations on a schedule you control.
-* **Integrations Hub:** MainWP and WP Umbrella site sync with preview and client-panel push; connector setup for additional platforms as the roadmap expands—always user-initiated from Integrations.
-* **Settings You Can Trust:** Encrypted credential vault (optional), webhook URLs, opt-in email notification events and recipient lists, exclude-options for remote settings mutations, and onboarding you can replay from Settings.
+* **Batch Run:** Run Checklist wizard for single-target execution, Batch Queue for multi-site work, and Drift Monitor to compare remote state against expectations (scheduled drift on Pro and Agency).
+* **Integrations Hub:** MainWP and WP Umbrella site sync with preview and client-panel push—always user-initiated from Integrations.
+* **Settings You Can Trust:** Optional encrypted credential vault, exclude-options for remote settings mutations, role-permission matrix, and onboarding you can replay from Settings.
 
 #### Why WordPress Agencies Choose LaunchDek
 
-* **Replace Fragile Runbooks:** One checklist runs the same way on site ten as on site one— with step status, notes, and audit trails instead of unchecked Slack messages.
-* **Client Visibility Without Giving Up Control:** Install the client panel on each site so customers see checklist progress in wp-admin; keep run orchestration, API automation, and audit history on your master hub.
+* **Replace Fragile Runbooks:** One checklist runs the same way on site ten as on site one—with step status, notes, and audit trails instead of unchecked Slack messages.
+* **Client Visibility Without Giving Up Control:** Customers see checklist progress in wp-admin; run orchestration, API automation, and audit history stay on your master hub.
 * **Faster Onboarding for New Team Members:** Templates plus deep links turn “ask Sarah how we launch WooCommerce” into “run the WooCommerce launch checklist.”
-* **Honest Remote Architecture:** Hub-to-client work is explicit—panel deploy, run push, connection tests, integration sync, and drift checks happen when you initiate them; the client panel is always part of the checklist experience on remote sites.
+* **Honest Remote Architecture:** Panel deploy, run push, connection tests, integration sync, and drift checks happen when you initiate them—the client panel is always part of the checklist experience on remote sites.
 * **GPL and Self-Hosted:** Community Edition runs entirely on your WordPress install; you choose hosting, backups, and who gets access via WordPress roles and LaunchDek capabilities.
+
+#### Community vs. LaunchDek Pro and Agency
+
+**Community Edition (WordPress.org) features:**
+
+* Unlimited connected sites on your hub
+* **17** built-in checklist templates across **4** categories (security, maintenance, performance, ecommerce)
+* Unlimited custom checklists, import/export, and JSON validation
+* Sites registry, connection tests, tags, custom site groups, and per-site run history
+* Dashboard stats, quick launch, activity feed, and full Activity Logs
+* Batch Run (single-site wizard, batch queue, manual drift verify)
+* MainWP and WP Umbrella inventory sync, telemetry mapping, and client panel push
+* Must-use client checklist panel deploy and run sync
+* **3** client panel layouts (live top bar, bottom dock, floating pill)
+* Encrypted credential vault (optional), exclude-options, role permission matrix
+* Onboarding wizard and built-in template search
+
+**LaunchDek Pro and Agency features:**
+
+* **86** built-in templates across **8** categories—including launch, SEO, compliance, and troubleshooting
+* Private **Agency Vault** for reusable internal checklists
+* **Auto-Capture** — record admin actions on a client site and import steps into the builder
+* **Email and webhook notifications** (Slack, Discord, Teams) for opt-in checklist events
+* **Scheduled drift verification** (twicedaily cron across connected sites)
+* **9** client panel layouts (sidebar, toast, admin bar flyout, fullscreen, focus mode, inline metabox, and more)
+* Licensed site caps: **Pro** — 99 connected sites; **Agency** — 199 connected sites (Community remains unlimited)
+
+Pro and Agency share the same feature set; Agency includes a higher licensed site cap for larger portfolios.
+
+#### Supercharge Your Agency Workflow with LaunchDek Pro
+
+Community LaunchDek covers unlimited hub sites, custom checklists, batch execution, integrations, audit logs, and a strong starter template library. **LaunchDek Pro and Agency** are built for teams that need the full template library, client-facing polish, proactive alerts, and vault workflows without leaving WordPress.
+
+* **Ship launches faster:** Unlock launch, SEO, compliance, and **48+ troubleshooting** templates so every engagement starts from a proven stack—not a blank doc.
+* **Standardize agency IP:** Save checklists to the **Private Agency Vault**, clone them across projects, and export JSON between staging and production hubs.
+* **Capture SOPs while you work:** **Auto-Capture** on a connected client site records whitelisted admin actions into draft checklist steps during a live session (client panel required).
+* **Stay informed without watching the hub:** Opt-in **email** (`wp_mail`) and **Slack, Discord, or Teams** webhooks for run started, completed, failed, drift detected, client step completed, and more.
+* **Catch config drift early:** **Scheduled drift verification** runs on a cadence you enable in Settings; manual drift verify remains available on all plans from Batch Run.
+* **Match client branding:** Choose from the full client panel layout library so the checklist feels native in each client’s wp-admin.
+* **Upgrade without rebuilding:** Purchase Pro or Agency, install the full plugin package on your hub, activate your license under **LaunchDek → Billing**, and keep existing sites, checklists, runs, and audit history in your database.
+
+Compare plans and pricing: [LaunchDek on Asphalt Themes](https://asphaltthemes.com/launchdek)
+
+#### More Notable Products From the Author
+
+LaunchDek is developed by [Asphalt Themes](https://asphaltthemes.com/). These free products from the same author may also help your WordPress workflow:
+
+* **[Trustbadg – Trust Badges, Payment Icons & Secure Checkout Seals](https://wordpress.org/plugins/trustbadg-trust-badges/)** — Display trust seals and payment icons in Gutenberg with automatic WooCommerce and EDD placements, inline SVG icons, and no frontend JavaScript bloat.
+* **[Rezicraft – Professional Resume & CV Builder](https://wordpress.org/plugins/rezicraft-professional-resume-cv-builder/)** — Create polished online resumes and CVs with Gutenberg-friendly layouts and templates for job seekers and freelancers.
+* **[Resumee](https://wordpress.org/themes/resumee/)** — A free WordPress resume and portfolio theme with flexible sections and a clean layout for professional online profiles.
+
+#### Why LaunchDek vs. Third-Party Agency SaaS
+
+Many multi-site management tools centralize dashboards in the cloud, charge per seat or per site, and treat checklists as secondary features. LaunchDek reimagines agency delivery by keeping the **hub** and **workflow data** on WordPress you already host.
+
+* **Complete Data Ownership & Privacy**
+  Checklists, credentials (encrypted when enabled), runs, and audit logs stay on your hub. Remote calls go only to sites you register. Integrations sync only when you click Sync. No undisclosed analytics or visitor tracking in the Community build.
+* **No Mandatory SaaS Dashboard**
+  Build and execute from familiar wp-admin screens on your hub. Clients interact with a lightweight mu-plugin panel on their site—not a separate login to a vendor portal.
+* **WordPress-Native Automation**
+  API checklist steps use **core REST** endpoints with Application Passwords—not arbitrary remote code execution. Exclude-options and payload validation keep mutating steps predictable.
+* **Transparent Client Experience**
+  The bundled client panel is explicit, GPL-friendly, and deployed by you (auto-install when possible, or manual bootstrap plus **Retry panel install**). Clients see progress where they work: WordPress admin.
+* **Honest Outbound Scope**
+  Allowed connections: registered remote sites, user-configured webhooks, optional `wp_mail` notifications, and user-initiated MainWP or WP Umbrella API sync—not background telemetry.
+
+#### Privacy
+
+LaunchDek Community does not send site or user data to LaunchDek-operated analytics servers. Outbound requests are limited to user-registered remote WordPress sites (Application Password REST), client panel deploy and snapshot sync (when you connect, test, or push a run), user-configured webhook URLs, optional email notifications via WordPress `wp_mail`, and user-initiated integration sync (MainWP child sites or WP Umbrella Public API when you configure a token). WP Umbrella tokens are stored encrypted on the hub and are never returned in REST responses. Client run callback tokens travel only between hub and client panel—not in audit entries shown to non-privileged users.
+
+#### Performance
+
+LaunchDek is built for responsive agency wp-admin workflows:
+
+* **Cached dashboard** — stats, connection ticker, live log feed, and quick-launch picker options preload on first paint and refresh when underlying data changes.
+* **Lean list APIs** — checklist summaries, site run history, and activity log pagination use lightweight queries; Activity Logs and site history can load via admin-ajax on memory-constrained installs.
+* **Targeted remote calls** — connection tests, run execution, drift verification, panel deploy, and integration sync run on user action or configured cron—not on every admin page load (Sites may refresh stale connection health in the background after a threshold).
+* **Client panel efficiency** — panel CSS and JS on remote sites load when an active run snapshot exists; step toggles use optimistic UI with hub callbacks that avoid redundant full panel reinstalls on every click.
 
 #### Get Started in Minutes
 
-After activation, use the onboarding wizard to paste an SOP or import a template, connect your first site, install the client panel on that site, then push your first checklist run. Add more sites under **LaunchDek → Sites** (each needs the mu-plugin), build under **Checklists**, and scale execution with **Batch Run**.
+After activation, the onboarding wizard helps you paste an SOP or import a template, connect your first site, install the client panel on that site, then push your first checklist run. Add more sites under **LaunchDek → Sites** (each needs the mu-plugin), build under **Checklists**, and scale execution with **Batch Run**.
 
-The client checklist panel is **mandatory** on every remote site you manage with LaunchDek. Setup steps are in the site editor and the FAQ below; the hub deploys the bundled files into `wp-content/mu-plugins/`.
+The client checklist panel is **mandatory** on every remote site you manage with LaunchDek. Setup steps appear in the site editor and in the FAQ below; the hub deploys the bundled files into `wp-content/mu-plugins/` when credentials and permissions allow.
+
+
+== Screenshots ==
+
+1. Dashboard command center with stats, connection ticker, quick launch bar, and live activity feed
+2. Onboarding wizard — paste an SOP or start from a template, then connect your first client site
+3. Checklists → Templates — built-in standard stacks by category with cross-category search
+4. My Checklists three-column builder — drag-and-drop canvas, step configuration, and live client-panel preview
+5. Sites registry with connection health, tags, expandable checklist run history, and client panel setup
+6. Batch Run — Run Checklist wizard, batch queue, and drift monitor tabs
+7. Activity Logs — filtered audit table with readable summaries and expandable detail fields
+8. Integrations — MainWP and WP Umbrella connectors with sync preview and client panel push
+9. Settings — panel layout picker, exclude-options, credential vault, and role permissions
+10. Remote client wp-admin — checklist panel with progress, deep links, notes, and manual step completion
+
 
 == Installation ==
 
-1. Upload LaunchDek to `/wp-content/plugins/LaunchDek` on your **hub** site and activate it
-2. Go to **LaunchDek → Sites** and register each client site with an Application Password
-3. On **every** client site, install LaunchDek’s bundled **must-use client panel** (one-time setup — see FAQ). Checklists are displayed in client wp-admin only through this mu-plugin
-4. Create or clone a checklist on the hub, push a run to a connected site with the panel installed, and track progress from the Dashboard or Batch Run page
-5. Repeat panel setup for each new client site before pushing checklists there
+#### Quick WordPress Installation (hub site)
+
+1. In your WordPress admin dashboard, navigate to **Plugins → Add New**.
+2. Search for **LaunchDek**.
+3. Click **Install Now**, then click **Activate**.
+4. Complete the onboarding wizard or open **LaunchDek** in the admin sidebar to connect your first client site and deploy the client checklist panel.
+
+#### Manual Installation (hub site)
+
+1. Download the plugin archive and upload the `launchdek` folder to the `/wp-content/plugins/` directory on your **hub** server.
+2. Activate the plugin through the **Plugins** screen in WordPress.
+3. Go to **LaunchDek → Sites**, register each client site with an Application Password, and complete client panel setup on every remote site before pushing checklists.
+
+#### Client site setup (every managed site)
+
+LaunchDek checklists appear in client wp-admin only through the bundled must-use panel:
+
+1. Connect the site on **LaunchDek → Sites** with an Application Password.
+2. Download `launchdek-client.php` from the panel setup section in the site editor (or use automatic deploy when the hub can write to the client’s `mu-plugins` folder).
+3. Upload the bootstrap file to `wp-content/mu-plugins/` on the client site if needed, then click **Retry panel install** on the hub.
+4. Push a checklist run from the hub; the client panel displays the active run snapshot.
+
 
 == Frequently Asked Questions ==
 
-= Does LaunchDek require a plugin on remote sites? =
+= Who is LaunchDek built for? =
 
-**Yes.** LaunchDek is built around showing checklists in client wp-admin. Every managed remote site must have LaunchDek’s bundled **must-use client checklist panel** installed in `wp-content/mu-plugins/` (one-time setup per site). That mu-plugin is how checklists appear, how manual steps are completed, and how notes and progress sync with your hub.
+LaunchDek is built for WordPress agencies, freelancers, and in-house web teams who manage multiple client sites and want repeatable checklists, client-visible progress in wp-admin, and audit-friendly history—without moving SOPs into a separate SaaS product.
 
-LaunchDek is not designed for a “hub only, no client UI” workflow. Register the site on your hub with an Application Password, deploy the panel, then push runs—the hub uses REST to install or update the panel bundle, sync snapshots, run API steps, test connections, and verify drift.
+= Does LaunchDek require a plugin on remote client sites? =
+
+**Yes.** Every managed remote site must have LaunchDek’s bundled **must-use client checklist panel** in `wp-content/mu-plugins/` (one-time setup per site). That panel is how checklists appear, how manual steps are completed, and how notes and progress sync with your hub. There is no supported “hub only, no client UI” workflow.
+
+= How do I install the client checklist panel on a remote site? =
+
+1. Connect the site on **LaunchDek → Sites** with an Application Password.
+2. Download `launchdek-client.php` from the panel setup block in the site editor (or onboarding / connection tester).
+3. Upload it to `wp-content/mu-plugins/` on the client site (create the folder if needed).
+4. Click **Retry panel install** on the hub so LaunchDek deploys the full panel bundle and verifies the connection.
+
+On the same server (for example local MAMP), the hub may install the panel automatically when credentials allow. The client panel is bundled with LaunchDek—it is not a separate WordPress.org plugin listing.
 
 = Can I skip the must-use plugin and still show checklists to clients? =
 
-No. There is no alternate way to display LaunchDek checklists in a client site’s WordPress admin without the bundled client panel. Email, exports, or hub-side tracking alone are not substitutes for the in-dashboard checklist experience LaunchDek is built to deliver.
+No. Email, exports, or hub-side tracking alone are not substitutes for the in-dashboard checklist experience LaunchDek delivers through the client panel.
 
-= How do I install the client checklist panel (mu-plugin) on a remote site? =
+= Does LaunchDek work without MainWP or WP Umbrella? =
 
-Complete this **one-time setup per client site**:
+Yes. Integrations are optional. You can register sites manually with Application Passwords, deploy the client panel, and run checklists without any connector plugin.
 
-1. Connect the site on LaunchDek → Sites with an Application Password.
-2. Download `launchdek-client.php` from the panel setup section in the site editor.
-3. Upload it to `wp-content/mu-plugins/` on the client site (create the folder if needed).
-4. Click **Retry panel install** on the hub — LaunchDek deploys the full panel bundle and verifies the connection.
+= What is the difference between Community, Pro, and Agency? =
 
-On the same server (for example MAMP), the hub may install the panel automatically without the bootstrap upload. After the first setup, the hub handles panel updates and checklist pushes via REST.
+**Community** (this WordPress.org build) includes unlimited hub sites, core checklist and batch features, integrations, audit logs, **17** templates in four categories, and three client panel layouts. **Pro** and **Agency** unlock the full **86** templates, agency vault, auto-capture, email and webhook notifications, scheduled drift cron, and all panel layouts; **Pro** supports up to **99** licensed sites and **Agency** up to **199**. Compare details under **LaunchDek → Billing** on a full install or on [Asphalt Themes](https://asphaltthemes.com/launchdek).
 
-The client panel is mandatory, bundled with LaunchDek, and installed as a must-use plugin—it is not listed separately on WordPress.org. Plan on this step for every client site before you rely on LaunchDek for deliveries.
+= Are credentials stored securely? =
+
+When enabled in Settings, site Application Passwords are encrypted at rest using your WordPress salt keys. Decrypted passwords are never exposed in REST responses or audit entries shown to non-privileged users.
 
 = What outbound connections does LaunchDek make? =
 
 * User-registered remote WordPress sites (Application Password REST calls)
-* Client panel deploy and checklist sync to registered sites (user-initiated when connecting, testing, or pushing a run)
-* User-configured webhook URLs (Slack, Discord, Teams)
-* Optional email alerts for checklist events (Settings → Email Notifications; uses wp_mail)
-* User-initiated integration sync and client panel pushes (MainWP child sites or WP Umbrella Public API when configured)
+* Client panel deploy and checklist sync to registered sites (when you connect, test, or push a run)
+* User-configured webhook URLs (Slack, Discord, Teams) on Pro and Agency when events are enabled
+* Optional email alerts for checklist events via WordPress `wp_mail` on Pro and Agency
+* User-initiated integration sync and panel push (MainWP child sites or WP Umbrella Public API when configured)
 
-= Are credentials encrypted? =
+= Does LaunchDek require WooCommerce on client sites? =
 
-Yes, when enabled in Settings, application passwords are encrypted using your WordPress salt keys.
+No. WooCommerce-specific steps appear in some built-in templates, but the hub and client panel work with any WordPress 6.0+ site that supports Application Passwords and REST.
+
+= Can I use LaunchDek on a local hub (MAMP, Local, etc.)? =
+
+Yes. The hub can manage local and remote URLs. The remote client may require the `?rest_route=` fallback when pretty permalinks are broken; LaunchDek handles that automatically for REST calls. Admin-ajax handlers are used for some heavy lists on memory-constrained local installs.
+
+= What happens when I uninstall LaunchDek from the hub? =
+
+Uninstall removes LaunchDek tables, options, and custom capabilities from the hub site. Client sites retain the mu-plugin files until you remove them manually from `wp-content/mu-plugins/`. Completed hub run history is deleted with the plugin—export checklists first if you need archives.
+
+= How do I upgrade to Pro or Agency? =
+
+Purchase from [Asphalt Themes](https://asphaltthemes.com/launchdek), install the full plugin package on your hub (replacing the Community build if needed), activate your license under **LaunchDek → Billing**, and continue using existing sites and checklists stored in your database.
+
 
 == Changelog ==
 

@@ -43,17 +43,11 @@ class LAUNCHDEK_Plugin {
 	}
 
 	/**
-	 * Late init — textdomain, DB migrations, and template seeding.
+	 * Late init — DB migrations and template seeding.
 	 *
 	 * @return void
 	 */
 	public function init() {
-		load_plugin_textdomain(
-			LAUNCHDEK_TEXT_DOMAIN,
-			false,
-			dirname( LAUNCHDEK_PLUGIN_BASENAME ) . '/languages'
-		);
-
 		LAUNCHDEK_Installer::maybe_install();
 		LAUNCHDEK_Capabilities::register();
 		LAUNCHDEK_Templates::seed_builtin();

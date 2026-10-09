@@ -43,8 +43,9 @@ class LAUNCHDEK_Run_Repository {
 	public static function find( $id ) {
 		global $wpdb;
 
-		$row = $wpdb->get_row(
-			$wpdb->prepare( 'SELECT * FROM ' . self::table() . ' WHERE id = %d', absint( $id ) ),
+		$table = self::table();
+		$row   = $wpdb->get_row(
+			$wpdb->prepare( 'SELECT * FROM ' . $table . ' WHERE id = %d', absint( $id ) ), // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 			ARRAY_A
 		);
 
@@ -304,13 +305,15 @@ class LAUNCHDEK_Run_Repository {
 	public static function count_by_status( $status = '' ) {
 		global $wpdb;
 
+		$table = self::table();
+
 		if ( $status ) {
 			return (int) $wpdb->get_var(
-				$wpdb->prepare( 'SELECT COUNT(*) FROM ' . self::table() . ' WHERE status = %s AND is_archived = 0', sanitize_key( $status ) )
+				$wpdb->prepare( 'SELECT COUNT(*) FROM ' . $table . ' WHERE status = %s AND is_archived = 0', sanitize_key( $status ) ) // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 			);
 		}
 
-		return (int) $wpdb->get_var( 'SELECT COUNT(*) FROM ' . self::table() . ' WHERE is_archived = 0' ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+		return (int) $wpdb->get_var( 'SELECT COUNT(*) FROM ' . $table . ' WHERE is_archived = 0' ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 	}
 
 	/**
@@ -374,9 +377,10 @@ class LAUNCHDEK_Run_Repository {
 			return;
 		}
 
+		$table   = self::table();
 		$run_ids = $wpdb->get_col(
 			$wpdb->prepare(
-				'SELECT id FROM ' . self::table() . ' WHERE site_id = %d',
+				'SELECT id FROM ' . $table . ' WHERE site_id = %d', // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 				$site_id
 			)
 		);

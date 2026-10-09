@@ -33,8 +33,9 @@ class LAUNCHDEK_Checklist_Repository {
 	public static function find( $id ) {
 		global $wpdb;
 
-		$row = $wpdb->get_row(
-			$wpdb->prepare( 'SELECT * FROM ' . self::table() . ' WHERE id = %d', absint( $id ) ),
+		$table = self::table();
+		$row   = $wpdb->get_row(
+			$wpdb->prepare( 'SELECT * FROM ' . $table . ' WHERE id = %d', absint( $id ) ), // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
 			ARRAY_A
 		);
 

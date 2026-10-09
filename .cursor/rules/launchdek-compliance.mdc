@@ -40,7 +40,7 @@ See `launchdek-project.mdc` (architecture), `launchdek-standards.mdc` (quality),
 ## Directory & Privacy
 
 - No obfuscated code or undisclosed telemetry.
-- Outbound requests are limited to: user-registered remote sites (including mu-plugin deploy/push), user-configured webhook URLs, WordPress `wp_mail()` for opt-in email notifications (no third-party mail API unless the site configures SMTP), and integration adapters (user-initiated site sync and client panel push — MainWP uses MainWP Connect to child sites when hub Application Passwords are not configured; WP Umbrella uses the user-configured Public API token at `public-api.wp-umbrella.com`, including a lightweight verify probe on token save).
+- Outbound requests are limited to: user-registered remote sites (including mu-plugin deploy/push), user-configured webhook URLs, WordPress `wp_mail()` for opt-in email notifications (no third-party mail API unless the site configures SMTP), and integration adapters (user-initiated site sync and client panel push — MainWP uses MainWP Connect to child sites when hub Application Passwords are not configured; WP Umbrella uses the user-configured Public API token at `public-api.wp-umbrella.com`, including a lightweight verify probe on token save). **Freemius SDK** (full/premium distribution only — not loaded or shipped in the Community / WordPress.org zip) may contact Freemius for account, licensing, and updates per the SDK; keep `is_org_compliant` and omit `launchdek-freemius.php` + `vendor/` from Community builds (`bin/build-community-zip.php`).
 - Integrations **Telemetry Sync Mapping Rules** store field-mapping preferences only (`telemetry_sync_rules`); they do not emit tracking data.
 - Webhook and integration behavior must be documented in `readme.txt`. Email notification behavior (opt-in events, `wp_mail`, recipient fallback) must also be documented in `readme.txt`.
 - No spammy readme or deceptive behavior.
@@ -65,8 +65,9 @@ See `launchdek-project.mdc` (architecture), `launchdek-standards.mdc` (quality),
 - [ ] SQL prepared in repositories
 - [ ] Remote calls use timeouts and error handling
 - [ ] Webhooks and email notifications opt-in and user-configured
-- [ ] Uninstall drops all tables, options, and capabilities
+- [ ] Uninstall via `LAUNCHDEK_Uninstaller::run()` drops all tables, plugin options, and capabilities (Community `register_uninstall_hook`; full Freemius `after_uninstall`)
 - [ ] Unique `LAUNCHDEK_` / `launchdek_` prefix
+- [ ] Community zip excludes Freemius bootstrap, SDK (`vendor/`), and Pro-only PHP/templates
 - [ ] Would survive WordPress.org review
 
 ## Unsafe Requests

@@ -15,6 +15,7 @@ See `launchdek-standards.mdc` (quality), `launchdek-compliance.mdc` (security ga
 launchdek.php                          # bootstrap + constants + requires
 includes/
   launchdek-build.php                  # LAUNCHDEK_BUILD edition (full|community); pro module + stub class paths
+  launchdek-freemius.php               # Freemius SDK bootstrap (full / premium distribution only; `lau_fs()`)
   community/                           # Community zip stubs (no-op webhook/cron dispatchers)
   class-launchdek-plugin.php           # hook orchestrator
   class-launchdek-admin.php            # menus, settings UI, assets
@@ -45,7 +46,7 @@ includes/
   class-launchdek-telemetry-mapper.php   # platform row → LaunchDek site field mapper
   class-launchdek-rest-api.php
   class-launchdek-admin-ajax.php         # lightweight admin-ajax handlers (integrations + site run history)
-  class-launchdek-{activator,deactivator}.php
+  class-launchdek-{activator,deactivator,uninstaller}.php
   integrations/
     interface-launchdek-integration.php
     class-launchdek-integration-{mainwp,managewp,wp-umbrella,wp-engine,wpvibe}.php
@@ -61,17 +62,19 @@ mu-plugin/                           # client checklist panel bundle (deployed t
   launchdek-client/                  # panel classes, admin CSS/JS
 assets/                              # reserved for future static assets (index.php only)
 languages/
-bin/build-community-zip.php            # CLI → dist zip; sets LAUNCHDEK_BUILD community, omits Pro PHP/templates
+bin/build-community-zip.php            # CLI → dist/launchdek-community.zip; LAUNCHDEK_BUILD community, omits Pro PHP/templates/Freemius
+bin/build-pro-zip.php                  # CLI → dist/launchdek-pro.zip; full templates + Pro PHP + vendor/freemius (requires SDK in vendor/)
 composer.json                          # dev: PHPCS + WPCS (vendor/ not shipped in Community zip)
-uninstall.php
+vendor/freemius/                       # Freemius SDK (full/premium zip only; gitignored dev install — not in Community zip)
 readme.txt
 ```
 
 ## Build editions
 
 - **`LAUNCHDEK_BUILD`** — `full` (default in repo dev) or `community` (WordPress.org zip). Helpers in `includes/launchdek-build.php`: `launchdek_is_community_build()`, `launchdek_includes_pro_package()`, `launchdek_require_pro_modules()`, `launchdek_get_webhook_dispatcher_file()`, `launchdek_get_drift_cron_file()`.
-- **Full build** loads Pro PHP (`class-launchdek-auto-capture.php`, `class-launchdek-email-notifier.php`, real webhook dispatcher + drift cron). Billing menu, plan storage, and Pro upgrade paths are available.
-- **Community build** (`php bin/build-community-zip.php` → `dist/launchdek-community.zip`): injects `define( 'LAUNCHDEK_BUILD', 'community' );` in bootstrap; ships `includes/community/` stub dispatchers; omits auto-capture, email notifier, full webhook/cron classes, Billing partial, and template JSON outside Community categories (`security`, `maintenance`, `performance`, `ecommerce`). `LAUNCHDEK_Licensing::get_billing()` always returns Community plan; `has_pro_features()` is false; `set_plan()` returns `launchdek_community_build` 403.
+- **Full build** loads Pro PHP (`class-launchdek-auto-capture.php`, `class-launchdek-email-notifier.php`, real webhook dispatcher + drift cron). After `launchdek-build.php`, bootstrap requires `includes/launchdek-freemius.php` when `!launchdek_is_community_build()` — initializes Freemius via `lau_fs()` (`vendor/freemius/start.php`), fires `lau_fs_loaded`; SDK is org-compliant (`is_org_compliant`) so the WordPress.org zip stays separate. Billing menu, plan storage (`launchdek_billing`), and Pro upgrade paths remain in `LAUNCHDEK_Licensing` (wire license activation to Freemius in `set_plan()` when ready — do not duplicate plan gates in the SDK bootstrap file).
+- **Community build** (`php bin/build-community-zip.php` → `dist/launchdek-community.zip`): injects `define( 'LAUNCHDEK_BUILD', 'community' );` in bootstrap; strips the Freemius `require_once` block; ships `includes/community/` stub dispatchers; omits auto-capture, email notifier, full webhook/cron classes, `includes/launchdek-freemius.php`, entire `vendor/`, Billing partial, and template JSON outside Community categories (`security`, `maintenance`, `performance`, `ecommerce`). Uses `register_uninstall_hook( …, LAUNCHDEK_Uninstaller::run )` (no root `uninstall.php`). `LAUNCHDEK_Licensing::get_billing()` always returns Community plan; `has_pro_features()` is false; `set_plan()` returns `launchdek_community_build` 403.
+- **Pro / premium zip** (`php bin/build-pro-zip.php` → `dist/launchdek-pro.zip`): ships full repo plugin tree (default `LAUNCHDEK_BUILD` `full`), all template JSON, Pro PHP, `includes/launchdek-freemius.php`, and `vendor/freemius/`; excludes dev-only paths (`.git`, `.cursor`, `bin/`, `includes/community/`, etc.). Uninstall cleanup runs via Freemius `after_uninstall` → `LAUNCHDEK_Uninstaller::run()` (same option/table/cap cleanup as Community).
 - Do not call Pro-only classes directly from shared code without `launchdek_includes_pro_package()` or licensing gates — Community zips must not fatal on missing files.
 
 ## Terminology
@@ -80,7 +83,7 @@ Use **Checklist** in all user-facing copy, REST paths (`/checklists`), table nam
 
 ## Architecture
 
-- Bootstrap defines constants, requires `launchdek-build.php`, conditionally loads Pro modules and webhook/cron class paths, registers activation/deactivation hooks, calls `launchdek_run_plugin()`.
+- Bootstrap defines constants, requires `launchdek-build.php`, conditionally requires `launchdek-freemius.php` (full build only), then core includes; conditionally loads Pro modules and webhook/cron class paths; registers activation/deactivation hooks; Community registers `register_uninstall_hook( …, LAUNCHDEK_Uninstaller::run )`, full build hooks `lau_fs()->add_action( 'after_uninstall', … )` to the same uninstaller (no root `uninstall.php`); calls `launchdek_run_plugin()`.
 - `LAUNCHDEK_Plugin::run()` wires admin UI, `LAUNCHDEK_REST_API::register()`, `LAUNCHDEK_Admin_Ajax::register()`, `LAUNCHDEK_Drift_Cron::register()`.
 - `LAUNCHDEK_Plugin::init()` on `init`: `LAUNCHDEK_Installer::maybe_install()`, `LAUNCHDEK_Capabilities::register()`, `LAUNCHDEK_Templates::seed_builtin()`, `LAUNCHDEK_Templates::sync_builtin()`, `LAUNCHDEK_Licensing::sync_drift_cron()` (schedule or clear twicedaily drift cron based on plan).
 - Settings: `launchdek_settings` via `LAUNCHDEK_Settings` (group `launchdek_settings_group`). Global kill switch: `enabled`. `exclude_options` blocks sensitive `/wp/v2/settings` fields from API checklist payloads on remote sites (`LAUNCHDEK_Payload_Mapper::filter_excluded_payload()`). `client_panel_layout` (default `live_topbar`; sanitized per plan via `LAUNCHDEK_Licensing::sanitize_panel_layout()`; effective value for snapshots via `::get_effective_panel_layout()`) controls how the client checklist panel renders on remote wp-admin; `client_panel_title` (default `Agency Checklist`, max 80 chars) sets the panel heading — both pushed in run snapshots via `LAUNCHDEK_Client_Push::build_snapshot()`. `custom_site_groups` stores user-created site tag group slugs/labels (built-in groups: `general`, `client`, `project`, `tier`; reserved `integration`); catalog via `get_site_group_catalog()` / `add_custom_site_group()` and `GET|POST /sites/groups`. `wp_umbrella_api_token_enc` stores the encrypted WP Umbrella Public API token (Integrations connector modal — admin-ajax `launchdek_save_wp_umbrella_token` with `normalize_wp_umbrella_api_token()` + `verify_api_token()` before save; sanitizer must preserve ciphertext when present, without `sanitize_text_field`). `LAUNCHDEK_Settings::sanitize()` also explicitly preserves `onboarding_dismissed` and `custom_site_groups` for keys updated via REST/ajax, not the Settings form. Email alerts: `email_notification_events` (default `run_completed`; includes `run_cancelled`, `drift_detected`, etc.) + optional comma-separated `email_notification_address` (falls back to site admin email via `get_email_notification_addresses()`); independent from webhook `notification_events` (Settings form unchecked boxes → `[]`). Notifications: `LAUNCHDEK_Webhook_Dispatcher::dispatch()` calls `LAUNCHDEK_Email_Notifier::dispatch()` first (wp_mail when event enabled), then Slack/Discord/Teams only when the event is in `notification_events` and a channel URL is set.

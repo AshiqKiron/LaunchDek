@@ -1,9 +1,9 @@
 #!/usr/bin/env php
 <?php
 /**
- * Build the Community (WordPress.org) zip — Pro PHP and templates omitted.
+ * Build the full Pro / premium zip (all templates, Pro PHP, Freemius SDK).
  *
- * Usage: php bin/build-community-zip.php [--output=dist/launchdek-community.zip]
+ * Usage: php bin/build-pro-zip.php [--output=dist/launchdek-pro.zip]
  *
  * @package LaunchDek
  */
@@ -14,7 +14,7 @@ if ( 'cli' !== PHP_SAPI ) {
 }
 
 $root = dirname( __DIR__ );
-$out  = $root . '/dist/launchdek-community.zip';
+$out  = $root . '/dist/launchdek-pro.zip';
 
 foreach ( array_slice( $argv, 1 ) as $arg ) {
 	if ( 0 === strpos( $arg, '--output=' ) ) {
@@ -22,41 +22,21 @@ foreach ( array_slice( $argv, 1 ) as $arg ) {
 	}
 }
 
-$community_categories = array( 'security', 'maintenance', 'performance', 'ecommerce' );
-
-if ( ! function_exists( 'sanitize_key' ) ) {
-	/**
-	 * Minimal sanitize_key for CLI.
-	 *
-	 * @param string $key Key.
-	 * @return string
-	 */
-	function sanitize_key( $key ) {
-		return strtolower( preg_replace( '/[^a-z0-9_\-]/', '', (string) $key ) );
-	}
-}
-
 $exclude_paths = array(
 	'.git',
 	'.cursor',
 	'.github',
-	'vendor',
 	'node_modules',
 	'dist',
 	'bin',
-	'includes/class-launchdek-auto-capture.php',
-	'includes/class-launchdek-email-notifier.php',
-	'includes/class-launchdek-webhook-dispatcher.php',
-	'includes/class-launchdek-drift-cron.php',
-	'includes/launchdek-freemius.php',
-	'admin/partials/launchdek-billing-page.php',
+	'includes/community',
 	'composer.json',
 	'composer.lock',
 	'phpcs.xml.dist',
 	'phpunit.xml.dist',
 );
 
-$staging = sys_get_temp_dir() . '/launchdek-community-' . uniqid( '', true );
+$staging    = sys_get_temp_dir() . '/launchdek-pro-' . uniqid( '', true );
 $plugin_dir = $staging . '/launchdek';
 
 /**
@@ -103,14 +83,20 @@ function copy_file( $source, $dest ) {
  * @param array  $exclude_paths Exclusions.
  * @return bool
  */
-function should_exclude( $path, $exclude_paths ) {
+function should_exclude_pro( $path, $exclude_paths ) {
 	$path = str_replace( '\\', '/', $path );
+
+	if ( 0 === strpos( $path, 'vendor/' ) ) {
+		return 0 !== strpos( $path, 'vendor/freemius' );
+	}
+
 	foreach ( $exclude_paths as $exclude ) {
 		$exclude = str_replace( '\\', '/', $exclude );
 		if ( $path === $exclude || 0 === strpos( $path, $exclude . '/' ) ) {
 			return true;
 		}
 	}
+
 	return false;
 }
 
@@ -120,7 +106,7 @@ function should_exclude( $path, $exclude_paths ) {
  * @param string $path Relative path.
  * @return bool
  */
-function is_hidden_path( $path ) {
+function is_hidden_path_pro( $path ) {
 	$path = str_replace( '\\', '/', $path );
 	foreach ( explode( '/', $path ) as $segment ) {
 		if ( '' !== $segment && '.' === $segment[0] ) {
@@ -130,23 +116,10 @@ function is_hidden_path( $path ) {
 	return false;
 }
 
-/**
- * @param string $json_path Template JSON path.
- * @param array  $community_categories Allowed categories.
- * @return bool
- */
-function template_allowed( $json_path, $community_categories ) {
-	$raw = file_get_contents( $json_path );
-	if ( false === $raw ) {
-		return false;
-	}
-	$data = json_decode( $raw, true );
-	if ( ! is_array( $data ) ) {
-		return false;
-	}
-	$category = isset( $data['category'] ) ? sanitize_key( (string) $data['category'] ) : '';
-
-	return in_array( $category, $community_categories, true );
+$freemius_dir = $root . '/vendor/freemius';
+if ( ! is_dir( $freemius_dir ) ) {
+	fwrite( STDERR, "Freemius SDK missing. Install vendor/freemius before building the Pro zip.\n" );
+	exit( 1 );
 }
 
 if ( is_dir( $staging ) ) {
@@ -164,14 +137,8 @@ foreach ( $iterator as $file ) {
 	$relative = substr( $file->getPathname(), strlen( $root ) + 1 );
 	$relative = str_replace( '\\', '/', $relative );
 
-	if ( is_hidden_path( $relative ) || should_exclude( $relative, $exclude_paths ) ) {
+	if ( is_hidden_path_pro( $relative ) || should_exclude_pro( $relative, $exclude_paths ) ) {
 		continue;
-	}
-
-	if ( 0 === strpos( $relative, 'templates/' ) && substr( $relative, -5 ) === '.json' ) {
-		if ( ! template_allowed( $file->getPathname(), $community_categories ) ) {
-			continue;
-		}
 	}
 
 	$target = $plugin_dir . '/' . $relative;
@@ -184,30 +151,6 @@ foreach ( $iterator as $file ) {
 
 	copy_file( $file->getPathname(), $target );
 }
-
-$bootstrap = $plugin_dir . '/launchdek.php';
-$contents  = file_get_contents( $bootstrap );
-if ( false === $contents ) {
-	fwrite( STDERR, "Could not read launchdek.php in staging.\n" );
-	exit( 1 );
-}
-
-$needle = "require_once LAUNCHDEK_PLUGIN_DIR . 'includes/launchdek-build.php';";
-$insert = "define( 'LAUNCHDEK_BUILD', 'community' );\n\n" . $needle;
-if ( false === strpos( $contents, $needle ) ) {
-	fwrite( STDERR, "launchdek.php bootstrap marker not found.\n" );
-	exit( 1 );
-}
-if ( false === strpos( $contents, "define( 'LAUNCHDEK_BUILD', 'community' );" ) ) {
-	$contents = str_replace( $needle, $insert, $contents );
-}
-
-$freemius_block = "if ( ! launchdek_is_community_build() ) {\n\trequire_once LAUNCHDEK_PLUGIN_DIR . 'includes/launchdek-freemius.php';\n}\n\n";
-if ( false !== strpos( $contents, $freemius_block ) ) {
-	$contents = str_replace( $freemius_block, '', $contents );
-}
-
-file_put_contents( $bootstrap, $contents );
 
 $out_dir = dirname( $out );
 if ( ! is_dir( $out_dir ) ) {
@@ -224,7 +167,7 @@ if ( true !== $zip->open( $out, ZipArchive::CREATE | ZipArchive::OVERWRITE ) ) {
 }
 
 $zip_root = 'launchdek';
-$files = new RecursiveIteratorIterator(
+$files    = new RecursiveIteratorIterator(
 	new RecursiveDirectoryIterator( $plugin_dir, RecursiveDirectoryIterator::SKIP_DOTS ),
 	RecursiveIteratorIterator::LEAVES_ONLY
 );
@@ -242,4 +185,4 @@ foreach ( $files as $file ) {
 $zip->close();
 rrmdir( $staging );
 
-fwrite( STDOUT, "Community build written to {$out}\n" );
+fwrite( STDOUT, "Pro build written to {$out}\n" );

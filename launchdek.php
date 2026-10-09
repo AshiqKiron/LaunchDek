@@ -34,6 +34,10 @@ define( 'LAUNCHDEK_REST_NAMESPACE', 'launchdek/v1' );
 
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/launchdek-build.php';
 
+if ( ! launchdek_is_community_build() ) {
+	require_once LAUNCHDEK_PLUGIN_DIR . 'includes/launchdek-freemius.php';
+}
+
 // Core.
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-settings.php';
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-admin-deep-links.php';
@@ -70,12 +74,19 @@ require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-rest-api.php';
 // Admin.
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-activator.php';
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-deactivator.php';
+require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-uninstaller.php';
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-admin.php';
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-admin-ajax.php';
 require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-plugin.php';
 
 register_activation_hook( __FILE__, array( 'LAUNCHDEK_Activator', 'activate' ) );
 register_deactivation_hook( __FILE__, array( 'LAUNCHDEK_Deactivator', 'deactivate' ) );
+
+if ( launchdek_is_community_build() ) {
+	register_uninstall_hook( __FILE__, array( 'LAUNCHDEK_Uninstaller', 'run' ) );
+} elseif ( function_exists( 'lau_fs' ) ) {
+	lau_fs()->add_action( 'after_uninstall', array( 'LAUNCHDEK_Uninstaller', 'run' ) );
+}
 
 /**
  * Initialize and run the plugin.

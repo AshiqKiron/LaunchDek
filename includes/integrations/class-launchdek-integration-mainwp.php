@@ -236,8 +236,9 @@ class LAUNCHDEK_Integration_MainWP implements LAUNCHDEK_Integration_Interface {
 
 		$wp_table = $wpdb->prefix . 'mainwp_wp';
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared
-		$diagnostics['mainwp_total_sites'] = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wp_table}" );
+		$diagnostics['mainwp_total_sites'] = (int) $wpdb->get_var(
+			'SELECT COUNT(*) FROM ' . $wp_table // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared
+		);
 
 		$sync_table = $wpdb->prefix . 'mainwp_wp_sync';
 
@@ -245,14 +246,12 @@ class LAUNCHDEK_Integration_MainWP implements LAUNCHDEK_Integration_Interface {
 		$sync_exists = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $sync_table ) ) === $sync_table;
 
 		if ( $sync_exists ) {
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared
 			$diagnostics['mainwp_connected_sites'] = (int) $wpdb->get_var(
-				"SELECT COUNT(*) FROM {$wp_table} wp LEFT JOIN {$sync_table} wp_sync ON wp.id = wp_sync.wpid WHERE (wp_sync.sync_errors IS NULL OR wp_sync.sync_errors = '')"
+				'SELECT COUNT(*) FROM ' . $wp_table . ' wp LEFT JOIN ' . $sync_table . ' wp_sync ON wp.id = wp_sync.wpid WHERE (wp_sync.sync_errors IS NULL OR wp_sync.sync_errors = \'\')' // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared
 			);
 
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared
 			$diagnostics['mainwp_disconnected_sites'] = (int) $wpdb->get_var(
-				"SELECT COUNT(*) FROM {$wp_table} wp INNER JOIN {$sync_table} wp_sync ON wp.id = wp_sync.wpid WHERE wp_sync.sync_errors IS NOT NULL AND wp_sync.sync_errors <> ''"
+				'SELECT COUNT(*) FROM ' . $wp_table . ' wp INNER JOIN ' . $sync_table . ' wp_sync ON wp.id = wp_sync.wpid WHERE wp_sync.sync_errors IS NOT NULL AND wp_sync.sync_errors <> \'\'' // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared
 			);
 		} else {
 			$diagnostics['mainwp_connected_sites']    = $diagnostics['mainwp_total_sites'];

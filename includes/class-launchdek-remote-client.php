@@ -338,7 +338,7 @@ class LAUNCHDEK_Remote_Client {
 		$table = $wpdb->prefix . 'launchdek_connection_events';
 		$rows  = $wpdb->get_results(
 			$wpdb->prepare(
-				"SELECT * FROM {$table} ORDER BY created_at DESC LIMIT %d",
+				"SELECT * FROM {$table} ORDER BY created_at DESC LIMIT %d", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 				max( 1, absint( $limit ) )
 			),
 			ARRAY_A

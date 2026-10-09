@@ -52,7 +52,7 @@ class LAUNCHDEK_MainWP_Agent {
 		$staged = self::stage_zip_for_mainwp( $zip['path'], $zip['filename'] );
 
 		if ( is_wp_error( $staged ) ) {
-			@unlink( $zip['path'] ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+			wp_delete_file( $zip['path'] );
 			return $staged;
 		}
 
@@ -71,7 +71,7 @@ class LAUNCHDEK_MainWP_Agent {
 			true
 		);
 
-		@unlink( $zip['path'] ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+		wp_delete_file( $zip['path'] );
 
 		if ( is_array( $information ) && isset( $information['installation'] ) && 'SUCCESS' === $information['installation'] ) {
 			return array(
@@ -160,7 +160,7 @@ class LAUNCHDEK_MainWP_Agent {
 			);
 		}
 
-		@unlink( $tmp_path ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
+		wp_delete_file( $tmp_path );
 
 		$zip = new ZipArchive();
 
