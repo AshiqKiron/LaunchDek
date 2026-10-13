@@ -9,6 +9,29 @@
 	var nonce = launchdekAdmin.nonce;
 	var strings = launchdekAdmin.strings || {};
 
+	function getRestNonce() {
+		return launchdekAdmin.nonce || nonce;
+	}
+
+	function setRestNonce(value) {
+		if (!value) {
+			return;
+		}
+		nonce = value;
+		launchdekAdmin.nonce = value;
+	}
+
+	function initRestNonceRefresh() {
+		if (!window.jQuery) {
+			return;
+		}
+		window.jQuery(document).on('heartbeat-tick.launchdek', function (event, data) {
+			if (data && data.rest_nonce) {
+				setRestNonce(data.rest_nonce);
+			}
+		});
+	}
+
 	/**
 	 * Split a REST path into route suffix and optional query string.
 	 *
@@ -122,6 +145,9 @@
 		}
 		if (!res.ok) {
 			var msg = (data && data.message) ? data.message : strings.error;
+			if (data && (data.code === 'rest_cookie_invalid_nonce' || data.code === 'rest_forbidden')) {
+				msg = strings.sessionExpired || msg;
+			}
 			var err = new Error(msg);
 			err.status = res.status;
 			err.data = data;
@@ -135,7 +161,7 @@
 			method: method,
 			headers: {
 				'Content-Type': 'application/json',
-				'X-WP-Nonce': nonce
+				'X-WP-Nonce': getRestNonce()
 			},
 			credentials: 'same-origin'
 		};
@@ -183,10 +209,12 @@
 
 		var body = new URLSearchParams();
 		body.append('action', action);
-		body.append('nonce', nonce);
 
 		if (data) {
 			Object.keys(data).forEach(function (key) {
+				if (key === 'nonce') {
+					return;
+				}
 				var value = data[key];
 				if (value === undefined || value === null) {
 					return;
@@ -195,10 +223,14 @@
 			});
 		}
 
+		var ajaxNonce = getRestNonce();
+		body.append('nonce', ajaxNonce);
+
 		return fetch(launchdekAdmin.ajaxUrl, {
 			method: 'POST',
 			headers: {
-				'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+				'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+				'X-WP-Nonce': ajaxNonce
 			},
 			credentials: 'same-origin',
 			body: body.toString()
@@ -215,6 +247,9 @@
 				}
 				if (!parsed || !parsed.success) {
 					var msg = (parsed && parsed.data && parsed.data.message) ? parsed.data.message : (strings.error || 'Something went wrong.');
+					if (res.status === 403 && strings.sessionExpired) {
+						msg = strings.sessionExpired;
+					}
 					throw new Error(msg);
 				}
 				return parsed.data;
@@ -6929,6 +6964,7 @@
 		var root = document.querySelector('.launchdek-admin');
 		if (root) root.setAttribute('data-launchdek-ready', 'true');
 
+		initRestNonceRefresh();
 		initTemplatePicker();
 		initOnboarding();
 		initConfirmModal();

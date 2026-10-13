@@ -13,6 +13,19 @@
 	var root = footerRoot;
 	var strings = launchdekClient.strings || {};
 	var run = launchdekClient.run;
+	var clientNonce = launchdekClient.nonce;
+
+	function getClientNonce() {
+		return launchdekClient.nonce || clientNonce;
+	}
+
+	function setClientNonce(value) {
+		if (!value) {
+			return;
+		}
+		clientNonce = value;
+		launchdekClient.nonce = value;
+	}
 	var panelLayout = 'sidebar';
 	var collapsed = false;
 	var TOGGLE_LAYOUTS = [
@@ -49,6 +62,13 @@
 	}
 
 	function clientFetch(path, options) {
+		options = options || {};
+		var headers = options.headers ? Object.assign({}, options.headers) : {};
+		if (!headers['X-WP-Nonce']) {
+			headers['X-WP-Nonce'] = getClientNonce();
+		}
+		options = Object.assign({}, options, { headers: headers });
+
 		var primaryUrl = buildClientApiUrl(path);
 		return fetch(primaryUrl, options).then(function (response) {
 			return response.json().then(function (body) {
@@ -1386,8 +1406,7 @@
 		clientFetch('/client/run/steps/' + stepIndex + '/notes', {
 			method: 'POST',
 			headers: {
-				'Content-Type': 'application/json',
-				'X-WP-Nonce': launchdekClient.nonce
+				'Content-Type': 'application/json'
 			},
 			credentials: 'same-origin',
 			body: JSON.stringify({
@@ -1477,8 +1496,7 @@
 		clientFetch('/client/run/steps/' + stepIndex + '/' + action, {
 			method: 'POST',
 			headers: {
-				'Content-Type': 'application/json',
-				'X-WP-Nonce': launchdekClient.nonce
+				'Content-Type': 'application/json'
 			},
 			credentials: 'same-origin',
 			body: JSON.stringify({})
@@ -1513,8 +1531,7 @@
 		clientFetch('/client/run/dismiss', {
 			method: 'POST',
 			headers: {
-				'Content-Type': 'application/json',
-				'X-WP-Nonce': launchdekClient.nonce
+				'Content-Type': 'application/json'
 			},
 			credentials: 'same-origin',
 			body: JSON.stringify({})
@@ -1541,6 +1558,14 @@
 		}).catch(function (error) {
 			button.disabled = false;
 			notice(error.message || strings.dismissError || 'Could not dismiss this checklist.', 'error');
+		});
+	}
+
+	if (window.jQuery) {
+		window.jQuery(document).on('heartbeat-tick.launchdek-client', function (event, data) {
+			if (data && data.rest_nonce) {
+				setClientNonce(data.rest_nonce);
+			}
 		});
 	}
 

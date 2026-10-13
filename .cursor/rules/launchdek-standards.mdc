@@ -60,7 +60,7 @@ Cross-cutting quality standards. See also: `launchdek-project.mdc` (architecture
 
 ## Uninstall & Lifecycle
 
-- **Activate**: seed settings, install DB tables, register caps, `LAUNCHDEK_Licensing::sync_drift_cron()` (scheduled drift only on Pro/Agency), set `launchdek_activation_redirect` option (`LAUNCHDEK_Admin::ACTIVATION_REDIRECT_OPTION`) for one-time dashboard onboarding redirect (`?onboarding=1`).
+- **Activate**: seed settings, install DB tables, register caps, load drift cron via `launchdek_get_drift_cron_file()` then `LAUNCHDEK_Licensing::sync_drift_cron()` (scheduled drift only on Pro/Agency), set `launchdek_activation_redirect` option (`LAUNCHDEK_Admin::ACTIVATION_REDIRECT_OPTION`) for one-time dashboard onboarding redirect (`?onboarding=1`; flag cleared only after redirect eligibility checks).
 - **Deactivate**: delete activation redirect option (and legacy transient), unschedule drift cron.
 - **Delete**: `LAUNCHDEK_Uninstaller::run()` — Community via `register_uninstall_hook` in bootstrap; full/premium via Freemius `after_uninstall`. Drops tables via `LAUNCHDEK_Installer::uninstall()`, removes options (`launchdek_settings`, `launchdek_billing`, `launchdek_version`, `launchdek_db_version`, `launchdek_templates_seeded`, `launchdek_templates_catalog`, `launchdek_drift_status`, `launchdek_activation_redirect`), clears dashboard cache (`LAUNCHDEK_Dashboard_Cache::clear()`), unregisters capabilities. Per-site drift baseline options (`launchdek_drift_baseline_{site_id}`) are not bulk-deleted on uninstall.
 - If adding new options or tables, update `LAUNCHDEK_Uninstaller::run()` and `LAUNCHDEK_Installer::uninstall()`.

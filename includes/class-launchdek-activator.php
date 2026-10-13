@@ -27,7 +27,10 @@ class LAUNCHDEK_Activator {
 		require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-checklist-repository.php';
 		require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-run-repository.php';
 		require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-licensing.php';
-		require_once LAUNCHDEK_PLUGIN_DIR . 'includes/class-launchdek-drift-cron.php';
+		if ( ! function_exists( 'launchdek_get_drift_cron_file' ) ) {
+			require_once LAUNCHDEK_PLUGIN_DIR . 'includes/launchdek-build.php';
+		}
+		require_once launchdek_get_drift_cron_file();
 
 		$defaults = LAUNCHDEK_Settings::get_defaults();
 

@@ -52,7 +52,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 			<div class="launchdek-onboarding-columns">
 				<label for="launchdek-onboarding-paste" class="launchdek-onboarding-pane-label"><?php esc_html_e( 'Paste your checklist text here:', 'launchdek' ); ?></label>
 				<span class="launchdek-onboarding-pane-label"><?php esc_html_e( 'Preview', 'launchdek' ); ?></span>
-				<textarea id="launchdek-onboarding-paste" class="launchdek-onboarding-textarea" rows="12" placeholder="<?php echo esc_attr( __( "Change site permalink structure\nBack up the site before making changes\nUpdate Settings → Permalinks to Post name\nTest key pages and fix 404 redirects", 'launchdek' ) ); ?>"></textarea>
+				<textarea id="launchdek-onboarding-paste" class="launchdek-onboarding-textarea" rows="12" placeholder="<?php echo esc_attr__( "Change site permalink structure\nBack up the site before making changes\nUpdate Settings → Permalinks to Post name\nTest key pages and fix 404 redirects", 'launchdek' ); ?>"></textarea>
 				<div id="launchdek-onboarding-preview" class="launchdek-onboarding-preview" aria-live="polite">
 					<p class="launchdek-muted"><?php esc_html_e( 'Start typing to see your checklist preview.', 'launchdek' ); ?></p>
 				</div>

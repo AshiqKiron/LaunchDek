@@ -246,15 +246,6 @@
 	line-height: 1.5;
 }
 
-.launchdek-settings-card--disabled {
-	opacity: 0.65;
-}
-
-.launchdek-billing-gated .launchdek-auto-capture-actions button {
-	pointer-events: none;
-	opacity: 0.5;
-}
-
 @media (max-width: 960px) {
 	.launchdek-billing-plans-grid {
 		grid-template-columns: 1fr;

@@ -669,9 +669,9 @@ class LAUNCHDEK_REST_API {
 	// Sites handlers.
 	public static function get_sites( $request ) {
 		$args = array(
-			'tag'        => $request->get_param( 'tag' ) ?: '',
-			'group_type' => $request->get_param( 'group_type' ) ?: '',
-			'health'     => $request->get_param( 'health' ) ?: '',
+			'tag'        => sanitize_text_field( (string) ( $request->get_param( 'tag' ) ?: '' ) ),
+			'group_type' => sanitize_key( (string) ( $request->get_param( 'group_type' ) ?: '' ) ),
+			'health'     => sanitize_key( (string) ( $request->get_param( 'health' ) ?: '' ) ),
 		);
 
 		return rest_ensure_response( LAUNCHDEK_Dashboard_Cache::get_sites_list( $args ) );
@@ -724,9 +724,22 @@ class LAUNCHDEK_REST_API {
 		}
 
 		$data = $request->get_json_params();
-		if ( empty( $data['url'] ) || empty( $data['admin_username'] ) || empty( $data['app_password'] ) ) {
+		if ( ! is_array( $data ) ) {
+			return new WP_Error( 'invalid_body', __( 'Invalid site data.', 'launchdek' ), array( 'status' => 400 ) );
+		}
+
+		$url = LAUNCHDEK_Site_Repository::normalize_url( $data['url'] ?? '' );
+		$username = sanitize_user( (string) ( $data['admin_username'] ?? '' ), true );
+		$password = is_string( $data['app_password'] ?? null ) ? $data['app_password'] : '';
+
+		if ( '' === $url || '' === $username || '' === $password ) {
 			return new WP_Error( 'missing_fields', __( 'URL, username, and app password are required.', 'launchdek' ), array( 'status' => 400 ) );
 		}
+
+		$data['url']             = $url;
+		$data['admin_username']  = $username;
+		$data['app_password']    = $password;
+
 		$id = LAUNCHDEK_Site_Repository::create( $data );
 		if ( ! $id ) {
 			return new WP_Error( 'create_failed', __( 'Failed to create site.', 'launchdek' ), array( 'status' => 500 ) );
@@ -929,11 +942,19 @@ class LAUNCHDEK_REST_API {
 
 	public static function test_raw_connection( $request ) {
 		$data = $request->get_json_params();
-		return rest_ensure_response( LAUNCHDEK_Connection_Tester::test_raw(
-			$data['url'] ?? '',
-			$data['admin_username'] ?? '',
-			$data['app_password'] ?? ''
-		) );
+		if ( ! is_array( $data ) ) {
+			return new WP_Error( 'invalid_body', __( 'Invalid connection data.', 'launchdek' ), array( 'status' => 400 ) );
+		}
+
+		$url = LAUNCHDEK_Site_Repository::normalize_url( $data['url'] ?? '' );
+		$username = sanitize_user( (string) ( $data['admin_username'] ?? '' ), true );
+		$password = is_string( $data['app_password'] ?? null ) ? $data['app_password'] : '';
+
+		if ( '' === $url || '' === $username || '' === $password ) {
+			return new WP_Error( 'missing_fields', __( 'URL, username, and app password are required.', 'launchdek' ), array( 'status' => 400 ) );
+		}
+
+		return rest_ensure_response( LAUNCHDEK_Connection_Tester::test_raw( $url, $username, $password ) );
 	}
 
 	public static function get_all_tags() {
@@ -1099,9 +1120,17 @@ class LAUNCHDEK_REST_API {
 
 	public static function import_checklist( $request ) {
 		$data = $request->get_json_params();
+		if ( ! is_array( $data ) ) {
+			$data = array();
+		}
 
 		if ( ! empty( $data['url'] ) ) {
-			$response = wp_remote_get( esc_url_raw( $data['url'] ), array( 'timeout' => 15 ) );
+			$import_url = esc_url_raw( (string) $data['url'] );
+			if ( '' === $import_url || ! wp_http_validate_url( $import_url ) ) {
+				return new WP_Error( 'invalid_url', __( 'Checklist import URL is not valid.', 'launchdek' ), array( 'status' => 400 ) );
+			}
+
+			$response = wp_remote_get( $import_url, array( 'timeout' => 15 ) );
 			if ( is_wp_error( $response ) ) {
 				return $response;
 			}
@@ -1111,6 +1140,8 @@ class LAUNCHDEK_REST_API {
 		if ( ! is_array( $data ) ) {
 			return new WP_Error( 'invalid_json', __( 'Invalid checklist JSON.', 'launchdek' ), array( 'status' => 400 ) );
 		}
+
+		unset( $data['is_template'], $data['is_vault'] );
 
 		$id = LAUNCHDEK_Checklist_Repository::import( $data );
 		if ( ! $id ) {
@@ -1148,6 +1179,10 @@ class LAUNCHDEK_REST_API {
 
 	public static function validate_api_step( $request ) {
 		$data = $request->get_json_params();
+		if ( ! is_array( $data ) ) {
+			return new WP_Error( 'invalid_body', __( 'Invalid step data.', 'launchdek' ), array( 'status' => 400 ) );
+		}
+
 		return rest_ensure_response( LAUNCHDEK_Payload_Mapper::validate( $data ) );
 	}
 

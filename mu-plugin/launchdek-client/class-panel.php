@@ -121,8 +121,7 @@ class LAUNCHDEK_Client_Panel {
 	 * @return void
 	 */
 	public static function render_metabox() {
-		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Static mount point markup.
-		echo '<div id="launchdek-client-metabox-root" class="launchdek-client-metabox-root" aria-live="polite"></div>';
+		echo wp_kses_post( '<div id="launchdek-client-metabox-root" class="launchdek-client-metabox-root" aria-live="polite"></div>' );
 	}
 
 	/**
@@ -155,7 +154,7 @@ class LAUNCHDEK_Client_Panel {
 		wp_enqueue_script(
 			'launchdek-client-admin',
 			LAUNCHDEK_CLIENT_PANEL_URL . 'js/launchdek-client-admin.js',
-			array( 'jquery', 'media-editor', 'media-views' ),
+			array( 'jquery', 'heartbeat', 'media-editor', 'media-views' ),
 			file_exists( $js_path ) ? (string) filemtime( $js_path ) : LAUNCHDEK_CLIENT_PANEL_VERSION,
 			true
 		);
@@ -236,7 +235,6 @@ class LAUNCHDEK_Client_Panel {
 			return;
 		}
 
-		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Static mount point markup.
-		echo '<div id="launchdek-client-panel-root" class="launchdek-client-panel-root" aria-live="polite"></div>';
+		echo wp_kses_post( '<div id="launchdek-client-panel-root" class="launchdek-client-panel-root" aria-live="polite"></div>' );
 	}
 }

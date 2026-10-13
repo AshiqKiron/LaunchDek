@@ -5,6 +5,9 @@
  * Integrations actions use admin-ajax instead of REST so sites with many
  * plugins are not forced to bootstrap the full REST route registry on each sync.
  *
+ * All handlers register on Community and Pro builds (see LAUNCHDEK_Plugin::run()).
+ * Do not gate registration behind launchdek_includes_pro_package().
+ *
  * @package LaunchDek
  */
 
@@ -18,7 +21,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 class LAUNCHDEK_Admin_Ajax {
 
 	/**
-	 * Register admin-ajax actions.
+	 * Register admin-ajax actions (Community and Pro — same action list).
 	 *
 	 * @return void
 	 */
@@ -40,14 +43,41 @@ class LAUNCHDEK_Admin_Ajax {
 	}
 
 	/**
+	 * Read the wp_rest nonce from admin-ajax POST or the REST X-WP-Nonce header.
+	 *
+	 * @return string
+	 */
+	protected static function get_request_nonce() {
+		if ( isset( $_POST['nonce'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Validated via wp_verify_nonce in verify_ajax_nonce().
+			// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Validated via wp_verify_nonce in verify_ajax_nonce().
+			$nonce = sanitize_text_field( wp_unslash( $_POST['nonce'] ) );
+			if ( '' !== $nonce ) {
+				return $nonce;
+			}
+		}
+
+		if ( isset( $_SERVER['HTTP_X_WP_NONCE'] ) ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Sanitized on the next line.
+			$header_nonce = sanitize_text_field( wp_unslash( $_SERVER['HTTP_X_WP_NONCE'] ) ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Sanitized via sanitize_text_field.
+			if ( '' !== $header_nonce ) {
+				return $header_nonce;
+			}
+		}
+
+		if ( isset( $_REQUEST['nonce'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Validated via wp_verify_nonce in verify_ajax_nonce().
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Validated via wp_verify_nonce in verify_ajax_nonce().
+			return sanitize_text_field( wp_unslash( $_REQUEST['nonce'] ) );
+		}
+
+		return '';
+	}
+
+	/**
 	 * Verify the admin-ajax REST nonce (returns JSON error instead of dying with -1).
 	 *
 	 * @return void
 	 */
 	protected static function verify_ajax_nonce() {
-		$nonce = isset( $_REQUEST['nonce'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['nonce'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Validated via wp_verify_nonce below.
-
-		if ( ! wp_verify_nonce( $nonce, 'wp_rest' ) ) {
+		if ( ! wp_verify_nonce( self::get_request_nonce(), 'wp_rest' ) ) {
 			wp_send_json_error(
 				array(
 					'message' => __( 'Your session has expired. Please reload the page and try again.', 'launchdek' ),

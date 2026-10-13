@@ -15,18 +15,29 @@ if ( ! defined( 'ABSPATH' ) ) {
 $current_plan   = LAUNCHDEK_Licensing::get_plan();
 $plan_slugs     = LAUNCHDEK_Licensing::get_compare_plan_slugs();
 $compare_rows   = LAUNCHDEK_Licensing::get_compare_features();
-$included_label = esc_attr__( 'Included', 'launchdek' );
-$not_included   = esc_attr__( 'Not included', 'launchdek' );
+$included_label = __( 'Included', 'launchdek' );
+$not_included   = __( 'Not included', 'launchdek' );
+
+$launchdek_billing_cell_allowed_html = array(
+	'span' => array(
+		'class'       => true,
+		'aria-hidden' => true,
+		'aria-label'  => true,
+	),
+);
 
 /**
  * Render one comparison table cell.
  *
- * @param array{type: string, value: string|bool} $cell Cell definition.
+ * @param array{type: string, value: string|bool}|null $cell Cell definition.
  * @return void
  */
-$launchdek_render_compare_cell = function ( $cell ) use ( $included_label, $not_included ) {
+$launchdek_render_compare_cell = function ( $cell ) use ( $included_label, $not_included, $launchdek_billing_cell_allowed_html ) {
 	if ( ! is_array( $cell ) ) {
-		echo '<span class="launchdek-billing-no" aria-hidden="true">&mdash;</span>';
+		echo wp_kses(
+			'<span class="launchdek-billing-no" aria-hidden="true">&mdash;</span>',
+			$launchdek_billing_cell_allowed_html
+		);
 		return;
 	}
 
@@ -34,13 +45,23 @@ $launchdek_render_compare_cell = function ( $cell ) use ( $included_label, $not_
 
 	if ( 'bool' === $type ) {
 		if ( ! empty( $cell['value'] ) ) {
-			echo '<span class="launchdek-billing-yes" aria-label="' . esc_attr( $included_label ) . '">';
-			echo '<span class="dashicons dashicons-yes" aria-hidden="true"></span>';
-			echo '</span>';
+			echo wp_kses(
+				sprintf(
+					'<span class="launchdek-billing-yes" aria-label="%1$s"><span class="dashicons dashicons-yes" aria-hidden="true"></span></span>',
+					esc_attr( $included_label )
+				),
+				$launchdek_billing_cell_allowed_html
+			);
 			return;
 		}
 
-		echo '<span class="launchdek-billing-no" aria-label="' . esc_attr( $not_included ) . '">&mdash;</span>';
+		echo wp_kses(
+			sprintf(
+				'<span class="launchdek-billing-no" aria-label="%1$s">&mdash;</span>',
+				esc_attr( $not_included )
+			),
+			$launchdek_billing_cell_allowed_html
+		);
 		return;
 	}
 
@@ -87,14 +108,11 @@ $launchdek_render_compare_cell = function ( $cell ) use ( $included_label, $not_
 								<span class="launchdek-billing-feature-label-text"><?php echo esc_html( $row['label'] ?? '' ); ?></span>
 							</span>
 						</th>
-						<?php
-						foreach ( $plan_slugs as $plan_slug ) {
-							$cell = $row['values'][ $plan_slug ] ?? null;
-							echo '<td class="launchdek-billing-compare-value-col">';
-							$launchdek_render_compare_cell( $cell );
-							echo '</td>';
-						}
-						?>
+						<?php foreach ( $plan_slugs as $plan_slug ) : ?>
+							<td class="launchdek-billing-compare-value-col">
+								<?php $launchdek_render_compare_cell( $row['values'][ $plan_slug ] ?? null ); ?>
+							</td>
+						<?php endforeach; ?>
 					</tr>
 				<?php endforeach; ?>
 				<tr class="launchdek-billing-compare-cta-row">

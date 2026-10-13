@@ -601,7 +601,7 @@ class LAUNCHDEK_Audit_Log {
 		}
 
 		if ( is_string( $value ) ) {
-			return trim( $value );
+			return trim( sanitize_textarea_field( wp_strip_all_tags( $value ) ) );
 		}
 
 		if ( is_array( $value ) || is_object( $value ) ) {

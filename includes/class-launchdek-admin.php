@@ -98,18 +98,21 @@ class LAUNCHDEK_Admin {
 	 * @return void
 	 */
 	public function maybe_redirect_legacy_templates_page() {
-		if ( ! is_admin() || ! isset( $_GET['page'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( ! is_admin() ) {
 			return;
 		}
 
-		$page = sanitize_key( wp_unslash( $_GET['page'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$page = self::get_admin_query_page();
+		if ( '' === $page ) {
+			return;
+		}
 
 		if ( self::PAGE_SLUG . '-templates' === $page ) {
 			wp_safe_redirect( admin_url( 'admin.php?page=' . self::PAGE_SLUG . '-checklists' ) );
 			exit;
 		}
 
-		if ( self::PAGE_SLUG . '-sites' === $page && ! empty( $_GET['activity_logs'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		if ( self::PAGE_SLUG . '-sites' === $page && self::has_admin_query_flag( 'activity_logs' ) ) {
 			wp_safe_redirect( admin_url( 'admin.php?page=' . self::PAGE_SLUG . '-activity-logs' ) );
 			exit;
 		}
@@ -121,16 +124,12 @@ class LAUNCHDEK_Admin {
 	 * @return void
 	 */
 	public function maybe_activation_redirect() {
-		$redirect_flag = get_option( self::ACTIVATION_REDIRECT_OPTION, false );
-		if ( ! $redirect_flag ) {
-			delete_transient( self::ACTIVATION_REDIRECT_OPTION );
+		if ( wp_doing_ajax() || is_network_admin() || self::has_admin_query_flag( 'activate-multi' ) ) {
 			return;
 		}
 
-		delete_option( self::ACTIVATION_REDIRECT_OPTION );
-		delete_transient( self::ACTIVATION_REDIRECT_OPTION );
-
-		if ( wp_doing_ajax() || is_network_admin() || isset( $_GET['activate-multi'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+		$redirect_user = $this->get_pending_activation_redirect_user();
+		if ( ! $redirect_user ) {
 			return;
 		}
 
@@ -138,20 +137,96 @@ class LAUNCHDEK_Admin {
 			return;
 		}
 
-		$redirect_user = absint( $redirect_flag );
 		if ( $redirect_user > 1 && get_current_user_id() !== $redirect_user ) {
 			return;
 		}
 
-		if ( isset( $_GET['page'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-			$page = sanitize_key( wp_unslash( $_GET['page'] ) ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-			if ( self::PAGE_SLUG === $page ) {
-				return;
-			}
+		$this->clear_activation_redirect_flag();
+
+		if ( self::PAGE_SLUG === self::get_admin_query_page() ) {
+			return;
 		}
 
 		wp_safe_redirect( admin_url( 'admin.php?page=' . self::PAGE_SLUG . '&onboarding=1' ) );
 		exit;
+	}
+
+	/**
+	 * Pending activation redirect target (option, or legacy transient from pre-option installs).
+	 *
+	 * @return int User ID to match (1 = any user with dashboard access).
+	 */
+	private function get_pending_activation_redirect_user() {
+		$flag = get_option( self::ACTIVATION_REDIRECT_OPTION, false );
+		if ( false !== $flag && '' !== $flag ) {
+			$user_id = absint( $flag );
+			return $user_id > 0 ? $user_id : 0;
+		}
+
+		$legacy = get_transient( self::ACTIVATION_REDIRECT_OPTION );
+		if ( false === $legacy || '' === $legacy ) {
+			delete_transient( self::ACTIVATION_REDIRECT_OPTION );
+			return 0;
+		}
+
+		$user_id = absint( $legacy );
+		return $user_id > 0 ? $user_id : 0;
+	}
+
+	/**
+	 * Remove activation redirect flag from options and legacy transient storage.
+	 *
+	 * @return void
+	 */
+	private function clear_activation_redirect_flag() {
+		delete_option( self::ACTIVATION_REDIRECT_OPTION );
+		delete_transient( self::ACTIVATION_REDIRECT_OPTION );
+	}
+
+	/**
+	 * Sanitized `page` query arg for wp-admin plugin screens (navigation only).
+	 *
+	 * @return string Empty when absent.
+	 */
+	private static function get_admin_query_page() {
+		if ( ! isset( $_GET['page'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only admin navigation.
+			return '';
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only admin navigation.
+		return sanitize_key( wp_unslash( $_GET['page'] ) );
+	}
+
+	/**
+	 * Whether a legacy/boolean wp-admin query flag is present.
+	 *
+	 * @param string $key Query arg key.
+	 * @return bool
+	 */
+	private static function has_admin_query_flag( $key ) {
+		$key = sanitize_key( $key );
+		if ( '' === $key ) {
+			return false;
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput.InputNotValidated -- Presence-only flag; key sanitized above.
+		return isset( $_GET[ $key ] );
+	}
+
+	/**
+	 * Positive integer wp-admin query arg (e.g. site_id filter).
+	 *
+	 * @param string $key Query arg key.
+	 * @return int
+	 */
+	private static function get_admin_query_absint( $key ) {
+		$key = sanitize_key( $key );
+		if ( '' === $key || ! isset( $_GET[ $key ] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only admin navigation.
+			return 0;
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only admin navigation.
+		return absint( wp_unslash( $_GET[ $key ] ) );
 	}
 
 	public function enqueue_styles( $hook ) {
@@ -182,7 +257,7 @@ class LAUNCHDEK_Admin {
 		wp_enqueue_script(
 			'launchdek-admin',
 			LAUNCHDEK_PLUGIN_URL . 'admin/js/launchdek-admin.js',
-			array( 'wp-components' ),
+			array( 'wp-components', 'heartbeat' ),
 			file_exists( $path ) ? (string) filemtime( $path ) : LAUNCHDEK_VERSION,
 			true
 		);
@@ -461,15 +536,35 @@ class LAUNCHDEK_Admin {
 					'automationBack'              => __( 'Back', 'launchdek' ),
 					'automationStartRun'          => __( 'Start Run', 'launchdek' ),
 					'automationBackToSetup'       => __( 'Back to setup', 'launchdek' ),
-					'billingProRequired'          => __( 'This feature is available on Pro and Agency plans.', 'launchdek' ),
-					'billingViewPlans'            => __( 'View plans', 'launchdek' ),
-					'billingSiteLimit'            => __( 'Your plan has reached its site limit. Upgrade on Billing to add more sites.', 'launchdek' ),
 				),
-			'billing' => LAUNCHDEK_Licensing::get_summary(),
 		);
 
 		if ( launchdek_includes_pro_package() ) {
-			$localize['billingUrl'] = admin_url( 'admin.php?page=' . self::PAGE_SLUG . '-billing' );
+			$localize['billing']     = LAUNCHDEK_Licensing::get_summary();
+			$localize['billingUrl']  = admin_url( 'admin.php?page=' . self::PAGE_SLUG . '-billing' );
+			$localize['strings']['billingProRequired'] = __( 'This feature is available on Pro and Agency plans.', 'launchdek' );
+			$localize['strings']['billingViewPlans']   = __( 'View plans', 'launchdek' );
+			$localize['strings']['billingSiteLimit']   = __( 'Your plan has reached its site limit. Upgrade on Billing to add more sites.', 'launchdek' );
+		}
+
+		if ( ! LAUNCHDEK_Licensing::can_use_auto_capture() ) {
+			foreach ( array(
+				'captureSelectSite',
+				'captureNeedPanel',
+				'captureIdle',
+				'captureRecording',
+				'captureReady',
+				'captureImportOne',
+				'captureImportMany',
+				'captureImported',
+				'captureDefaultTitle',
+			) as $capture_string_key ) {
+				unset( $localize['strings'][ $capture_string_key ] );
+			}
+		}
+
+		if ( ! LAUNCHDEK_Licensing::can_use_agency_vault() ) {
+			unset( $localize['strings']['savedToVault'], $localize['strings']['noVaultTemplates'] );
 		}
 
 		if ( 'toplevel_page_' . self::PAGE_SLUG === $hook ) {
@@ -503,7 +598,7 @@ class LAUNCHDEK_Admin {
 		}
 
 		if ( self::PAGE_SLUG . '_page_' . self::PAGE_SLUG . '-activity-logs' === $hook ) {
-			$initial_site_id = isset( $_GET['site_id'] ) ? absint( wp_unslash( $_GET['site_id'] ) ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			$initial_site_id = self::get_admin_query_absint( 'site_id' );
 			$localize['activityLogs'] = array(
 				'preloaded'          => true,
 				'sites'              => LAUNCHDEK_Site_Repository::picker_list(),
@@ -562,7 +657,21 @@ class LAUNCHDEK_Admin {
 	}
 
 	public function add_settings_link( $links ) {
-		array_unshift( $links, sprintf( '<a href="%s">%s</a>', esc_url( admin_url( 'admin.php?page=' . self::PAGE_SLUG . '-settings' ) ), esc_html__( 'Settings', 'launchdek' ) ) );
+		array_unshift(
+			$links,
+			wp_kses(
+				sprintf(
+					'<a href="%1$s">%2$s</a>',
+					esc_url( admin_url( 'admin.php?page=' . self::PAGE_SLUG . '-settings' ) ),
+					esc_html__( 'Settings', 'launchdek' )
+				),
+				array(
+					'a' => array(
+						'href' => true,
+					),
+				)
+			)
+		);
 		return $links;
 	}
 
@@ -570,7 +679,20 @@ class LAUNCHDEK_Admin {
 		if ( LAUNCHDEK_PLUGIN_BASENAME !== $file ) {
 			return $links;
 		}
-		$links[] = sprintf( '<a href="%s" target="_blank" rel="noopener noreferrer">%s</a>', esc_url( LAUNCHDEK_PLUGIN_DOCS_URL ), esc_html__( 'Docs', 'launchdek' ) );
+		$links[] = wp_kses(
+			sprintf(
+				'<a href="%1$s" target="_blank" rel="noopener noreferrer">%2$s</a>',
+				esc_url( LAUNCHDEK_PLUGIN_DOCS_URL ),
+				esc_html__( 'Docs', 'launchdek' )
+			),
+			array(
+				'a' => array(
+					'href'   => true,
+					'target' => true,
+					'rel'    => true,
+				),
+			)
+		);
 		return $links;
 	}
 

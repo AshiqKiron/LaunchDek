@@ -259,6 +259,13 @@ Purchase from [Asphalt Themes](https://asphaltthemes.com/launchdek), install the
 == Changelog ==
 
 = 1.0.50 =
+* Community build: Pro-only admin UI is omitted (not grayed out)—vault, auto-capture, webhooks/email, and scheduled drift; billing upgrade strings are not loaded in admin JS
+* Community build: integrations, site run history, and Activity Logs pagination use the same admin-ajax handlers as Pro (capability checks only—not gated by the premium package)
+* Security: tighten REST validation for site create/connection test, checklist import URLs, and API step validation; imported checklists can no longer set vault/template flags via JSON
+* Security: harden admin and client panel PHP output escaping (billing cells, dashboard links, audit detail values, plugin row links)
+* Fix admin-ajax and REST session errors after long wp-admin sessions — refresh the wp_rest nonce via Heartbeat, accept X-WP-Nonce on admin-ajax, and show a clear reload message when the cookie nonce expires
+* Fix Community (free) zip activation fatal error — drift cron loader now uses the Community build stub instead of the omitted Pro-only file
+* Fix post-activation onboarding redirect sometimes skipped when another admin request ran first (flag cleared only after eligibility checks; legacy activation transient honored)
 * Performance: database indexes for site run history, audit log filters, run steps, and site tag filters (DB 1.6.0)
 * Performance: sites list loads tags in one query and skips credential decryption on list screens; higher default list limits (500 sites/checklists, 500 quick-launch picker entries)
 * Performance: dashboard audit feed and completion-rate stats use leaner SQL

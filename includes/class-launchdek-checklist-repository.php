@@ -361,8 +361,8 @@ class LAUNCHDEK_Checklist_Repository {
 				'description' => $payload['description'] ?? '',
 				'steps'       => $payload['steps'] ?? array(),
 				'version'     => $payload['version'] ?? '1.0.0',
-				'is_template' => ! empty( $payload['is_template'] ),
-				'is_vault'    => ! empty( $payload['is_vault'] ),
+				'is_template' => false,
+				'is_vault'    => false,
 			)
 		);
 	}

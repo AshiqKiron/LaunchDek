@@ -57,10 +57,17 @@ $launchdek_quick_launch_lists  = isset( $launchdek_quick_launch_picker['checklis
 		<h2><?php esc_html_e( 'Live Log Feed', 'launchdek' ); ?></h2>
 		<p class="launchdek-muted launchdek-log-feed-meta">
 			<?php
-			printf(
-				/* translators: %s: link to activity logs page */
-				esc_html__( 'Showing the latest 15 entries. %s', 'launchdek' ),
-				'<a href="' . esc_url( admin_url( 'admin.php?page=' . LAUNCHDEK_Admin::PAGE_SLUG . '-activity-logs' ) ) . '">' . esc_html__( 'View all activity logs', 'launchdek' ) . '</a>'
+			$launchdek_activity_logs_link = sprintf(
+				'<a href="%1$s">%2$s</a>',
+				esc_url( admin_url( 'admin.php?page=' . LAUNCHDEK_Admin::PAGE_SLUG . '-activity-logs' ) ),
+				esc_html__( 'View all activity logs', 'launchdek' )
+			);
+			echo wp_kses_post(
+				sprintf(
+					/* translators: %s: link to activity logs page */
+					__( 'Showing the latest 15 entries. %s', 'launchdek' ),
+					$launchdek_activity_logs_link
+				)
 			);
 			?>
 		</p>

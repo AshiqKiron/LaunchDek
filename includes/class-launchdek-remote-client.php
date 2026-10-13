@@ -50,9 +50,9 @@ class LAUNCHDEK_Remote_Client {
 	 */
 	public function __construct( $site_id, $creds ) {
 		$this->site_id  = absint( $site_id );
-		$this->url      = untrailingslashit( $creds['url'] ?? '' );
-		$this->username = $creds['admin_username'] ?? '';
-		$this->password = $creds['app_password'] ?? '';
+		$this->url      = LAUNCHDEK_Site_Repository::normalize_url( $creds['url'] ?? '' );
+		$this->username = sanitize_user( (string) ( $creds['admin_username'] ?? '' ), true );
+		$this->password = is_string( $creds['app_password'] ?? null ) ? $creds['app_password'] : '';
 	}
 
 	/**

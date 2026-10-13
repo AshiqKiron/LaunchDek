@@ -41,12 +41,12 @@ endif;
  * Render combined connection and health status markup for a site row.
  *
  * @param array $site Site payload.
- * @return string
+ * @return string Escaped HTML.
  */
 if ( ! function_exists( 'launchdek_sites_status_html' ) ) :
 function launchdek_sites_status_html( $site ) {
 	$status     = sanitize_key( $site['health_status'] ?? 'unknown' );
-	$last_error = isset( $site['last_error'] ) ? wp_strip_all_tags( (string) $site['last_error'] ) : '';
+	$last_error = isset( $site['last_error'] ) ? sanitize_textarea_field( wp_strip_all_tags( (string) $site['last_error'] ) ) : '';
 
 	if ( 'healthy' === $status ) {
 		$label = __( 'Connection OK', 'launchdek' );
@@ -113,7 +113,7 @@ endif;
  * Render the site name / URL cell for the sites table.
  *
  * @param array $site Site payload.
- * @return string
+ * @return string Escaped HTML.
  */
 if ( ! function_exists( 'launchdek_site_row_name_cell_html' ) ) :
 function launchdek_site_row_name_cell_html( $site ) {
@@ -154,7 +154,7 @@ endif;
  * Render site row actions dropdown markup.
  *
  * @param array $site Site payload.
- * @return string
+ * @return string Escaped HTML.
  */
 if ( ! function_exists( 'launchdek_sites_actions_html' ) ) :
 function launchdek_sites_actions_html( $site ) {

@@ -29,7 +29,7 @@ if ( '' !== $launchdek_panel_setup_prefix ) {
 	$launchdek_panel_setup_result_id   = 'launchdek-panel-setup-result';
 }
 ?>
-<div id="<?php echo esc_attr( $launchdek_panel_setup_root_id ); ?>" class="launchdek-panel-setup"<?php echo $launchdek_panel_setup_is_hidden ? ' hidden' : ''; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Boolean attribute fragment. ?>>
+<div id="<?php echo esc_attr( $launchdek_panel_setup_root_id ); ?>" class="launchdek-panel-setup"<?php if ( $launchdek_panel_setup_is_hidden ) : ?> hidden<?php endif; ?>>
 	<h3 class="launchdek-panel-setup-title"><?php esc_html_e( 'Client checklist panel setup', 'launchdek' ); ?></h3>
 	<p class="launchdek-muted"><?php esc_html_e( 'One time setup so clients see the checklist in their wp-admin.', 'launchdek' ); ?></p>
 	<ol class="launchdek-panel-setup-steps">

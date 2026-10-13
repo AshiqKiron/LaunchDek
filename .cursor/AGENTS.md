@@ -10,7 +10,9 @@ WordPress agency hub plugin (PHP 7.4+, WP 6.2+). Persistent AI guidance lives in
 | [`wordpress-php.mdc`](rules/wordpress-php.mdc) | PHP, repositories, settings shape, REST handlers (`**/*.php`) |
 | [`admin-assets.mdc`](rules/admin-assets.mdc) | Admin JS/CSS and client panel assets (`admin/`, `mu-plugin/`) |
 
-**Build editions:** `LAUNCHDEK_BUILD` `full` (repo default) vs `community` (WordPress.org zip). Community omits Pro PHP, Freemius, Billing admin submenu + partial, `/billing/*` REST, and most template categories — gate with `launchdek_includes_pro_package()` / `LAUNCHDEK_Licensing`. `launchdekAdmin.billingUrl` is localized only on full builds.
+**Build editions:** `LAUNCHDEK_BUILD` `full` (repo default) vs `community` (WordPress.org zip). Community omits Pro PHP, Freemius, Billing admin submenu + partial, `/billing/*` REST, and most template categories — gate with `launchdek_includes_pro_package()` / `LAUNCHDEK_Licensing`. `launchdekAdmin.billing`, billing gate strings, and `billingUrl` are localized only on full builds; admin-ajax handlers are the same on Community and Pro.
+
+**Session / nonce:** Hub `launchdek-admin` and remote client panel scripts depend on `heartbeat` and refresh the `wp_rest` nonce from `heartbeat-tick` (`rest_nonce`). `postAjax()` sends `X-WP-Nonce`; `LAUNCHDEK_Admin_Ajax::get_request_nonce()` accepts POST or header.
 
 **Bootstrap order:** `launchdek-build.php` → optional `launchdek-freemius.php` → core includes; site/checklist/run repositories load **before** `class-launchdek-installer.php` (migrations use `::table()` helpers).
 
