@@ -142,7 +142,6 @@ class CHECKLISTDEK_Dashboard_Cache {
 				}
 
 				$entry['show_site_label'] = CHECKLISTDEK_Audit_Log::feed_entry_show_site_label( $entry );
-				$entry['message']         = CHECKLISTDEK_Audit_Log::format_feed_message( $entry, ! $entry['show_site_label'] );
 
 				return $entry;
 			},

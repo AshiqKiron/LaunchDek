@@ -1021,20 +1021,11 @@ class CHECKLISTDEK_Audit_Log {
 	 * @return array
 	 */
 	public static function get_feed( $limit = 15 ) {
-		$entries = self::query(
+		return self::query(
 			array(
 				'limit'           => $limit,
 				'include_details' => false,
 			)
-		);
-
-		return array_map(
-			function ( $entry ) {
-				$entry['show_site_label'] = self::feed_entry_show_site_label( $entry );
-				$entry['message']         = self::format_feed_message( $entry, ! $entry['show_site_label'] );
-				return $entry;
-			},
-			$entries
 		);
 	}
 
@@ -1079,7 +1070,8 @@ class CHECKLISTDEK_Audit_Log {
 	 * @return string
 	 */
 	public static function format_feed_message( $entry, $embed_site = true ) {
-		$details = is_array( $entry['details'] ) ? $entry['details'] : array();
+		$raw_details = $entry['details'] ?? null;
+		$details     = is_array( $raw_details ) ? $raw_details : array();
 		$site    = self::resolve_site_name( (int) $entry['site_id'], $entry['run_id'], $details );
 
 		switch ( $entry['action'] ) {
@@ -1916,9 +1908,11 @@ class CHECKLISTDEK_Audit_Log {
 			$formatted['details'] = $details;
 		}
 
+		$formatted['show_site_label'] = self::feed_entry_show_site_label( $formatted );
+
 		$message_entry            = $formatted;
 		$message_entry['details'] = $details;
-		$formatted['message']     = self::format_feed_message( $message_entry, false );
+		$formatted['message']     = self::format_feed_message( $message_entry, ! $formatted['show_site_label'] );
 
 		unset( $formatted['run_summary'] );
 
