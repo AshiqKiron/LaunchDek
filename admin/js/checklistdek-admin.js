@@ -21,15 +21,18 @@
 		checklistdekAdmin.nonce = value;
 	}
 
+	function onHeartbeatRestNonce(event, data) {
+		if (data && data.rest_nonce) {
+			setRestNonce(data.rest_nonce);
+		}
+	}
+
 	function initRestNonceRefresh() {
 		if (!window.jQuery) {
 			return;
 		}
-		window.jQuery(document).on('heartbeat-tick.checklistdek', function (event, data) {
-			if (data && data.rest_nonce) {
-				setRestNonce(data.rest_nonce);
-			}
-		});
+		// Must listen on bare `heartbeat-tick` — jQuery namespaced handlers do not run for WP core's trigger.
+		window.jQuery(document).off('heartbeat-tick', onHeartbeatRestNonce).on('heartbeat-tick', onHeartbeatRestNonce);
 	}
 
 	/**

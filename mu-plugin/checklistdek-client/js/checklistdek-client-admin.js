@@ -1561,12 +1561,15 @@
 		});
 	}
 
+	function onClientHeartbeatRestNonce(event, data) {
+		if (data && data.rest_nonce) {
+			setClientNonce(data.rest_nonce);
+		}
+	}
+
 	if (window.jQuery) {
-		window.jQuery(document).on('heartbeat-tick.checklistdek-client', function (event, data) {
-			if (data && data.rest_nonce) {
-				setClientNonce(data.rest_nonce);
-			}
-		});
+		// Must listen on bare `heartbeat-tick` — jQuery namespaced handlers do not run for WP core's trigger.
+		window.jQuery(document).off('heartbeat-tick', onClientHeartbeatRestNonce).on('heartbeat-tick', onClientHeartbeatRestNonce);
 	}
 
 	refreshLayoutState();

@@ -165,12 +165,21 @@ class CHECKLISTDEK_Admin {
 
 		$legacy = get_transient( self::ACTIVATION_REDIRECT_OPTION );
 		if ( false === $legacy || '' === $legacy ) {
-			delete_transient( self::ACTIVATION_REDIRECT_OPTION );
+			if ( false !== $legacy ) {
+				delete_transient( self::ACTIVATION_REDIRECT_OPTION );
+			}
 			return 0;
 		}
 
 		$user_id = absint( $legacy );
-		return $user_id > 0 ? $user_id : 0;
+		if ( $user_id > 0 ) {
+			update_option( self::ACTIVATION_REDIRECT_OPTION, $user_id, false );
+			delete_transient( self::ACTIVATION_REDIRECT_OPTION );
+			return $user_id;
+		}
+
+		delete_transient( self::ACTIVATION_REDIRECT_OPTION );
+		return 0;
 	}
 
 	/**

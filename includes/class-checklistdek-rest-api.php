@@ -817,7 +817,7 @@ class CHECKLISTDEK_REST_API {
 			return rest_ensure_response(
 				array(
 					'success' => false,
-					'message' => $panel->get_error_message(),
+					'message' => sanitize_textarea_field( wp_strip_all_tags( (string) $panel->get_error_message() ) ),
 				)
 			);
 		}
@@ -1512,6 +1512,10 @@ class CHECKLISTDEK_REST_API {
 
 		$category = CHECKLISTDEK_Templates::normalize_category( $template['category'] ?? '' );
 		if ( ! CHECKLISTDEK_Licensing::is_template_category_allowed( $category ) ) {
+			if ( checklistdek_is_community_build() ) {
+				return new WP_Error( 'not_found', __( 'Template not found.', 'checklistdek' ), array( 'status' => 404 ) );
+			}
+
 			return CHECKLISTDEK_Licensing::pro_required_error( __( 'This template category', 'checklistdek' ) );
 		}
 

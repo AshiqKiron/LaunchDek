@@ -12,8 +12,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-$checklistdek_show_auto_capture = CHECKLISTDEK_Licensing::can_use_auto_capture();
-$checklistdek_show_vault        = CHECKLISTDEK_Licensing::can_use_agency_vault();
+$checklistdek_show_auto_capture = checklistdek_includes_pro_package() && CHECKLISTDEK_Licensing::can_use_auto_capture();
+$checklistdek_show_vault        = checklistdek_includes_pro_package() && CHECKLISTDEK_Licensing::can_use_agency_vault();
 ?>
 <div class="wrap checklistdek-admin" data-checklistdek-page="checklists">
 	<h1><?php echo esc_html( get_admin_page_title() ); ?></h1>

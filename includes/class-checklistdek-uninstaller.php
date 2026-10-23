@@ -29,6 +29,7 @@ class CHECKLISTDEK_Uninstaller {
 		delete_option( CHECKLISTDEK_Installer::DB_VERSION_OPTION );
 		delete_option( 'checklistdek_activation_redirect' );
 		delete_transient( 'checklistdek_activation_redirect' );
+		delete_transient( 'launchdek_activation_redirect' );
 		CHECKLISTDEK_Dashboard_Cache::clear();
 
 		CHECKLISTDEK_Installer::uninstall();

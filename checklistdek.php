@@ -50,7 +50,7 @@ require_once CHECKLISTDEK_PLUGIN_DIR . 'includes/class-checklistdek-telemetry-ma
 // Data layer.
 require_once CHECKLISTDEK_PLUGIN_DIR . 'includes/class-checklistdek-site-repository.php';
 require_once CHECKLISTDEK_PLUGIN_DIR . 'includes/class-checklistdek-checklist-repository.php';
-require_once CHECKLISTDEK_PLUGIN_DIR . 'includes/class-checklistdek-licensing.php';
+require_once checklistdek_get_licensing_file();
 require_once CHECKLISTDEK_PLUGIN_DIR . 'includes/class-checklistdek-run-repository.php';
 require_once CHECKLISTDEK_PLUGIN_DIR . 'includes/class-checklistdek-installer.php';
 require_once CHECKLISTDEK_PLUGIN_DIR . 'includes/class-checklistdek-dashboard-cache.php';
@@ -62,7 +62,7 @@ require_once CHECKLISTDEK_PLUGIN_DIR . 'includes/class-checklistdek-payload-mapp
 require_once CHECKLISTDEK_PLUGIN_DIR . 'includes/class-checklistdek-step-executor.php';
 require_once CHECKLISTDEK_PLUGIN_DIR . 'includes/class-checklistdek-checklist-runner.php';
 require_once CHECKLISTDEK_PLUGIN_DIR . 'includes/class-checklistdek-client-push.php';
-require_once CHECKLISTDEK_PLUGIN_DIR . 'includes/class-checklistdek-mu-plugin-installer.php';
+require_once checklistdek_get_mu_plugin_installer_file();
 require_once CHECKLISTDEK_PLUGIN_DIR . 'includes/class-checklistdek-drift-verifier.php';
 checklistdek_require_pro_modules();
 require_once checklistdek_get_webhook_dispatcher_file();

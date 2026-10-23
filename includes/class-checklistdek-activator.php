@@ -31,6 +31,7 @@ class CHECKLISTDEK_Activator {
 			require_once CHECKLISTDEK_PLUGIN_DIR . 'includes/checklistdek-build.php';
 		}
 		require_once checklistdek_get_drift_cron_file();
+		require_once CHECKLISTDEK_PLUGIN_DIR . 'includes/class-checklistdek-admin.php';
 
 		$defaults = CHECKLISTDEK_Settings::get_defaults();
 
@@ -46,6 +47,8 @@ class CHECKLISTDEK_Activator {
 		update_option( CHECKLISTDEK_Installer::DB_VERSION_OPTION, CHECKLISTDEK_Installer::DB_VERSION, false );
 
 		$user_id = get_current_user_id();
+		delete_transient( CHECKLISTDEK_Admin::ACTIVATION_REDIRECT_OPTION );
+		delete_transient( 'launchdek_activation_redirect' );
 		update_option(
 			CHECKLISTDEK_Admin::ACTIVATION_REDIRECT_OPTION,
 			$user_id > 0 ? $user_id : 1,

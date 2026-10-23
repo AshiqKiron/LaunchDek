@@ -84,7 +84,7 @@ Shape every delivery playbook with a three-column builder (canvas, step configur
 * Batch Run (single-site wizard, batch queue, manual drift verify)
 * MainWP and WP Umbrella inventory sync, telemetry mapping, and client panel push
 * Must-use client checklist panel deploy and run sync
-* **3** client panel layouts (live top bar, bottom dock, floating pill)
+* **9** client panel layouts (sidebar, live top bar, bottom dock, floating pill, toast, admin bar flyout, fullscreen, focus mode, inline metabox)
 * Encrypted credential vault (optional), exclude-options, role permission matrix
 * Onboarding wizard and built-in template search
 
@@ -95,7 +95,6 @@ Shape every delivery playbook with a three-column builder (canvas, step configur
 * **Auto-Capture** — record admin actions on a client site and import steps into the builder
 * **Email and webhook notifications** (Slack, Discord, Teams) for opt-in checklist events
 * **Scheduled drift verification** (twicedaily cron across connected sites)
-* **9** client panel layouts (sidebar, toast, admin bar flyout, fullscreen, focus mode, inline metabox, and more)
 * Licensed site caps: **Pro** — 99 connected sites; **Agency** — 199 connected sites (Community remains unlimited)
 
 Pro and Agency share the same feature set; Agency includes a higher licensed site cap for larger portfolios.
@@ -109,7 +108,6 @@ Community ChecklistDek covers unlimited hub sites, custom checklists, batch exec
 * **Capture SOPs while you work:** **Auto-Capture** on a connected client site records whitelisted admin actions into draft checklist steps during a live session (client panel required).
 * **Stay informed without watching the hub:** Opt-in **email** (`wp_mail`) and **Slack, Discord, or Teams** webhooks for run started, completed, failed, drift detected, client step completed, and more.
 * **Catch config drift early:** **Scheduled drift verification** runs on a cadence you enable in Settings; manual drift verify remains available on all plans from Batch Run.
-* **Match client branding:** Choose from the full client panel layout library so the checklist feels native in each client’s wp-admin.
 * **Upgrade without rebuilding:** Purchase Pro or Agency, install the full plugin package on your hub, activate your license under **ChecklistDek → Billing**, and keep existing sites, checklists, runs, and audit history in your database.
 
 Compare plans and pricing: [ChecklistDek on Asphalt Themes](https://asphaltthemes.com/checklistdek)
@@ -133,13 +131,13 @@ Many multi-site management tools centralize dashboards in the cloud, charge per 
 * **WordPress-Native Automation**
   API checklist steps use **core REST** endpoints with Application Passwords—not arbitrary remote code execution. Exclude-options and payload validation keep mutating steps predictable.
 * **Transparent Client Experience**
-  The bundled client panel is explicit, GPL-friendly, and deployed by you (auto-install when possible, or manual bootstrap plus **Retry panel install**). Clients see progress where they work: WordPress admin.
+  The bundled client panel is explicit, GPL-friendly, and deployed by you via manual upload to each client site’s `mu-plugins` folder (Community build), with **Retry panel install** to verify. Clients see progress where they work: WordPress admin.
 * **Honest Outbound Scope**
   Allowed connections: registered remote sites, user-configured webhooks, optional `wp_mail` notifications, and user-initiated MainWP or WP Umbrella API sync—not background telemetry.
 
 #### Privacy
 
-ChecklistDek Community does not send site or user data to ChecklistDek-operated analytics servers. Outbound requests are limited to user-registered remote WordPress sites (Application Password REST), client panel deploy and snapshot sync (when you connect, test, or push a run), user-configured webhook URLs, optional email notifications via WordPress `wp_mail`, and user-initiated integration sync (MainWP child sites or WP Umbrella Public API when you configure a token). WP Umbrella tokens are stored encrypted on the hub and are never returned in REST responses. Client run callback tokens travel only between hub and client panel—not in audit entries shown to non-privileged users.
+ChecklistDek Community does not send site or user data to ChecklistDek-operated analytics servers. Outbound requests are limited to user-registered remote WordPress sites (Application Password REST), client panel snapshot sync when you push a run (after you have manually installed the panel on each client site), user-configured webhook URLs, optional email notifications via WordPress `wp_mail`, and user-initiated integration sync (MainWP child sites or WP Umbrella Public API when you configure a token). WP Umbrella tokens are stored encrypted on the hub and are never returned in REST responses. Client run callback tokens travel only between hub and client panel—not in audit entries shown to non-privileged users.
 
 #### Performance
 
@@ -147,14 +145,14 @@ ChecklistDek is built for responsive agency wp-admin workflows:
 
 * **Cached dashboard** — stats, connection ticker, live log feed, and quick-launch picker options preload on first paint and refresh when underlying data changes.
 * **Lean list APIs** — checklist summaries, site run history, and activity log pagination use lightweight queries; Activity Logs and site history can load via admin-ajax on memory-constrained installs.
-* **Targeted remote calls** — connection tests, run execution, drift verification, panel deploy, and integration sync run on user action or configured cron—not on every admin page load (Sites may refresh stale connection health in the background after a threshold).
+* **Targeted remote calls** — connection tests, run execution, drift verification, panel verification, and integration sync run on user action or configured cron—not on every admin page load (Sites may refresh stale connection health in the background after a threshold).
 * **Client panel efficiency** — panel CSS and JS on remote sites load when an active run snapshot exists; step toggles use optimistic UI with hub callbacks that avoid redundant full panel reinstalls on every click.
 
 #### Get Started in Minutes
 
 After activation, the onboarding wizard helps you paste an SOP or import a template, connect your first site, install the client panel on that site, then push your first checklist run. Add more sites under **ChecklistDek → Sites** (each needs the mu-plugin), build under **Checklists**, and scale execution with **Batch Run**.
 
-The client checklist panel is **mandatory** on every remote site you manage with ChecklistDek. Setup steps appear in the site editor and in the FAQ below; the hub deploys the bundled files into `wp-content/mu-plugins/` when credentials and permissions allow.
+The client checklist panel is **mandatory** on every remote site you manage with ChecklistDek. Setup steps appear in the site editor and in the FAQ below; you upload the bundled files into `wp-content/mu-plugins/` on each client site (WordPress.org Community build does not auto-write executable panel files).
 
 
 == Screenshots ==
@@ -191,8 +189,8 @@ The client checklist panel is **mandatory** on every remote site you manage with
 ChecklistDek checklists appear in client wp-admin only through the bundled must-use panel:
 
 1. Connect the site on **ChecklistDek → Sites** with an Application Password.
-2. Download `checklistdek-client.php` from the panel setup section in the site editor (or use automatic deploy when the hub can write to the client’s `mu-plugins` folder).
-3. Upload the bootstrap file to `wp-content/mu-plugins/` on the client site if needed, then click **Retry panel install** on the hub.
+2. Download `checklistdek-client.php` from the panel setup section in the site editor and upload the full client panel bundle to `wp-content/mu-plugins/` on the client site.
+3. Click **Retry panel install** on the hub to verify the panel is detected.
 4. Push a checklist run from the hub; the client panel displays the active run snapshot.
 
 
@@ -211,9 +209,9 @@ ChecklistDek is built for WordPress agencies, freelancers, and in-house web team
 1. Connect the site on **ChecklistDek → Sites** with an Application Password.
 2. Download `checklistdek-client.php` from the panel setup block in the site editor (or onboarding / connection tester).
 3. Upload it to `wp-content/mu-plugins/` on the client site (create the folder if needed).
-4. Click **Retry panel install** on the hub so ChecklistDek deploys the full panel bundle and verifies the connection.
+4. Click **Retry panel install** on the hub to verify the connection.
 
-On the same server (for example local MAMP), the hub may install the panel automatically when credentials allow. The client panel is bundled with ChecklistDek—it is not a separate WordPress.org plugin listing.
+The WordPress.org Community build does not write panel PHP into `mu-plugins` or uploads automatically—you install the bundled files yourself. The client panel ships with ChecklistDek; it is not a separate WordPress.org plugin listing.
 
 = Can I skip the must-use plugin and still show checklists to clients? =
 
@@ -225,7 +223,7 @@ Yes. Integrations are optional. You can register sites manually with Application
 
 = What is the difference between Community, Pro, and Agency? =
 
-**Community** (this WordPress.org build) includes unlimited hub sites, core checklist and batch features, integrations, audit logs, **17** templates in four categories, and three client panel layouts. **Pro** and **Agency** unlock the full **86** templates, agency vault, auto-capture, email and webhook notifications, scheduled drift cron, and all panel layouts; **Pro** supports up to **99** licensed sites and **Agency** up to **199**. Compare details under **ChecklistDek → Billing** on a full install or on [Asphalt Themes](https://asphaltthemes.com/checklistdek).
+**Community** (this WordPress.org build) includes unlimited hub sites, core checklist and batch features, integrations, audit logs, **17** templates in four categories, and all **9** bundled client panel layouts. **Pro** and **Agency** unlock the full **86** templates, agency vault, auto-capture, email and webhook notifications, and scheduled drift cron; **Pro** supports up to **99** licensed sites and **Agency** up to **199**. Compare details under **ChecklistDek → Billing** on a full install or on [Asphalt Themes](https://asphaltthemes.com/checklistdek).
 
 = Are credentials stored securely? =
 
@@ -256,7 +254,66 @@ Uninstall removes ChecklistDek tables, options, and custom capabilities from the
 Purchase from [Asphalt Themes](https://asphaltthemes.com/checklistdek), install the full plugin package on your hub (replacing the Community build if needed), activate your license under **ChecklistDek → Billing**, and continue using existing sites and checklists stored in your database.
 
 
+== External services ==
+
+ChecklistDek can optionally connect to third-party platforms you already use. The Community build does not contact ChecklistDek-operated analytics servers. The integrations below run only when a site administrator with **Manage Settings** starts an action from **ChecklistDek → Integrations** (and, for MainWP, when the MainWP Dashboard plugin is installed on the same hub site).
+
+= MainWP Dashboard =
+
+**What the service is:** [MainWP](https://mainwp.com/) is a WordPress site management system built around the free **MainWP Dashboard** plugin on your hub and **MainWP Child** plugins on client sites. ChecklistDek’s optional **MainWP Connector** imports child-site inventory that MainWP already stores on your hub so you can manage those properties in ChecklistDek without retyping URLs.
+
+**Service URL:** ChecklistDek does not call a MainWP-operated cloud API for site inventory. Sync and preview read MainWP’s local database tables on your hub (for example `{prefix}mainwp_wp` and related tables). When **Push Client Panel** can use MainWP’s connection (ChecklistDek Pro/Agency builds only), ChecklistDek asks MainWP to contact each child site’s WordPress URL over HTTPS using MainWP’s existing authenticated channel (`installplugintheme`). The child site may download a short-lived bootstrap ZIP from a URL on your hub (MainWP bulk directory or your uploads folder). The WordPress.org **Community** build does not perform that MainWP install step—use manual client panel upload on each site, or add Application Passwords after the panel is installed.
+
+**When data is sent:** Only after you open the MainWP connector setup and click **Sync Sites**, **Preview Sync**, or **Push Client Panel**. Nothing is sent on plugin activation, on ordinary admin page loads, or if MainWP is not installed. Inventory sync does not transmit data to MainWP’s servers from ChecklistDek. Panel push (Pro/Agency only, when the site has no Application Password on ChecklistDek) runs only when you click **Push Client Panel** and only for sites you synced from MainWP.
+
+**What is sent:** For **Sync Sites** / **Preview Sync**, ChecklistDek does not make outbound HTTP requests for inventory—it reads site rows MainWP already saved locally (child site ID, name, URL, and optional WordPress/PHP version fields). For **Push Client Panel** on Pro/Agency builds without hub Application Passwords, ChecklistDek passes an install request through MainWP Connect to the child site (plugin install type, a hub-hosted ZIP URL, activate/overwrite flags). ChecklistDek does not upload checklists, runs, audit logs, or Application Passwords to MainWP or to MainWP’s website.
+
+**What is received and stored on your hub:** Connected child-site metadata is copied into ChecklistDek’s sites table (name, URL, MainWP child ID as `external_id`, optional version fields, integration tag). Sites with Application Passwords on ChecklistDek use the same hub-to-client REST flow as manually added sites when you push checklists.
+
+**Why it is used:** To reuse a MainWP site list inside ChecklistDek, apply optional telemetry field-mapping rules, and (on Pro/Agency) optionally deploy the ChecklistDek client checklist panel through MainWP when credentials are not yet stored on the hub.
+
+**Legal and privacy links:**
+
+* Terms of Service: [https://mainwp.com/terms-of-service/](https://mainwp.com/terms-of-service/)
+* Privacy Policy: [https://mainwp.com/privacy-policy/](https://mainwp.com/privacy-policy/) (MainWP publishes separate policies for its website, Dashboard plugin, and Child plugin—review the policy that matches how you use MainWP)
+
+MainWP is developed and operated independently of ChecklistDek. Installing or using MainWP on your hub is subject to your agreement with MainWP (Sick Marketing, LLC d/b/a MainWP). ChecklistDek does not operate MainWP and is not responsible for MainWP’s availability, child-site connections, or data practices.
+
+= WP Umbrella Public API =
+
+**What the service is:** [WP Umbrella](https://wp-umbrella.com/) provides a hosted WordPress site management platform. ChecklistDek’s optional **WP Umbrella Connector** reads your WP Umbrella project list through WP Umbrella’s Public API so you can import site inventory into ChecklistDek without re-entering URLs manually.
+
+**Service URL:** `https://public-api.wp-umbrella.com`
+
+**When data is sent:** Only after you paste a WP Umbrella **Public API** token in the connector setup modal and click **Save**, or when you click **Sync Sites** or **Preview Sync**. Nothing is sent to WP Umbrella on plugin activation, on ordinary admin page loads, or if you never configure the connector. **Push Client Panel** for WP Umbrella–synced sites deploys the ChecklistDek client panel to your connected WordPress sites via Application Passwords—it does not send checklist or site data to WP Umbrella.
+
+**What is sent:** HTTPS `GET` requests to the `/projects` endpoint. Each request includes your Public API token in the `Authorization: Bearer` header (required by WP Umbrella to authenticate your account). Query parameters are limited to pagination and sorting (`page`, `per_page`, `sort`, `order`). Saving a new token triggers a lightweight validation request (`per_page` of `1`). ChecklistDek does not upload checklists, runs, audit logs, Application Passwords, or client-panel content to WP Umbrella.
+
+**What is received and stored on your hub:** JSON project records from your WP Umbrella account. ChecklistDek imports connected projects into its local sites table (for example site name, URL, WP Umbrella project ID as `external_id`, and optional WordPress/PHP version hints from the API response). Your Public API token is stored encrypted in hub settings (`wp_umbrella_api_token_enc`) and is never exposed in REST API responses or admin UI after save.
+
+**Why it is used:** To let agencies that already manage sites in WP Umbrella sync that inventory into ChecklistDek, apply optional telemetry field-mapping rules, and then connect Application Passwords and push checklists using ChecklistDek’s normal hub-to-client workflow.
+
+**Legal and privacy links:**
+
+* Terms of Service: [https://wp-umbrella.com/terms-conditions/](https://wp-umbrella.com/terms-conditions/)
+* Privacy Policy: [https://wp-umbrella.com/privacy-policy/](https://wp-umbrella.com/privacy-policy/)
+
+Use of WP Umbrella is subject to your agreement with WP Umbrella (Liven Studio). ChecklistDek does not operate the WP Umbrella service and is not responsible for its availability or data practices.
+
+
 == Changelog ==
+
+= 1.0.54 =
+* Fix: hub admin and client panel scripts now refresh the REST nonce on WordPress Heartbeat (namespaced jQuery listeners never received core `heartbeat-tick` events)
+* Fix: activation onboarding redirect migrates legacy `launchdek_activation_redirect` / transient flags into the option and clears stale transients on activate/deactivate/uninstall
+
+= 1.0.53 =
+* WordPress.org compliance (Guideline 5): Community build unlocks all bundled client panel layouts in Settings and run snapshots; Pro licensing PHP is omitted from the Community zip in favor of a minimal community stub
+* Community build: panel layout choices and sanitization are handled in Settings without plan downgrade; full Pro/Agency package retains plan-based layout limits on the paid distribution
+
+= 1.0.52 =
+* WordPress.org compliance: Community build no longer auto-writes client panel PHP to `mu-plugins` or stages installer ZIPs in uploads; panel setup is manual upload plus **Retry panel install** to verify
+* Pro builds retain hub REST/local panel deploy and MainWP bootstrap install; client `/client/install` lives in a Pro-only mu-plugin helper omitted from the Community zip
 
 = 1.0.51 =
 * Rebranded the plugin from LaunchDek to **ChecklistDek** — text domain `checklistdek`, REST namespace `checklistdek/v1`, admin CSS/JS handles, and client mu-plugin bundle filenames

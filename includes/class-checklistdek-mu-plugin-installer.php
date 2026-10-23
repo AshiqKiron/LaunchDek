@@ -220,8 +220,12 @@ class CHECKLISTDEK_Mu_Plugin_Installer {
 		$written = array();
 
 		foreach ( $files as $relative => $content ) {
-			$relative = ltrim( str_replace( '\\', '/', (string) $relative ), '/' );
-			$target   = trailingslashit( $mu_dir ) . $relative;
+			$relative = self::normalize_bundle_relative_path( $relative );
+			if ( '' === $relative || ! self::is_allowed_bundle_relative_path( $relative ) ) {
+				continue;
+			}
+
+			$target = trailingslashit( $mu_dir ) . $relative;
 			$dir      = dirname( $target );
 
 			if ( ! wp_mkdir_p( $dir ) ) {
@@ -241,12 +245,51 @@ class CHECKLISTDEK_Mu_Plugin_Installer {
 			$written[] = $relative;
 		}
 
+		if ( empty( $written ) ) {
+			return new WP_Error(
+				'checklistdek_mu_local_no_valid_files',
+				__( 'No valid client panel files were written locally.', 'checklistdek' )
+			);
+		}
+
 		return array(
 			'success' => true,
 			'message' => __( 'Client checklist panel installed locally on this server.', 'checklistdek' ),
 			'method'  => 'local',
 			'written' => $written,
 		);
+	}
+
+	/**
+	 * Infer the web document root for this hub (directory that maps to site URL path "/").
+	 *
+	 * @return string Normalized path without trailing slash.
+	 */
+	protected static function get_hub_document_root() {
+		$abspath   = wp_normalize_path( untrailingslashit( ABSPATH ) );
+		$site_path = wp_parse_url( home_url(), PHP_URL_PATH );
+		$site_path = is_string( $site_path ) ? untrailingslashit( $site_path ) : '';
+
+		if ( '' !== $site_path && '/' !== $site_path && wp_str_ends_with( $abspath, $site_path ) ) {
+			return untrailingslashit( substr( $abspath, 0, - strlen( $site_path ) ) );
+		}
+
+		if ( ! empty( $_SERVER['DOCUMENT_ROOT'] ) ) {
+			$doc_raw = wp_normalize_path( wp_unslash( $_SERVER['DOCUMENT_ROOT'] ) );
+			$doc     = realpath( $doc_raw );
+
+			if ( $doc ) {
+				$doc = wp_normalize_path( $doc );
+			} else {
+				$doc = $doc_raw;
+			}
+
+			if ( $doc && 0 === strpos( $abspath, $doc ) ) {
+				return untrailingslashit( $doc );
+			}
+		}
+
+		return $abspath;
 	}
 
 	/**
@@ -264,24 +307,35 @@ class CHECKLISTDEK_Mu_Plugin_Installer {
 
 		$parsed = wp_parse_url( untrailingslashit( $url ) );
 		$path   = $parsed['path'] ?? '';
-		$host   = strtolower( $parsed['host'] ?? '' );
+		$path   = is_string( $path ) ? untrailingslashit( $path ) : '';
+		$host   = strtolower( (string) ( $parsed['host'] ?? '' ) );
 
-		$candidates = array();
+		$candidates   = array();
+		$doc_root     = self::get_hub_document_root();
+		$hub_wp_root  = wp_normalize_path( untrailingslashit( ABSPATH ) );
+		$path_segment = '' !== $path ? basename( $path ) : '';
 
-		if ( in_array( $host, array( 'localhost', '127.0.0.1' ), true ) ) {
-			$candidates[] = '/Applications/MAMP/htdocs' . $path;
-			$candidates[] = rtrim( ABSPATH, '/\\' ) . '/../' . basename( $path );
+		if ( $doc_root ) {
+			$candidates[] = '' === $path ? $doc_root : wp_normalize_path( $doc_root . $path );
+		}
+
+		if ( $path_segment ) {
+			$candidates[] = wp_normalize_path( dirname( $hub_wp_root ) . '/' . $path_segment );
 		}
 
 		$hub_host = wp_parse_url( home_url(), PHP_URL_HOST );
-		if ( $hub_host && $host && strtolower( (string) $hub_host ) === $host ) {
-			$doc_root = realpath( ABSPATH . '../..' );
-			if ( $doc_root ) {
-				$candidates[] = wp_normalize_path( $doc_root . $path );
+		$hub_host = $hub_host ? strtolower( (string) $hub_host ) : '';
+
+		if ( $hub_host && $host && $hub_host === $host ) {
+			$hub_site_path = wp_parse_url( home_url(), PHP_URL_PATH );
+			$hub_site_path = is_string( $hub_site_path ) ? untrailingslashit( $hub_site_path ) : '';
+
+			if ( $path === $hub_site_path ) {
+				$candidates[] = $hub_wp_root;
 			}
 		}
 
-		foreach ( $candidates as $candidate ) {
+		foreach ( array_unique( $candidates ) as $candidate ) {
 			$candidate = wp_normalize_path( $candidate );
 			if ( file_exists( $candidate . '/wp-config.php' ) ) {
 				return $candidate;
@@ -292,25 +346,61 @@ class CHECKLISTDEK_Mu_Plugin_Installer {
 	}
 
 	/**
-	 * Read bundled mu-plugin files from the hub plugin directory.
+	 * Whitelisted relative paths inside the client panel bundle.
 	 *
-	 * @return array
+	 * @return string[]
 	 */
-	public static function get_bundle_files() {
-		$base = trailingslashit( CHECKLISTDEK_PLUGIN_DIR . self::BUNDLE_DIR );
-		$map  = array(
+	protected static function get_bundle_relative_paths() {
+		return array(
 			'checklistdek-client.php',
 			'checklistdek-client/index.php',
 			'checklistdek-client/class-run-store.php',
 			'checklistdek-client/class-hub-client.php',
 			'checklistdek-client/class-auto-capture.php',
 			'checklistdek-client/class-rest-api.php',
+			'checklistdek-client/class-rest-api-install.php',
 			'checklistdek-client/class-panel.php',
 			'checklistdek-client/css/checklistdek-client-admin.css',
 			'checklistdek-client/css/index.php',
 			'checklistdek-client/js/checklistdek-client-admin.js',
 			'checklistdek-client/js/index.php',
 		);
+	}
+
+	/**
+	 * Normalize a bundle-relative path and reject traversal segments.
+	 *
+	 * @param mixed $relative Raw relative path.
+	 * @return string Empty string when invalid.
+	 */
+	protected static function normalize_bundle_relative_path( $relative ) {
+		$relative = ltrim( str_replace( '\\', '/', (string) $relative ), '/' );
+
+		if ( '' === $relative || false !== strpos( $relative, '..' ) ) {
+			return '';
+		}
+
+		return $relative;
+	}
+
+	/**
+	 * Whether a normalized relative path is allowed in the client panel bundle.
+	 *
+	 * @param string $relative Normalized relative path.
+	 * @return bool
+	 */
+	protected static function is_allowed_bundle_relative_path( $relative ) {
+		return in_array( $relative, self::get_bundle_relative_paths(), true );
+	}
+
+	/**
+	 * Read bundled mu-plugin files from the hub plugin directory.
+	 *
+	 * @return array
+	 */
+	public static function get_bundle_files() {
+		$base = trailingslashit( CHECKLISTDEK_PLUGIN_DIR . self::BUNDLE_DIR );
+		$map  = self::get_bundle_relative_paths();
 
 		$files = array();
 

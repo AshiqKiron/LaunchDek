@@ -32,6 +32,56 @@ function checklistdek_includes_pro_package() {
 }
 
 /**
+ * Whether the hub may auto-deploy or sync the client panel (REST, local path, MainWP ZIP).
+ *
+ * WordPress.org Community builds must use manual mu-plugin upload only.
+ *
+ * @return bool
+ */
+function checklistdek_can_auto_deploy_client_panel() {
+	return checklistdek_includes_pro_package();
+}
+
+/**
+ * Licensing class file for this build.
+ *
+ * @return string
+ */
+function checklistdek_get_licensing_file() {
+	if ( checklistdek_is_community_build() ) {
+		return CHECKLISTDEK_PLUGIN_DIR . 'includes/community/class-checklistdek-licensing.php';
+	}
+
+	return CHECKLISTDEK_PLUGIN_DIR . 'includes/class-checklistdek-licensing.php';
+}
+
+/**
+ * Mu-plugin installer class file for this build.
+ *
+ * @return string
+ */
+function checklistdek_get_mu_plugin_installer_file() {
+	if ( checklistdek_can_auto_deploy_client_panel() ) {
+		return CHECKLISTDEK_PLUGIN_DIR . 'includes/class-checklistdek-mu-plugin-installer.php';
+	}
+
+	return CHECKLISTDEK_PLUGIN_DIR . 'includes/community/class-checklistdek-mu-plugin-installer.php';
+}
+
+/**
+ * MainWP client panel agent helper for this build.
+ *
+ * @return string
+ */
+function checklistdek_get_mainwp_agent_file() {
+	if ( checklistdek_can_auto_deploy_client_panel() ) {
+		return CHECKLISTDEK_PLUGIN_DIR . 'includes/integrations/class-checklistdek-mainwp-agent.php';
+	}
+
+	return CHECKLISTDEK_PLUGIN_DIR . 'includes/community/class-checklistdek-mainwp-agent.php';
+}
+
+/**
  * Absolute path to the webhook dispatcher class file for this build.
  *
  * @return string

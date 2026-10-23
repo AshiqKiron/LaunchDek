@@ -166,7 +166,38 @@ class CHECKLISTDEK_Installer {
 			CHECKLISTDEK_Capabilities::migrate_launchdek_caps();
 		}
 
-		delete_transient( 'launchdek_activation_redirect' );
+		self::migrate_activation_redirect_transients();
+	}
+
+	/**
+	 * Move legacy activation redirect transients into the option flag (pre-option installs).
+	 *
+	 * @return void
+	 */
+	protected static function migrate_activation_redirect_transients() {
+		if ( ! class_exists( 'CHECKLISTDEK_Admin' ) ) {
+			require_once CHECKLISTDEK_PLUGIN_DIR . 'includes/class-checklistdek-admin.php';
+		}
+
+		$option_key = CHECKLISTDEK_Admin::ACTIVATION_REDIRECT_OPTION;
+		$pending    = get_option( $option_key, false );
+		$has_option = false !== $pending && '' !== $pending;
+
+		foreach ( array( 'launchdek_activation_redirect', $option_key ) as $transient_key ) {
+			$legacy = get_transient( $transient_key );
+			if ( false === $legacy || '' === $legacy ) {
+				delete_transient( $transient_key );
+				continue;
+			}
+
+			if ( ! $has_option ) {
+				$user_id = absint( $legacy );
+				update_option( $option_key, $user_id > 0 ? $user_id : 1, false );
+				$has_option = true;
+			}
+
+			delete_transient( $transient_key );
+		}
 	}
 
 	/**

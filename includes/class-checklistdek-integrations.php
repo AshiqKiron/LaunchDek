@@ -15,7 +15,7 @@ require_once CHECKLISTDEK_PLUGIN_DIR . 'includes/integrations/class-checklistdek
 require_once CHECKLISTDEK_PLUGIN_DIR . 'includes/integrations/class-checklistdek-integration-wp-umbrella.php';
 // require_once CHECKLISTDEK_PLUGIN_DIR . 'includes/integrations/class-checklistdek-integration-wp-engine.php';
 // require_once CHECKLISTDEK_PLUGIN_DIR . 'includes/integrations/class-checklistdek-integration-wpvibe.php';
-require_once CHECKLISTDEK_PLUGIN_DIR . 'includes/integrations/class-checklistdek-mainwp-agent.php';
+require_once checklistdek_get_mainwp_agent_file();
 
 /**
  * Integrations manager.
