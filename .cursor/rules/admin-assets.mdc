@@ -1,102 +1,102 @@
 ---
-description: Admin JS and CSS conventions for LaunchDek
+description: Admin JS and CSS conventions for ChecklistDek
 globs: "{admin,mu-plugin}/**/*.{js,css}"
 alwaysApply: false
 ---
 
 # Admin Assets
 
-## JavaScript (`admin/js/launchdek-admin.js`)
+## JavaScript (`admin/js/checklistdek-admin.js`)
 
-- Wrap in an IIFE with `'use strict'`; guard on `typeof launchdekAdmin`.
-- REST helpers: `request()`, `get()`, `post()`, `put()`, `del()` — all send `X-WP-Nonce` via `getRestNonce()` (mutable copy of localized nonce). `initRestNonceRefresh()` listens for `heartbeat-tick.launchdek` and updates from `data.rest_nonce` when Heartbeat is available. `request()` maps `rest_cookie_invalid_nonce` / `rest_forbidden` to `strings.sessionExpired`. `buildApiUrl(path)` / `splitApiPath()` / `mergeExtraQuery()` build URLs for pretty (`/wp-json/`) and plain (`?rest_route=`) permalinks; `buildPlainPermalinkFallbackUrl()` retries on `rest_no_route` when pretty permalinks are configured but rewrites are broken (common on local MAMP).
-- Admin-ajax helper: `postAjax( action, data )` — POSTs to `launchdekAdmin.ajaxUrl` with `action`, `wp_rest` `nonce` (always current via `getRestNonce()`; ignores duplicate `nonce` in `data`), `X-WP-Nonce` header, and URL-encoded fields (objects JSON-stringified); parses `{ success, data }` JSON responses; treats bare `0`/`-1` body and HTTP 403 as expired session (`strings.sessionExpired`). Server validates via `LAUNCHDEK_Admin_Ajax::verify_ajax_nonce()` — `get_request_nonce()` reads POST `nonce` or `HTTP_X_WP_NONCE` (JSON 403 on failure). Used for integration sync/preview/push, telemetry rules, site run history, and Activity Logs list pagination to avoid full REST bootstrap on memory-constrained installs (Community and Pro — same handlers).
+- Wrap in an IIFE with `'use strict'`; guard on `typeof checklistdekAdmin`.
+- REST helpers: `request()`, `get()`, `post()`, `put()`, `del()` — all send `X-WP-Nonce` via `getRestNonce()` (mutable copy of localized nonce). `initRestNonceRefresh()` listens for `heartbeat-tick.checklistdek` and updates from `data.rest_nonce` when Heartbeat is available. `request()` maps `rest_cookie_invalid_nonce` / `rest_forbidden` to `strings.sessionExpired`. `buildApiUrl(path)` / `splitApiPath()` / `mergeExtraQuery()` build URLs for pretty (`/wp-json/`) and plain (`?rest_route=`) permalinks; `buildPlainPermalinkFallbackUrl()` retries on `rest_no_route` when pretty permalinks are configured but rewrites are broken (common on local MAMP).
+- Admin-ajax helper: `postAjax( action, data )` — POSTs to `checklistdekAdmin.ajaxUrl` with `action`, `wp_rest` `nonce` (always current via `getRestNonce()`; ignores duplicate `nonce` in `data`), `X-WP-Nonce` header, and URL-encoded fields (objects JSON-stringified); parses `{ success, data }` JSON responses; treats bare `0`/`-1` body and HTTP 403 as expired session (`strings.sessionExpired`). Server validates via `CHECKLISTDEK_Admin_Ajax::verify_ajax_nonce()` — `get_request_nonce()` reads POST `nonce` or `HTTP_X_WP_NONCE` (JSON 403 on failure). Used for integration sync/preview/push, telemetry rules, site run history, and Activity Logs list pagination to avoid full REST bootstrap on memory-constrained installs (Community and Pro — same handlers).
 - DOM helpers: `el( tag, attrs, children )`, `fillSelect( select, items, valueKey, labelKey, placeholder )`, `escHtml()` / `escAttr()` (shared escaping for dynamic markup); notices via `notice( container, message, type )` (HTML-escapes message) or `noticeHtml( container, innerHtml, type )` for trusted inline markup such as admin links; renders WordPress core `.notice` / `.notice-error` / `.notice-success` with `<p>` wrapper; pass empty message to clear.
-- Scope queries to `.launchdek-admin` or `[data-launchdek-page]`.
+- Scope queries to `.checklistdek-admin` or `[data-checklistdek-page]`.
 - No jQuery unless WordPress already loads it.
-- On `DOMContentLoaded`: set `data-launchdek-ready="true"`, then `initRestNonceRefresh()`, global inits (`initTemplatePicker`, `initOnboarding`, `initConfirmModal`, `initFieldTooltips`) before page inits; `initSettings()` runs last.
+- On `DOMContentLoaded`: set `data-checklistdek-ready="true"`, then `initRestNonceRefresh()`, global inits (`initTemplatePicker`, `initOnboarding`, `initConfirmModal`, `initFieldTooltips`) before page inits; `initSettings()` runs last.
 
 ### Global modal inits (any screen with modal markup)
 
 | Function | Modal | Notes |
 |----------|-------|-------|
-| `initTemplatePicker()` | `#launchdek-template-picker-modal` | Runs when modal partial is present; exposes `window.launchdekOpenTemplatePicker(callbacks)` |
-| `initOnboarding()` | `#launchdek-onboarding-modal` | Runs when modal partial is present; exposes `window.launchdekOpenOnboarding()` |
-| `initConfirmModal()` | `#launchdek-wp-confirm-root` | Always runs on plugin screens; mounts `wp.components.__experimentalConfirmDialog` via `wp.element.createRoot()`; `openConfirmModal({ message, title?, confirmText?, destructive?, onConfirm })` — pauses open `.launchdek-modal` nodes while open, supports async `onConfirm` Promise, falls back to `window.confirm()` when ConfirmDialog unavailable |
-| `initFieldTooltips()` | `#launchdek-field-tooltip` | Always runs on plugin screens; fixed-position portal for `.launchdek-has-tooltip` / `data-tooltip` (Settings, Integrations section headings, builder field info) — avoids overflow clipping in sidebars and tables |
+| `initTemplatePicker()` | `#checklistdek-template-picker-modal` | Runs when modal partial is present; exposes `window.checklistdekOpenTemplatePicker(callbacks)` |
+| `initOnboarding()` | `#checklistdek-onboarding-modal` | Runs when modal partial is present; exposes `window.checklistdekOpenOnboarding()` |
+| `initConfirmModal()` | `#checklistdek-wp-confirm-root` | Always runs on plugin screens; mounts `wp.components.__experimentalConfirmDialog` via `wp.element.createRoot()`; `openConfirmModal({ message, title?, confirmText?, destructive?, onConfirm })` — pauses open `.checklistdek-modal` nodes while open, supports async `onConfirm` Promise, falls back to `window.confirm()` when ConfirmDialog unavailable |
+| `initFieldTooltips()` | `#checklistdek-field-tooltip` | Always runs on plugin screens; fixed-position portal for `.checklistdek-has-tooltip` / `data-tooltip` (Settings, Integrations section headings, builder field info) — avoids overflow clipping in sidebars and tables |
 
 ### Page init functions
 
 | Function | Page attr | Key elements |
 |----------|-----------|--------------|
-| `initDashboard()` | `dashboard` | `#launchdek-stats`, `#launchdek-ticker`, `#launchdek-log-feed` (preloaded via `launchdekAdmin.dashboard` or PHP partial; `data-launchdek-preloaded="1"` skips initial fetch; entries use `show_site_label` for separate site badge vs embedded site name in message), quick launch (`#launchdek-quick-site`, `#launchdek-quick-checklist`, `#launchdek-quick-launch`, `#launchdek-quick-result` — selects pre-rendered in PHP with `data-launchdek-preloaded="1"`; JS uses `launchdekAdmin.dashboard.quickLaunch` or falls back to `GET /sites` + `fetchCustomChecklistSummaries()`) |
-| `initSettings()` | `settings` | `.launchdek-settings-nav` tab panels (`data-launchdek-settings-tab` / `data-launchdek-settings-panel` — `platform-security|panel-exclude|webhooks-email|access-roles`; `initSettingsTabs()` syncs `?tab=`); `#launchdek-panel-layout` + `#launchdek-panel-layout-preview` (`initPanelLayoutPreview()`); `#launchdek-show-onboarding` → `POST /onboarding/reset` then `launchdekOpenOnboarding()` |
-| `initSites()` | `sites` | toolbar, `#launchdek-sites-table` (expandable run history via `launchdek_get_site_runs`; Actions menu includes **More info** → `#launchdek-site-info-modal`; history table Checklist/Steps/Started/Completed/By — no run actions), site modal (`.launchdek-panel-setup` — `#launchdek-panel-setup`, download/retry), **Push Checklist** modal (`#launchdek-push-checklist-modal`, `#launchdek-push-checklist-select`, `#launchdek-push-to-client` checkbox default checked, `#launchdek-push-checklist-submit` → `POST /runs` with `push_to_client`; surfaces `client_push` in `#launchdek-push-checklist-result`), **Add to group** / connection tester (`#launchdek-connection-tester-modal`, `#launchdek-tester-panel-setup` without retry) modals; `refreshStaleSiteConnectionsInBackground()` |
-| `initActivityLogs()` | `activity-logs` | filters + `#launchdek-activity-logs-table`; first page from `launchdekAdmin.activityLogs.initialFeed` when defaults match; paginated admin-ajax `launchdek_get_activity_logs` via `loadActivityLogs()` / `loadMoreActivityLogs()`; **What happened**: `details_summary` + **View details** + nested **View raw data** (`GET /logs/{id}?details_only=1`); honors `?site_id=` |
-| `initChecklists()` | `checklists` | nav-tab section toggle (`.launchdek-checklist-nav`, `[data-launchdek-tab]`, `[data-launchdek-tab-panel]` — `templates|my-checklists|auto-capture`; legacy `new-checklist` normalizes to `templates`); **Auto-Capture** tab is inline (`#launchdek-panel-auto-capture`); **My Checklists** panel: `#launchdek-checklist-select` dropdown, editor (`#launchdek-checklist-editor`), three-column builder (`.launchdek-builder-workspace` — canvas `#launchdek-checklist-canvas` / `#launchdek-canvas-steps`, step config `#launchdek-step-config` + `#launchdek-cl-panel-title` auto-save via `POST /settings/client-panel-title`, live preview `#launchdek-checklist-preview` via `renderChecklistPreview()`), `#launchdek-canvas-start-blank`, save/export/delete/import controls |
-| `initAutomation()` | `automation` | nav tabs (`.launchdek-automation-nav`, `[data-launchdek-automation-tab]`, `[data-launchdek-automation-panel]` — `run|batch|drift`); **Run Checklist** tab: 3-step wizard inside `.launchdek-automation-wizard` (`#launchdek-automation-progress`, `#launchdek-automation-step-1|2|3` — choose checklist → single target site → execute), `#launchdek-run-checklist`, `#launchdek-run-site-picker` (single-select multicheck), `#launchdek-start-run`, run hero (`#launchdek-run-info`, `#launchdek-run-progress-wrap`, `#launchdek-run-steps`, `#launchdek-run-notice` via `runNotice()`), run controls (`#launchdek-run-auto`, `#launchdek-run-next`, `#launchdek-run-push-client` — hidden until active; posts `POST /runs/{id}/push-client`), step tracker notes/attachments + **Mark Complete** / **Mark Not Complete**; **Recent Activity** card (`.launchdek-automation-run-activity` — `#launchdek-run-activity-intro`, `#launchdek-run-activity-feed`, `#launchdek-run-activity-view-all`) shows site-scoped compact feed when a run is active; **Batch Queue** tab: `#launchdek-batch-checklist`, `#launchdek-batch-site-picker` (multi-select), `#launchdek-batch-table`, `#launchdek-batch-notice` via `batchNotice()`; drift panel (`#launchdek-drift-status`, `#launchdek-verify-drift`) on Drift tab; honors `?run_id=` and `?tab=` on load |
-| `initTemplates()` | checklists (Templates tab) | category tabs, built-in grid + `#launchdek-builtin-template-search` (cross-category search), vault save/list |
-| `initIntegrations()` | `integrations` | Two cards with `.launchdek-card-heading-row--info-first` section info tooltips (`$section_tooltips` in partial). Platform Connectors Hub (`#launchdek-connectors-notice`, `#launchdek-connectors-list`, `#launchdek-connector-modal` with `#launchdek-connector-sync` → `launchdek_integration_sync`, `#launchdek-connector-preview` → `launchdek_integration_sync` + `dry_run: 1`, `#launchdek-connector-push` → `launchdek_integration_push`; sync buttons hidden when `supports_sync` is false; WP Umbrella modal panel `#launchdek-connector-wp-umbrella-config` — `#launchdek-wp-umbrella-api-token` (Public API token, not per-site plugin key), `#launchdek-wp-umbrella-token-status`, save/clear → `launchdek_save_wp_umbrella_token` (server verifies token before persist; inline status/errors in token panel); connector + telemetry lists preloaded from `launchdekAdmin.integrations` — `loadConnectors()` / `loadTelemetryRules()` skip ajax when cached, refresh after sync via `loadConnectors(true)` → `launchdek_get_integrations`), telemetry rules (`#launchdek-telemetry-notice`, `#launchdek-telemetry-rules-table`, `#launchdek-save-telemetry-rules` → `launchdek_save_telemetry_rules`) |
+| `initDashboard()` | `dashboard` | `#checklistdek-stats`, `#checklistdek-ticker`, `#checklistdek-log-feed` (preloaded via `checklistdekAdmin.dashboard` or PHP partial; `data-checklistdek-preloaded="1"` skips initial fetch; entries use `show_site_label` for separate site badge vs embedded site name in message), quick launch (`#checklistdek-quick-site`, `#checklistdek-quick-checklist`, `#checklistdek-quick-launch`, `#checklistdek-quick-result` — selects pre-rendered in PHP with `data-checklistdek-preloaded="1"`; JS uses `checklistdekAdmin.dashboard.quickLaunch` or falls back to `GET /sites` + `fetchCustomChecklistSummaries()`) |
+| `initSettings()` | `settings` | `.checklistdek-settings-nav` tab panels (`data-checklistdek-settings-tab` / `data-checklistdek-settings-panel` — `platform-security|panel-exclude|webhooks-email|access-roles`; `initSettingsTabs()` syncs `?tab=`); `#checklistdek-panel-layout` + `#checklistdek-panel-layout-preview` (`initPanelLayoutPreview()`); `#checklistdek-show-onboarding` → `POST /onboarding/reset` then `checklistdekOpenOnboarding()` |
+| `initSites()` | `sites` | toolbar, `#checklistdek-sites-table` (expandable run history via `checklistdek_get_site_runs`; Actions menu includes **More info** → `#checklistdek-site-info-modal`; history table Checklist/Steps/Started/Completed/By — no run actions), site modal (`.checklistdek-panel-setup` — `#checklistdek-panel-setup`, download/retry), **Push Checklist** modal (`#checklistdek-push-checklist-modal`, `#checklistdek-push-checklist-select`, `#checklistdek-push-to-client` checkbox default checked, `#checklistdek-push-checklist-submit` → `POST /runs` with `push_to_client`; surfaces `client_push` in `#checklistdek-push-checklist-result`), **Add to group** / connection tester (`#checklistdek-connection-tester-modal`, `#checklistdek-tester-panel-setup` without retry) modals; `refreshStaleSiteConnectionsInBackground()` |
+| `initActivityLogs()` | `activity-logs` | filters + `#checklistdek-activity-logs-table`; first page from `checklistdekAdmin.activityLogs.initialFeed` when defaults match; paginated admin-ajax `checklistdek_get_activity_logs` via `loadActivityLogs()` / `loadMoreActivityLogs()`; **What happened**: `details_summary` + **View details** + nested **View raw data** (`GET /logs/{id}?details_only=1`); honors `?site_id=` |
+| `initChecklists()` | `checklists` | nav-tab section toggle (`.checklistdek-checklist-nav`, `[data-checklistdek-tab]`, `[data-checklistdek-tab-panel]` — `templates|my-checklists|auto-capture`; legacy `new-checklist` normalizes to `templates`); **Auto-Capture** tab is inline (`#checklistdek-panel-auto-capture`); **My Checklists** panel: `#checklistdek-checklist-select` dropdown, editor (`#checklistdek-checklist-editor`), three-column builder (`.checklistdek-builder-workspace` — canvas `#checklistdek-checklist-canvas` / `#checklistdek-canvas-steps`, step config `#checklistdek-step-config` + `#checklistdek-cl-panel-title` auto-save via `POST /settings/client-panel-title`, live preview `#checklistdek-checklist-preview` via `renderChecklistPreview()`), `#checklistdek-canvas-start-blank`, save/export/delete/import controls |
+| `initAutomation()` | `automation` | nav tabs (`.checklistdek-automation-nav`, `[data-checklistdek-automation-tab]`, `[data-checklistdek-automation-panel]` — `run|batch|drift`); **Run Checklist** tab: 3-step wizard inside `.checklistdek-automation-wizard` (`#checklistdek-automation-progress`, `#checklistdek-automation-step-1|2|3` — choose checklist → single target site → execute), `#checklistdek-run-checklist`, `#checklistdek-run-site-picker` (single-select multicheck), `#checklistdek-start-run`, run hero (`#checklistdek-run-info`, `#checklistdek-run-progress-wrap`, `#checklistdek-run-steps`, `#checklistdek-run-notice` via `runNotice()`), run controls (`#checklistdek-run-auto`, `#checklistdek-run-next`, `#checklistdek-run-push-client` — hidden until active; posts `POST /runs/{id}/push-client`), step tracker notes/attachments + **Mark Complete** / **Mark Not Complete**; **Recent Activity** card (`.checklistdek-automation-run-activity` — `#checklistdek-run-activity-intro`, `#checklistdek-run-activity-feed`, `#checklistdek-run-activity-view-all`) shows site-scoped compact feed when a run is active; **Batch Queue** tab: `#checklistdek-batch-checklist`, `#checklistdek-batch-site-picker` (multi-select), `#checklistdek-batch-table`, `#checklistdek-batch-notice` via `batchNotice()`; drift panel (`#checklistdek-drift-status`, `#checklistdek-verify-drift`) on Drift tab; honors `?run_id=` and `?tab=` on load |
+| `initTemplates()` | checklists (Templates tab) | category tabs, built-in grid + `#checklistdek-builtin-template-search` (cross-category search), vault save/list |
+| `initIntegrations()` | `integrations` | Two cards with `.checklistdek-card-heading-row--info-first` section info tooltips (`$section_tooltips` in partial). Platform Connectors Hub (`#checklistdek-connectors-notice`, `#checklistdek-connectors-list`, `#checklistdek-connector-modal` with `#checklistdek-connector-sync` → `checklistdek_integration_sync`, `#checklistdek-connector-preview` → `checklistdek_integration_sync` + `dry_run: 1`, `#checklistdek-connector-push` → `checklistdek_integration_push`; sync buttons hidden when `supports_sync` is false; WP Umbrella modal panel `#checklistdek-connector-wp-umbrella-config` — `#checklistdek-wp-umbrella-api-token` (Public API token, not per-site plugin key), `#checklistdek-wp-umbrella-token-status`, save/clear → `checklistdek_save_wp_umbrella_token` (server verifies token before persist; inline status/errors in token panel); connector + telemetry lists preloaded from `checklistdekAdmin.integrations` — `loadConnectors()` / `loadTelemetryRules()` skip ajax when cached, refresh after sync via `loadConnectors(true)` → `checklistdek_get_integrations`), telemetry rules (`#checklistdek-telemetry-notice`, `#checklistdek-telemetry-rules-table`, `#checklistdek-save-telemetry-rules` → `checklistdek_save_telemetry_rules`) |
 
-Billing page (`data-launchdek-page="billing"`) has no dedicated page init — static PHP plan comparison table (`.launchdek-billing-compare`) from `LAUNCHDEK_Licensing::get_compare_features()`; **Current plan** / **Get Pro** / **Get Agency** CTAs in `.launchdek-billing-compare-cta-row`.
+Billing page (`data-checklistdek-page="billing"`) has no dedicated page init — static PHP plan comparison table (`.checklistdek-billing-compare`) from `CHECKLISTDEK_Licensing::get_compare_features()`; **Current plan** / **Get Pro** / **Get Agency** CTAs in `.checklistdek-billing-compare-cta-row`.
 
 ### Plan gating (all plugin screens)
 
-On full builds only (`launchdek_includes_pro_package()`): `launchdekAdmin.billing` (`LAUNCHDEK_Licensing::get_summary()`), `billingUrl`, and strings `billingProRequired`, `billingViewPlans`, `billingSiteLimit`. Community builds omit those keys entirely (not empty stubs). PHP also unsets capture-related `strings.*` when `!can_use_auto_capture()` and vault strings when `!can_use_agency_vault()`. Community gates:
+On full builds only (`checklistdek_includes_pro_package()`): `checklistdekAdmin.billing` (`CHECKLISTDEK_Licensing::get_summary()`), `billingUrl`, and strings `billingProRequired`, `billingViewPlans`, `billingSiteLimit`. Community builds omit those keys entirely (not empty stubs). PHP also unsets capture-related `strings.*` when `!can_use_auto_capture()` and vault strings when `!can_use_agency_vault()`. Community gates:
 
 - `initAutoCapture()` — no-ops when Auto-Capture markup is absent (Community omits tab/panel in PHP).
-- `loadVaultTemplates()` — no-ops when `#launchdek-vault-list` is absent (Community omits vault card in PHP).
-- Settings **Webhooks & Email** tab — rendered only when `LAUNCHDEK_Licensing::can_use_notifications()`; scheduled drift toggle only when `can_use_scheduled_drift()` (Community sees no Pro placeholders in Settings).
+- `loadVaultTemplates()` — no-ops when `#checklistdek-vault-list` is absent (Community omits vault card in PHP).
+- Settings **Webhooks & Email** tab — rendered only when `CHECKLISTDEK_Licensing::can_use_notifications()`; scheduled drift toggle only when `can_use_scheduled_drift()` (Community sees no Pro placeholders in Settings).
 
-REST `403` responses with `launchdek_pro_required` / `launchdek_site_limit` should surface billing strings with link to `billingUrl` only when those strings are localized (full builds).
+REST `403` responses with `checklistdek_pro_required` / `checklistdek_site_limit` should surface billing strings with link to `billingUrl` only when those strings are localized (full builds).
 
-Each page init no-ops if `[data-launchdek-page="{page}"]` is absent (except `initTemplates()`, which keys off `#launchdek-builtin-templates`). Template picker and onboarding inits no-op if their modal element is absent; `initConfirmModal()` always prepares the ConfirmDialog root.
+Each page init no-ops if `[data-checklistdek-page="{page}"]` is absent (except `initTemplates()`, which keys off `#checklistdek-builtin-templates`). Template picker and onboarding inits no-op if their modal element is absent; `initConfirmModal()` always prepares the ConfirmDialog root.
 
 ### Sites page run history
 
-Key elements: `.launchdek-site-history-toggle`, `.launchdek-site-runs-row`, `.launchdek-site-runs-panel`, `.launchdek-site-runs-table`, `.launchdek-site-runs-load-more`, `#launchdek-site-info-modal`, `.launchdek-site-info-body`, `.launchdek-site-more-info`.
+Key elements: `.checklistdek-site-history-toggle`, `.checklistdek-site-runs-row`, `.checklistdek-site-runs-panel`, `.checklistdek-site-runs-table`, `.checklistdek-site-runs-load-more`, `#checklistdek-site-info-modal`, `.checklistdek-site-info-body`, `.checklistdek-site-more-info`.
 
-- `toggleSiteRuns( siteId )` / `setSiteHistoryOpen()` — expand/collapse nested runs row; toggles `.is-history-open` on parent `.launchdek-site-row`.
-- `loadSiteRuns( siteId, panel )` — fetches admin-ajax `launchdek_get_site_runs` (`site_id`, `limit: 25`, `offset: 0`), caches in `siteRunsCache` with in-flight dedup (`siteRunsPending`); `normalizeSiteRunsResponse()` handles legacy array or `{ runs, has_more }` shape.
+- `toggleSiteRuns( siteId )` / `setSiteHistoryOpen()` — expand/collapse nested runs row; toggles `.is-history-open` on parent `.checklistdek-site-row`.
+- `loadSiteRuns( siteId, panel )` — fetches admin-ajax `checklistdek_get_site_runs` (`site_id`, `limit: 25`, `offset: 0`), caches in `siteRunsCache` with in-flight dedup (`siteRunsPending`); `normalizeSiteRunsResponse()` handles legacy array or `{ runs, has_more }` shape.
 - `loadMoreSiteRuns( siteId, panel, btn )` — appends next page when `has_more`; `siteRunsMorePending` prevents duplicate requests.
 - `invalidateSiteRunsCache( siteId )` — clears cache and re-fetches when panel is open after push/archive/delete.
-- `renderSiteRunsPanel()` / `siteRunRowHtml()` — checklist title, Steps progress (`.launchdek-run-progress`), started/completed timestamps, started-by (read-only history; no per-run actions).
+- `renderSiteRunsPanel()` / `siteRunRowHtml()` — checklist title, Steps progress (`.checklistdek-run-progress`), started/completed timestamps, started-by (read-only history; no per-run actions).
 - `openSiteInfoModal( siteId )` / `renderSiteInfoBody()` — **More info** modal with ID, URL, connection, panel, credentials summary, tags, and versions.
 
 ### Client panel setup helpers
 
-Shared block markup in `launchdek-panel-setup-block.php` (title **Client checklist panel setup**, numbered steps, path hint `wp-content/mu-plugins/launchdek-client.php`, notice area `#…-panel-setup-result`); JS uses ID map constants `PANEL_SETUP_SITES`, `PANEL_SETUP_ONBOARDING`, `PANEL_SETUP_TESTER`.
+Shared block markup in `checklistdek-panel-setup-block.php` (title **Client checklist panel setup**, numbered steps, path hint `wp-content/mu-plugins/checklistdek-client.php`, notice area `#…-panel-setup-result`); JS uses ID map constants `PANEL_SETUP_SITES`, `PANEL_SETUP_ONBOARDING`, `PANEL_SETUP_TESTER`.
 
-- `togglePanelSetup( show, ids )` — show/hide `.launchdek-panel-setup` root (`[hidden]`).
+- `togglePanelSetup( show, ids )` — show/hide `.checklistdek-panel-setup` root (`[hidden]`).
 - `panelStatusFromResponse( response )` — reads `client_panel` or `client_agent` from test/save payloads.
 - `updatePanelSetupStatus( status, ids )` — success hides block and optional success notice on parent test result; failure shows block + inline notice in `#…-panel-setup-result`.
-- `downloadPanelBootstrap( ids )` — `GET /panel/bootstrap` → Blob download `launchdek-client.php`.
+- `downloadPanelBootstrap( ids )` — `GET /panel/bootstrap` → Blob download `checklistdek-client.php`.
 - `retryPanelInstall( siteId, ids )` — `POST /sites/{id}/panel/install`; requires saved site (Sites/onboarding only).
 
 Connection test and site save handlers call `updatePanelSetupStatus()` when `client_panel.success` is false. Opening site editor shows panel setup when stored site lacks installed panel.
 
 ### Checklists page sections
 
-- `initChecklistTabs()` — toggles `[data-launchdek-tab-panel]` via `.launchdek-checklist-nav` `[data-launchdek-tab]` buttons; lazy-inits auto-capture site select when **Auto-Capture** tab opens (`initAutoCapturePanel()`); updates `?tab=` via `history.replaceState` (`templates` clears param; leaving **My Checklists** clears `checklist_id`). Legacy `?tab=builder` normalizes to `my-checklists`.
+- `initChecklistTabs()` — toggles `[data-checklistdek-tab-panel]` via `.checklistdek-checklist-nav` `[data-checklistdek-tab]` buttons; lazy-inits auto-capture site select when **Auto-Capture** tab opens (`initAutoCapturePanel()`); updates `?tab=` via `history.replaceState` (`templates` clears param; leaving **My Checklists** clears `checklist_id`). Legacy `?tab=builder` normalizes to `my-checklists`.
 - Initial panel: `my-checklists` when `?checklist_id=` or `?tab=my-checklists` (or legacy `builder`), else `templates` (default).
-- `fetchCustomChecklistSummaries( forceRefresh? )` — cached `GET /checklists?is_template=0&summary=1`; uses `launchdekAdmin.customChecklists` when `preloaded`; `invalidateCustomChecklistSummaries()` on mutations.
-- `refreshCustomChecklistUi( forceRefresh? )` — one fetch updates `#launchdek-checklist-select` and `#launchdek-vault-checklist` (no custom checklist card grid).
-- `loadChecklistList()` — delegates to `refreshCustomChecklistUi()`; change handler on `#launchdek-checklist-select` loads editor or hides it when empty.
+- `fetchCustomChecklistSummaries( forceRefresh? )` — cached `GET /checklists?is_template=0&summary=1`; uses `checklistdekAdmin.customChecklists` when `preloaded`; `invalidateCustomChecklistSummaries()` on mutations.
+- `refreshCustomChecklistUi( forceRefresh? )` — one fetch updates `#checklistdek-checklist-select` and `#checklistdek-vault-checklist` (no custom checklist card grid).
+- `loadChecklistList()` — delegates to `refreshCustomChecklistUi()`; change handler on `#checklistdek-checklist-select` loads editor or hides it when empty.
 - `openChecklistEditor( id )` — switches to **My Checklists** tab, sets `?tab=my-checklists&checklist_id=`, loads editor.
-- `createChecklistFromTemplate( slug )` / `duplicateChecklist( tpl )` — clone via REST (`duplicateChecklist` fetches full checklist first) then `openChecklistEditor()`; built-in/vault cards use **Use Checklist** (`.launchdek-template-use-checklist`).
+- `createChecklistFromTemplate( slug )` / `duplicateChecklist( tpl )` — clone via REST (`duplicateChecklist` fetches full checklist first) then `openChecklistEditor()`; built-in/vault cards use **Use Checklist** (`.checklistdek-template-use-checklist`).
 - Deep-link inference: `hydrateStepDeepLinks()`, `scheduleDeepLinkInference()` (300ms debounce), `runDeepLinkInference()` — client-side rules + `POST /checklists/infer-deep-link`; `deep_link_auto` / `deep_link_manual` track auto vs user-edited paths; hint via `#ld-step-deeplink-hint`. Field tooltips render icon-before-label via `renderFieldLabel()` / `renderFieldInfo()`; Step Type tooltip updates via `updateStepTypeHelpTooltip()` on type change.
-- Builder preview: `renderChecklistPreview()` / `renderClientPreviewPanel()` — mirrors client sidebar panel in `#launchdek-checklist-preview` (pointer-events disabled); renders LaunchDek brand mark via `renderClientPreviewBrand()` (`launchdekAdmin.clientPreview.brandName`); `#launchdek-cl-panel-title` debounced save (`scheduleClientPanelTitleSave()` / `saveClientPanelTitle()` → `POST /settings/client-panel-title`); title/description inputs re-render preview on `input`.
+- Builder preview: `renderChecklistPreview()` / `renderClientPreviewPanel()` — mirrors client sidebar panel in `#checklistdek-checklist-preview` (pointer-events disabled); renders ChecklistDek brand mark via `renderClientPreviewBrand()` (`checklistdekAdmin.clientPreview.brandName`); `#checklistdek-cl-panel-title` debounced save (`scheduleClientPanelTitleSave()` / `saveClientPanelTitle()` → `POST /settings/client-panel-title`); title/description inputs re-render preview on `input`.
 
 ### Automation helpers
 
-Key elements: `.launchdek-automation-nav`, `.launchdek-automation-wizard`, `#launchdek-automation-progress`, `#launchdek-automation-step-1|2|3`, `#launchdek-run-checklist`, `#launchdek-run-site-picker`, `#launchdek-batch-site-picker`, `#launchdek-batch-checklist`, `#launchdek-run-notice`, `#launchdek-batch-notice`, `#launchdek-run-activity-feed`, `#launchdek-run-activity-intro`, `#launchdek-run-activity-view-all`.
+Key elements: `.checklistdek-automation-nav`, `.checklistdek-automation-wizard`, `#checklistdek-automation-progress`, `#checklistdek-automation-step-1|2|3`, `#checklistdek-run-checklist`, `#checklistdek-run-site-picker`, `#checklistdek-batch-site-picker`, `#checklistdek-batch-checklist`, `#checklistdek-run-notice`, `#checklistdek-batch-notice`, `#checklistdek-run-activity-feed`, `#checklistdek-run-activity-intro`, `#checklistdek-run-activity-view-all`.
 
-- `initAutomationTabs()` — toggles `[data-launchdek-automation-panel]` via `.launchdek-automation-nav` `[data-launchdek-automation-tab]` (`run|batch|drift`); updates `?tab=` via `history.replaceState` (`run` clears param). Returns `showAutomationTab`.
+- `initAutomationTabs()` — toggles `[data-checklistdek-automation-panel]` via `.checklistdek-automation-nav` `[data-checklistdek-automation-tab]` (`run|batch|drift`); updates `?tab=` via `history.replaceState` (`run` clears param). Returns `showAutomationTab`.
 - `goToAutomationStep( step )` / `updateAutomationProgress( step )` — wizard steps 1–3 within Run tab; step 3 shows empty state until a run starts or `?run_id=` loads.
-- `updateAutomationStepButtons()` — enables `#launchdek-automation-step1-next` when checklist selected; `#launchdek-start-run` when checklist + exactly one site selected.
+- `updateAutomationStepButtons()` — enables `#checklistdek-automation-step1-next` when checklist selected; `#checklistdek-start-run` when checklist + exactly one site selected.
 - `renderTargetSitesPicker( pickerId, preserveSelected?, singleSelect? )` — builds multicheck dropdown from `cachedSites`; run picker uses `singleSelect: true` (radio-style); batch picker allows multiple.
 - `getSelectedSiteIds( pickerId? )` / `getSelectedChecklist( selectId? )` — read picker/select values.
-- `renderRun( run )` — switches to step 3 + Run tab, renders `#launchdek-run-info`, `#launchdek-run-progress-wrap` (`.launchdek-run-progress`), `#launchdek-run-steps`; calls `updateRunActivityPanel( run )`.
+- `renderRun( run )` — switches to step 3 + Run tab, renders `#checklistdek-run-info`, `#checklistdek-run-progress-wrap` (`.checklistdek-run-progress`), `#checklistdek-run-steps`; calls `updateRunActivityPanel( run )`.
 - `updateRunActivityPanel( run )` / `loadRunActivityFeed( siteId )` / `refreshRunActivityFeed()` — site-scoped compact feed (`RUN_ACTIVITY_FEED_LIMIT` 8) via `GET /logs/feed?detailed=1&include_details=0`; **View all activity logs** link scoped to run site.
 - `runNotice( message, type )` / `batchNotice( message, type )` — inline feedback; no `alert()`.
 
@@ -104,21 +104,21 @@ Key elements: `.launchdek-automation-nav`, `.launchdek-automation-wizard`, `#lau
 
 Shared by Activity Logs page and Batch Run recent-activity feed formatting.
 
-Key elements: `.launchdek-audit-table`, `.launchdek-audit-cell`, `.launchdek-audit-teaser`, `.launchdek-audit-activity-details`, `.launchdek-audit-detail-fields`, `.launchdek-audit-raw`, `.launchdek-audit-raw--nested`, `.launchdek-activity-logs-load-more`, `#launchdek-activity-logs-load-more-wrap`.
+Key elements: `.checklistdek-audit-table`, `.checklistdek-audit-cell`, `.checklistdek-audit-teaser`, `.checklistdek-audit-activity-details`, `.checklistdek-audit-detail-fields`, `.checklistdek-audit-raw`, `.checklistdek-audit-raw--nested`, `.checklistdek-activity-logs-load-more`, `#checklistdek-activity-logs-load-more-wrap`.
 
 - `formatAuditTimestamp()`, `buildAuditDetailsHtml()`, `renderActivityDetailFieldsHtml()`, `appendAuditRow()` / `appendAuditRows()`, `renderAuditRows()` — human-readable rows (When/User/Site/What happened); Activity Logs page: action badge + `details_summary` teaser + **View details** (`detail_fields`) + nested **View raw data**; Batch Run feed: summary paragraphs + optional top-level **View raw data**.
-- `loadActivityLogDetails( logId, preEl )` — lazy `GET /logs/{id}?details_only=1` with `activityLogDetailsCache` / in-flight dedup; prefetched when `.launchdek-audit-activity-details` opens.
-- `loadActivityLogRunSteps()` — legacy handler for `.launchdek-audit-run-steps` (if present in markup).
-- `isActivityLogsSiteScoped()` / `syncActivityLogsSiteColumn()` — hide Site column when `#launchdek-activity-logs-site` has a value.
+- `loadActivityLogDetails( logId, preEl )` — lazy `GET /logs/{id}?details_only=1` with `activityLogDetailsCache` / in-flight dedup; prefetched when `.checklistdek-audit-activity-details` opens.
+- `loadActivityLogRunSteps()` — legacy handler for `.checklistdek-audit-run-steps` (if present in markup).
+- `isActivityLogsSiteScoped()` / `syncActivityLogsSiteColumn()` — hide Site column when `#checklistdek-activity-logs-site` has a value.
 - `normalizeActivityLogsResponse()` — handles legacy array or paginated `{ logs, has_more, offset, limit }`.
-- `fetchActivityLogsFeed()` / `loadActivityLogs( append? )` / `loadMoreActivityLogs()` — Activity Logs page via admin-ajax `launchdek_get_activity_logs` (`ACTIVITY_LOGS_PAGE_SIZE` 50); `activityLogsFiltersAreDefault()` + `initialFeed` skip first fetch; `loadActivityLogsSiteFilter()` preloads site select.
+- `fetchActivityLogsFeed()` / `loadActivityLogs( append? )` / `loadMoreActivityLogs()` — Activity Logs page via admin-ajax `checklistdek_get_activity_logs` (`ACTIVITY_LOGS_PAGE_SIZE` 50); `activityLogsFiltersAreDefault()` + `initialFeed` skip first fetch; `loadActivityLogsSiteFilter()` preloads site select.
 - `getActivityLogsUrl( siteId? )` / `updateRunActivityViewAllLink()` — build Activity Logs admin URL with optional `site_id`.
 
 ### Auto-capture helpers
 
-Key elements: `#launchdek-panel-auto-capture`, `.launchdek-auto-capture-panel`, `#launchdek-auto-capture-site`, `#launchdek-auto-capture-status`, `#launchdek-auto-capture-steps`, `#launchdek-auto-capture-start`, `#launchdek-auto-capture-stop`, `#launchdek-auto-capture-import`, `#launchdek-auto-capture-clear`, `#launchdek-auto-capture-notice`.
+Key elements: `#checklistdek-panel-auto-capture`, `.checklistdek-auto-capture-panel`, `#checklistdek-auto-capture-site`, `#checklistdek-auto-capture-status`, `#checklistdek-auto-capture-steps`, `#checklistdek-auto-capture-start`, `#checklistdek-auto-capture-stop`, `#checklistdek-auto-capture-import`, `#checklistdek-auto-capture-clear`, `#checklistdek-auto-capture-notice`.
 
-- `initAutoCapture()` — binds capture controls when `#launchdek-auto-capture-site` exists; no-ops otherwise.
+- `initAutoCapture()` — binds capture controls when `#checklistdek-auto-capture-site` exists; no-ops otherwise.
 - `initAutoCapturePanel()` — lazy-init on first **Auto-Capture** tab visit; site select populated from sites with `client_agent`.
 - `renderCaptureStatus( data )` — toggles recording UI (`.is-recording` on status), step list, and action button visibility; loads `GET /sites/{id}/capture` on site change.
 - **Start Recording** → `POST /sites/{id}/capture` `{ action: 'start' }`; **Stop** → `{ action: 'stop' }`; **Clear** → `DELETE /sites/{id}/capture`.
@@ -126,22 +126,22 @@ Key elements: `#launchdek-panel-auto-capture`, `.launchdek-auto-capture-panel`, 
 
 ### Integrations helpers
 
-Key elements: `#launchdek-connectors-notice`, `#launchdek-connectors-list`, `#launchdek-connector-modal`, `#launchdek-connector-sync`, `#launchdek-connector-preview`, `#launchdek-connector-push`, `#launchdek-telemetry-notice`, `#launchdek-telemetry-rules-table`, `#launchdek-save-telemetry-rules`.
+Key elements: `#checklistdek-connectors-notice`, `#checklistdek-connectors-list`, `#checklistdek-connector-modal`, `#checklistdek-connector-sync`, `#checklistdek-connector-preview`, `#checklistdek-connector-push`, `#checklistdek-telemetry-notice`, `#checklistdek-telemetry-rules-table`, `#checklistdek-save-telemetry-rules`.
 
 - `formatIntegrationSyncSummary( data, preview )` — success copy for sync/preview; when `summary.total === 0`, appends `data.diagnostics.hint` from REST or falls back to `strings.integrationSyncEmptyHint`.
 - `formatIntegrationPushSummary( data )` — client panel push result copy.
-- `renderConnectors( items )` / `loadConnectors( forceRefresh? )` — connector list; uses `launchdekAdmin.integrations.connectors` when `preloaded`; `loadConnectors(true)` after live sync via `launchdek_get_integrations`.
-- `renderTelemetryRules( data )` / `loadTelemetryRules( forceRefresh? )` — mapping table; uses `launchdekAdmin.integrations.telemetry` when `preloaded`; refresh via `launchdek_get_telemetry_rules`.
-- `openConnectorModal( item )` — toggles sync/preview/push visibility from `supports_sync`; shows `#launchdek-connector-wp-umbrella-config` when `slug === 'wp-umbrella'`; `#launchdek-wp-umbrella-save-token` / `#launchdek-wp-umbrella-clear-token` → `launchdek_save_wp_umbrella_token` with inline `#launchdek-wp-umbrella-token-status`; sync/preview/push handlers call `postAjax()` and surface notices in `#launchdek-connectors-notice`.
+- `renderConnectors( items )` / `loadConnectors( forceRefresh? )` — connector list; uses `checklistdekAdmin.integrations.connectors` when `preloaded`; `loadConnectors(true)` after live sync via `checklistdek_get_integrations`.
+- `renderTelemetryRules( data )` / `loadTelemetryRules( forceRefresh? )` — mapping table; uses `checklistdekAdmin.integrations.telemetry` when `preloaded`; refresh via `checklistdek_get_telemetry_rules`.
+- `openConnectorModal( item )` — toggles sync/preview/push visibility from `supports_sync`; shows `#checklistdek-connector-wp-umbrella-config` when `slug === 'wp-umbrella'`; `#checklistdek-wp-umbrella-save-token` / `#checklistdek-wp-umbrella-clear-token` → `checklistdek_save_wp_umbrella_token` with inline `#checklistdek-wp-umbrella-token-status`; sync/preview/push handlers call `postAjax()` and surface notices in `#checklistdek-connectors-notice`.
 
 ### Template picker helpers
 
-Key elements: `#launchdek-template-picker-filters`, `#launchdek-template-picker-list`, `#launchdek-template-picker-steps`, `#launchdek-template-picker-steps-list`, `#launchdek-template-picker-notice`, `#launchdek-template-picker-blank`, `#launchdek-template-picker-cancel`, `#launchdek-template-picker-import`.
+Key elements: `#checklistdek-template-picker-filters`, `#checklistdek-template-picker-list`, `#checklistdek-template-picker-steps`, `#checklistdek-template-picker-steps-list`, `#checklistdek-template-picker-notice`, `#checklistdek-template-picker-blank`, `#checklistdek-template-picker-cancel`, `#checklistdek-template-picker-import`.
 
 - `loadPickerTemplates()` — caches `GET /templates` (`builtin`, `categories`).
-- `openTemplatePicker(callbacks)` — opens modal; callbacks: `{ importMode?, onImport, onBlank }`. Default `importMode` is `checklist` (`POST /templates/{slug}/clone` → `onImport(checklist)`); `populate` passes template object to `onImport` (onboarding paste flow). Exposed as `window.launchdekOpenTemplatePicker`.
-- `closeTemplatePicker()`, `importSelectedTemplate()` — close on backdrop/close/cancel; import on **Import Template** (`#launchdek-template-picker-import`, disabled until a template is selected).
-- `renderPickerFilters()`, `renderPickerList()`, `renderPickerStepsPreview()` — category capsule tabs, selectable list items (`.launchdek-template-picker-item.is-selected`), steps aside.
+- `openTemplatePicker(callbacks)` — opens modal; callbacks: `{ importMode?, onImport, onBlank }`. Default `importMode` is `checklist` (`POST /templates/{slug}/clone` → `onImport(checklist)`); `populate` passes template object to `onImport` (onboarding paste flow). Exposed as `window.checklistdekOpenTemplatePicker`.
+- `closeTemplatePicker()`, `importSelectedTemplate()` — close on backdrop/close/cancel; import on **Import Template** (`#checklistdek-template-picker-import`, disabled until a template is selected).
+- `renderPickerFilters()`, `renderPickerList()`, `renderPickerStepsPreview()` — category capsule tabs, selectable list items (`.checklistdek-template-picker-item.is-selected`), steps aside.
 - `templateToPasteText( template )` — converts template title + step titles to plain-text SOP format for onboarding paste field.
 - `updatePickerImportButton()` — enables/disables import button based on `pickerSelectedSlug`.
 
@@ -151,29 +151,29 @@ Key elements: `#launchdek-template-picker-filters`, `#launchdek-template-picker-
 - `buildChecklistPayload( parsed )` — converts parsed steps to manual checklist REST payload.
 - `getPasteText()` — returns trimmed textarea value, falling back to placeholder when empty (used for step validation).
 - `getPreviewSourceText()` — returns `{ text, isSample }`; when textarea is empty, renders placeholder as a dimmed sample preview (`.is-sample`, disabled checkboxes).
-- `updateOnboardingProgress( step )` — toggles `.is-active` / `.is-complete` on `#launchdek-onboarding-progress` segment nodes (`data-step="1|2"`).
-- `updateStep2SiteState()` — syncs `#launchdek-onboarding-site` selection with connect panel visibility and connection status.
+- `updateOnboardingProgress( step )` — toggles `.is-active` / `.is-complete` on `#checklistdek-onboarding-progress` segment nodes (`data-step="1|2"`).
+- `updateStep2SiteState()` — syncs `#checklistdek-onboarding-site` selection with connect panel visibility and connection status.
 - `closeOnboarding()` — sets `modal.hidden = true` immediately (no network wait).
 - `dismissOnboarding()` — `POST /onboarding/dismiss` (fire-and-forget).
 - `dismissAndCloseOnboarding()` — close icon, backdrop, and Skip buttons; closes UI first, then persists dismiss in background.
-- `openOnboardingModal()` / `resetOnboardingModal()` — exposed as `window.launchdekOpenOnboarding`; resets form state before each open.
+- `openOnboardingModal()` / `resetOnboardingModal()` — exposed as `window.checklistdekOpenOnboarding`; resets form state before each open.
 - `initOnboarding()` — 2-step modal flow:
-  - **Step 1** (`#launchdek-onboarding-step-1`): paste SOP text (`#launchdek-onboarding-paste`) → live preview (`#launchdek-onboarding-preview`); placeholder shows sample preview until user types; **Start from a template** (`#launchdek-onboarding-use-template`) opens template picker with `importMode: populate`.
-  - **Step 2** (`#launchdek-onboarding-step-2`): optional existing-site select (`#launchdek-onboarding-site` inside `#launchdek-onboarding-existing-sites` — hidden until `GET /sites` returns rows) or new-site connect panel (`#launchdek-onboarding-connect-panel`, `/sites/test`, `/sites`) → `#launchdek-onboarding-panel-setup` when panel missing after test/save → save checklist (`POST /checklists`) → optional run (`POST /runs`) → dismiss (`POST /onboarding/dismiss`).
-  - Auto-opens when `data-launchdek-page="dashboard"` and `launchdekAdmin.onboarding.show` is true, or when URL has `?onboarding=1` (any page with modal markup); Settings **Show onboarding wizard** resets via `POST /onboarding/reset` then calls `launchdekOpenOnboarding()` — saving settings alone does not auto-open the wizard.
+  - **Step 1** (`#checklistdek-onboarding-step-1`): paste SOP text (`#checklistdek-onboarding-paste`) → live preview (`#checklistdek-onboarding-preview`); placeholder shows sample preview until user types; **Start from a template** (`#checklistdek-onboarding-use-template`) opens template picker with `importMode: populate`.
+  - **Step 2** (`#checklistdek-onboarding-step-2`): optional existing-site select (`#checklistdek-onboarding-site` inside `#checklistdek-onboarding-existing-sites` — hidden until `GET /sites` returns rows) or new-site connect panel (`#checklistdek-onboarding-connect-panel`, `/sites/test`, `/sites`) → `#checklistdek-onboarding-panel-setup` when panel missing after test/save → save checklist (`POST /checklists`) → optional run (`POST /runs`) → dismiss (`POST /onboarding/dismiss`).
+  - Auto-opens when `data-checklistdek-page="dashboard"` and `checklistdekAdmin.onboarding.show` is true, or when URL has `?onboarding=1` (any page with modal markup); Settings **Show onboarding wizard** resets via `POST /onboarding/reset` then calls `checklistdekOpenOnboarding()` — saving settings alone does not auto-open the wizard.
 
-### `launchdekAdmin` shape
+### `checklistdekAdmin` shape
 
 ```javascript
 {
-	restUrl: string,    // rest_url( 'launchdek/v1' )
+	restUrl: string,    // rest_url( 'checklistdek/v1' )
 	ajaxUrl: string,    // admin_url( 'admin-ajax.php' ) — postAjax() target
 	nonce: string,      // wp_create_nonce( 'wp_rest' )
 	adminUrl: string,
 	pageSlug: string,
 	roles: object,      // WP role slug => translated label (for step target_roles UI)
-	billing?: object,   // LAUNCHDEK_Licensing::get_summary() — only when launchdek_includes_pro_package()
-	billingUrl?: string, // admin Billing page URL — only when launchdek_includes_pro_package()
+	billing?: object,   // CHECKLISTDEK_Licensing::get_summary() — only when checklistdek_includes_pro_package()
+	billingUrl?: string, // admin Billing page URL — only when checklistdek_includes_pro_package()
 	templates?: {       // dashboard, checklists, settings — template picker / built-in grid preload
 		preloaded: boolean,
 		builtin: array,
@@ -194,7 +194,7 @@ Key elements: `#launchdek-template-picker-filters`, `#launchdek-template-picker-
 	},
 	sites: {                    // present only on sites screen
 		preloaded: boolean,
-		list: array,            // LAUNCHDEK_Dashboard_Cache::get_sites_list() payload (batched tags, list credential flags)
+		list: array,            // CHECKLISTDEK_Dashboard_Cache::get_sites_list() payload (batched tags, list credential flags)
 		groups: array           // { slug, label, builtin } from get_site_group_catalog()
 	},
 	activityLogs: {             // present only on activity-logs screen
@@ -206,7 +206,7 @@ Key elements: `#launchdek-template-picker-filters`, `#launchdek-template-picker-
 	},
 	integrations: {             // present only on integrations screen
 		preloaded: boolean,
-		connectors: array,       // LAUNCHDEK_Integrations::get_statuses()
+		connectors: array,       // CHECKLISTDEK_Integrations::get_statuses()
 		telemetry: {             // rules + field labels for mapping table
 			rules: array,
 			fields: object
@@ -215,7 +215,7 @@ Key elements: `#launchdek-template-picker-filters`, `#launchdek-template-picker-
 	clientPreview: {            // present only on checklists screen
 		panelTitle: string,
 		defaultPanelTitle: string,
-		brandName: string,      // panel brand label in builder preview (default LaunchDek)
+		brandName: string,      // panel brand label in builder preview (default ChecklistDek)
 		strings: { collapse, stepOf, markComplete, goToSettings, toggleStep, waiting, addNotes, attachScreenshot, notePlaceholder, previewEmpty }
 	},
 	onboarding: {
@@ -265,109 +265,109 @@ Key elements: `#launchdek-template-picker-filters`, `#launchdek-template-picker-
 }
 ```
 
-## CSS (`admin/css/launchdek-admin.css`)
+## CSS (`admin/css/checklistdek-admin.css`)
 
-Prefix all selectors with `.launchdek-`.
+Prefix all selectors with `.checklistdek-`.
 
 | Class | Purpose |
 |-------|---------|
-| `.launchdek-admin` | Page root wrapper (`data-launchdek-ready` set on DOMContentLoaded) |
-| `.launchdek-card` | Content card |
-| `.launchdek-stats-grid`, `.launchdek-stat-card`, `.launchdek-stat-value`, `.launchdek-stat-label` | Dashboard stats |
-| `.launchdek-quick-launch`, `.launchdek-inline-form` | Quick launch bar and inline forms |
-| `.launchdek-sites-toolbar`, `.launchdek-sites-toolbar-actions`, `.launchdek-sites-toolbar-filters` | Sites page toolbar and filters |
-| `.launchdek-site-status`, `.launchdek-site-connection`, `.launchdek-connection-dot`, `.launchdek-connection-warning`, `.launchdek-site-health-badge` | Combined Status column (connection dot + health badge; modifiers `.healthy`, `.unhealthy`, `.unknown`, `.checking`) |
-| `.launchdek-site-actions-dropdown`, `.launchdek-site-actions-split`, `.launchdek-site-actions-toggle`, `.launchdek-site-actions-menu` | Site row split-button action menu |
-| `.launchdek-site-more-info`, `.launchdek-site-info-body`, `.launchdek-site-info-list`, `.launchdek-site-info-row`, `#launchdek-site-info-modal` | **More info** site details modal |
-| `.launchdek-site-history-toggle`, `.launchdek-site-history-icon`, `.launchdek-site-runs-row`, `.launchdek-site-runs-panel`, `.launchdek-site-runs-heading`, `.launchdek-site-runs-table`, `.launchdek-site-runs-empty`, `.launchdek-site-runs-load-more` | Expandable per-site checklist run history (modifier `.is-history-open` on `.launchdek-site-row`) |
-| `.launchdek-run-progress`, `.launchdek-run-progress-meta`, `.launchdek-run-progress-label`, `.launchdek-run-progress-bar`, `.launchdek-run-progress-fill` | Run history Steps column (fraction + badge + bar; fill width via CSS variable `--launchdek-progress-pct`; modifiers `.is-completed`, `.is-running`, `.is-failed`, `.is-cancelled`) |
-| `.launchdek-client-agent-badge` | Client panel indicator on site name |
-| `.launchdek-push-checklist` | Sites table **Push Checklist** action (in dropdown menu) |
-| `.launchdek-ticker-inline`, `.launchdek-ticker-chip`, `.launchdek-ticker-sep`, `.launchdek-ticker-dot` | Connection ticker (`#launchdek-ticker`) |
-| `.launchdek-log-feed`, `.launchdek-log-feed-meta`, `.launchdek-log-item`, `.launchdek-log-site`, `.launchdek-log-message` | Dashboard activity feed (`#launchdek-log-feed`); modifier `.is-client-activity` on client step events |
-| `.launchdek-activity-logs-intro`, `.launchdek-activity-logs-load-more-wrap`, `.launchdek-activity-logs-load-more` | Activity Logs page intro + paginated **Load more** |
-| `.launchdek-audit-filters`, `.launchdek-audit-filter-field`, `.launchdek-audit-filter-label`, `.launchdek-audit-filter-search`, `.launchdek-audit-filter-actions`, `.launchdek-audit-table`, `.launchdek-audit-table--hide-site-col`, `.launchdek-audit-col-time`, `.launchdek-audit-col-user`, `.launchdek-audit-col-site`, `.launchdek-audit-timestamp`, `.launchdek-audit-date`, `.launchdek-audit-time`, `.launchdek-audit-user`, `.launchdek-audit-site`, `.launchdek-audit-cell`, `.launchdek-audit-action`, `.launchdek-audit-teaser`, `.launchdek-audit-summary`, `.launchdek-audit-detail-lines`, `.launchdek-audit-extra`, `.launchdek-audit-activity-details`, `.launchdek-audit-activity-details-summary`, `.launchdek-audit-activity-details-body`, `.launchdek-audit-detail-fields`, `.launchdek-audit-detail-field`, `.launchdek-audit-raw`, `.launchdek-audit-raw--nested`, `.launchdek-audit-run-steps`, `.launchdek-audit-run-step-list`, `.launchdek-audit-run-step-item`, `.launchdek-audit-run-step-title`, `.launchdek-audit-run-step-meta`, `.launchdek-audit-details`, `.launchdek-audit-diff` | Activity Logs table + shared audit row formatting (Batch Run feed raw JSON in collapsible details) |
-| `.launchdek-site-name-cell`, `.launchdek-site-name-label`, `.launchdek-site-url-link`, `.launchdek-site-group-add`, `.launchdek-site-group-add-field`, `.launchdek-site-group-add-actions`, `#launchdek-add-to-group-modal` | Sites table name/URL cell, custom group inline add UI, quick **Add to group** modal |
-| `.launchdek-badge`, `.launchdek-tag` | Site health / tags |
-| `.launchdek-modal`, `.launchdek-modal-backdrop`, `.launchdek-modal-content`, `.launchdek-modal-actions` | Modals (`[hidden]` when closed) |
-| `.launchdek-template-picker-modal`, `.launchdek-template-picker-content`, `.launchdek-template-picker-header`, `.launchdek-template-picker-close`, `.launchdek-template-picker-filters`, `.launchdek-template-picker-filter`, `.launchdek-template-picker-body`, `.launchdek-template-picker-list`, `.launchdek-template-picker-item`, `.launchdek-template-picker-item-body`, `.launchdek-template-picker-item-title`, `.launchdek-template-picker-item-desc`, `.launchdek-template-picker-item-meta`, `.launchdek-template-picker-steps`, `.launchdek-template-picker-steps-list`, `.launchdek-template-picker-steps-heading`, `.launchdek-template-picker-steps-empty`, `.launchdek-template-picker-footer`, `.launchdek-template-picker-footer-actions`, `.launchdek-template-picker-loading`, `.launchdek-template-picker-empty` | Template picker modal (`#launchdek-template-picker-modal`); filter/item modifiers `.is-active`, `.is-selected` |
-| `.launchdek-onboarding-modal`, `.launchdek-onboarding-header`, `.launchdek-onboarding-title-line`, `.launchdek-onboarding-title-main`, `.launchdek-onboarding-title-sep`, `.launchdek-onboarding-title-tagline`, `.launchdek-onboarding-close`, `.launchdek-onboarding-progress`, `.launchdek-onboarding-progress-segments`, `.launchdek-onboarding-progress-segment`, `.launchdek-onboarding-progress-segment-bar`, `.launchdek-onboarding-progress-segment-text`, `.launchdek-onboarding-progress-segment-label`, `.launchdek-onboarding-progress-segment-hint` | Onboarding modal (`#launchdek-onboarding-modal`); segment modifiers `.is-active`, `.is-complete` |
-| `.launchdek-onboarding-intro`, `.launchdek-onboarding-outro`, `.launchdek-onboarding-columns`, `.launchdek-onboarding-pane-label`, `.launchdek-onboarding-textarea`, `.launchdek-onboarding-preview`, `.launchdek-onboarding-preview.is-sample`, `.launchdek-onboarding-preview-title`, `.launchdek-onboarding-preview-list`, `.launchdek-onboarding-preview-item`, `.launchdek-onboarding-footer`, `.launchdek-onboarding-footer-actions`, `.launchdek-onboarding-connect-panel`, `.launchdek-onboarding-field-row`, `.launchdek-onboarding-test-row`, `.launchdek-onboarding-test-status`, `.launchdek-onboarding-optional`, `#launchdek-onboarding-existing-sites`, `.launchdek-onboarding-existing-site` | Onboarding step layout, preview, and connect panel |
-| `.launchdek-panel-setup`, `.launchdek-panel-setup-title`, `.launchdek-panel-setup-steps`, `.launchdek-panel-setup-actions`, `.launchdek-panel-setup-path` | Client panel manual bootstrap block (Sites modal, onboarding step 2, connection tester) |
-| `.launchdek-list` | Selectable lists |
-| `.launchdek-checklist-picker` | Builder panel checklist dropdown (`#launchdek-checklist-select`) |
-| `.launchdek-builder-workspace` | Checklist builder three-column layout (canvas + step config + live preview; stacks at ≤1280px) |
-| `.launchdek-checklist-preview-sidebar`, `.launchdek-checklist-preview`, `.launchdek-checklist-preview-shell` | Builder live client-panel preview (`#launchdek-checklist-preview`; `.launchdek-checklist-preview-shell` disables pointer events) |
-| `.launchdek-checklist-panel-title-field`, `.launchdek-checklist-panel-title-help` | Client panel heading field in step config sidebar (`#launchdek-cl-panel-title`) |
-| `.launchdek-card-heading-row`, `.launchdek-config-subheading-row` | Card heading + inline info tooltip rows (vault, API mapper) |
-| `.launchdek-canvas-card`, `.launchdek-checklist-canvas`, `.launchdek-canvas-flow` | Vertical drag-and-drop checklist canvas (down-arrow connectors) |
-| `.launchdek-canvas-node`, `.launchdek-canvas-node-chevron`, `.launchdek-canvas-node-roles`, `.launchdek-canvas-connector` | Canvas step nodes + chevron (opens step config) + role badges + vertical flow arrows |
-| `.launchdek-step-config-sidebar`, `.launchdek-multicheck-dropdown`, `.launchdek-multicheck-toggle`, `.launchdek-multicheck-menu`, `.launchdek-multicheck-option`, `.launchdek-field-info`, `.launchdek-field-label-row`, `.launchdek-deeplink-hint`, `.launchdek-step-note-field-option`, `.launchdek-step-client-options`, `#ld-remove-step` | Step config panel + multicheck role mapping dropdown + field tooltips + deep-link auto hint + manual-step client options (`show_note_field`, `show_screenshot_field`); API vs manual sections toggle via `[hidden]` on `#ld-api-config` / `#ld-step-client-options` (not inline `display`) |
-| `.launchdek-automation-nav`, `.launchdek-automation-wizard`, `.launchdek-automation-wizard-nav`, `.launchdek-automation-wizard-body`, `.launchdek-automation-progress`, `.launchdek-automation-progress-segments`, `.launchdek-automation-progress-segment`, `.launchdek-automation-step-panel`, `.launchdek-automation-step-footer`, `.launchdek-automation-run-hero`, `.launchdek-automation-run-activity`, `.launchdek-automation-run-activity-intro` | Batch Run page nav tabs + Run wizard (modifiers `.is-active`, `.is-complete` on segments) + step panels + run hero + site-scoped recent activity card |
-| `.launchdek-target-selector`, `.launchdek-batch-queue` | Batch Queue tab form + queue table |
-| `.launchdek-run-steps`, `.launchdek-run-step`, `.launchdek-run-step-notes`, `.launchdek-run-step-note`, `.launchdek-run-step-note-meta`, `.launchdek-run-step-note-attachment`, `.launchdek-double-tick`, `.launchdek-double-tick-icons`, `.launchdek-double-tick-icon` | Run step tracker, per-step notes (author · timestamp meta), client-completed manual indicator |
-| `.launchdek-audit-diff` | Drift diff display (also used inside `.launchdek-audit-raw` pre blocks) |
-| `.launchdek-drift-sites`, `.launchdek-drift-site-row` | Drift status panel |
-| `.launchdek-checklist-nav` | Checklists page nav tabs (Templates / My Checklists / Auto-Capture) |
-| `.launchdek-target-sites-picker`, `.launchdek-multicheck-empty` | Automation target sites multicheck dropdowns (`#launchdek-run-site-picker` single-select; `#launchdek-batch-site-picker` multi-select) |
-| `.launchdek-tab-panel` | Checklists page section panels; toggled via `.launchdek-checklist-nav` `[data-launchdek-tab]` |
-| `.launchdek-auto-capture-panel`, `.launchdek-auto-capture-status`, `.launchdek-auto-capture-steps`, `.launchdek-auto-capture-actions` | Auto-capture inline tab panel; status modifier `.is-recording` |
-| `.launchdek-category-tabs`, `.launchdek-category-tab` | Template category tab bar inside Templates panel (`#launchdek-category-tabs`) |
-| `.launchdek-builtin-template-search-field`, `.launchdek-builtin-template-search-label`, `.launchdek-builtin-template-search-hint`, `#launchdek-builtin-template-search` | Built-in template cross-category search |
-| `.launchdek-template-grid`, `.launchdek-template-card`, `.launchdek-template-card--custom`, `.launchdek-template-card-actions`, `.launchdek-template-use-checklist`, `.launchdek-template-edit-checklist` | Built-in, vault, and custom checklist cards; **Use Checklist** primary action; custom cards show Edit + Use side by side |
-| `.launchdek-template-steps-preview`, `.launchdek-template-steps-toggle`, `.launchdek-template-steps-list` | Step preview on template cards (hover or toggle) |
-| `.launchdek-connector-list`, `.launchdek-connector-row`, `.launchdek-connector-meta`, `.launchdek-connector-sync-count`, `.launchdek-connector-actions`, `#launchdek-connectors-notice`, `#launchdek-connector-modal`, `#launchdek-connector-sync`, `#launchdek-connector-preview`, `#launchdek-connector-push`, `#launchdek-telemetry-notice` | Platform Connectors Hub + inline notices + setup modal actions |
-| `#launchdek-telemetry-rules-table` | Telemetry sync mapping rules table |
-| `.launchdek-card-heading-row--info-first`, `.launchdek-field-info`, `.launchdek-has-tooltip`, `#launchdek-field-tooltip`, `.launchdek-field-tooltip-portal` | Section heading and builder field info tooltips (`data-tooltip`; card rows use tooltip below icon via `.launchdek-card-heading-row .launchdek-field-info.launchdek-has-tooltip::after`); fixed portal rendered by `initFieldTooltips()` |
-| `.launchdek-integration-card` | Legacy integration card style (prefer connector list) |
-| `.launchdek-import-export` | Checklist import/export controls |
-| `.launchdek-settings-*`, `.launchdek-settings-nav`, `.launchdek-settings-tab-panel`, `.launchdek-settings-exclude-options`, `.launchdek-settings-exclude-hints`, `.launchdek-settings-exclude-hints-label`, `.launchdek-settings-exclude-common-fields`, `.launchdek-settings-panel-layout-picker`, `.launchdek-settings-panel-layout-controls`, `.launchdek-settings-panel-layout-select`, `.launchdek-panel-layout-preview`, `.launchdek-panel-layout-preview-frame`, `.launchdek-panel-layout-preview-description`, `.launchdek-settings-email-events`, `.launchdek-settings-email-event`, `.launchdek-settings-email-address` | Settings page nav tabs + cards, toggles, exclude-options textarea (`#launchdek-exclude-options`; value via `LAUNCHDEK_Settings::format_exclude_options_textarea()`; common-field hints list), client panel layout picker (`#launchdek-panel-layout`, `#launchdek-panel-layout-preview` with `data-layout`), webhook channels, email notifications (`#launchdek-email-notification-address`), role presets, perm table |
-| `.launchdek-billing-intro`, `.launchdek-billing-compare-wrap`, `.launchdek-billing-compare`, `.launchdek-billing-compare-feature-col`, `.launchdek-billing-compare-plan-col`, `.launchdek-billing-compare-value-col`, `.launchdek-billing-feature-label`, `.launchdek-billing-yes`, `.launchdek-billing-no`, `.launchdek-billing-compare-cta-row`, `.launchdek-billing-cta`, `.launchdek-billing-cta--current`, `.launchdek-billing-plan-name`, `.launchdek-billing-plan-price`, `.launchdek-billing-upgrade-notice` | Billing comparison table (full build only) |
-| `.launchdek-notice-area .notice` | Inline success/error (WordPress core notice classes) |
-| `.launchdek-grid-2` | Two-column layout |
-| `.launchdek-select`, `.launchdek-muted` | Form controls |
+| `.checklistdek-admin` | Page root wrapper (`data-checklistdek-ready` set on DOMContentLoaded) |
+| `.checklistdek-card` | Content card |
+| `.checklistdek-stats-grid`, `.checklistdek-stat-card`, `.checklistdek-stat-value`, `.checklistdek-stat-label` | Dashboard stats |
+| `.checklistdek-quick-launch`, `.checklistdek-inline-form` | Quick launch bar and inline forms |
+| `.checklistdek-sites-toolbar`, `.checklistdek-sites-toolbar-actions`, `.checklistdek-sites-toolbar-filters` | Sites page toolbar and filters |
+| `.checklistdek-site-status`, `.checklistdek-site-connection`, `.checklistdek-connection-dot`, `.checklistdek-connection-warning`, `.checklistdek-site-health-badge` | Combined Status column (connection dot + health badge; modifiers `.healthy`, `.unhealthy`, `.unknown`, `.checking`) |
+| `.checklistdek-site-actions-dropdown`, `.checklistdek-site-actions-split`, `.checklistdek-site-actions-toggle`, `.checklistdek-site-actions-menu` | Site row split-button action menu |
+| `.checklistdek-site-more-info`, `.checklistdek-site-info-body`, `.checklistdek-site-info-list`, `.checklistdek-site-info-row`, `#checklistdek-site-info-modal` | **More info** site details modal |
+| `.checklistdek-site-history-toggle`, `.checklistdek-site-history-icon`, `.checklistdek-site-runs-row`, `.checklistdek-site-runs-panel`, `.checklistdek-site-runs-heading`, `.checklistdek-site-runs-table`, `.checklistdek-site-runs-empty`, `.checklistdek-site-runs-load-more` | Expandable per-site checklist run history (modifier `.is-history-open` on `.checklistdek-site-row`) |
+| `.checklistdek-run-progress`, `.checklistdek-run-progress-meta`, `.checklistdek-run-progress-label`, `.checklistdek-run-progress-bar`, `.checklistdek-run-progress-fill` | Run history Steps column (fraction + badge + bar; fill width via CSS variable `--checklistdek-progress-pct`; modifiers `.is-completed`, `.is-running`, `.is-failed`, `.is-cancelled`) |
+| `.checklistdek-client-agent-badge` | Client panel indicator on site name |
+| `.checklistdek-push-checklist` | Sites table **Push Checklist** action (in dropdown menu) |
+| `.checklistdek-ticker-inline`, `.checklistdek-ticker-chip`, `.checklistdek-ticker-sep`, `.checklistdek-ticker-dot` | Connection ticker (`#checklistdek-ticker`) |
+| `.checklistdek-log-feed`, `.checklistdek-log-feed-meta`, `.checklistdek-log-item`, `.checklistdek-log-site`, `.checklistdek-log-message` | Dashboard activity feed (`#checklistdek-log-feed`); modifier `.is-client-activity` on client step events |
+| `.checklistdek-activity-logs-intro`, `.checklistdek-activity-logs-load-more-wrap`, `.checklistdek-activity-logs-load-more` | Activity Logs page intro + paginated **Load more** |
+| `.checklistdek-audit-filters`, `.checklistdek-audit-filter-field`, `.checklistdek-audit-filter-label`, `.checklistdek-audit-filter-search`, `.checklistdek-audit-filter-actions`, `.checklistdek-audit-table`, `.checklistdek-audit-table--hide-site-col`, `.checklistdek-audit-col-time`, `.checklistdek-audit-col-user`, `.checklistdek-audit-col-site`, `.checklistdek-audit-timestamp`, `.checklistdek-audit-date`, `.checklistdek-audit-time`, `.checklistdek-audit-user`, `.checklistdek-audit-site`, `.checklistdek-audit-cell`, `.checklistdek-audit-action`, `.checklistdek-audit-teaser`, `.checklistdek-audit-summary`, `.checklistdek-audit-detail-lines`, `.checklistdek-audit-extra`, `.checklistdek-audit-activity-details`, `.checklistdek-audit-activity-details-summary`, `.checklistdek-audit-activity-details-body`, `.checklistdek-audit-detail-fields`, `.checklistdek-audit-detail-field`, `.checklistdek-audit-raw`, `.checklistdek-audit-raw--nested`, `.checklistdek-audit-run-steps`, `.checklistdek-audit-run-step-list`, `.checklistdek-audit-run-step-item`, `.checklistdek-audit-run-step-title`, `.checklistdek-audit-run-step-meta`, `.checklistdek-audit-details`, `.checklistdek-audit-diff` | Activity Logs table + shared audit row formatting (Batch Run feed raw JSON in collapsible details) |
+| `.checklistdek-site-name-cell`, `.checklistdek-site-name-label`, `.checklistdek-site-url-link`, `.checklistdek-site-group-add`, `.checklistdek-site-group-add-field`, `.checklistdek-site-group-add-actions`, `#checklistdek-add-to-group-modal` | Sites table name/URL cell, custom group inline add UI, quick **Add to group** modal |
+| `.checklistdek-badge`, `.checklistdek-tag` | Site health / tags |
+| `.checklistdek-modal`, `.checklistdek-modal-backdrop`, `.checklistdek-modal-content`, `.checklistdek-modal-actions` | Modals (`[hidden]` when closed) |
+| `.checklistdek-template-picker-modal`, `.checklistdek-template-picker-content`, `.checklistdek-template-picker-header`, `.checklistdek-template-picker-close`, `.checklistdek-template-picker-filters`, `.checklistdek-template-picker-filter`, `.checklistdek-template-picker-body`, `.checklistdek-template-picker-list`, `.checklistdek-template-picker-item`, `.checklistdek-template-picker-item-body`, `.checklistdek-template-picker-item-title`, `.checklistdek-template-picker-item-desc`, `.checklistdek-template-picker-item-meta`, `.checklistdek-template-picker-steps`, `.checklistdek-template-picker-steps-list`, `.checklistdek-template-picker-steps-heading`, `.checklistdek-template-picker-steps-empty`, `.checklistdek-template-picker-footer`, `.checklistdek-template-picker-footer-actions`, `.checklistdek-template-picker-loading`, `.checklistdek-template-picker-empty` | Template picker modal (`#checklistdek-template-picker-modal`); filter/item modifiers `.is-active`, `.is-selected` |
+| `.checklistdek-onboarding-modal`, `.checklistdek-onboarding-header`, `.checklistdek-onboarding-title-line`, `.checklistdek-onboarding-title-main`, `.checklistdek-onboarding-title-sep`, `.checklistdek-onboarding-title-tagline`, `.checklistdek-onboarding-close`, `.checklistdek-onboarding-progress`, `.checklistdek-onboarding-progress-segments`, `.checklistdek-onboarding-progress-segment`, `.checklistdek-onboarding-progress-segment-bar`, `.checklistdek-onboarding-progress-segment-text`, `.checklistdek-onboarding-progress-segment-label`, `.checklistdek-onboarding-progress-segment-hint` | Onboarding modal (`#checklistdek-onboarding-modal`); segment modifiers `.is-active`, `.is-complete` |
+| `.checklistdek-onboarding-intro`, `.checklistdek-onboarding-outro`, `.checklistdek-onboarding-columns`, `.checklistdek-onboarding-pane-label`, `.checklistdek-onboarding-textarea`, `.checklistdek-onboarding-preview`, `.checklistdek-onboarding-preview.is-sample`, `.checklistdek-onboarding-preview-title`, `.checklistdek-onboarding-preview-list`, `.checklistdek-onboarding-preview-item`, `.checklistdek-onboarding-footer`, `.checklistdek-onboarding-footer-actions`, `.checklistdek-onboarding-connect-panel`, `.checklistdek-onboarding-field-row`, `.checklistdek-onboarding-test-row`, `.checklistdek-onboarding-test-status`, `.checklistdek-onboarding-optional`, `#checklistdek-onboarding-existing-sites`, `.checklistdek-onboarding-existing-site` | Onboarding step layout, preview, and connect panel |
+| `.checklistdek-panel-setup`, `.checklistdek-panel-setup-title`, `.checklistdek-panel-setup-steps`, `.checklistdek-panel-setup-actions`, `.checklistdek-panel-setup-path` | Client panel manual bootstrap block (Sites modal, onboarding step 2, connection tester) |
+| `.checklistdek-list` | Selectable lists |
+| `.checklistdek-checklist-picker` | Builder panel checklist dropdown (`#checklistdek-checklist-select`) |
+| `.checklistdek-builder-workspace` | Checklist builder three-column layout (canvas + step config + live preview; stacks at ≤1280px) |
+| `.checklistdek-checklist-preview-sidebar`, `.checklistdek-checklist-preview`, `.checklistdek-checklist-preview-shell` | Builder live client-panel preview (`#checklistdek-checklist-preview`; `.checklistdek-checklist-preview-shell` disables pointer events) |
+| `.checklistdek-checklist-panel-title-field`, `.checklistdek-checklist-panel-title-help` | Client panel heading field in step config sidebar (`#checklistdek-cl-panel-title`) |
+| `.checklistdek-card-heading-row`, `.checklistdek-config-subheading-row` | Card heading + inline info tooltip rows (vault, API mapper) |
+| `.checklistdek-canvas-card`, `.checklistdek-checklist-canvas`, `.checklistdek-canvas-flow` | Vertical drag-and-drop checklist canvas (down-arrow connectors) |
+| `.checklistdek-canvas-node`, `.checklistdek-canvas-node-chevron`, `.checklistdek-canvas-node-roles`, `.checklistdek-canvas-connector` | Canvas step nodes + chevron (opens step config) + role badges + vertical flow arrows |
+| `.checklistdek-step-config-sidebar`, `.checklistdek-multicheck-dropdown`, `.checklistdek-multicheck-toggle`, `.checklistdek-multicheck-menu`, `.checklistdek-multicheck-option`, `.checklistdek-field-info`, `.checklistdek-field-label-row`, `.checklistdek-deeplink-hint`, `.checklistdek-step-note-field-option`, `.checklistdek-step-client-options`, `#ld-remove-step` | Step config panel + multicheck role mapping dropdown + field tooltips + deep-link auto hint + manual-step client options (`show_note_field`, `show_screenshot_field`); API vs manual sections toggle via `[hidden]` on `#ld-api-config` / `#ld-step-client-options` (not inline `display`) |
+| `.checklistdek-automation-nav`, `.checklistdek-automation-wizard`, `.checklistdek-automation-wizard-nav`, `.checklistdek-automation-wizard-body`, `.checklistdek-automation-progress`, `.checklistdek-automation-progress-segments`, `.checklistdek-automation-progress-segment`, `.checklistdek-automation-step-panel`, `.checklistdek-automation-step-footer`, `.checklistdek-automation-run-hero`, `.checklistdek-automation-run-activity`, `.checklistdek-automation-run-activity-intro` | Batch Run page nav tabs + Run wizard (modifiers `.is-active`, `.is-complete` on segments) + step panels + run hero + site-scoped recent activity card |
+| `.checklistdek-target-selector`, `.checklistdek-batch-queue` | Batch Queue tab form + queue table |
+| `.checklistdek-run-steps`, `.checklistdek-run-step`, `.checklistdek-run-step-notes`, `.checklistdek-run-step-note`, `.checklistdek-run-step-note-meta`, `.checklistdek-run-step-note-attachment`, `.checklistdek-double-tick`, `.checklistdek-double-tick-icons`, `.checklistdek-double-tick-icon` | Run step tracker, per-step notes (author · timestamp meta), client-completed manual indicator |
+| `.checklistdek-audit-diff` | Drift diff display (also used inside `.checklistdek-audit-raw` pre blocks) |
+| `.checklistdek-drift-sites`, `.checklistdek-drift-site-row` | Drift status panel |
+| `.checklistdek-checklist-nav` | Checklists page nav tabs (Templates / My Checklists / Auto-Capture) |
+| `.checklistdek-target-sites-picker`, `.checklistdek-multicheck-empty` | Automation target sites multicheck dropdowns (`#checklistdek-run-site-picker` single-select; `#checklistdek-batch-site-picker` multi-select) |
+| `.checklistdek-tab-panel` | Checklists page section panels; toggled via `.checklistdek-checklist-nav` `[data-checklistdek-tab]` |
+| `.checklistdek-auto-capture-panel`, `.checklistdek-auto-capture-status`, `.checklistdek-auto-capture-steps`, `.checklistdek-auto-capture-actions` | Auto-capture inline tab panel; status modifier `.is-recording` |
+| `.checklistdek-category-tabs`, `.checklistdek-category-tab` | Template category tab bar inside Templates panel (`#checklistdek-category-tabs`) |
+| `.checklistdek-builtin-template-search-field`, `.checklistdek-builtin-template-search-label`, `.checklistdek-builtin-template-search-hint`, `#checklistdek-builtin-template-search` | Built-in template cross-category search |
+| `.checklistdek-template-grid`, `.checklistdek-template-card`, `.checklistdek-template-card--custom`, `.checklistdek-template-card-actions`, `.checklistdek-template-use-checklist`, `.checklistdek-template-edit-checklist` | Built-in, vault, and custom checklist cards; **Use Checklist** primary action; custom cards show Edit + Use side by side |
+| `.checklistdek-template-steps-preview`, `.checklistdek-template-steps-toggle`, `.checklistdek-template-steps-list` | Step preview on template cards (hover or toggle) |
+| `.checklistdek-connector-list`, `.checklistdek-connector-row`, `.checklistdek-connector-meta`, `.checklistdek-connector-sync-count`, `.checklistdek-connector-actions`, `#checklistdek-connectors-notice`, `#checklistdek-connector-modal`, `#checklistdek-connector-sync`, `#checklistdek-connector-preview`, `#checklistdek-connector-push`, `#checklistdek-telemetry-notice` | Platform Connectors Hub + inline notices + setup modal actions |
+| `#checklistdek-telemetry-rules-table` | Telemetry sync mapping rules table |
+| `.checklistdek-card-heading-row--info-first`, `.checklistdek-field-info`, `.checklistdek-has-tooltip`, `#checklistdek-field-tooltip`, `.checklistdek-field-tooltip-portal` | Section heading and builder field info tooltips (`data-tooltip`; card rows use tooltip below icon via `.checklistdek-card-heading-row .checklistdek-field-info.checklistdek-has-tooltip::after`); fixed portal rendered by `initFieldTooltips()` |
+| `.checklistdek-integration-card` | Legacy integration card style (prefer connector list) |
+| `.checklistdek-import-export` | Checklist import/export controls |
+| `.checklistdek-settings-*`, `.checklistdek-settings-nav`, `.checklistdek-settings-tab-panel`, `.checklistdek-settings-exclude-options`, `.checklistdek-settings-exclude-hints`, `.checklistdek-settings-exclude-hints-label`, `.checklistdek-settings-exclude-common-fields`, `.checklistdek-settings-panel-layout-picker`, `.checklistdek-settings-panel-layout-controls`, `.checklistdek-settings-panel-layout-select`, `.checklistdek-panel-layout-preview`, `.checklistdek-panel-layout-preview-frame`, `.checklistdek-panel-layout-preview-description`, `.checklistdek-settings-email-events`, `.checklistdek-settings-email-event`, `.checklistdek-settings-email-address` | Settings page nav tabs + cards, toggles, exclude-options textarea (`#checklistdek-exclude-options`; value via `CHECKLISTDEK_Settings::format_exclude_options_textarea()`; common-field hints list), client panel layout picker (`#checklistdek-panel-layout`, `#checklistdek-panel-layout-preview` with `data-layout`), webhook channels, email notifications (`#checklistdek-email-notification-address`), role presets, perm table |
+| `.checklistdek-billing-intro`, `.checklistdek-billing-compare-wrap`, `.checklistdek-billing-compare`, `.checklistdek-billing-compare-feature-col`, `.checklistdek-billing-compare-plan-col`, `.checklistdek-billing-compare-value-col`, `.checklistdek-billing-feature-label`, `.checklistdek-billing-yes`, `.checklistdek-billing-no`, `.checklistdek-billing-compare-cta-row`, `.checklistdek-billing-cta`, `.checklistdek-billing-cta--current`, `.checklistdek-billing-plan-name`, `.checklistdek-billing-plan-price`, `.checklistdek-billing-upgrade-notice` | Billing comparison table (full build only) |
+| `.checklistdek-notice-area .notice` | Inline success/error (WordPress core notice classes) |
+| `.checklistdek-grid-2` | Two-column layout |
+| `.checklistdek-select`, `.checklistdek-muted` | Form controls |
 
 Status modifiers: `.healthy`, `.unhealthy`, `.unknown`, `.active`, `.success`, `.error`. Run steps: `.status-completed`, `.status-failed`, `.status-awaiting_manual`, `.status-running`.
 
 ### Responsive (admin + client preview)
 
-Hub admin CSS uses stacked toolbars/forms and horizontal scroll on wide tables below ~960px / ~782px. Sites table hides WP/PHP version columns at `max-width: 782px`; site run history panels scroll horizontally on small screens. Modals and onboarding progress segments wrap on narrow viewports. Client panel bundle CSS (`launchdek-client-admin.css`) widens step actions on very small devices — mirror behavior in builder preview when touching client styles.
+Hub admin CSS uses stacked toolbars/forms and horizontal scroll on wide tables below ~960px / ~782px. Sites table hides WP/PHP version columns at `max-width: 782px`; site run history panels scroll horizontally on small screens. Modals and onboarding progress segments wrap on narrow viewports. Client panel bundle CSS (`checklistdek-client-admin.css`) widens step actions on very small devices — mirror behavior in builder preview when touching client styles.
 
 ## Partials (`admin/partials/`)
 
-Thin shells only — no business logic. Each page partial sets `data-launchdek-page` on `.launchdek-admin` root (including `settings`; `billing` only when `launchdek_includes_pro_package()`). Settings page uses Settings API form, not REST-driven CRUD. Billing page is static PHP (three-column feature comparison + purchase CTAs); no modal partials; submenu omitted on Community builds.
+Thin shells only — no business logic. Each page partial sets `data-checklistdek-page` on `.checklistdek-admin` root (including `settings`; `billing` only when `checklistdek_includes_pro_package()`). Settings page uses Settings API form, not REST-driven CRUD. Billing page is static PHP (three-column feature comparison + purchase CTAs); no modal partials; submenu omitted on Community builds.
 
 Shared modal partials (require at end of page partial, do not duplicate markup):
 
 | Partial | Included on |
 |---------|-------------|
-| `launchdek-onboarding-modal.php` | dashboard, settings |
-| `launchdek-template-picker-modal.php` | dashboard, checklists, settings |
-| `launchdek-panel-setup-block.php` | sites (editor + connection tester modals), onboarding step 2 (via `require` inside onboarding modal) |
+| `checklistdek-onboarding-modal.php` | dashboard, settings |
+| `checklistdek-template-picker-modal.php` | dashboard, checklists, settings |
+| `checklistdek-panel-setup-block.php` | sites (editor + connection tester modals), onboarding step 2 (via `require` inside onboarding modal) |
 
-Dashboard and settings include both onboarding + template picker modals (onboarding opens the picker from step 1). Checklists includes the template picker partial and inline auto-capture tab panel (no auto-capture modal). Sites page includes push checklist, connection tester, and **More info** (`#launchdek-site-info-modal`) modals inline; panel setup block is embedded in site editor and tester (not a standalone modal). Destructive confirmations use `openConfirmModal()` (WordPress `ConfirmDialog` via `wp-components`; no PHP partial).
+Dashboard and settings include both onboarding + template picker modals (onboarding opens the picker from step 1). Checklists includes the template picker partial and inline auto-capture tab panel (no auto-capture modal). Sites page includes push checklist, connection tester, and **More info** (`#checklistdek-site-info-modal`) modals inline; panel setup block is embedded in site editor and tester (not a standalone modal). Destructive confirmations use `openConfirmModal()` (WordPress `ConfirmDialog` via `wp-components`; no PHP partial).
 
-## Client panel assets (`mu-plugin/launchdek-client/`)
+## Client panel assets (`mu-plugin/checklistdek-client/`)
 
-Bundled mu-plugin admin UI — not loaded by hub `launchdek-admin` handle. Enqueued on remote wp-admin only when `LAUNCHDEK_Client_Run_Store::get()` returns an active snapshot and `user_can_view_panel()` passes for the current user.
+Bundled mu-plugin admin UI — not loaded by hub `checklistdek-admin` handle. Enqueued on remote wp-admin only when `CHECKLISTDEK_Client_Run_Store::get()` returns an active snapshot and `user_can_view_panel()` passes for the current user.
 
 | File | Role |
 |------|------|
-| `css/launchdek-client-admin.css` | Panel styles — prefix `.launchdek-client-*` |
-| `js/launchdek-client-admin.js` | Panel UI — IIFE, `launchdekClient` global (`restUrl`, `nonce`, `run`, `currentUser`, `strings`); uses `wp.media` for optional screenshot attachments; note collapse prefs in `localStorage` |
+| `css/checklistdek-client-admin.css` | Panel styles — prefix `.checklistdek-client-*` |
+| `js/checklistdek-client-admin.js` | Panel UI — IIFE, `checklistdekClient` global (`restUrl`, `nonce`, `run`, `currentUser`, `strings`); uses `wp.media` for optional screenshot attachments; note collapse prefs in `localStorage` |
 
-Key helpers: `buildClientApiUrl()` / `clientFetch()` — REST calls with plain-permalink `?rest_route=` fallback on `rest_no_route` (mirrors hub admin JS); `clientFetch()` injects `X-WP-Nonce` from `getClientNonce()` when omitted. `heartbeat-tick.launchdek-client` updates nonce from `data.rest_nonce`. `stepShowsNoteField()` / `stepShowsScreenshotField()` — gate note textarea and screenshot attach button from snapshot `show_note_field` / `show_screenshot_field`. `formatCompactProgress()` / `syncAdminBarProgress()` — keep collapsed layouts (sidebar tab, pill, toast, bars, fullscreen launcher, `admin_menu` trigger, `#wp-admin-bar-launchdek-client-checklist`) in sync on step toggles. `layoutKeepsPanelChromeOnCollapse()` — `inline_metabox` keeps panel chrome when collapsed (progress meta + **Expand** toggle). `applyOptimisticStepUpdate()` / `updateStepStatus()` — optimistic complete/uncomplete with rollback on error; hub callbacks return updated `run` (no redundant hub→client re-sync). Step complete/uncomplete posts `POST /client/run/steps/{step}/complete|uncomplete` → hub token route → applies returned snapshot via `save()` / `patch_from_hub_run()`. Per-step `.launchdek-client-step-notes-toggle` collapses individual note lists (prefs in `localStorage`).
+Key helpers: `buildClientApiUrl()` / `clientFetch()` — REST calls with plain-permalink `?rest_route=` fallback on `rest_no_route` (mirrors hub admin JS); `clientFetch()` injects `X-WP-Nonce` from `getClientNonce()` when omitted. `heartbeat-tick.checklistdek-client` updates nonce from `data.rest_nonce`. `stepShowsNoteField()` / `stepShowsScreenshotField()` — gate note textarea and screenshot attach button from snapshot `show_note_field` / `show_screenshot_field`. `formatCompactProgress()` / `syncAdminBarProgress()` — keep collapsed layouts (sidebar tab, pill, toast, bars, fullscreen launcher, `admin_menu` trigger, `#wp-admin-bar-checklistdek-client-checklist`) in sync on step toggles. `layoutKeepsPanelChromeOnCollapse()` — `inline_metabox` keeps panel chrome when collapsed (progress meta + **Expand** toggle). `applyOptimisticStepUpdate()` / `updateStepStatus()` — optimistic complete/uncomplete with rollback on error; hub callbacks return updated `run` (no redundant hub→client re-sync). Step complete/uncomplete posts `POST /client/run/steps/{step}/complete|uncomplete` → hub token route → applies returned snapshot via `save()` / `patch_from_hub_run()`. Per-step `.checklistdek-client-step-notes-toggle` collapses individual note lists (prefs in `localStorage`).
 
-Key panel classes: `.launchdek-client-panel-root`, `.launchdek-client-panel`, `.launchdek-client-panel-brand`, `.launchdek-client-panel-brand-mark`, `.launchdek-client-panel-brand-name`, `.launchdek-client-panel-brand-icon`, `.launchdek-client-panel-tab`, `.launchdek-client-panel-toggle`, `.launchdek-client-panel-collapsed-meta`, `.launchdek-client-admin-menu-trigger`, `.launchdek-client-step`, `.launchdek-client-step-settings-link` (compact deep-link icon beside step actions; URL from snapshot `deep_link` or rebuilt from `admin_path`), `.launchdek-client-step-notes`, `.launchdek-client-step-notes-toggle`, `.launchdek-client-double-tick-icons`, `.launchdek-client-icon-double-tick`, `.launchdek-client-note-attachment`, `.launchdek-client-run-complete-summary`, `.launchdek-client-dismiss-run`. Panel heading from snapshot `panel_title` (`LAUNCHDEK_Client_Run_Store::get_panel_title()`; hub setting `client_panel_title`); brand label from localized `strings.brandName`. Layout modifiers on root/body: `.launchdek-client-layout-{sidebar|live_topbar|bottom_dock|floating_pill|toast|admin_menu|fullscreen|focus_mode|inline_metabox}` (legacy `left_sidebar` / `split_panel` fall back to `sidebar`); `body.launchdek-client-has-panel`. Modifiers: `.is-collapsed` on panel root/panel/step notes/metabox; `.is-completed` on steps. Completed runs show summary + **Dismiss** (`POST /client/run/dismiss`).
+Key panel classes: `.checklistdek-client-panel-root`, `.checklistdek-client-panel`, `.checklistdek-client-panel-brand`, `.checklistdek-client-panel-brand-mark`, `.checklistdek-client-panel-brand-name`, `.checklistdek-client-panel-brand-icon`, `.checklistdek-client-panel-tab`, `.checklistdek-client-panel-toggle`, `.checklistdek-client-panel-collapsed-meta`, `.checklistdek-client-admin-menu-trigger`, `.checklistdek-client-step`, `.checklistdek-client-step-settings-link` (compact deep-link icon beside step actions; URL from snapshot `deep_link` or rebuilt from `admin_path`), `.checklistdek-client-step-notes`, `.checklistdek-client-step-notes-toggle`, `.checklistdek-client-double-tick-icons`, `.checklistdek-client-icon-double-tick`, `.checklistdek-client-note-attachment`, `.checklistdek-client-run-complete-summary`, `.checklistdek-client-dismiss-run`. Panel heading from snapshot `panel_title` (`CHECKLISTDEK_Client_Run_Store::get_panel_title()`; hub setting `client_panel_title`); brand label from localized `strings.brandName`. Layout modifiers on root/body: `.checklistdek-client-layout-{sidebar|live_topbar|bottom_dock|floating_pill|toast|admin_menu|fullscreen|focus_mode|inline_metabox}` (legacy `left_sidebar` / `split_panel` fall back to `sidebar`); `body.checklistdek-client-has-panel`. Modifiers: `.is-collapsed` on panel root/panel/step notes/metabox; `.is-completed` on steps. Completed runs show summary + **Dismiss** (`POST /client/run/dismiss`).
 
 ## Enqueuing
 
 | Handle | File | When |
 |--------|------|------|
 | `wp-components` (style + script) | WordPress core | `is_plugin_screen()` — dependency for ConfirmDialog |
-| `launchdek-admin` (style) | `admin/css/launchdek-admin.css` | `is_plugin_screen()`; depends on `wp-components` |
-| `launchdek-client-admin-preview` (style) | `mu-plugin/launchdek-client/css/launchdek-client-admin.css` | Checklists screen only (builder live preview) |
-| `launchdek-admin` (script) | `admin/js/launchdek-admin.js` | `is_plugin_screen()` + `wp_localize_script`; depends on `wp-components`, `heartbeat` (REST nonce refresh on `heartbeat-tick`) |
-| `launchdek-client-admin` (style + script) | `mu-plugin/launchdek-client/css|js/*` | Remote wp-admin when active run + `user_can_view_panel()`; script depends on `jquery`, `heartbeat`, `media-editor`, `media-views`; `wp_enqueue_media()` for screenshot attachments |
+| `checklistdek-admin` (style) | `admin/css/checklistdek-admin.css` | `is_plugin_screen()`; depends on `wp-components` |
+| `checklistdek-client-admin-preview` (style) | `mu-plugin/checklistdek-client/css/checklistdek-client-admin.css` | Checklists screen only (builder live preview) |
+| `checklistdek-admin` (script) | `admin/js/checklistdek-admin.js` | `is_plugin_screen()` + `wp_localize_script`; depends on `wp-components`, `heartbeat` (REST nonce refresh on `heartbeat-tick`) |
+| `checklistdek-client-admin` (style + script) | `mu-plugin/checklistdek-client/css|js/*` | Remote wp-admin when active run + `user_can_view_panel()`; script depends on `jquery`, `heartbeat`, `media-editor`, `media-views`; `wp_enqueue_media()` for screenshot attachments |
 
-Version: `filemtime()` when file exists, otherwise `LAUNCHDEK_VERSION`.
+Version: `filemtime()` when file exists, otherwise `CHECKLISTDEK_VERSION`.

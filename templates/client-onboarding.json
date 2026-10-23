@@ -13,8 +13,8 @@
       "type": "manual"
     },
     {
-      "id": "register_in_launchdek",
-      "title": "Register Site in LaunchDek",
+      "id": "register_in_checklistdek",
+      "title": "Register Site in ChecklistDek",
       "instructions": "Add the site URL, create a dedicated Application Password user, run a connection test, and apply client/project tags.",
       "deep_link": "",
       "type": "manual"

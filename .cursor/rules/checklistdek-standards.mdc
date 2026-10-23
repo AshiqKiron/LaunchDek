@@ -1,0 +1,73 @@
+---
+description: Coding, i18n, accessibility, UX, performance, privacy, and release standards for ChecklistDek
+alwaysApply: true
+---
+
+# ChecklistDek Standards
+
+Cross-cutting quality standards. See also: `checklistdek-project.mdc` (architecture), `checklistdek-compliance.mdc` (pre-ship gate), `wordpress-php.mdc` (PHP/REST), `admin-assets.mdc` (JS/CSS).
+
+## Coding Standards
+
+- **PHP**: WordPress PHP Coding Standards — spacing, arrays, docblocks where useful, clear naming.
+- **JS**: Vanilla admin JS with `fetch` + `checklistdekAdmin` REST helpers; no frameworks unless justified.
+- **CSS**: Scope styles to `.checklistdek-*` selectors; avoid bleeding into wp-admin or themes.
+- **HTML**: Semantic markup, accessible labels, buttons, headings.
+- Never output inline CSS/JS unless there is a good reason.
+- Keep lines and functions readable rather than clever.
+
+## I18N
+
+- All user-facing strings must be translatable with text domain `checklistdek` (matches `CHECKLISTDEK_TEXT_DOMAIN` / `CHECKLISTDEK_PLUGIN_SLUG` in bootstrap).
+- In PHP translation functions (`__()`, `_e()`, `esc_html__()`, `esc_attr__()`, etc.), prefer the literal `'checklistdek'` domain string — WPCS / Plugin Check text-domain sniffs expect a string literal, not the `CHECKLISTDEK_TEXT_DOMAIN` constant.
+- REST error messages returned to admin UI must also be translatable.
+
+## Accessibility
+
+- Every settings field must have a label.
+- Use `<button>` elements for actions, not clickable divs.
+- Respect keyboard navigation and focus states.
+- Modals use `[hidden]` attribute; ensure focus trap where appropriate.
+
+## Admin UX
+
+- Add notices sparingly; use `.checklistdek-notice-area` + WordPress core `.notice` / `.notice-error` / `.notice-success` (via JS `notice()` — escapes plain text — or `noticeHtml()` for trusted inline markup such as admin links with `escHtml()` / `escAttr()`) for inline feedback.
+- Load plugin-screen assets only via `is_plugin_screen()`.
+- Features must respect the global `enabled` kill switch.
+- Settings page uses WordPress Settings API with client-side nav tabs (`data-checklistdek-settings-tab` — **Platform & Security**, **Panel layout & Exclude**, optional **Webhooks & Email** when `can_use_notifications()`, **Access & Roles**; single **Save Changes** applies all sections): platform toggles (scheduled drift toggle only when `can_use_scheduled_drift()`), credential vault, exclude-options list, client panel layout picker (plan-scoped options) + custom panel title, email notifications and Slack/Discord/Teams webhooks (Pro+ tab only), role-permission matrix, onboarding preview button. Community users never see disabled Pro fields or upgrade prompts in Settings—Pro-only tabs/controls are omitted from the template. All other pages use REST-driven JS UI except Billing (static PHP plan comparison table + external purchase links). Pro-gated features (vault, auto-capture, notifications, scheduled drift, paid site caps) enforce server-side via `CHECKLISTDEK_Licensing`; Checklists omits vault section and Auto-Capture tab on Community (no grayed upgrade UI).
+- Shared partials (`checklistdek-onboarding-modal.php`, `checklistdek-template-picker-modal.php`, `checklistdek-panel-setup-block.php`) are thin shells included via `require` — do not duplicate markup across pages. Panel setup block accepts `$checklistdek_panel_setup_id_prefix` (empty = Sites modal IDs; `onboarding` / `tester` for prefixed IDs), `$checklistdek_panel_setup_hidden`, and optional `$checklistdek_panel_setup_show_retry` (false on connection tester — save site first; third numbered step tells user to save on Sites then retry). User-facing intro: one-time setup so clients see the checklist in wp-admin (not “optional” / “core automation works without this”). Inline status copy also lives in `checklistdekAdmin.strings` (`panelSetupNeeded`, `panelSetupReady`, `clientPushSkipped`, etc.). Built-in template grid and vault live on the Checklists **Templates** tab (default; unified nav tabs, not a separate admin menu). Template/vault cards use **Use Checklist** to clone and open the builder; custom checklists are picked from the **My Checklists** dropdown only. **Start Blank** lives in the builder actions row. Auto-capture is an inline tab panel, not a modal. Destructive confirmations use `openConfirmModal()` (WordPress `wp.components.__experimentalConfirmDialog` via enqueued `wp-components`; falls back to `window.confirm()`). Automation validation uses inline notices (`runNotice()`), not `alert()`.
+- Modal close/dismiss: hide with `[hidden]` immediately; persist onboarding dismissal via REST in the background (do not block UI on network).
+- Onboarding wizard auto-opens only on the dashboard (`data-checklistdek-page="dashboard"` + `onboarding.show`); Settings includes the modal for **Show onboarding wizard** preview but does not auto-open after save. `?onboarding=1` still forces open on any screen with the modal partial.
+
+## Performance
+
+- Load code only where needed.
+- Avoid expensive queries on every request; repositories should use indexed columns.
+- Remote API calls only on user action, checklist execution, connection tests, scheduled drift cron, client panel snapshot sync after hub-side run advances (`sync_run()` → `push_run( $id, false, false )`, no bundle reinstall), initial push / manual **Refresh Client Panel** (`push_run` with `$sync_bundle = true`), site save/test bundle deploy, integration site sync/preview/push (Integrations modal — user-initiated via admin-ajax), or auto-capture sessions — never on every admin page load except Sites page background stale-connection refresh (30-minute threshold), on-demand site run history (admin-ajax `checklistdek_get_site_runs` when a site row is expanded), and Activity Logs filter/pagination refetches (admin-ajax `checklistdek_get_activity_logs` — first page uses PHP-preloaded `checklistdekAdmin.activityLogs.initialFeed` when filters match defaults). Client step toggles do not trigger hub→client re-sync; hub returns `snapshot` for local apply.
+- Client panel assets (`wp_enqueue_media()`, panel JS/CSS) load only on remote wp-admin when an active run snapshot exists and `CHECKLISTDEK_Client_Run_Store::user_can_view_panel()` passes — not on every admin request.
+- Built-in template `sync_builtin()` does not run on public front-end requests after initial seed — only admin, REST, cron, and ajax (`bootstrap_builtin_templates()` + `should_sync_builtin_templates()`).
+- Dashboard stats, connection ticker, live log feed, cached sites lists, and Quick Launch Bar picker options use `CHECKLISTDEK_Dashboard_Cache` (`checklistdek_dashboard_cache`, non-autoload); preloaded in PHP/`checklistdekAdmin.dashboard` on dashboard load (Quick Launch selects also render server-side — no REST wait on first paint); cache invalidated on underlying data changes. Sites list cache uses `CHECKLISTDEK_Site_Repository::format_list()` (batched tags, `has_credentials_flag` without vault decrypt). Checklists page preloads custom checklist summaries via `checklistdekAdmin.customChecklists` (`CHECKLISTDEK_Checklist_Repository::summary_list()`); JS deduplicates picker/vault fetches through `fetchCustomChecklistSummaries()`. Sites page preloads site list + tag group catalog via `checklistdekAdmin.sites` (`list` from `get_sites_list()` + `groups` from `get_site_group_catalog()`); group selects fall back to `GET /sites/groups`. Activity Logs page preloads site filter + first feed page via `checklistdekAdmin.activityLogs` (`sites`, `initialSiteId`, `initialFeed` / `initialFeedPreload` from `CHECKLISTDEK_Audit_Log::query()` + `list_query_args_from_input()`); paginated list refetch uses admin-ajax `checklistdek_get_activity_logs` (50 per page, **Load more**; REST `GET /logs/feed?detailed=1` remains for programmatic/Batch Run use). **What happened** shows `details_summary` teaser + **View details** (`detail_fields` from `format_activity_detail_fields()`) and nested **View raw data** (`GET /logs/{id}?details_only=1`, in-memory cache; prefetched when **View details** opens). Batch Run recent activity still uses REST feed + optional lazy **View raw data** via `GET /logs/{id}?details_only=1`. Integrations page preloads connector statuses + telemetry rules via `checklistdekAdmin.integrations` (`CHECKLISTDEK_Integrations::get_page_bootstrap()`); JS `loadConnectors()` / `loadTelemetryRules()` skip initial REST when preloaded. Builder preview loads client panel CSS (`checklistdek-client-admin-preview`) on the Checklists screen only.
+- Avoid autoloading large options.
+
+## Privacy & External Communication
+
+- No telemetry or undisclosed tracking.
+- **Allowed outbound**: remote site REST calls (Application Passwords), client panel mu-plugin deploy/sync (user-initiated via site connect or push), email notifications via WordPress `wp_mail()` (Settings → Email Notifications; uses site mail transport/SMTP only), webhook notifications (Slack/Discord/Teams — user-configured URLs only), integration connector site sync and client panel pushes (user-initiated via Integrations page; MainWP panel deploy uses MainWP Connect to child sites; WP Umbrella site inventory uses the user-configured Public API token only). Freemius SDK traffic applies only to the full/premium build (`includes/checklistdek-freemius.php`); the WordPress.org Community zip must not bundle or load it.
+- Webhook URLs and webhook notification events are opt-in via Settings (`run_started`, `run_completed`, `run_failed`, `run_cancelled`, `step_failed`, `drift_detected`, `client_step_completed`, `client_note_added`); Slack/Discord/Teams send only when the event is checked and a channel URL is set—empty `notification_events` sends no webhooks. Email notification events are configured separately (`email_notification_events`; same event keys including `run_cancelled`; default `run_completed` only). Drift email/webhook uses `drift_summary` in the payload and fires only when verification finds newly drifted checks (not on every scheduled re-verify of existing drift).
+- Credential vault encrypts site application passwords at rest when `encrypt_credentials` is enabled; WP Umbrella Public API tokens are always stored encrypted in `wp_umbrella_api_token_enc` via the same vault helpers.
+- Document any new external integration or client panel behavior in `readme.txt`.
+- **Telemetry Sync Mapping Rules** on the Integrations page are user-configured field mappings for connector sync — not undisclosed tracking or outbound telemetry.
+
+## Uninstall & Lifecycle
+
+- **Activate**: seed settings, install DB tables, register caps, load drift cron via `checklistdek_get_drift_cron_file()` then `CHECKLISTDEK_Licensing::sync_drift_cron()` (scheduled drift only on Pro/Agency), set `checklistdek_activation_redirect` option (`CHECKLISTDEK_Admin::ACTIVATION_REDIRECT_OPTION`) for one-time dashboard onboarding redirect (`?onboarding=1`; flag cleared only after redirect eligibility checks).
+- **Deactivate**: delete activation redirect option (and legacy transient), unschedule drift cron.
+- **Delete**: `CHECKLISTDEK_Uninstaller::run()` — Community via `register_uninstall_hook` in bootstrap; full/premium via Freemius `after_uninstall`. Drops tables via `CHECKLISTDEK_Installer::uninstall()`, removes options (`checklistdek_settings`, `checklistdek_billing`, `checklistdek_version`, `checklistdek_db_version`, `checklistdek_templates_seeded`, `checklistdek_templates_catalog`, `checklistdek_drift_status`, `checklistdek_activation_redirect`), clears dashboard cache (`CHECKLISTDEK_Dashboard_Cache::clear()`), unregisters capabilities. Per-site drift baseline options (`checklistdek_drift_baseline_{site_id}`) are not bulk-deleted on uninstall.
+- If adding new options or tables, update `CHECKLISTDEK_Uninstaller::run()` and `CHECKLISTDEK_Installer::uninstall()`.
+
+## Release
+
+- Include `readme.txt` with changelog.
+- Include license headers and `CHECKLISTDEK_VERSION` in plugin header.
+- Bump `CHECKLISTDEK_Installer::DB_VERSION` when schema changes; add a `migrate_from_previous()` step for upgrades.
+- New built-in template JSON files need no migration — `CHECKLISTDEK_Templates::sync_builtin()` inserts missing slugs when `bootstrap_builtin_templates()` runs (admin, REST, cron, ajax; not public front-end after initial seed).

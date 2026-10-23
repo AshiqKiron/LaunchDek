@@ -1,12 +1,12 @@
 ---
-description: WordPress PHP standards for LaunchDek
+description: WordPress PHP standards for ChecklistDek
 globs: "**/*.php"
 alwaysApply: false
 ---
 
 # WordPress PHP Conventions
 
-See `launchdek-compliance.mdc` for the security gate.
+See `checklistdek-compliance.mdc` for the security gate.
 
 ## File Header
 
@@ -17,7 +17,7 @@ Every PHP file must start with:
 /**
  * Brief description.
  *
- * @package LaunchDek
+ * @package ChecklistDek
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -27,41 +27,41 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 ## Security
 
-- Admin pages: `LAUNCHDEK_Capabilities::current_user_can( $cap )` — not raw `manage_options` except in capability class itself.
-- REST routes: `permission_callback` on every route; delegate to `LAUNCHDEK_REST_API::can_*()` methods.
+- Admin pages: `CHECKLISTDEK_Capabilities::current_user_can( $cap )` — not raw `manage_options` except in capability class itself.
+- REST routes: `permission_callback` on every route; delegate to `CHECKLISTDEK_REST_API::can_*()` methods.
 - Escape output: `esc_html()`, `esc_attr()`, `esc_url()`, `esc_html__()`, `esc_html_e()`.
-- Sanitize settings via `LAUNCHDEK_Settings::sanitize()` as `sanitize_callback`.
+- Sanitize settings via `CHECKLISTDEK_Settings::sanitize()` as `sanitize_callback`.
 - Settings API: `show_in_rest => false`.
 - Never return decrypted app passwords in REST responses; mask or omit `app_password_enc`.
-- SQL: `$wpdb->prepare()` only; all queries in `*_Repository` classes (and `LAUNCHDEK_Audit_Log`). Plugin table names via `LAUNCHDEK_Site_Repository::table()` / `::tags_table()`, `LAUNCHDEK_Checklist_Repository::table()`, `LAUNCHDEK_Run_Repository::table()` / `::steps_table()`, `LAUNCHDEK_Audit_Log::table_name()` — use `%i` in prepare where supported; site-scoped audit filters may use `EXISTS` subqueries on trusted `LAUNCHDEK_Run_Repository::table()` when `%i` cannot cover the full statement.
+- SQL: `$wpdb->prepare()` only; all queries in `*_Repository` classes (and `CHECKLISTDEK_Audit_Log`). Plugin table names via `CHECKLISTDEK_Site_Repository::table()` / `::tags_table()`, `CHECKLISTDEK_Checklist_Repository::table()`, `CHECKLISTDEK_Run_Repository::table()` / `::steps_table()`, `CHECKLISTDEK_Audit_Log::table_name()` — use `%i` in prepare where supported; site-scoped audit filters may use `EXISTS` subqueries on trusted `CHECKLISTDEK_Run_Repository::table()` when `%i` cannot cover the full statement.
 
 ## WordPress APIs
 
-- Register hooks in `LAUNCHDEK_Plugin::run()` or static `::register()` on service classes — not in bootstrap.
-- REST namespace: `LAUNCHDEK_REST_NAMESPACE` (`launchdek/v1`).
-- Enqueue assets with `filemtime()` fallback to `LAUNCHDEK_VERSION`. Plugin screens enqueue `wp-components` (style + script) and `heartbeat` (script) for admin JS — powers `openConfirmModal()` via `wp.components.__experimentalConfirmDialog` and `initRestNonceRefresh()`. Client panel script also lists `heartbeat` as a dependency.
-- Localize `launchdekAdmin` with `rest_url()`, `admin_url( 'admin-ajax.php' )` as `ajaxUrl`, `wp_create_nonce( 'wp_rest' )`, and translatable strings (including `strings.sessionExpired` for admin-ajax stale nonce handling). `billing` (`LAUNCHDEK_Licensing::get_summary()`), billing gate strings, and `billingUrl` only when `launchdek_includes_pro_package()`; omit capture/vault string keys on Community when plan lacks those features. On dashboard, Checklists, and Settings, localize `templates` (`preloaded`, filtered `builtin` catalog, plan-scoped `categories` from `get_template_categories_for_plan()`) so template picker and built-in grid avoid an initial `GET /templates`. On the Checklists screen, also localize `customChecklists` (`preloaded` + `summary_list` items for non-template checklists) and `clientPreview` (`panelTitle`, `defaultPanelTitle`, `brandName`, preview UI strings). On the Sites screen, localize `sites` (`preloaded`, `list`, `groups` from `get_site_group_catalog()`). On the Activity Logs screen, localize `activityLogs` (`preloaded`, `sites` from `picker_list()`, `initialSiteId`, `initialFeedPreload`, `initialFeed` from first-page `LAUNCHDEK_Audit_Log::query()`). On the Integrations screen, localize `integrations` (`preloaded` + `LAUNCHDEK_Integrations::get_page_bootstrap()` — `connectors`, `telemetry.rules`, `telemetry.fields`).
-- Page slugs: use `LAUNCHDEK_Admin::PAGE_SLUG` + suffixes.
+- Register hooks in `CHECKLISTDEK_Plugin::run()` or static `::register()` on service classes — not in bootstrap.
+- REST namespace: `CHECKLISTDEK_REST_NAMESPACE` (`checklistdek/v1`).
+- Enqueue assets with `filemtime()` fallback to `CHECKLISTDEK_VERSION`. Plugin screens enqueue `wp-components` (style + script) and `heartbeat` (script) for admin JS — powers `openConfirmModal()` via `wp.components.__experimentalConfirmDialog` and `initRestNonceRefresh()`. Client panel script also lists `heartbeat` as a dependency.
+- Localize `checklistdekAdmin` with `rest_url()`, `admin_url( 'admin-ajax.php' )` as `ajaxUrl`, `wp_create_nonce( 'wp_rest' )`, and translatable strings (including `strings.sessionExpired` for admin-ajax stale nonce handling). `billing` (`CHECKLISTDEK_Licensing::get_summary()`), billing gate strings, and `billingUrl` only when `checklistdek_includes_pro_package()`; omit capture/vault string keys on Community when plan lacks those features. On dashboard, Checklists, and Settings, localize `templates` (`preloaded`, filtered `builtin` catalog, plan-scoped `categories` from `get_template_categories_for_plan()`) so template picker and built-in grid avoid an initial `GET /templates`. On the Checklists screen, also localize `customChecklists` (`preloaded` + `summary_list` items for non-template checklists) and `clientPreview` (`panelTitle`, `defaultPanelTitle`, `brandName`, preview UI strings). On the Sites screen, localize `sites` (`preloaded`, `list`, `groups` from `get_site_group_catalog()`). On the Activity Logs screen, localize `activityLogs` (`preloaded`, `sites` from `picker_list()`, `initialSiteId`, `initialFeedPreload`, `initialFeed` from first-page `CHECKLISTDEK_Audit_Log::query()`). On the Integrations screen, localize `integrations` (`preloaded` + `CHECKLISTDEK_Integrations::get_page_bootstrap()` — `connectors`, `telemetry.rules`, `telemetry.fields`).
+- Page slugs: use `CHECKLISTDEK_Admin::PAGE_SLUG` + suffixes.
 
 ## Class Wiring
 
-- Bootstrap requires `includes/launchdek-build.php` first (`LAUNCHDEK_BUILD` default `full`), then `includes/launchdek-freemius.php` when `!launchdek_is_community_build()` (Freemius SDK from `vendor/freemius/` — omitted from Community zip), then core classes; site/checklist/run repositories load before `class-launchdek-installer.php` (installer migrations call repository `::table()` helpers). `launchdek_require_pro_modules()` loads auto-capture + email notifier only in full builds; webhook dispatcher and drift cron paths come from `launchdek_get_*_file()` (Community uses `includes/community/` stubs). Instantiate only via `launchdek_run_plugin()`. `class-launchdek-licensing.php` loads with core includes (plan gates, `launchdek_billing` option; Community build forces Community plan). `class-launchdek-admin-deep-links.php` loads before checklist/run repositories (used during step normalization). `class-launchdek-admin-ajax.php` loads with admin classes. Hook Freemius-driven plan changes via `lau_fs_loaded` / licensing integration — keep feature gates in `LAUNCHDEK_Licensing`.
-- `LAUNCHDEK_Plugin` constructor: `LAUNCHDEK_Admin` only. `LAUNCHDEK_Plugin::run()` also calls `LAUNCHDEK_Admin_Ajax::register()`. `LAUNCHDEK_Plugin::init()` calls `LAUNCHDEK_Templates::bootstrap_builtin_templates()` and `LAUNCHDEK_Plugin::should_sync_builtin_templates()` (admin, REST, cron, ajax — skips public front-end after seed).
-- Data layer: `LAUNCHDEK_{Site,Checklist,Run}_Repository` — no direct `$wpdb` in REST handlers or admin.
-- Remote: `LAUNCHDEK_Remote_Client::from_site( $id )` for authenticated requests (returns `null` if credentials missing). Constructor normalizes site URL via `LAUNCHDEK_Site_Repository::normalize_url()`, sanitizes username with `sanitize_user()`, and requires string app password. REST site create / `test_raw_connection` validate and normalize the same fields before `Connection_Tester` / repository insert. `request()` tries `/wp-json{route}` then `?rest_route=` when `is_rest_no_route_response()` (404 + `rest_no_route` code). Error messages for storage/display use protected `sanitize_remote_message()` (`wp_strip_all_tags` + `sanitize_textarea_field`) in `request()`, connection tests, and `log_connection()` (also applied before `last_error` updates).
-- Connection tests: `LAUNCHDEK_Connection_Tester::test_site()` / `::test_raw()` attach `client_panel` (and `client_agent` when installed) on successful ping — raw test uses `panel_available()` probe only (no deploy until site save).
-- Client panel: `LAUNCHDEK_Mu_Plugin_Installer::ensure_installed( $site_id )` on site create/update/test and when `push_run( $id, $prepare, $sync_bundle )` is called with `$sync_bundle = true` (defaults to `$prepare`; manual refresh uses `push_run( $id, false, true )`); `::sync_run()` → `push_run( $id, false, false )` (snapshot only, no bundle reinstall); token callbacks pass `$skip_client_sync = true` on `complete_client_step()` / `uncomplete_client_step()` / `add_client_step_note()` and return `snapshot` for client local apply; `LAUNCHDEK_Run_Repository::ensure_client_token()` backfills legacy runs; `::filter_step_notes()` / `::step_notes_match()` dedupe hub notes; `::archive()` / `::delete()` for run history (`is_archived` soft-hide); `::list_for_site_history()` for paginated lean site history with batched step progress; `LAUNCHDEK_Step_Executor::mark_manual_incomplete()` for hub-side manual uncomplete; `LAUNCHDEK_Auto_Capture::{get_status,start,stop,clear}()` proxies capture sessions to remote panel; `LAUNCHDEK_Settings::get_client_panel_layout()` / `::get_client_panel_layouts()` configure snapshot `panel_layout` (legacy `left_sidebar` / `split_panel` sanitize to `sidebar`); `::get_client_panel_title()` / `::sanitize_client_panel_title()` / `::save_client_panel_title()` configure snapshot `panel_title` (Settings form + builder `#launchdek-cl-panel-title` via `POST /settings/client-panel-title`); `LAUNCHDEK_Admin_Deep_Links::{resolve_path,normalize_stored_path,infer_path_from_text,path_from_api_step}()` resolve wp-admin paths for step deep links; snapshots include both `deep_link` (remote full URL) and `admin_path` (path only for client `admin_url()` rebuild). Client `LAUNCHDEK_Client_Run_Store::{get_panel_title,user_can_view_panel}()` — panel UI/REST/assets gated on read cap + step role alignment (`manage_options` always). Checklists screen enqueues `mu-plugin/launchdek-client/css/launchdek-client-admin.css` as `launchdek-client-admin-preview` for builder live preview only.
-- Credentials: `LAUNCHDEK_Credential_Vault::encrypt()` / `::decrypt()` on save/read.
-- Audit: `LAUNCHDEK_Audit_Log::log()` for privileged actions; detail value formatting strips tags via `wp_strip_all_tags` + `sanitize_textarea_field` on string values; `::list_query_args_from_input()` shared sanitizer for REST feed + admin-ajax activity logs; `::query()` with optional `paginate`, `include_details` (lean list omits heavy `detail_fields` / decoded details; dashboard `get_feed()` passes `include_details => false`); site filter matches direct `site_id` or run-linked rows via `EXISTS` on `launchdek_runs`; `::get_decoded_details( $id )` for lean raw JSON fetch; `::find( $id )` for single entry; `LIST_DEFAULT_LIMIT` (50) / `LIST_MAX_LIMIT` (100); batch context maps in `build_query_context()` (users, sites, runs, step titles); `::format_row()` returns human-readable `message`, `action_label`, `details_summary`, `detail_fields` (`format_activity_detail_fields()`), legacy `detail_lines`, `show_run_timeline`, `outcome_class`, `has_details`; `::format_details_summary()` / `::format_activity_detail_lines()` / `::get_run_steps_timeline()` / `::log_supports_run_timeline()` power Activity Logs copy; `::feed_entry_show_site_label()` / `::format_feed_message( $entry, $embed_site )` shape dashboard feed copy; `::log()` invalidates `LAUNCHDEK_Dashboard_Cache::invalidate_feed()`.
-- Dashboard cache: `LAUNCHDEK_Dashboard_Cache::{get_stats,get_connection_counts,get_feed,get_sites_list,get_quick_launch_picker}()` read from `launchdek_dashboard_cache`; `::refresh_sites_list()` delegates to `LAUNCHDEK_Site_Repository::all()`; `::refresh_quick_launch_picker()` delegates to `picker_list()` (cap 500 each); repositories call `invalidate_stats()` / `invalidate_connections()` / `invalidate_sites_list()` / `invalidate_quick_launch_picker()` on mutations. `::clear()` on uninstall.
-- Sites list: `LAUNCHDEK_Site_Repository::{all,format_list,get_tags_map,row_has_stored_credentials,list_select_columns}()` — list queries omit decrypting `app_password_enc` (SQL `has_credentials_flag`); `format( $row, $context )` accepts preloaded tags and `list_credentials` for batched output. List limits: `LIST_DEFAULT_LIMIT` 500, `LIST_MAX_LIMIT` 1000, `PICKER_LIMIT` 500.
-- Integration sync: `LAUNCHDEK_Integration_Sync::{preview,sync}()` orchestrate connector site inventory import; when `summary.total === 0` and adapter implements `get_sync_diagnostics()` (MainWP, WP Umbrella), response includes `diagnostics.hint`; `LAUNCHDEK_Telemetry_Mapper::map( $integration_slug, $platform_row )` applies enabled telemetry rules; `LAUNCHDEK_Site_Repository::{find_by_external,upsert_from_integration,list_by_integration,count_by_integration_sources,ensure_integration_tag,normalize_url,has_credentials,get_distinct_group_types}()` persist synced sites and group catalogs; `LAUNCHDEK_Integrations::get_page_bootstrap()` preloads connector statuses + telemetry rules for Integrations screen; MainWP panel deploy without hub credentials uses `LAUNCHDEK_MainWP_Agent::install_panel( $mainwp_site_id )`. WP Umbrella: `LAUNCHDEK_Integration_WP_Umbrella` — `supports_site_sync()`, `fetch_platform_sites()` via Public API `/projects`, `verify_api_token()` (lightweight projects probe), `get_sync_diagnostics()`, `push_agent()` for synced sites with hub Application Passwords; `LAUNCHDEK_Settings::{normalize_wp_umbrella_api_token,has_wp_umbrella_api_token,get_wp_umbrella_api_token,save_wp_umbrella_api_token}()` — token encrypted in `wp_umbrella_api_token_enc` via credential vault (normalize strips accidental `Bearer ` prefix and control chars; do not `sanitize_text_field` the encrypted blob in `sanitize()`); Integrations modal saves/clears via admin-ajax `launchdek_save_wp_umbrella_token` with pre-save verify (not Settings form). Site tag groups: `LAUNCHDEK_Settings::{get_builtin_site_groups,get_custom_site_groups,get_site_group_catalog,add_custom_site_group,get_site_group_label}()`; custom groups persist in `custom_site_groups` (`POST /sites/groups` / `add_custom_site_group()`; sanitizer preserves array when present in `$input`).
-- Licensing: `LAUNCHDEK_Licensing` — `get_billing()` / `get_plan()` / `set_plan()` (`launchdek_billing`, non-autoload); feature gates (`can_use_auto_capture()`, `can_use_agency_vault()`, `can_use_notifications()`, `can_use_scheduled_drift()`, `can_add_site()`); `sanitize_panel_layout()` / `get_effective_panel_layout()` / `get_panel_layouts_for_plan()`; template filtering (`filter_builtin_templates()`, `get_template_categories_for_plan()`, `is_template_category_allowed()`); `pro_required_error()` / `site_limit_error()` for REST; `sync_drift_cron()` on activation, `init`, and after plan change. Site insert enforces caps in `LAUNCHDEK_Site_Repository` and REST site create.
-- Notifications: `LAUNCHDEK_Webhook_Dispatcher::dispatch( $event, $data )` no-ops when `!LAUNCHDEK_Licensing::can_use_notifications()`; otherwise calls `LAUNCHDEK_Email_Notifier::dispatch()` first (wp_mail when event is in `email_notification_events`; recipients via `get_email_notification_addresses()`; includes `drift_summary` line for `drift_detected`), then Slack/Discord/Teams webhooks only when the event is in `notification_events` and a channel URL is set (`empty( $enabled )` skips all webhook POSTs). Settings save skips persisting webhook/email notification fields when plan lacks notifications. Email body enriches run context from `LAUNCHDEK_Run_Repository::find()` when `run_id` is present. `LAUNCHDEK_Drift_Verifier::maybe_dispatch_drift_notification()` calls `dispatch( 'drift_detected', … )` only for checks newly in drift vs prior stored status.
-- Checklist summaries: `LAUNCHDEK_Checklist_Repository::summary_list( $args )` / `::format_summary()` return lightweight rows (`id`, `title`, `description`, `steps_count`, step id/title preview) for list/grid UIs; `GET /checklists?summary=1` (optional `is_template`, `is_vault`); `GET /templates/vault` uses `summary_list( [ 'is_vault' => true ] )`. Full list limits: `LIST_DEFAULT_LIMIT` 500, `LIST_MAX_LIMIT` 1000, `PICKER_LIMIT` 500.
-- Templates: `LAUNCHDEK_Templates::bootstrap_builtin_templates()` seeds once then syncs via `LAUNCHDEK_Plugin::should_sync_builtin_templates()` (not on public front-end after seed).
-- Activation: `LAUNCHDEK_Activator` loads drift cron via `launchdek_get_drift_cron_file()` (Community stub path) before `LAUNCHDEK_Licensing::sync_drift_cron()`; sets `LAUNCHDEK_Admin::ACTIVATION_REDIRECT_OPTION` to activating user ID (or `1`). `LAUNCHDEK_Admin::maybe_activation_redirect()` on `admin_init` redirects eligible dashboard users once to `?onboarding=1` (capability, user match, clears flag only after checks pass, legacy transient fallback, skip when already on dashboard). `LAUNCHDEK_Admin::{get_admin_query_page,get_admin_query_absint,has_admin_query_flag}()` sanitize read-only `$_GET` for redirects and localize. Deactivation: `LAUNCHDEK_Deactivator` clears activation redirect option/transient and drift cron. Uninstall: `LAUNCHDEK_Uninstaller::run()` in bootstrap — `register_uninstall_hook` when `launchdek_is_community_build()`, else `lau_fs()->add_action( 'after_uninstall', … )` when Freemius is loaded.
-- Legacy redirects (`LAUNCHDEK_Admin::maybe_redirect_legacy_templates_page()` on `admin_init`): `?page={slug}-templates` → Checklists (Templates default tab); `?page={slug}-sites&activity_logs` → Activity Logs page.
+- Bootstrap requires `includes/checklistdek-build.php` first (`CHECKLISTDEK_BUILD` default `full`), then `includes/checklistdek-freemius.php` when `!checklistdek_is_community_build()` (Freemius SDK from `vendor/freemius/` — omitted from Community zip), then core classes; site/checklist/run repositories load before `class-checklistdek-installer.php` (installer migrations call repository `::table()` helpers). `checklistdek_require_pro_modules()` loads auto-capture + email notifier only in full builds; webhook dispatcher and drift cron paths come from `checklistdek_get_*_file()` (Community uses `includes/community/` stubs). Instantiate only via `checklistdek_run_plugin()`. `class-checklistdek-licensing.php` loads with core includes (plan gates, `checklistdek_billing` option; Community build forces Community plan). `class-checklistdek-admin-deep-links.php` loads before checklist/run repositories (used during step normalization). `class-checklistdek-admin-ajax.php` loads with admin classes. Hook Freemius-driven plan changes via `cld_fs_loaded` / licensing integration — keep feature gates in `CHECKLISTDEK_Licensing`.
+- `CHECKLISTDEK_Plugin` constructor: `CHECKLISTDEK_Admin` only. `CHECKLISTDEK_Plugin::run()` also calls `CHECKLISTDEK_Admin_Ajax::register()`. `CHECKLISTDEK_Plugin::init()` calls `CHECKLISTDEK_Templates::bootstrap_builtin_templates()` and `CHECKLISTDEK_Plugin::should_sync_builtin_templates()` (admin, REST, cron, ajax — skips public front-end after seed).
+- Data layer: `CHECKLISTDEK_{Site,Checklist,Run}_Repository` — no direct `$wpdb` in REST handlers or admin.
+- Remote: `CHECKLISTDEK_Remote_Client::from_site( $id )` for authenticated requests (returns `null` if credentials missing). Constructor normalizes site URL via `CHECKLISTDEK_Site_Repository::normalize_url()`, sanitizes username with `sanitize_user()`, and requires string app password. REST site create / `test_raw_connection` validate and normalize the same fields before `Connection_Tester` / repository insert. `request()` tries `/wp-json{route}` then `?rest_route=` when `is_rest_no_route_response()` (404 + `rest_no_route` code). Error messages for storage/display use protected `sanitize_remote_message()` (`wp_strip_all_tags` + `sanitize_textarea_field`) in `request()`, connection tests, and `log_connection()` (also applied before `last_error` updates).
+- Connection tests: `CHECKLISTDEK_Connection_Tester::test_site()` / `::test_raw()` attach `client_panel` (and `client_agent` when installed) on successful ping — raw test uses `panel_available()` probe only (no deploy until site save).
+- Client panel: `CHECKLISTDEK_Mu_Plugin_Installer::ensure_installed( $site_id )` on site create/update/test and when `push_run( $id, $prepare, $sync_bundle )` is called with `$sync_bundle = true` (defaults to `$prepare`; manual refresh uses `push_run( $id, false, true )`); `::sync_run()` → `push_run( $id, false, false )` (snapshot only, no bundle reinstall); token callbacks pass `$skip_client_sync = true` on `complete_client_step()` / `uncomplete_client_step()` / `add_client_step_note()` and return `snapshot` for client local apply; `CHECKLISTDEK_Run_Repository::ensure_client_token()` backfills legacy runs; `::filter_step_notes()` / `::step_notes_match()` dedupe hub notes; `::archive()` / `::delete()` for run history (`is_archived` soft-hide); `::list_for_site_history()` for paginated lean site history with batched step progress; `CHECKLISTDEK_Step_Executor::mark_manual_incomplete()` for hub-side manual uncomplete; `CHECKLISTDEK_Auto_Capture::{get_status,start,stop,clear}()` proxies capture sessions to remote panel; `CHECKLISTDEK_Settings::get_client_panel_layout()` / `::get_client_panel_layouts()` configure snapshot `panel_layout` (legacy `left_sidebar` / `split_panel` sanitize to `sidebar`); `::get_client_panel_title()` / `::sanitize_client_panel_title()` / `::save_client_panel_title()` configure snapshot `panel_title` (Settings form + builder `#checklistdek-cl-panel-title` via `POST /settings/client-panel-title`); `CHECKLISTDEK_Admin_Deep_Links::{resolve_path,normalize_stored_path,infer_path_from_text,path_from_api_step}()` resolve wp-admin paths for step deep links; snapshots include both `deep_link` (remote full URL) and `admin_path` (path only for client `admin_url()` rebuild). Client `CHECKLISTDEK_Client_Run_Store::{get_panel_title,user_can_view_panel}()` — panel UI/REST/assets gated on read cap + step role alignment (`manage_options` always). Checklists screen enqueues `mu-plugin/checklistdek-client/css/checklistdek-client-admin.css` as `checklistdek-client-admin-preview` for builder live preview only.
+- Credentials: `CHECKLISTDEK_Credential_Vault::encrypt()` / `::decrypt()` on save/read.
+- Audit: `CHECKLISTDEK_Audit_Log::log()` for privileged actions; detail value formatting strips tags via `wp_strip_all_tags` + `sanitize_textarea_field` on string values; `::list_query_args_from_input()` shared sanitizer for REST feed + admin-ajax activity logs; `::query()` with optional `paginate`, `include_details` (lean list omits heavy `detail_fields` / decoded details; dashboard `get_feed()` passes `include_details => false`); site filter matches direct `site_id` or run-linked rows via `EXISTS` on `checklistdek_runs`; `::get_decoded_details( $id )` for lean raw JSON fetch; `::find( $id )` for single entry; `LIST_DEFAULT_LIMIT` (50) / `LIST_MAX_LIMIT` (100); batch context maps in `build_query_context()` (users, sites, runs, step titles); `::format_row()` returns human-readable `message`, `action_label`, `details_summary`, `detail_fields` (`format_activity_detail_fields()`), legacy `detail_lines`, `show_run_timeline`, `outcome_class`, `has_details`; `::format_details_summary()` / `::format_activity_detail_lines()` / `::get_run_steps_timeline()` / `::log_supports_run_timeline()` power Activity Logs copy; `::feed_entry_show_site_label()` / `::format_feed_message( $entry, $embed_site )` shape dashboard feed copy; `::log()` invalidates `CHECKLISTDEK_Dashboard_Cache::invalidate_feed()`.
+- Dashboard cache: `CHECKLISTDEK_Dashboard_Cache::{get_stats,get_connection_counts,get_feed,get_sites_list,get_quick_launch_picker}()` read from `checklistdek_dashboard_cache`; `::refresh_sites_list()` delegates to `CHECKLISTDEK_Site_Repository::all()`; `::refresh_quick_launch_picker()` delegates to `picker_list()` (cap 500 each); repositories call `invalidate_stats()` / `invalidate_connections()` / `invalidate_sites_list()` / `invalidate_quick_launch_picker()` on mutations. `::clear()` on uninstall.
+- Sites list: `CHECKLISTDEK_Site_Repository::{all,format_list,get_tags_map,row_has_stored_credentials,list_select_columns}()` — list queries omit decrypting `app_password_enc` (SQL `has_credentials_flag`); `format( $row, $context )` accepts preloaded tags and `list_credentials` for batched output. List limits: `LIST_DEFAULT_LIMIT` 500, `LIST_MAX_LIMIT` 1000, `PICKER_LIMIT` 500.
+- Integration sync: `CHECKLISTDEK_Integration_Sync::{preview,sync}()` orchestrate connector site inventory import; when `summary.total === 0` and adapter implements `get_sync_diagnostics()` (MainWP, WP Umbrella), response includes `diagnostics.hint`; `CHECKLISTDEK_Telemetry_Mapper::map( $integration_slug, $platform_row )` applies enabled telemetry rules; `CHECKLISTDEK_Site_Repository::{find_by_external,upsert_from_integration,list_by_integration,count_by_integration_sources,ensure_integration_tag,normalize_url,has_credentials,get_distinct_group_types}()` persist synced sites and group catalogs; `CHECKLISTDEK_Integrations::get_page_bootstrap()` preloads connector statuses + telemetry rules for Integrations screen; MainWP panel deploy without hub credentials uses `CHECKLISTDEK_MainWP_Agent::install_panel( $mainwp_site_id )`. WP Umbrella: `CHECKLISTDEK_Integration_WP_Umbrella` — `supports_site_sync()`, `fetch_platform_sites()` via Public API `/projects`, `verify_api_token()` (lightweight projects probe), `get_sync_diagnostics()`, `push_agent()` for synced sites with hub Application Passwords; `CHECKLISTDEK_Settings::{normalize_wp_umbrella_api_token,has_wp_umbrella_api_token,get_wp_umbrella_api_token,save_wp_umbrella_api_token}()` — token encrypted in `wp_umbrella_api_token_enc` via credential vault (normalize strips accidental `Bearer ` prefix and control chars; do not `sanitize_text_field` the encrypted blob in `sanitize()`); Integrations modal saves/clears via admin-ajax `checklistdek_save_wp_umbrella_token` with pre-save verify (not Settings form). Site tag groups: `CHECKLISTDEK_Settings::{get_builtin_site_groups,get_custom_site_groups,get_site_group_catalog,add_custom_site_group,get_site_group_label}()`; custom groups persist in `custom_site_groups` (`POST /sites/groups` / `add_custom_site_group()`; sanitizer preserves array when present in `$input`).
+- Licensing: `CHECKLISTDEK_Licensing` — `get_billing()` / `get_plan()` / `set_plan()` (`checklistdek_billing`, non-autoload); feature gates (`can_use_auto_capture()`, `can_use_agency_vault()`, `can_use_notifications()`, `can_use_scheduled_drift()`, `can_add_site()`); `sanitize_panel_layout()` / `get_effective_panel_layout()` / `get_panel_layouts_for_plan()`; template filtering (`filter_builtin_templates()`, `get_template_categories_for_plan()`, `is_template_category_allowed()`); `pro_required_error()` / `site_limit_error()` for REST; `sync_drift_cron()` on activation, `init`, and after plan change. Site insert enforces caps in `CHECKLISTDEK_Site_Repository` and REST site create.
+- Notifications: `CHECKLISTDEK_Webhook_Dispatcher::dispatch( $event, $data )` no-ops when `!CHECKLISTDEK_Licensing::can_use_notifications()`; otherwise calls `CHECKLISTDEK_Email_Notifier::dispatch()` first (wp_mail when event is in `email_notification_events`; recipients via `get_email_notification_addresses()`; includes `drift_summary` line for `drift_detected`), then Slack/Discord/Teams webhooks only when the event is in `notification_events` and a channel URL is set (`empty( $enabled )` skips all webhook POSTs). Settings save skips persisting webhook/email notification fields when plan lacks notifications. Email body enriches run context from `CHECKLISTDEK_Run_Repository::find()` when `run_id` is present. `CHECKLISTDEK_Drift_Verifier::maybe_dispatch_drift_notification()` calls `dispatch( 'drift_detected', … )` only for checks newly in drift vs prior stored status.
+- Checklist summaries: `CHECKLISTDEK_Checklist_Repository::summary_list( $args )` / `::format_summary()` return lightweight rows (`id`, `title`, `description`, `steps_count`, step id/title preview) for list/grid UIs; `GET /checklists?summary=1` (optional `is_template`, `is_vault`); `GET /templates/vault` uses `summary_list( [ 'is_vault' => true ] )`. Full list limits: `LIST_DEFAULT_LIMIT` 500, `LIST_MAX_LIMIT` 1000, `PICKER_LIMIT` 500.
+- Templates: `CHECKLISTDEK_Templates::bootstrap_builtin_templates()` seeds once then syncs via `CHECKLISTDEK_Plugin::should_sync_builtin_templates()` (not on public front-end after seed).
+- Activation: `CHECKLISTDEK_Activator` loads drift cron via `checklistdek_get_drift_cron_file()` (Community stub path) before `CHECKLISTDEK_Licensing::sync_drift_cron()`; sets `CHECKLISTDEK_Admin::ACTIVATION_REDIRECT_OPTION` to activating user ID (or `1`). `CHECKLISTDEK_Admin::maybe_activation_redirect()` on `admin_init` redirects eligible dashboard users once to `?onboarding=1` (capability, user match, clears flag only after checks pass, legacy transient fallback, skip when already on dashboard). `CHECKLISTDEK_Admin::{get_admin_query_page,get_admin_query_absint,has_admin_query_flag}()` sanitize read-only `$_GET` for redirects and localize. Deactivation: `CHECKLISTDEK_Deactivator` clears activation redirect option/transient and drift cron. Uninstall: `CHECKLISTDEK_Uninstaller::run()` in bootstrap — `register_uninstall_hook` when `checklistdek_is_community_build()`, else `cld_fs()->add_action( 'after_uninstall', … )` when Freemius is loaded.
+- Legacy redirects (`CHECKLISTDEK_Admin::maybe_redirect_legacy_templates_page()` on `admin_init`): `?page={slug}-templates` → Checklists (Templates default tab); `?page={slug}-sites&activity_logs` → Activity Logs page.
 
 ## Settings Option Shape
 
@@ -74,30 +74,30 @@ array(
 	'slack_webhook'              => '',
 	'discord_webhook'            => '',
 	'teams_webhook'              => '',
-	'notification_events'          => array( 'run_started', 'run_completed', 'run_failed', 'step_failed' ), // full keys incl. run_cancelled, drift_detected, client_* — see LAUNCHDEK_Settings::get_notification_events(); Settings form save with no boxes checked stores []
-	'email_notification_events'    => array( 'run_completed' ), // independent toggle set — see LAUNCHDEK_Settings::get_email_notification_events()
+	'notification_events'          => array( 'run_started', 'run_completed', 'run_failed', 'step_failed' ), // full keys incl. run_cancelled, drift_detected, client_* — see CHECKLISTDEK_Settings::get_notification_events(); Settings form save with no boxes checked stores []
+	'email_notification_events'    => array( 'run_completed' ), // independent toggle set — see CHECKLISTDEK_Settings::get_email_notification_events()
 	'email_notification_address'   => '', // comma-separated; empty falls back to site admin email via get_email_notification_addresses()
 	'role_permissions'           => array(), // cap => array of role slugs
-	'telemetry_sync_rules'       => array(), // array of { id, enabled } — see LAUNCHDEK_Integrations::get_default_telemetry_rules()
-	'exclude_options'            => array( 'url', 'email', 'wp_environment_type' ), // REST field names; legacy option names normalized on save — see LAUNCHDEK_Settings::get_exclude_options()
-	'client_panel_layout'        => 'live_topbar', // panel display mode on remote wp-admin — see LAUNCHDEK_Settings::get_client_panel_layouts()
-	'client_panel_title'         => 'Agency Checklist', // panel heading on remote wp-admin — see LAUNCHDEK_Settings::get_client_panel_title()
+	'telemetry_sync_rules'       => array(), // array of { id, enabled } — see CHECKLISTDEK_Integrations::get_default_telemetry_rules()
+	'exclude_options'            => array( 'url', 'email', 'wp_environment_type' ), // REST field names; legacy option names normalized on save — see CHECKLISTDEK_Settings::get_exclude_options()
+	'client_panel_layout'        => 'live_topbar', // panel display mode on remote wp-admin — see CHECKLISTDEK_Settings::get_client_panel_layouts()
+	'client_panel_title'         => 'Agency Checklist', // panel heading on remote wp-admin — see CHECKLISTDEK_Settings::get_client_panel_title()
 	'custom_site_groups'         => array(), // { slug, label }[] — Sites UI + GET|POST /sites/groups; built-in groups are code-defined
 	'wp_umbrella_api_token_enc'  => '', // encrypted Public API token — Integrations modal only (admin-ajax); never in Settings form or REST
 )
 ```
 
-**Settings sanitizer (`LAUNCHDEK_Settings::sanitize`)** merges from `self::get()` then applies form fields. `notification_events` and `email_notification_events` update only when `is_settings_form_submission()` is true (Settings group `option_page`; unchecked checkboxes → empty array). Keys updated outside the Settings form must be explicitly handled when present in `$input` so a later **Save Changes** does not drop them: `onboarding_dismissed` (REST dismiss/reset uses `update_option` directly), `wp_umbrella_api_token_enc` (admin-ajax token save — preserve ciphertext as string with null-byte strip only; never `sanitize_text_field`), `custom_site_groups` (REST `add_custom_site_group()` — sanitize slug/label per entry). Do not add Settings form fields for encrypted tokens; expose only `api_token_configured` booleans in integration status payloads.
+**Settings sanitizer (`CHECKLISTDEK_Settings::sanitize`)** merges from `self::get()` then applies form fields. `notification_events` and `email_notification_events` update only when `is_settings_form_submission()` is true (Settings group `option_page`; unchecked checkboxes → empty array). Keys updated outside the Settings form must be explicitly handled when present in `$input` so a later **Save Changes** does not drop them: `onboarding_dismissed` (REST dismiss/reset uses `update_option` directly), `wp_umbrella_api_token_enc` (admin-ajax token save — preserve ciphertext as string with null-byte strip only; never `sanitize_text_field`), `custom_site_groups` (REST `add_custom_site_group()` — sanitize slug/label per entry). Do not add Settings form fields for encrypted tokens; expose only `api_token_configured` booleans in integration status payloads.
 
 ## Checklist Step Types
 
 Steps live in `checklist.steps[]` (JSON in DB or template files).
 
-**`manual`** — fields: `id`, `title`, `instructions`, `target_roles` (optional array of WP role slugs — UI metadata for agency assignment), `deep_link` (optional admin path — stored via `LAUNCHDEK_Admin_Deep_Links::normalize_stored_path()`; backfilled via `LAUNCHDEK_Admin_Deep_Links::resolve_path()` on save when empty), `show_note_field` (optional bool, default `true` — when `false`, client panel hides the per-step note textarea), `show_screenshot_field` (optional bool, default `true` when notes enabled — when `false`, client panel hides the screenshot attach button), `type: manual`. Executor sets status `awaiting_manual` and resolves admin path via `LAUNCHDEK_Admin_Deep_Links::resolve_path()` then `LAUNCHDEK_Remote_Client::admin_link()`. User completes via `/runs/{id}/steps/{step}/complete`; revert via `/runs/{id}/steps/{step}/uncomplete`.
+**`manual`** — fields: `id`, `title`, `instructions`, `target_roles` (optional array of WP role slugs — UI metadata for agency assignment), `deep_link` (optional admin path — stored via `CHECKLISTDEK_Admin_Deep_Links::normalize_stored_path()`; backfilled via `CHECKLISTDEK_Admin_Deep_Links::resolve_path()` on save when empty), `show_note_field` (optional bool, default `true` — when `false`, client panel hides the per-step note textarea), `show_screenshot_field` (optional bool, default `true` when notes enabled — when `false`, client panel hides the screenshot attach button), `type: manual`. Executor sets status `awaiting_manual` and resolves admin path via `CHECKLISTDEK_Admin_Deep_Links::resolve_path()` then `CHECKLISTDEK_Remote_Client::admin_link()`. User completes via `/runs/{id}/steps/{step}/complete`; revert via `/runs/{id}/steps/{step}/uncomplete`.
 
-**Step notes** (stored on run steps in hub `launchdek_run_steps.notes_json` + client snapshots) — array of `{ user, text, created_at, attachment_id?, attachment_url? }`. Notes require non-empty `text`. Hub persistence via `LAUNCHDEK_Run_Repository::add_step_note()` / `sanitize_step_note()`. Optional attachments reference existing remote media library IDs; hub stores sanitized `attachment_url` for display in Automation run tracker.
+**Step notes** (stored on run steps in hub `checklistdek_run_steps.notes_json` + client snapshots) — array of `{ user, text, created_at, attachment_id?, attachment_url? }`. Notes require non-empty `text`. Hub persistence via `CHECKLISTDEK_Run_Repository::add_step_note()` / `sanitize_step_note()`. Optional attachments reference existing remote media library IDs; hub stores sanitized `attachment_url` for display in Automation run tracker.
 
-**`api`** — executed by `LAUNCHDEK_Payload_Mapper::execute()` using nested `api` object:
+**`api`** — executed by `CHECKLISTDEK_Payload_Mapper::execute()` using nested `api` object:
 
 ```php
 array(
@@ -111,11 +111,11 @@ array(
 )
 ```
 
-Validate dry-runs with `LAUNCHDEK_Payload_Mapper::validate()` (used by `/checklists/{id}/validate-step`) — returns `{ valid, errors, warnings }`. `execute()` and `validate()` call `filter_excluded_payload()` for mutating `/wp/v2/settings` steps; stripped keys are omitted from the remote payload and surfaced as warnings (or `WP_Error` when all fields are excluded).
+Validate dry-runs with `CHECKLISTDEK_Payload_Mapper::validate()` (used by `/checklists/{id}/validate-step`) — returns `{ valid, errors, warnings }`. `execute()` and `validate()` call `filter_excluded_payload()` for mutating `/wp/v2/settings` steps; stripped keys are omitted from the remote payload and surfaced as warnings (or `WP_Error` when all fields are excluded).
 
-## Admin Deep Links (`LAUNCHDEK_Admin_Deep_Links`)
+## Admin Deep Links (`CHECKLISTDEK_Admin_Deep_Links`)
 
-Resolves wp-admin paths for checklist step settings shortcuts (hub run tracker + client panel `.launchdek-client-step-settings-link`).
+Resolves wp-admin paths for checklist step settings shortcuts (hub run tracker + client panel `.checklistdek-client-step-settings-link`).
 
 | Method | Role |
 |--------|------|
@@ -124,7 +124,7 @@ Resolves wp-admin paths for checklist step settings shortcuts (hub run tracker +
 | `infer_path_from_text( $title, $instructions )` | Keyword/regex rules for common screens (Permalinks, Plugins, Users, etc.) |
 | `path_from_api_step( $api )` | Map `/wp/v2/settings` and other core REST routes to admin screens |
 
-On checklist save, `LAUNCHDEK_Checklist_Repository` normalizes `deep_link` and backfills via `resolve_path()` when empty. Builder live inference uses `POST /checklists/infer-deep-link` (`LAUNCHDEK_REST_API::infer_deep_link()` → `resolve_path()`). `LAUNCHDEK_Client_Push::build_snapshot()` sets `deep_link` (remote full URL) and `admin_path` (path only). Client `LAUNCHDEK_Client_Run_Store::resolve_step_deep_link()` prefers the snapshot URL, then rebuilds from `admin_path`. `LAUNCHDEK_Templates::repair_builtin_deep_links()` runs once (`launchdek_deep_links_repaired`) to restore built-in template paths stripped by legacy sanitization.
+On checklist save, `CHECKLISTDEK_Checklist_Repository` normalizes `deep_link` and backfills via `resolve_path()` when empty. Builder live inference uses `POST /checklists/infer-deep-link` (`CHECKLISTDEK_REST_API::infer_deep_link()` → `resolve_path()`). `CHECKLISTDEK_Client_Push::build_snapshot()` sets `deep_link` (remote full URL) and `admin_path` (path only). Client `CHECKLISTDEK_Client_Run_Store::resolve_step_deep_link()` prefers the snapshot URL, then rebuilds from `admin_path`. `CHECKLISTDEK_Templates::repair_builtin_deep_links()` runs once (`checklistdek_deep_links_repaired`) to restore built-in template paths stripped by legacy sanitization.
 
 ## Built-in Template JSON
 
@@ -134,7 +134,7 @@ Files in `templates/{slug}.json`. Required fields:
 array(
 	'title'       => 'Template title',
 	'description' => 'Short summary',
-	'category'    => 'security', // slug from LAUNCHDEK_Templates::get_categories()
+	'category'    => 'security', // slug from CHECKLISTDEK_Templates::get_categories()
 	'version'     => '1.0.0',
 	'is_template' => true,
 	'steps'       => array( /* manual|api step objects */ ),
@@ -145,130 +145,130 @@ Unknown categories fall back to `maintenance`. New JSON files are picked up by `
 
 ## DB Upgrades
 
-`LAUNCHDEK_Installer::DB_VERSION` is `1.6.0`. `maybe_install()` calls `migrate_from_previous()` before `install()`. Do not reference `launchdek_workflows` or `workflow_id` in new code — use `launchdek_checklists` and `checklist_id`. Migration to 1.2.0 adds `launchdek_sites.client_agent` and `launchdek_runs.client_run_token`. Migration to 1.3.0 adds `launchdek_run_steps.notes_json` (JSON array of step notes). Migration to 1.4.0 adds `launchdek_runs.is_archived` (indexed tinyint; archive hides from default history). Migration to 1.5.0 adds `launchdek_sites.integration_source` and `launchdek_sites.external_id` (composite index `integration_source_external`). Migration to 1.6.0 adds performance indexes on runs (site history, status+archived), run steps (run_id+step_index), audit log (site_id+created_at), and site tags (group_type+tag+site_id) via `migrate_performance_indexes()` / `add_index_if_missing()`. Hub notes persist via `LAUNCHDEK_Run_Repository::add_step_note()` / `update_step( …, [ 'notes' => … ] )`. `LAUNCHDEK_Run_Repository::completion_rate()` uses a single aggregate on non-archived runs. `LAUNCHDEK_Run_Repository::all()` excludes archived runs unless `include_archived` is true. Audit log and webhooks accept legacy `workflow_*` action keys and `details.workflow` for pre-migration entries. Client panel audit actions: `client_run_pushed`, `client_step_completed`, `client_step_uncompleted`, `client_step_note_added`, `manual_step_uncompleted`, `run_archived`, `run_deleted`. Integration audit actions: `integration_sync`, `integration_push`, `telemetry_rules_updated`.
+`CHECKLISTDEK_Installer::DB_VERSION` is `1.7.0`. `maybe_install()` always runs `migrate_launchdek_branding()` first (idempotent LaunchDek → ChecklistDek table/option/cap rename; legacy `launchdek_db_version` copied to `checklistdek_db_version`), then `migrate_from_previous()` before `install()` when the stored version is below `DB_VERSION`. Do not reference `checklistdek_workflows`, `workflow_id`, or `launchdek_*` identifiers in new code — use `checklistdek_checklists` and `checklist_id` (LaunchDek names exist only in migration helpers). Migration to 1.2.0 adds `checklistdek_sites.client_agent` and `checklistdek_runs.client_run_token`. Migration to 1.3.0 adds `checklistdek_run_steps.notes_json` (JSON array of step notes). Migration to 1.4.0 adds `checklistdek_runs.is_archived` (indexed tinyint; archive hides from default history). Migration to 1.5.0 adds `checklistdek_sites.integration_source` and `checklistdek_sites.external_id` (composite index `integration_source_external`). Migration to 1.6.0 adds performance indexes on runs (site history, status+archived), run steps (run_id+step_index), audit log (site_id+created_at), and site tags (group_type+tag+site_id) via `migrate_performance_indexes()` / `add_index_if_missing()`. Version `1.7.0` marks the ChecklistDek rebrand (no new columns). Hub notes persist via `CHECKLISTDEK_Run_Repository::add_step_note()` / `update_step( …, [ 'notes' => … ] )`. `CHECKLISTDEK_Run_Repository::completion_rate()` uses a single aggregate on non-archived runs. `CHECKLISTDEK_Run_Repository::all()` excludes archived runs unless `include_archived` is true. Audit log and webhooks accept legacy `workflow_*` action keys and `details.workflow` for pre-migration entries. Client panel audit actions: `client_run_pushed`, `client_step_completed`, `client_step_uncompleted`, `client_step_note_added`, `manual_step_uncompleted`, `run_archived`, `run_deleted`. Integration audit actions: `integration_sync`, `integration_push`, `telemetry_rules_updated`.
 
 ## Partials
 
-All non-settings pages use `render_page()` which passes `$settings`, `$page`, and sets `data-launchdek-page` on `.launchdek-admin` root.
+All non-settings pages use `render_page()` which passes `$settings`, `$page`, and sets `data-checklistdek-page` on `.checklistdek-admin` root.
 
 | Partial | `$page` value |
 |---------|---------------|
-| `launchdek-admin-page.php` | `dashboard` (receives `$dashboard_stats`, `$connection_counts`, `$log_feed`, `$quick_launch_picker` from cache; Quick Launch selects pre-rendered with `data-launchdek-preloaded="1"`) |
-| `launchdek-sites-page.php` | `sites` |
-| `launchdek-activity-logs-page.php` | `activity-logs` (hidden submenu; first feed page preloaded in `launchdekAdmin.activityLogs.initialFeed`; list pagination via admin-ajax `launchdek_get_activity_logs`; **View details** / **View raw data** in JS; `can_view_dashboard`) |
-| `launchdek-checklists-page.php` | `checklists` (three nav tabs: Templates, My Checklists, Auto-Capture; three-column builder with live preview) |
-| `launchdek-automation-page.php` | `automation` |
-| `launchdek-integrations-page.php` | `integrations` (connectors + telemetry rules preloaded in `launchdekAdmin.integrations`; `$section_tooltips` on card headings; inline `#launchdek-connectors-notice` / `#launchdek-telemetry-notice`) |
-| `launchdek-billing-page.php` | `billing` (static plan comparison table via `LAUNCHDEK_Licensing`; `MANAGE_SETTINGS` on render — no JS init) |
-| `launchdek-settings-page.php` | `settings` (Settings API form) |
+| `checklistdek-admin-page.php` | `dashboard` (receives `$dashboard_stats`, `$connection_counts`, `$log_feed`, `$quick_launch_picker` from cache; Quick Launch selects pre-rendered with `data-checklistdek-preloaded="1"`) |
+| `checklistdek-sites-page.php` | `sites` |
+| `checklistdek-activity-logs-page.php` | `activity-logs` (hidden submenu; first feed page preloaded in `checklistdekAdmin.activityLogs.initialFeed`; list pagination via admin-ajax `checklistdek_get_activity_logs`; **View details** / **View raw data** in JS; `can_view_dashboard`) |
+| `checklistdek-checklists-page.php` | `checklists` (three nav tabs: Templates, My Checklists, Auto-Capture; three-column builder with live preview) |
+| `checklistdek-automation-page.php` | `automation` |
+| `checklistdek-integrations-page.php` | `integrations` (connectors + telemetry rules preloaded in `checklistdekAdmin.integrations`; `$section_tooltips` on card headings; inline `#checklistdek-connectors-notice` / `#checklistdek-telemetry-notice`) |
+| `checklistdek-billing-page.php` | `billing` (static plan comparison table via `CHECKLISTDEK_Licensing`; `MANAGE_SETTINGS` on render — no JS init) |
+| `checklistdek-settings-page.php` | `settings` (Settings API form) |
 
 Shared modal partials (included via `require`, not `$page`-routed):
 
 | Partial | Included on |
 |---------|-------------|
-| `launchdek-onboarding-modal.php` | dashboard, settings |
-| `launchdek-template-picker-modal.php` | dashboard, checklists, settings |
-| `launchdek-panel-setup-block.php` | sites (editor + connection tester), onboarding step 2 |
+| `checklistdek-onboarding-modal.php` | dashboard, settings |
+| `checklistdek-template-picker-modal.php` | dashboard, checklists, settings |
+| `checklistdek-panel-setup-block.php` | sites (editor + connection tester), onboarding step 2 |
 
-Panel setup partial documents `@var $launchdek_panel_setup_id_prefix`, `$launchdek_panel_setup_hidden`, `$launchdek_panel_setup_show_retry`.
+Panel setup partial documents `@var $checklistdek_panel_setup_id_prefix`, `$checklistdek_panel_setup_hidden`, `$checklistdek_panel_setup_show_retry`.
 
 Document `@var` annotations at the top of page partials.
 
 ## Settings Page Sections
 
-Settings partial (`launchdek-settings-page.php`) uses Settings API form with `.launchdek-settings-nav` client-side tabs (`data-launchdek-settings-tab` / `data-launchdek-settings-panel`: `platform-security`, `panel-exclude`, `webhooks-email`, `access-roles`; `initSettingsTabs()` in admin JS syncs `?tab=`). Single form submit saves all sections. `onboarding_dismissed` is REST-only (`POST /onboarding/dismiss|reset`) — not a Settings form checkbox (saving settings does not reset or toggle it; sanitizer preserves the key when passed in `$input`). Same pattern for `wp_umbrella_api_token_enc` (Integrations admin-ajax only) and `custom_site_groups` (Sites REST groups).
+Settings partial (`checklistdek-settings-page.php`) uses Settings API form with `.checklistdek-settings-nav` client-side tabs (`data-checklistdek-settings-tab` / `data-checklistdek-settings-panel`: `platform-security`, `panel-exclude`, `webhooks-email`, `access-roles`; `initSettingsTabs()` in admin JS syncs `?tab=`). Single form submit saves all sections. `onboarding_dismissed` is REST-only (`POST /onboarding/dismiss|reset`) — not a Settings form checkbox (saving settings does not reset or toggle it; sanitizer preserves the key when passed in `$input`). Same pattern for `wp_umbrella_api_token_enc` (Integrations admin-ajax only) and `custom_site_groups` (Sites REST groups).
 
 **Platform & Security** tab:
 - **Platform** — `enabled`, `drift_verification_enabled`
 - **Credential Vault Security** — `encrypt_credentials` toggle
 
 **Panel layout & Exclude** tab:
-- **Exclude Options** — `#launchdek-exclude-options` textarea (`exclude_options`; one REST field or legacy option name per line via `LAUNCHDEK_Settings::format_exclude_options_textarea()`; defaults `url`, `email`, `wp_environment_type`; aliases via `get_exclude_option_aliases()` / `normalize_exclude_option()`; common-field hints list via `get_exclude_option_labels()` → `.launchdek-settings-exclude-common-fields`)
-- **Client Checklist Panel** — `#launchdek-panel-layout` select (`client_panel_layout`; options from `LAUNCHDEK_Licensing::get_panel_layouts_for_plan()` — Community subset of `LAUNCHDEK_Settings::get_client_panel_layouts()`; saved value sanitized via `LAUNCHDEK_Licensing::sanitize_panel_layout()`; snapshots use `get_effective_panel_layout()`); live preview via `#launchdek-panel-layout-preview` (`initPanelLayoutPreview()`); `#launchdek-client-panel-title` text input (`client_panel_title`, default `Agency Checklist`, max 80 chars — syncs on next push or panel refresh)
+- **Exclude Options** — `#checklistdek-exclude-options` textarea (`exclude_options`; one REST field or legacy option name per line via `CHECKLISTDEK_Settings::format_exclude_options_textarea()`; defaults `url`, `email`, `wp_environment_type`; aliases via `get_exclude_option_aliases()` / `normalize_exclude_option()`; common-field hints list via `get_exclude_option_labels()` → `.checklistdek-settings-exclude-common-fields`)
+- **Client Checklist Panel** — `#checklistdek-panel-layout` select (`client_panel_layout`; options from `CHECKLISTDEK_Licensing::get_panel_layouts_for_plan()` — Community subset of `CHECKLISTDEK_Settings::get_client_panel_layouts()`; saved value sanitized via `CHECKLISTDEK_Licensing::sanitize_panel_layout()`; snapshots use `get_effective_panel_layout()`); live preview via `#checklistdek-panel-layout-preview` (`initPanelLayoutPreview()`); `#checklistdek-client-panel-title` text input (`client_panel_title`, default `Agency Checklist`, max 80 chars — syncs on next push or panel refresh)
 
 **Webhooks & Email** tab:
-- **Notification Channels** — Slack/Teams/Discord webhooks + event checkboxes (`LAUNCHDEK_Settings::get_notification_events()`)
-- **Email Notifications** — `.launchdek-settings-email-events` event checkboxes (`LAUNCHDEK_Settings::get_email_notification_events()` → `email_notification_events[]`); `#launchdek-email-notification-address` text input (`email_notification_address`, comma-separated; placeholder defaults to site admin email)
+- **Notification Channels** — Slack/Teams/Discord webhooks + event checkboxes (`CHECKLISTDEK_Settings::get_notification_events()`)
+- **Email Notifications** — `.checklistdek-settings-email-events` event checkboxes (`CHECKLISTDEK_Settings::get_email_notification_events()` → `email_notification_events[]`); `#checklistdek-email-notification-address` text input (`email_notification_address`, comma-separated; placeholder defaults to site admin email)
 
 **Access & Roles** tab:
 - **Agency Role Guardrails** — preset cards (`get_agency_role_presets()`) + role-permission matrix (`role_permissions`)
-- **Onboarding** — `#launchdek-show-onboarding` button; requires shared onboarding + template-picker modal partials below the form
+- **Onboarding** — `#checklistdek-show-onboarding` button; requires shared onboarding + template-picker modal partials below the form
 
-Section headings use `.launchdek-card-heading-row--info-first` with `.launchdek-field-info.launchdek-has-tooltip` info buttons (`data-tooltip` from `$section_tooltips` in the Settings partial; same pattern on Integrations).
+Section headings use `.checklistdek-card-heading-row--info-first` with `.checklistdek-field-info.checklistdek-has-tooltip` info buttons (`data-tooltip` from `$section_tooltips` in the Settings partial; same pattern on Integrations).
 
 Telemetry sync rules are managed on the Integrations page (REST), not the Settings form.
 
-Onboarding REST handlers in `LAUNCHDEK_REST_API`:
+Onboarding REST handlers in `CHECKLISTDEK_REST_API`:
 - `POST /onboarding/dismiss` → `dismiss_onboarding()` (`can_view_dashboard`) — sets `onboarding_dismissed` to `true`
 - `POST /onboarding/reset` → `reset_onboarding()` (`can_manage_settings`) — sets `onboarding_dismissed` to `false` for Settings preview
 
-Settings REST handlers in `LAUNCHDEK_REST_API`:
-- `POST /settings/client-panel-title` → `update_client_panel_title()` (`can_edit_checklists`) — `LAUNCHDEK_Settings::save_client_panel_title()`; builder auto-save
+Settings REST handlers in `CHECKLISTDEK_REST_API`:
+- `POST /settings/client-panel-title` → `update_client_panel_title()` (`can_edit_checklists`) — `CHECKLISTDEK_Settings::save_client_panel_title()`; builder auto-save
 
-Billing REST handlers in `LAUNCHDEK_REST_API` (registered only when `launchdek_includes_pro_package()`):
-- `GET /billing/summary` → `get_billing_summary()` (`can_view_dashboard`) — `LAUNCHDEK_Licensing::get_summary()`
+Billing REST handlers in `CHECKLISTDEK_REST_API` (registered only when `checklistdek_includes_pro_package()`):
+- `GET /billing/summary` → `get_billing_summary()` (`can_view_dashboard`) — `CHECKLISTDEK_Licensing::get_summary()`
 - `POST /billing/plan` → `update_billing_plan()` (`can_manage_settings`) — `{ plan }` → `set_plan()`; returns updated summary
 
-Dashboard / audit REST handlers in `LAUNCHDEK_REST_API`:
-- `GET /logs/run/{run_id}/steps` → `get_log_run_steps()` (`can_view_dashboard`) — `LAUNCHDEK_Audit_Log::get_run_steps_timeline()`
+Dashboard / audit REST handlers in `CHECKLISTDEK_REST_API`:
+- `GET /logs/run/{run_id}/steps` → `get_log_run_steps()` (`can_view_dashboard`) — `CHECKLISTDEK_Audit_Log::get_run_steps_timeline()`
 - `GET /logs/{id}` → `get_log_entry()` — optional `details_only=1` returns lean `{ id, details, has_details }` via `get_decoded_details()` (Activity Logs **View raw data**)
 
-Client panel REST handlers in `LAUNCHDEK_REST_API`:
+Client panel REST handlers in `CHECKLISTDEK_REST_API`:
 - `GET /panel/bootstrap` → `get_panel_bootstrap()` (`can_manage_sites`) — returns mu-plugin loader file for manual download
-- `GET /sites/groups` → `get_site_groups()` (`can_manage_sites`) — `LAUNCHDEK_Settings::get_site_group_catalog()`
+- `GET /sites/groups` → `get_site_groups()` (`can_manage_sites`) — `CHECKLISTDEK_Settings::get_site_group_catalog()`
 - `POST /sites/groups` → `create_site_group()` (`can_manage_sites`) — `{ label }` → `add_custom_site_group()`; returns `{ group, groups }`
-- `POST /sites/{id}/panel/install` → `install_site_panel()` (`can_manage_sites`) — retries `LAUNCHDEK_Mu_Plugin_Installer::ensure_installed()` (Sites modal **Retry panel install**)
-- `GET /sites/{id}/runs` → `get_site_runs()` (`can_manage_sites`) — checklist run history (admin UI uses admin-ajax `launchdek_get_site_runs`; REST retained for programmatic access) via `list_for_site_history()` (optional `status`, `limit` default 25 max 200, `offset`; returns `{ runs, has_more, offset, limit }`)
-- `POST /runs/{id}/archive` → `archive_run()` (`can_manage_sites`) — soft-hide run from default history (`LAUNCHDEK_Run_Repository::archive()`)
-- `DELETE /runs/{id}` → `delete_run()` (`can_manage_sites`) — permanently delete run and step rows (`LAUNCHDEK_Run_Repository::delete()`)
-- `GET|POST|DELETE /sites/{id}/capture` → `get_site_capture()` / `update_site_capture()` / `clear_site_capture()` (`can_edit_checklists`) — proxies to `LAUNCHDEK_Auto_Capture`
-- `POST /runs` → optional `push_to_client` (bool, default `true`); when set, calls `LAUNCHDEK_Client_Push::push_run()` after start
-- `POST /runs/{id}/steps/{step}/uncomplete` → `uncomplete_manual_step()` (`can_execute`) — `LAUNCHDEK_Step_Executor::mark_manual_incomplete()` then `sync_run()`
+- `POST /sites/{id}/panel/install` → `install_site_panel()` (`can_manage_sites`) — retries `CHECKLISTDEK_Mu_Plugin_Installer::ensure_installed()` (Sites modal **Retry panel install**)
+- `GET /sites/{id}/runs` → `get_site_runs()` (`can_manage_sites`) — checklist run history (admin UI uses admin-ajax `checklistdek_get_site_runs`; REST retained for programmatic access) via `list_for_site_history()` (optional `status`, `limit` default 25 max 200, `offset`; returns `{ runs, has_more, offset, limit }`)
+- `POST /runs/{id}/archive` → `archive_run()` (`can_manage_sites`) — soft-hide run from default history (`CHECKLISTDEK_Run_Repository::archive()`)
+- `DELETE /runs/{id}` → `delete_run()` (`can_manage_sites`) — permanently delete run and step rows (`CHECKLISTDEK_Run_Repository::delete()`)
+- `GET|POST|DELETE /sites/{id}/capture` → `get_site_capture()` / `update_site_capture()` / `clear_site_capture()` (`can_edit_checklists`) — proxies to `CHECKLISTDEK_Auto_Capture`
+- `POST /runs` → optional `push_to_client` (bool, default `true`); when set, calls `CHECKLISTDEK_Client_Push::push_run()` after start
+- `POST /runs/{id}/steps/{step}/uncomplete` → `uncomplete_manual_step()` (`can_execute`) — `CHECKLISTDEK_Step_Executor::mark_manual_incomplete()` then `sync_run()`
 - `POST /runs/{id}/push-client` → `push_run_to_client()` (`can_execute`) — `push_run( $id, false, true )` snapshot re-push + bundle sync, no auto-advance (Automation **Refresh Client Panel**)
 - `POST /client-runs/{id}/steps/{step}/complete` → `client_complete_step()` (`can_client_token_access_run`) — `complete_client_step( …, true )` (`$skip_client_sync`); returns `snapshot`
 - `POST /client-runs/{id}/steps/{step}/uncomplete` → `client_uncomplete_step()` (`can_client_token_access_run`) — `uncomplete_client_step( …, true )`; returns `snapshot`
 - `POST /client-runs/{id}/steps/{step}/notes` → `client_add_step_note()` (`can_client_token_access_run`) — `add_client_step_note( …, true )`; returns `snapshot`
-- Run advance handlers (`/next`, `/auto`, manual complete/uncomplete) call `LAUNCHDEK_Client_Push::sync_run()` when panel is available
+- Run advance handlers (`/next`, `/auto`, manual complete/uncomplete) call `CHECKLISTDEK_Client_Push::sync_run()` when panel is available
 
-Remote mu-plugin REST (`mu-plugin/launchdek-client/class-rest-api.php`, namespace `launchdek/v1`):
+Remote mu-plugin REST (`mu-plugin/checklistdek-client/class-rest-api.php`, namespace `checklistdek/v1`):
 - `GET /client/info` — public panel probe
 - `POST /client/install` — hub pushes whitelisted bundle files (`can_hub_manage` via Application Password)
 - `GET|POST|DELETE /client/run` — active run snapshot CRUD
 - `POST /client/run/dismiss` — clear completed checklist from client panel (local snapshot only)
 - `POST /client/run/steps/{step}/complete` — client user completes step; callbacks to hub with run token
 - `POST /client/run/steps/{step}/uncomplete` — client user reverts completed manual step; callbacks to hub with run token
-- `POST /client/run/steps/{step}/notes` — saves note locally via `LAUNCHDEK_Client_Run_Store::add_step_note()`, then syncs to hub (`hub_synced` flag); notes require non-empty text; optional `attachment_id`/`attachment_url` from remote `wp.media`
+- `POST /client/run/steps/{step}/notes` — saves note locally via `CHECKLISTDEK_Client_Run_Store::add_step_note()`, then syncs to hub (`hub_synced` flag); notes require non-empty text; optional `attachment_id`/`attachment_url` from remote `wp.media`
 - `GET|POST|DELETE /client/capture` — auto-capture session status, start/stop, clear captured steps
 
-Client `LAUNCHDEK_Client_Run_Store::save()` merges local notes with incoming hub snapshots via `merge_step_notes()`; `patch_from_hub_run()` preserves local note data on partial hub responses. Client panel assets in `mu-plugin/launchdek-client/{css,js}/` — prefix selectors with `.launchdek-client-*`; localize `launchdekClient` global.
+Client `CHECKLISTDEK_Client_Run_Store::save()` merges local notes with incoming hub snapshots via `merge_step_notes()`; `patch_from_hub_run()` preserves local note data on partial hub responses. Client panel assets in `mu-plugin/checklistdek-client/{css,js}/` — prefix selectors with `.checklistdek-client-*`; localize `checklistdekClient` global.
 
-When editing the client panel bundle, keep hub installer paths (`LAUNCHDEK_Mu_Plugin_Installer::BUNDLE_DIR`) and remote loader (`mu-plugin/launchdek-client.php`) in sync.
+When editing the client panel bundle, keep hub installer paths (`CHECKLISTDEK_Mu_Plugin_Installer::BUNDLE_DIR`) and remote loader (`mu-plugin/checklistdek-client.php`) in sync.
 
-Integration REST handlers in `LAUNCHDEK_REST_API`:
-- `GET /integrations` → `get_integrations()` (`can_manage_settings`) — `LAUNCHDEK_Integrations::get_statuses()`
-- `POST /integrations/{slug}/sync` → `sync_integration()` — `LAUNCHDEK_Integration_Sync::sync()`
-- `GET /integrations/{slug}/preview` → `preview_integration_sync()` — `LAUNCHDEK_Integration_Sync::preview()`
+Integration REST handlers in `CHECKLISTDEK_REST_API`:
+- `GET /integrations` → `get_integrations()` (`can_manage_settings`) — `CHECKLISTDEK_Integrations::get_statuses()`
+- `POST /integrations/{slug}/sync` → `sync_integration()` — `CHECKLISTDEK_Integration_Sync::sync()`
+- `GET /integrations/{slug}/preview` → `preview_integration_sync()` — `CHECKLISTDEK_Integration_Sync::preview()`
 - `POST /integrations/{slug}/push` → `push_integration()` — optional `site_ids` array; delegates to `push_agent()`
 - `GET|PUT /integrations/telemetry-rules` → `get_telemetry_rules()` / `update_telemetry_rules()`
 
-Admin AJAX handlers in `LAUNCHDEK_Admin_Ajax` (registered on Community and Pro — same action list; admin UI prefers these over REST for integrations, site run history, and Activity Logs list on memory-constrained installs). Shared helpers: `get_request_nonce()`, `verify_ajax_nonce()`, `post_input()`, `post_bool()`; capability gates via `verify_request()` / `verify_sites_request()` / `verify_dashboard_request()`:
-- `launchdek_get_integrations` → `handle_get_integrations()` (`verify_request` / `MANAGE_SETTINGS`) — `LAUNCHDEK_Integrations::get_statuses()`
-- `launchdek_integration_sync` → `handle_integration_sync()` — `slug` + optional `dry_run` → `LAUNCHDEK_Integration_Sync::preview()` or `::sync()`
-- `launchdek_integration_push` → `handle_integration_push()` — optional JSON `site_ids` → `{Integration}::push_agent()`
-- `launchdek_save_wp_umbrella_token` → `handle_save_wp_umbrella_token()` — POST `token` (via `normalize_wp_umbrella_api_token()`) or `clear=1`; non-empty tokens call `LAUNCHDEK_Integration_WP_Umbrella::verify_api_token()` before `save_wp_umbrella_api_token()`; returns `{ api_token_configured, message }` or JSON error with translatable message (401 vs 403 hints for wrong key type / missing scope)
-- `launchdek_get_telemetry_rules` → `handle_get_telemetry_rules()` — rules + field labels
-- `launchdek_save_telemetry_rules` → `handle_save_telemetry_rules()` — JSON `rules` → `LAUNCHDEK_Integrations::save_telemetry_rules()`
-- `launchdek_get_site_runs` → `handle_get_site_runs()` (`verify_sites_request` / `MANAGE_SITES`) — `site_id`, optional `status`, `limit` (default 25, max 200), `offset` → `list_for_site_history()`
-- `launchdek_get_activity_logs` → `handle_get_activity_logs()` (`verify_dashboard_request` / `VIEW_DASHBOARD`) — filter POST fields → `LAUNCHDEK_Audit_Log::query( list_query_args_from_input() )`
+Admin AJAX handlers in `CHECKLISTDEK_Admin_Ajax` (registered on Community and Pro — same action list; admin UI prefers these over REST for integrations, site run history, and Activity Logs list on memory-constrained installs). Shared helpers: `get_request_nonce()`, `verify_ajax_nonce()`, `post_input()`, `post_bool()`; capability gates via `verify_request()` / `verify_sites_request()` / `verify_dashboard_request()`:
+- `checklistdek_get_integrations` → `handle_get_integrations()` (`verify_request` / `MANAGE_SETTINGS`) — `CHECKLISTDEK_Integrations::get_statuses()`
+- `checklistdek_integration_sync` → `handle_integration_sync()` — `slug` + optional `dry_run` → `CHECKLISTDEK_Integration_Sync::preview()` or `::sync()`
+- `checklistdek_integration_push` → `handle_integration_push()` — optional JSON `site_ids` → `{Integration}::push_agent()`
+- `checklistdek_save_wp_umbrella_token` → `handle_save_wp_umbrella_token()` — POST `token` (via `normalize_wp_umbrella_api_token()`) or `clear=1`; non-empty tokens call `CHECKLISTDEK_Integration_WP_Umbrella::verify_api_token()` before `save_wp_umbrella_api_token()`; returns `{ api_token_configured, message }` or JSON error with translatable message (401 vs 403 hints for wrong key type / missing scope)
+- `checklistdek_get_telemetry_rules` → `handle_get_telemetry_rules()` — rules + field labels
+- `checklistdek_save_telemetry_rules` → `handle_save_telemetry_rules()` — JSON `rules` → `CHECKLISTDEK_Integrations::save_telemetry_rules()`
+- `checklistdek_get_site_runs` → `handle_get_site_runs()` (`verify_sites_request` / `MANAGE_SITES`) — `site_id`, optional `status`, `limit` (default 25, max 200), `offset` → `list_for_site_history()`
+- `checklistdek_get_activity_logs` → `handle_get_activity_logs()` (`verify_dashboard_request` / `VIEW_DASHBOARD`) — filter POST fields → `CHECKLISTDEK_Audit_Log::query( list_query_args_from_input() )`
 
 ## New Integration Checklist
 
-1. Create `includes/integrations/class-launchdek-integration-{slug}.php` implementing `LAUNCHDEK_Integration_Interface` (including `supports_site_sync()` and `fetch_platform_sites()` when inventory sync is supported).
-2. Register in `LAUNCHDEK_Integrations::get_all()`.
-3. Add platform field mappings in `LAUNCHDEK_Integrations::get_default_telemetry_rules()` if connector exposes sync fields.
+1. Create `includes/integrations/class-checklistdek-integration-{slug}.php` implementing `CHECKLISTDEK_Integration_Interface` (including `supports_site_sync()` and `fetch_platform_sites()` when inventory sync is supported).
+2. Register in `CHECKLISTDEK_Integrations::get_all()`.
+3. Add platform field mappings in `CHECKLISTDEK_Integrations::get_default_telemetry_rules()` if connector exposes sync fields.
 4. Return `supports_sync`, `synced_sites`, `description`, and optional `docs_url` from `get_status()` for the connector modal.
 5. When inventory sync can return zero rows, optionally implement `get_sync_diagnostics()` to return actionable hints (MainWP pattern).
-6. Site sync via admin-ajax `launchdek_integration_sync` (or REST `/integrations/{slug}/sync` and `/preview`); push agent via `launchdek_integration_push` (or REST `/integrations/{slug}/push`); telemetry rules via `launchdek_save_telemetry_rules` (or REST `/integrations/telemetry-rules`). When adding new integration admin actions, prefer extending `LAUNCHDEK_Admin_Ajax` alongside REST for parity.
+6. Site sync via admin-ajax `checklistdek_integration_sync` (or REST `/integrations/{slug}/sync` and `/preview`); push agent via `checklistdek_integration_push` (or REST `/integrations/{slug}/push`); telemetry rules via `checklistdek_save_telemetry_rules` (or REST `/integrations/telemetry-rules`). When adding new integration admin actions, prefer extending `CHECKLISTDEK_Admin_Ajax` alongside REST for parity.
 
 ## Docblocks
 

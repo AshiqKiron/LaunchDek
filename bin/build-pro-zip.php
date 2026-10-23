@@ -3,9 +3,9 @@
 /**
  * Build the full Pro / premium zip (all templates, Pro PHP, Freemius SDK).
  *
- * Usage: php bin/build-pro-zip.php [--output=dist/launchdek-pro.zip]
+ * Usage: php bin/build-pro-zip.php [--output=dist/checklistdek-pro.zip]
  *
- * @package LaunchDek
+ * @package ChecklistDek
  */
 
 if ( 'cli' !== PHP_SAPI ) {
@@ -14,7 +14,7 @@ if ( 'cli' !== PHP_SAPI ) {
 }
 
 $root = dirname( __DIR__ );
-$out  = $root . '/dist/launchdek-pro.zip';
+$out  = $root . '/dist/checklistdek-pro.zip';
 
 foreach ( array_slice( $argv, 1 ) as $arg ) {
 	if ( 0 === strpos( $arg, '--output=' ) ) {
@@ -36,8 +36,8 @@ $exclude_paths = array(
 	'phpunit.xml.dist',
 );
 
-$staging    = sys_get_temp_dir() . '/launchdek-pro-' . uniqid( '', true );
-$plugin_dir = $staging . '/launchdek';
+$staging    = sys_get_temp_dir() . '/checklistdek-pro-' . uniqid( '', true );
+$plugin_dir = $staging . '/checklistdek';
 
 /**
  * @param string $dir Directory.
@@ -166,7 +166,7 @@ if ( true !== $zip->open( $out, ZipArchive::CREATE | ZipArchive::OVERWRITE ) ) {
 	exit( 1 );
 }
 
-$zip_root = 'launchdek';
+$zip_root = 'checklistdek';
 $files    = new RecursiveIteratorIterator(
 	new RecursiveDirectoryIterator( $plugin_dir, RecursiveDirectoryIterator::SKIP_DOTS ),
 	RecursiveIteratorIterator::LEAVES_ONLY

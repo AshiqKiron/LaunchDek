@@ -1,0 +1,1248 @@
+.checklistdek-client-capture-notice {
+	border-left-color: #d63638 !important;
+}
+
+.checklistdek-client-capture-notice strong {
+	color: #d63638;
+}
+
+.checklistdek-client-panel-root {
+	position: relative;
+	z-index: 99998;
+}
+
+.checklistdek-client-panel-root.checklistdek-client-layout-live_topbar {
+	position: fixed;
+	top: 32px;
+	left: 0;
+	right: 0;
+	z-index: 99998;
+}
+
+body.checklistdek-client-layout-live_topbar #wpcontent {
+	padding-top: var(--checklistdek-client-topbar-offset, 44px);
+}
+
+body.checklistdek-client-layout-live_topbar #wpadminbar #wp-admin-bar-checklistdek-client-checklist > a {
+	font-weight: 600;
+}
+
+.checklistdek-client-topbar {
+	background: #fff;
+	border-bottom: 1px solid #c3c4c7;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.checklistdek-client-topbar-inner {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 8px 16px;
+	min-height: 44px;
+	flex-wrap: wrap;
+}
+
+.checklistdek-client-topbar-copy {
+	display: flex;
+	align-items: baseline;
+	gap: 8px;
+	flex-wrap: wrap;
+	min-width: 0;
+}
+
+.checklistdek-client-topbar-kicker {
+	font-size: 11px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.02em;
+	color: #646970;
+}
+
+.checklistdek-client-topbar-title {
+	font-size: 13px;
+	font-weight: 600;
+	color: #1d2327;
+}
+
+.checklistdek-client-topbar-progress-label {
+	font-size: 12px;
+	font-weight: 600;
+	color: #2271b1;
+	white-space: nowrap;
+}
+
+.checklistdek-client-topbar-progress {
+	flex: 1 1 140px;
+	min-width: 120px;
+	max-width: 280px;
+}
+
+.checklistdek-client-topbar-current {
+	flex: 1 1 200px;
+	min-width: 0;
+	font-size: 12px;
+	color: #50575e;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.checklistdek-client-topbar-drawer {
+	max-height: min(60vh, 520px);
+	overflow: auto;
+	border-top: 1px solid #dcdcde;
+	background: #fff;
+}
+
+.checklistdek-client-topbar-drawer.is-collapsed {
+	display: none;
+}
+
+.checklistdek-client-layout-live_topbar .checklistdek-client-panel-body,
+.checklistdek-client-layout-bottom_dock .checklistdek-client-panel-body {
+	overflow: visible;
+	max-height: none;
+	padding: 12px 16px 16px;
+}
+
+.checklistdek-client-panel {
+	position: fixed;
+	top: 32px;
+	right: 0;
+	width: 320px;
+	max-height: calc(100vh - 48px);
+	display: flex;
+	flex-direction: column;
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	border-right: 0;
+	box-shadow: -4px 0 16px rgba(0, 0, 0, 0.08);
+	font-size: 13px;
+	line-height: 1.45;
+}
+
+@media screen and (max-width: 782px) {
+	.checklistdek-client-panel {
+		top: 46px;
+		width: min(320px, calc(100vw - 16px));
+	}
+
+	.checklistdek-client-panel-root.checklistdek-client-layout-live_topbar,
+	.checklistdek-client-panel-root.checklistdek-client-layout-bottom_dock {
+		top: auto;
+	}
+
+	.checklistdek-client-panel-root.checklistdek-client-layout-live_topbar {
+		top: 46px;
+	}
+
+	.checklistdek-client-topbar-inner {
+		padding-inline: 12px;
+	}
+
+	.checklistdek-client-topbar-current {
+		display: none;
+	}
+}
+
+@media screen and (max-width: 480px) {
+	.checklistdek-client-panel:not(.is-collapsed) {
+		left: 8px;
+		right: 8px;
+		width: auto;
+		max-width: none;
+	}
+
+	.checklistdek-client-panel-header {
+		flex-wrap: wrap;
+	}
+
+	.checklistdek-client-step-head {
+		flex-wrap: wrap;
+		align-items: flex-start;
+	}
+
+	.checklistdek-client-step-head-actions {
+		margin-left: 0;
+		flex-wrap: wrap;
+	}
+}
+
+.checklistdek-client-panel.is-collapsed {
+	width: auto;
+	min-width: 0;
+	border-right: 1px solid #c3c4c7;
+	box-shadow: -2px 0 8px rgba(0, 0, 0, 0.06);
+}
+
+.checklistdek-client-panel-brand {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 7px 14px;
+	background: linear-gradient(90deg, #135e96, #2271b1);
+	color: #fff;
+}
+
+.checklistdek-client-topbar .checklistdek-client-panel-brand,
+.checklistdek-client-bottom-dock .checklistdek-client-panel-brand {
+	padding: 5px 12px;
+}
+
+.checklistdek-client-panel-brand-mark {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	line-height: 0;
+}
+
+.checklistdek-client-panel-brand-icon {
+	display: block;
+}
+
+.checklistdek-client-panel-brand-name {
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	line-height: 1.2;
+}
+
+.checklistdek-client-panel-header {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 8px;
+	padding: 12px 14px;
+	border-bottom: 1px solid #dcdcde;
+	background: #f6f7f7;
+}
+
+.checklistdek-client-panel-title {
+	margin: 0;
+	font-size: 14px;
+	font-weight: 600;
+	color: #1d2327;
+}
+
+.checklistdek-client-panel-subtitle {
+	margin: 4px 0 0;
+	font-size: 12px;
+	color: #646970;
+}
+
+.checklistdek-client-panel-toggle {
+	flex-shrink: 0;
+	min-height: 28px;
+}
+
+.checklistdek-client-panel-body {
+	overflow: auto;
+	padding: 10px 12px 14px;
+}
+
+.checklistdek-client-panel.is-collapsed .checklistdek-client-panel-body,
+.checklistdek-client-panel.is-collapsed .checklistdek-client-panel-progress-wrap {
+	display: none;
+}
+
+.checklistdek-client-panel-progress-wrap {
+	padding: 8px 14px 0;
+}
+
+.checklistdek-client-panel-progress-meta {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	margin-bottom: 6px;
+	font-size: 12px;
+	color: #50575e;
+}
+
+.checklistdek-client-panel-progress-label {
+	font-weight: 600;
+	color: #1d2327;
+}
+
+.checklistdek-client-toggle-steps {
+	font-size: 11px;
+	padding: 0;
+	min-height: auto;
+}
+
+.checklistdek-client-progress-bar {
+	height: 6px;
+	border-radius: 999px;
+	background: #dcdcde;
+	overflow: hidden;
+}
+
+.checklistdek-client-progress-fill {
+	display: block;
+	width: var(--checklistdek-progress-pct, 0%);
+	height: 100%;
+	background: linear-gradient(90deg, #2271b1, #135e96);
+	border-radius: 999px;
+	transition: width 0.25s ease;
+}
+
+.checklistdek-client-step-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: grid;
+	gap: 6px;
+}
+
+.checklistdek-client-step {
+	--checklistdek-client-step-indent: 30px;
+	border: 1px solid #e2e8f0;
+	border-radius: 6px;
+	padding: 10px 12px;
+	background: #fff;
+}
+
+.checklistdek-client-step.is-collapsed {
+	padding: 10px 12px;
+}
+
+.checklistdek-client-step.is-completed {
+	background: #fff;
+	border-color: #e2e8f0;
+}
+
+.checklistdek-client-step.is-completed .checklistdek-client-step-title,
+.checklistdek-client-step.is-completed .checklistdek-client-step-instructions,
+.checklistdek-client-step.is-completed .checklistdek-client-step-completed-meta,
+.checklistdek-client-step.is-completed .checklistdek-client-step-toggle {
+	color: #a7aaad;
+}
+
+.checklistdek-client-step.is-upcoming {
+	background: #f6f7f7;
+	border-color: #e2e8f0;
+	opacity: 0.82;
+}
+
+.checklistdek-client-step.is-upcoming .checklistdek-client-step-title,
+.checklistdek-client-step.is-upcoming .checklistdek-client-step-instructions,
+.checklistdek-client-step.is-upcoming .checklistdek-client-step-settings-link,
+.checklistdek-client-step.is-upcoming .checklistdek-client-step-toggle {
+	color: #a7aaad;
+}
+
+.checklistdek-client-step.is-active,
+.checklistdek-client-step.is-current {
+	border-color: #e2e8f0;
+	box-shadow: none;
+}
+
+.checklistdek-client-step.is-current {
+	background: #f0f7ff;
+}
+
+.checklistdek-client-step.is-collapsed .checklistdek-client-step-body {
+	display: none;
+}
+
+.checklistdek-client-step-toggle {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	width: 20px;
+	height: 20px;
+	padding: 0;
+	border: 0;
+	background: transparent;
+	color: #1a202c;
+	cursor: pointer;
+	border-radius: 2px;
+}
+
+.checklistdek-client-step-toggle:hover,
+.checklistdek-client-step-toggle:focus {
+	color: #1a202c;
+	background: transparent;
+	opacity: 0.7;
+}
+
+.checklistdek-client-step-chevron {
+	display: block;
+	flex-shrink: 0;
+}
+
+.checklistdek-client-step-settings-link {
+	display: inline-block;
+	font-size: 12px;
+	font-weight: 500;
+	line-height: 1.4;
+	text-decoration: none;
+	color: #2271b1;
+}
+
+.checklistdek-client-step-settings-link:hover,
+.checklistdek-client-step-settings-link:focus {
+	color: #135e96;
+	text-decoration: underline;
+}
+
+.checklistdek-client-step-body {
+	margin-top: 8px;
+	padding-left: var(--checklistdek-client-step-indent);
+}
+
+.checklistdek-client-step-summary-title {
+	flex: 1;
+	font-size: 12px;
+	color: #646970;
+	text-decoration: line-through;
+}
+
+.checklistdek-client-step-head {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	min-height: 28px;
+}
+
+.checklistdek-client-step-head-actions {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	flex-shrink: 0;
+	margin-left: auto;
+}
+
+.checklistdek-client-step-title {
+	flex: 1;
+	margin: 0;
+	font-size: 13px;
+	font-weight: 700;
+	color: #1a202c;
+	line-height: 1.35;
+}
+
+.checklistdek-client-step-badge {
+	display: none;
+	flex-shrink: 0;
+	padding: 2px 6px;
+	border-radius: 999px;
+	font-size: 11px;
+	font-weight: 600;
+	background: #f0f0f1;
+	color: #50575e;
+	white-space: nowrap;
+}
+
+.checklistdek-client-step-badge.running {
+	background: #f0f0f1;
+	color: #50575e;
+}
+
+.checklistdek-client-step-badge.completed {
+	background: #d5f0d8;
+	color: #135e23;
+}
+
+.checklistdek-client-step-badge.awaiting_manual {
+	background: #dceefb;
+	color: #135e96;
+}
+
+.checklistdek-client-step-badge.failed {
+	display: inline-block;
+	background: #fcebea;
+	color: #8a2424;
+}
+
+.checklistdek-client-step-instructions {
+	margin: 8px 0 0;
+	color: #50575e;
+	font-size: 12px;
+}
+
+.checklistdek-client-icon-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 28px;
+	height: 28px;
+	padding: 0;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+	background: #fff;
+	color: #50575e;
+	cursor: pointer;
+}
+
+.checklistdek-client-has-tooltip {
+	position: relative;
+}
+
+.checklistdek-client-has-tooltip::after {
+	content: attr(data-tooltip);
+	position: absolute;
+	bottom: calc(100% + 6px);
+	left: 50%;
+	z-index: 1;
+	padding: 4px 8px;
+	border-radius: 3px;
+	background: #1d2327;
+	color: #fff;
+	font-size: 11px;
+	font-weight: 500;
+	line-height: 1.3;
+	white-space: nowrap;
+	pointer-events: none;
+	opacity: 0;
+	visibility: hidden;
+	transform: translateX(-50%) translateY(2px);
+	transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s ease;
+}
+
+.checklistdek-client-has-tooltip:hover::after,
+.checklistdek-client-has-tooltip:focus-visible::after {
+	opacity: 1;
+	visibility: visible;
+	transform: translateX(-50%) translateY(0);
+}
+
+.checklistdek-client-tooltip-left::after {
+	bottom: auto;
+	left: auto;
+	right: calc(100% + 6px);
+	top: 50%;
+	transform: translateY(-50%) translateX(2px);
+}
+
+.checklistdek-client-tooltip-left:hover::after,
+.checklistdek-client-tooltip-left:focus-visible::after {
+	transform: translateY(-50%) translateX(0);
+}
+
+.checklistdek-client-tooltip-right::after {
+	bottom: auto;
+	left: calc(100% + 6px);
+	top: 50%;
+	transform: translateY(-50%) translateX(-2px);
+}
+
+.checklistdek-client-tooltip-right:hover::after,
+.checklistdek-client-tooltip-right:focus-visible::after {
+	transform: translateY(-50%) translateX(0);
+}
+
+.checklistdek-client-icon-btn:hover,
+.checklistdek-client-icon-btn:focus {
+	border-color: #2271b1;
+	color: #2271b1;
+	background: #f0f6fc;
+}
+
+.checklistdek-client-icon-btn.is-complete-action {
+	border: none;
+	background: transparent;
+	color: #1a202c;
+	width: 20px;
+	height: 20px;
+}
+
+.checklistdek-client-icon-btn.is-complete-action:hover,
+.checklistdek-client-icon-btn.is-complete-action:focus {
+	border: none;
+	background: transparent;
+	color: #1a202c;
+	opacity: 0.65;
+}
+
+.checklistdek-client-icon-btn.is-undo-action {
+	border-color: #c3c4c7;
+	background: #fff;
+	color: #50575e;
+}
+
+.checklistdek-client-icon-btn.is-undo-action:hover,
+.checklistdek-client-icon-btn.is-undo-action:focus {
+	border-color: #8c8f94;
+	background: #f6f7f7;
+	color: #1d2327;
+}
+
+.checklistdek-client-step-complete-state {
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 22px;
+	height: 20px;
+	flex-shrink: 0;
+}
+
+.checklistdek-client-step-done-icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 20px;
+	height: 20px;
+	border: none;
+	background: transparent;
+	color: #1a202c;
+	transition: opacity 0.15s ease;
+}
+
+.checklistdek-client-double-tick-icons {
+	display: inline-flex;
+	align-items: center;
+	gap: 1px;
+}
+
+.checklistdek-client-icon-double-tick {
+	display: block;
+	width: 10px;
+	height: 10px;
+	flex-shrink: 0;
+}
+
+.checklistdek-client-step-complete-state:not(.is-readonly) .checklistdek-client-step-done-icon {
+	position: absolute;
+	inset: 0;
+}
+
+.checklistdek-client-step-complete-state:not(.is-readonly) .checklistdek-client-uncomplete-step {
+	position: absolute;
+	inset: 0;
+	opacity: 0;
+	pointer-events: none;
+	transition: opacity 0.15s ease;
+}
+
+.checklistdek-client-step-complete-state:not(.is-readonly):hover .checklistdek-client-step-done-icon,
+.checklistdek-client-step-complete-state:not(.is-readonly):focus-within .checklistdek-client-step-done-icon {
+	opacity: 0;
+}
+
+.checklistdek-client-step-complete-state:not(.is-readonly):hover .checklistdek-client-uncomplete-step,
+.checklistdek-client-step-complete-state:not(.is-readonly):focus-within .checklistdek-client-uncomplete-step {
+	opacity: 1;
+	pointer-events: auto;
+}
+
+.checklistdek-client-icon-btn.is-attach-action {
+	border: none;
+	background: transparent;
+	color: #50575e;
+	width: 20px;
+	height: 20px;
+}
+
+.checklistdek-client-icon-btn.is-attach-action:hover,
+.checklistdek-client-icon-btn.is-attach-action:focus {
+	border: none;
+	background: transparent;
+	color: #2271b1;
+}
+
+.checklistdek-client-icon-btn.is-note-action,
+.checklistdek-client-icon-btn.is-save-action {
+	border: none;
+	background: transparent;
+	color: #50575e;
+	width: 20px;
+	height: 20px;
+}
+
+.checklistdek-client-icon-btn.is-note-action:hover,
+.checklistdek-client-icon-btn.is-note-action:focus,
+.checklistdek-client-icon-btn.is-save-action:hover,
+.checklistdek-client-icon-btn.is-save-action:focus {
+	border: none;
+	background: transparent;
+	color: #1a202c;
+}
+
+.checklistdek-client-icon-btn:disabled {
+	opacity: 0.55;
+	cursor: not-allowed;
+}
+
+.checklistdek-client-icon {
+	display: block;
+}
+
+.checklistdek-client-step-completed-meta {
+	margin: 8px 0 0;
+	font-size: 11px;
+	color: #646970;
+}
+
+.checklistdek-client-panel-notice {
+	margin-top: 10px;
+	padding: 8px 10px;
+	border-radius: 4px;
+	font-size: 12px;
+}
+
+.checklistdek-client-panel-notice:empty,
+.checklistdek-client-panel-notice[hidden] {
+	display: none;
+	margin-top: 0;
+	padding: 0;
+}
+
+.checklistdek-client-panel-notice.success {
+	background: #edfaef;
+	color: #135e23;
+}
+
+.checklistdek-client-panel-notice.error {
+	background: #fcebea;
+	color: #8a2424;
+}
+
+.checklistdek-client-run-complete-summary {
+	margin-bottom: 12px;
+	padding: 12px;
+	border: 1px solid #b8e6bf;
+	border-radius: 4px;
+	background: #edfaef;
+}
+
+.checklistdek-client-run-complete-title {
+	margin: 0 0 8px;
+	font-size: 13px;
+	font-weight: 600;
+	color: #135e23;
+}
+
+.checklistdek-client-run-complete-meta {
+	margin: 0 0 4px;
+	font-size: 12px;
+	color: #1d2327;
+}
+
+.checklistdek-client-run-complete-meta:last-of-type {
+	margin-bottom: 10px;
+}
+
+.checklistdek-client-run-complete-label {
+	font-weight: 600;
+	color: #135e23;
+}
+
+.checklistdek-client-dismiss-run {
+	width: 100%;
+	justify-content: center;
+	text-align: center;
+}
+
+.checklistdek-client-panel-tab {
+	position: fixed;
+	top: 50%;
+	right: 0;
+	transform: translateY(-50%);
+	writing-mode: vertical-rl;
+	text-orientation: mixed;
+	padding: 12px 8px;
+	border: 1px solid #c3c4c7;
+	border-right: 0;
+	border-radius: 4px 0 0 4px;
+	background: #2271b1;
+	color: #fff;
+	cursor: pointer;
+	font-size: 12px;
+	font-weight: 600;
+	box-shadow: -2px 0 8px rgba(0, 0, 0, 0.08);
+}
+
+.checklistdek-client-panel:not(.is-collapsed) + .checklistdek-client-panel-tab,
+.checklistdek-client-panel-root:not(.is-collapsed) .checklistdek-client-panel-tab {
+	display: none;
+}
+
+.checklistdek-client-panel-root.is-collapsed .checklistdek-client-panel {
+	display: none;
+}
+
+.checklistdek-client-step-notes {
+	margin-top: 10px;
+}
+
+.checklistdek-client-step-notes-toggle {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	margin: 0 0 6px;
+	padding: 0;
+	border: 0;
+	background: none;
+	font-size: 11px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.02em;
+	color: #646970;
+	cursor: pointer;
+}
+
+.checklistdek-client-step-notes-toggle:hover,
+.checklistdek-client-step-notes-toggle:focus {
+	color: #1d2327;
+}
+
+.checklistdek-client-step-notes-toggle .checklistdek-client-step-chevron {
+	flex-shrink: 0;
+}
+
+.checklistdek-client-step-notes-title {
+	margin: 0;
+}
+
+.checklistdek-client-step-notes.is-collapsed .checklistdek-client-note-list {
+	display: none;
+}
+
+.checklistdek-client-note-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: grid;
+	gap: 8px;
+}
+
+.checklistdek-client-note {
+	padding: 8px;
+	border-radius: 4px;
+	background: #f6f7f7;
+	border: 1px solid #dcdcde;
+}
+
+.checklistdek-client-note-meta {
+	display: block;
+	font-size: 11px;
+	font-weight: 600;
+	color: #50575e;
+	margin-bottom: 4px;
+}
+
+.checklistdek-client-note-user {
+	display: block;
+	font-size: 11px;
+	font-weight: 600;
+	color: #50575e;
+	margin-bottom: 4px;
+}
+
+.checklistdek-client-note-text {
+	margin: 0;
+	font-size: 12px;
+	color: #1d2327;
+	white-space: pre-wrap;
+}
+
+.checklistdek-client-note-attachment img {
+	display: block;
+	max-width: 100%;
+	height: auto;
+	margin-top: 6px;
+	border-radius: 3px;
+	border: 1px solid #c3c4c7;
+}
+
+.checklistdek-client-note-form {
+	margin-top: 10px;
+}
+
+.checklistdek-client-note-form-settings,
+.checklistdek-client-step-settings {
+	margin-bottom: 6px;
+}
+
+.checklistdek-client-note-form-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	align-items: center;
+}
+
+.checklistdek-client-note-form-actions .checklistdek-client-attach-screenshot[hidden] {
+	display: none;
+}
+
+.checklistdek-client-note-composer {
+	max-height: 0;
+	opacity: 0;
+	overflow: hidden;
+	transition: max-height 0.28s ease, opacity 0.22s ease, margin-top 0.28s ease;
+	margin-top: 0;
+}
+
+.checklistdek-client-note-composer.is-open {
+	max-height: 280px;
+	opacity: 1;
+	margin-top: 8px;
+}
+
+.checklistdek-client-note-composer-inner {
+	display: grid;
+	gap: 6px;
+}
+
+.checklistdek-client-note-input {
+	width: 100%;
+	font-size: 12px;
+	resize: vertical;
+}
+
+.checklistdek-client-note-attachment-preview {
+	position: relative;
+	display: inline-block;
+	max-width: 120px;
+}
+
+.checklistdek-client-note-attachment-preview img {
+	display: block;
+	max-width: 100%;
+	border-radius: 3px;
+	border: 1px solid #c3c4c7;
+}
+
+.checklistdek-client-remove-attachment {
+	position: absolute;
+	top: 2px;
+	right: 2px;
+	background: #fff;
+	border-radius: 50%;
+	width: 20px;
+	height: 20px;
+	line-height: 18px;
+	text-align: center;
+}
+
+/* Bottom dock */
+.checklistdek-client-panel-root.checklistdek-client-layout-bottom_dock {
+	position: fixed;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	top: auto;
+	z-index: 99998;
+}
+
+body.checklistdek-client-layout-bottom_dock #wpcontent {
+	padding-bottom: var(--checklistdek-client-dock-offset, 44px);
+}
+
+.checklistdek-client-bottom-dock {
+	background: #fff;
+	border-top: 1px solid #c3c4c7;
+	box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.checklistdek-client-bottom-dock-inner {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 8px 16px;
+	min-height: 44px;
+	flex-wrap: wrap;
+}
+
+.checklistdek-client-bottom-dock-copy {
+	display: flex;
+	align-items: baseline;
+	gap: 8px;
+	flex-wrap: wrap;
+	min-width: 0;
+}
+
+.checklistdek-client-bottom-dock-kicker {
+	font-size: 11px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.02em;
+	color: #646970;
+}
+
+.checklistdek-client-bottom-dock-title {
+	font-size: 13px;
+	font-weight: 600;
+	color: #1d2327;
+}
+
+.checklistdek-client-bottom-dock-progress-label {
+	font-size: 12px;
+	font-weight: 600;
+	color: #2271b1;
+	white-space: nowrap;
+}
+
+.checklistdek-client-bottom-dock-progress {
+	flex: 1 1 140px;
+	min-width: 120px;
+	max-width: 280px;
+}
+
+.checklistdek-client-bottom-dock-current {
+	flex: 1 1 200px;
+	min-width: 0;
+	font-size: 12px;
+	color: #50575e;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.checklistdek-client-bottom-dock-drawer {
+	max-height: min(60vh, 520px);
+	overflow: auto;
+	border-bottom: 1px solid #dcdcde;
+	background: #fff;
+}
+
+.checklistdek-client-bottom-dock-drawer.is-collapsed {
+	display: none;
+}
+
+/* Floating pill */
+.checklistdek-client-panel-root.checklistdek-client-layout-floating_pill {
+	position: fixed;
+	right: 20px;
+	bottom: 20px;
+	top: auto;
+	left: auto;
+	width: auto;
+	z-index: 99998;
+}
+
+.checklistdek-client-pill-trigger {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 44px;
+	padding: 0 16px;
+	border: 0;
+	border-radius: 999px;
+	background: #2271b1;
+	color: #fff;
+	font-size: 12px;
+	font-weight: 600;
+	cursor: pointer;
+	box-shadow: 0 8px 24px rgba(34, 113, 177, 0.35);
+}
+
+.checklistdek-client-floating-pill.is-expanded .checklistdek-client-panel {
+	position: relative;
+	top: auto;
+	right: auto;
+	width: min(320px, calc(100vw - 40px));
+	max-height: min(70vh, 560px);
+	margin-bottom: 10px;
+	border-right: 1px solid #c3c4c7;
+	box-shadow: 0 12px 32px rgba(0, 0, 0, 0.16);
+}
+
+/* Toast */
+.checklistdek-client-panel-root.checklistdek-client-layout-toast {
+	position: fixed;
+	right: 20px;
+	bottom: 20px;
+	top: auto;
+	left: auto;
+	width: min(360px, calc(100vw - 40px));
+	z-index: 99998;
+}
+
+.checklistdek-client-toast-trigger {
+	display: block;
+	width: 100%;
+	padding: 12px 14px;
+	border: 1px solid #72aee6;
+	border-radius: 8px;
+	background: #fff;
+	color: #1d2327;
+	font-size: 12px;
+	font-weight: 600;
+	text-align: left;
+	cursor: pointer;
+	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.checklistdek-client-toast-panel {
+	border: 1px solid #c3c4c7;
+	border-radius: 8px;
+	background: #fff;
+	box-shadow: 0 12px 32px rgba(0, 0, 0, 0.16);
+	overflow: hidden;
+}
+
+.checklistdek-client-toast-panel .checklistdek-client-panel-header,
+.checklistdek-client-toast-panel .checklistdek-client-panel-progress-wrap,
+.checklistdek-client-toast-panel .checklistdek-client-panel-body {
+	padding-left: 14px;
+	padding-right: 14px;
+}
+
+.checklistdek-client-toast-panel .checklistdek-client-panel-body {
+	max-height: min(60vh, 480px);
+	overflow: auto;
+	padding-bottom: 14px;
+}
+
+/* Admin bar flyout */
+.checklistdek-client-panel-root.checklistdek-client-layout-admin_menu {
+	position: fixed;
+	top: 32px;
+	right: 16px;
+	left: auto;
+	width: min(360px, calc(100vw - 32px));
+	z-index: 99999;
+}
+
+.checklistdek-client-admin-menu-trigger {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	padding: 8px 12px;
+	border: 1px solid #c3c4c7;
+	border-radius: 6px;
+	background: #2271b1;
+	color: #fff;
+	cursor: pointer;
+	font-size: 12px;
+	font-weight: 600;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.checklistdek-client-admin-menu-trigger:hover,
+.checklistdek-client-admin-menu-trigger:focus {
+	background: #135e96;
+	color: #fff;
+}
+
+.checklistdek-client-admin-flyout {
+	border: 1px solid #c3c4c7;
+	border-radius: 6px;
+	background: #fff;
+	box-shadow: 0 12px 32px rgba(0, 0, 0, 0.16);
+	overflow: hidden;
+}
+
+.checklistdek-client-admin-flyout .checklistdek-client-panel-body {
+	max-height: min(70vh, 560px);
+	overflow: auto;
+}
+
+body.checklistdek-client-layout-admin_menu #wpadminbar #wp-admin-bar-checklistdek-client-checklist > a,
+body.checklistdek-client-layout-fullscreen #wpadminbar #wp-admin-bar-checklistdek-client-checklist > a,
+body.checklistdek-client-layout-toast #wpadminbar #wp-admin-bar-checklistdek-client-checklist > a,
+body.checklistdek-client-layout-floating_pill #wpadminbar #wp-admin-bar-checklistdek-client-checklist > a,
+body.checklistdek-client-layout-bottom_dock #wpadminbar #wp-admin-bar-checklistdek-client-checklist > a {
+	font-weight: 600;
+}
+
+/* Fullscreen overlay */
+.checklistdek-client-panel-root.checklistdek-client-layout-fullscreen {
+	position: fixed;
+	inset: 0;
+	z-index: 100000;
+}
+
+.checklistdek-client-fullscreen-open {
+	position: fixed;
+	right: 20px;
+	bottom: 20px;
+	z-index: 99998;
+}
+
+.checklistdek-client-fullscreen-backdrop {
+	position: fixed;
+	inset: 0;
+	border: 0;
+	padding: 0;
+	background: rgba(29, 35, 39, 0.55);
+	cursor: pointer;
+}
+
+.checklistdek-client-fullscreen-dialog {
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	width: min(720px, calc(100vw - 32px));
+	max-height: min(85vh, 760px);
+	overflow: auto;
+	border: 1px solid #c3c4c7;
+	border-radius: 8px;
+	background: #fff;
+	box-shadow: 0 20px 48px rgba(0, 0, 0, 0.24);
+}
+
+body.checklistdek-client-fullscreen-open {
+	overflow: hidden;
+}
+
+/* Focus mode */
+.checklistdek-client-panel-root.checklistdek-client-layout-focus_mode {
+	position: fixed;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 24px;
+	pointer-events: none;
+	z-index: 99997;
+}
+
+.checklistdek-client-panel.is-focus {
+	position: relative;
+	top: auto;
+	right: auto;
+	width: min(560px, 100%);
+	max-height: min(80vh, 640px);
+	pointer-events: auto;
+	border: 1px solid #72aee6;
+	border-radius: 8px;
+	box-shadow: 0 16px 40px rgba(34, 113, 177, 0.18);
+}
+
+.checklistdek-client-step-list-focus {
+	max-width: 100%;
+}
+
+/* Inline metabox */
+.checklistdek-client-metabox-root .checklistdek-client-panel-root,
+.checklistdek-client-metabox-root.checklistdek-client-panel-root {
+	position: static;
+	width: 100%;
+	z-index: auto;
+}
+
+.checklistdek-client-panel.is-metabox,
+.checklistdek-client-metabox-root .checklistdek-client-panel {
+	position: static;
+	top: auto;
+	right: auto;
+	width: 100%;
+	max-height: none;
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+	box-shadow: none;
+}
+
+.checklistdek-client-metabox-root .checklistdek-client-panel-body {
+	max-height: 420px;
+	overflow: auto;
+}
+
+.checklistdek-client-panel.is-metabox.is-collapsed {
+	border-color: #c3c4c7;
+}
+
+.checklistdek-client-panel-collapsed-meta {
+	margin: 6px 0 0;
+	font-size: 12px;
+	font-weight: 600;
+	color: #2271b1;
+}

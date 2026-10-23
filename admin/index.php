@@ -2,5 +2,5 @@
 /**
  * Silence is golden.
  *
- * @package LaunchDek
+ * @package ChecklistDek
  */

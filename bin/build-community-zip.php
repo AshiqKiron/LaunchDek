@@ -3,9 +3,9 @@
 /**
  * Build the Community (WordPress.org) zip — Pro PHP and templates omitted.
  *
- * Usage: php bin/build-community-zip.php [--output=dist/launchdek-community.zip]
+ * Usage: php bin/build-community-zip.php [--output=dist/checklistdek-community.zip]
  *
- * @package LaunchDek
+ * @package ChecklistDek
  */
 
 if ( 'cli' !== PHP_SAPI ) {
@@ -14,7 +14,7 @@ if ( 'cli' !== PHP_SAPI ) {
 }
 
 $root = dirname( __DIR__ );
-$out  = $root . '/dist/launchdek-community.zip';
+$out  = $root . '/dist/checklistdek-community.zip';
 
 foreach ( array_slice( $argv, 1 ) as $arg ) {
 	if ( 0 === strpos( $arg, '--output=' ) ) {
@@ -44,20 +44,20 @@ $exclude_paths = array(
 	'node_modules',
 	'dist',
 	'bin',
-	'includes/class-launchdek-auto-capture.php',
-	'includes/class-launchdek-email-notifier.php',
-	'includes/class-launchdek-webhook-dispatcher.php',
-	'includes/class-launchdek-drift-cron.php',
-	'includes/launchdek-freemius.php',
-	'admin/partials/launchdek-billing-page.php',
+	'includes/class-checklistdek-auto-capture.php',
+	'includes/class-checklistdek-email-notifier.php',
+	'includes/class-checklistdek-webhook-dispatcher.php',
+	'includes/class-checklistdek-drift-cron.php',
+	'includes/checklistdek-freemius.php',
+	'admin/partials/checklistdek-billing-page.php',
 	'composer.json',
 	'composer.lock',
 	'phpcs.xml.dist',
 	'phpunit.xml.dist',
 );
 
-$staging = sys_get_temp_dir() . '/launchdek-community-' . uniqid( '', true );
-$plugin_dir = $staging . '/launchdek';
+$staging = sys_get_temp_dir() . '/checklistdek-community-' . uniqid( '', true );
+$plugin_dir = $staging . '/checklistdek';
 
 /**
  * @param string $dir Directory.
@@ -185,24 +185,24 @@ foreach ( $iterator as $file ) {
 	copy_file( $file->getPathname(), $target );
 }
 
-$bootstrap = $plugin_dir . '/launchdek.php';
+$bootstrap = $plugin_dir . '/checklistdek.php';
 $contents  = file_get_contents( $bootstrap );
 if ( false === $contents ) {
-	fwrite( STDERR, "Could not read launchdek.php in staging.\n" );
+	fwrite( STDERR, "Could not read checklistdek.php in staging.\n" );
 	exit( 1 );
 }
 
-$needle = "require_once LAUNCHDEK_PLUGIN_DIR . 'includes/launchdek-build.php';";
-$insert = "define( 'LAUNCHDEK_BUILD', 'community' );\n\n" . $needle;
+$needle = "require_once CHECKLISTDEK_PLUGIN_DIR . 'includes/checklistdek-build.php';";
+$insert = "define( 'CHECKLISTDEK_BUILD', 'community' );\n\n" . $needle;
 if ( false === strpos( $contents, $needle ) ) {
-	fwrite( STDERR, "launchdek.php bootstrap marker not found.\n" );
+	fwrite( STDERR, "checklistdek.php bootstrap marker not found.\n" );
 	exit( 1 );
 }
-if ( false === strpos( $contents, "define( 'LAUNCHDEK_BUILD', 'community' );" ) ) {
+if ( false === strpos( $contents, "define( 'CHECKLISTDEK_BUILD', 'community' );" ) ) {
 	$contents = str_replace( $needle, $insert, $contents );
 }
 
-$freemius_block = "if ( ! launchdek_is_community_build() ) {\n\trequire_once LAUNCHDEK_PLUGIN_DIR . 'includes/launchdek-freemius.php';\n}\n\n";
+$freemius_block = "if ( ! checklistdek_is_community_build() ) {\n\trequire_once CHECKLISTDEK_PLUGIN_DIR . 'includes/checklistdek-freemius.php';\n}\n\n";
 if ( false !== strpos( $contents, $freemius_block ) ) {
 	$contents = str_replace( $freemius_block, '', $contents );
 }
@@ -223,7 +223,7 @@ if ( true !== $zip->open( $out, ZipArchive::CREATE | ZipArchive::OVERWRITE ) ) {
 	exit( 1 );
 }
 
-$zip_root = 'launchdek';
+$zip_root = 'checklistdek';
 $files = new RecursiveIteratorIterator(
 	new RecursiveDirectoryIterator( $plugin_dir, RecursiveDirectoryIterator::SKIP_DOTS ),
 	RecursiveIteratorIterator::LEAVES_ONLY
