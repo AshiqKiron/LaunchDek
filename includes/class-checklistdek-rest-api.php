@@ -80,20 +80,6 @@ class CHECKLISTDEK_REST_API {
 			'permission_callback' => array( __CLASS__, 'can_edit_checklists' ),
 		) );
 
-		if ( checklistdek_includes_pro_package() ) {
-			register_rest_route( self::NAMESPACE, '/billing/summary', array(
-				'methods'             => 'GET',
-				'callback'            => array( __CLASS__, 'get_billing_summary' ),
-				'permission_callback' => array( __CLASS__, 'can_view_dashboard' ),
-			) );
-
-			register_rest_route( self::NAMESPACE, '/billing/plan', array(
-				'methods'             => 'POST',
-				'callback'            => array( __CLASS__, 'update_billing_plan' ),
-				'permission_callback' => array( __CLASS__, 'can_manage_settings' ),
-			) );
-		}
-
 		// Sites.
 		register_rest_route( self::NAMESPACE, '/sites', array(
 			array(
@@ -635,37 +621,6 @@ class CHECKLISTDEK_REST_API {
 		);
 	}
 
-	/**
-	 * Billing plan summary for admin UI.
-	 *
-	 * @return WP_REST_Response
-	 */
-	public static function get_billing_summary() {
-		return rest_ensure_response( CHECKLISTDEK_Licensing::get_summary() );
-	}
-
-	/**
-	 * Set hub plan (license activation hook point; manage_settings only).
-	 *
-	 * @param WP_REST_Request $request REST request.
-	 * @return WP_REST_Response|WP_Error
-	 */
-	public static function update_billing_plan( $request ) {
-		$data = $request->get_json_params();
-		$plan = is_array( $data ) ? sanitize_key( (string) ( $data['plan'] ?? '' ) ) : '';
-
-		if ( '' === $plan ) {
-			return new WP_Error( 'missing_plan', __( 'Plan is required.', 'checklistdek' ), array( 'status' => 400 ) );
-		}
-
-		$result = CHECKLISTDEK_Licensing::set_plan( $plan );
-		if ( is_wp_error( $result ) ) {
-			return $result;
-		}
-
-		return rest_ensure_response( CHECKLISTDEK_Licensing::get_summary() );
-	}
-
 	// Sites handlers.
 	public static function get_sites( $request ) {
 		$args = array(
@@ -719,10 +674,6 @@ class CHECKLISTDEK_REST_API {
 	}
 
 	public static function create_site( $request ) {
-		if ( ! CHECKLISTDEK_Licensing::can_add_site() ) {
-			return CHECKLISTDEK_Licensing::site_limit_error();
-		}
-
 		$data = $request->get_json_params();
 		if ( ! is_array( $data ) ) {
 			return new WP_Error( 'invalid_body', __( 'Invalid site data.', 'checklistdek' ), array( 'status' => 400 ) );
@@ -832,10 +783,6 @@ class CHECKLISTDEK_REST_API {
 	 * @return WP_REST_Response|WP_Error
 	 */
 	public static function get_site_capture( $request ) {
-		if ( ! CHECKLISTDEK_Licensing::can_use_auto_capture() ) {
-			return CHECKLISTDEK_Licensing::pro_required_error( __( 'Auto-capture', 'checklistdek' ) );
-		}
-
 		$id = absint( $request['id'] );
 
 		if ( ! CHECKLISTDEK_Site_Repository::find( $id ) ) {
@@ -858,10 +805,6 @@ class CHECKLISTDEK_REST_API {
 	 * @return WP_REST_Response|WP_Error
 	 */
 	public static function update_site_capture( $request ) {
-		if ( ! CHECKLISTDEK_Licensing::can_use_auto_capture() ) {
-			return CHECKLISTDEK_Licensing::pro_required_error( __( 'Auto-capture', 'checklistdek' ) );
-		}
-
 		$id   = absint( $request['id'] );
 		$data = $request->get_json_params();
 		$action = is_array( $data ) ? sanitize_key( $data['action'] ?? '' ) : '';
@@ -896,10 +839,6 @@ class CHECKLISTDEK_REST_API {
 	 * @return WP_REST_Response|WP_Error
 	 */
 	public static function clear_site_capture( $request ) {
-		if ( ! CHECKLISTDEK_Licensing::can_use_auto_capture() ) {
-			return CHECKLISTDEK_Licensing::pro_required_error( __( 'Auto-capture', 'checklistdek' ) );
-		}
-
 		$id = absint( $request['id'] );
 
 		if ( ! CHECKLISTDEK_Site_Repository::find( $id ) ) {
@@ -1474,10 +1413,6 @@ class CHECKLISTDEK_REST_API {
 	}
 
 	public static function get_vault() {
-		if ( ! CHECKLISTDEK_Licensing::can_use_agency_vault() ) {
-			return CHECKLISTDEK_Licensing::pro_required_error( __( 'Private Agency Vault', 'checklistdek' ) );
-		}
-
 		return rest_ensure_response(
 			CHECKLISTDEK_Checklist_Repository::summary_list(
 				array(
@@ -1489,10 +1424,6 @@ class CHECKLISTDEK_REST_API {
 	}
 
 	public static function save_to_vault( $request ) {
-		if ( ! CHECKLISTDEK_Licensing::can_use_agency_vault() ) {
-			return CHECKLISTDEK_Licensing::pro_required_error( __( 'Private Agency Vault', 'checklistdek' ) );
-		}
-
 		$data = $request->get_json_params();
 		$id   = absint( $data['checklist_id'] ?? 0 );
 		if ( ! $id ) {
@@ -1508,15 +1439,6 @@ class CHECKLISTDEK_REST_API {
 
 		if ( ! $template ) {
 			return new WP_Error( 'not_found', __( 'Template not found.', 'checklistdek' ), array( 'status' => 404 ) );
-		}
-
-		$category = CHECKLISTDEK_Templates::normalize_category( $template['category'] ?? '' );
-		if ( ! CHECKLISTDEK_Licensing::is_template_category_allowed( $category ) ) {
-			if ( checklistdek_is_community_build() ) {
-				return new WP_Error( 'not_found', __( 'Template not found.', 'checklistdek' ), array( 'status' => 404 ) );
-			}
-
-			return CHECKLISTDEK_Licensing::pro_required_error( __( 'This template category', 'checklistdek' ) );
 		}
 
 		$id = CHECKLISTDEK_Templates::clone_template( $template );

@@ -38,17 +38,13 @@ alwaysApply: false
 | `initTemplates()` | checklists (Templates tab) | category tabs, built-in grid + `#checklistdek-builtin-template-search` (cross-category search), vault save/list |
 | `initIntegrations()` | `integrations` | Two cards with `.checklistdek-card-heading-row--info-first` section info tooltips (`$section_tooltips` in partial). Platform Connectors Hub (`#checklistdek-connectors-notice`, `#checklistdek-connectors-list`, `#checklistdek-connector-modal` with `#checklistdek-connector-sync` → `checklistdek_integration_sync`, `#checklistdek-connector-preview` → `checklistdek_integration_sync` + `dry_run: 1`, `#checklistdek-connector-push` → `checklistdek_integration_push`; sync buttons hidden when `supports_sync` is false; WP Umbrella modal panel `#checklistdek-connector-wp-umbrella-config` — `#checklistdek-wp-umbrella-api-token` (Public API token, not per-site plugin key), `#checklistdek-wp-umbrella-token-status`, save/clear → `checklistdek_save_wp_umbrella_token` (server verifies token before persist; inline status/errors in token panel); connector + telemetry lists preloaded from `checklistdekAdmin.integrations` — `loadConnectors()` / `loadTelemetryRules()` skip ajax when cached, refresh after sync via `loadConnectors(true)` → `checklistdek_get_integrations`), telemetry rules (`#checklistdek-telemetry-notice`, `#checklistdek-telemetry-rules-table`, `#checklistdek-save-telemetry-rules` → `checklistdek_save_telemetry_rules`) |
 
-Billing page (`data-checklistdek-page="billing"`) has no dedicated page init — static PHP plan comparison table (`.checklistdek-billing-compare`) from `CHECKLISTDEK_Licensing::get_compare_features()`; **Current plan** / **Get Pro** / **Get Agency** CTAs in `.checklistdek-billing-compare-cta-row`.
+### Build edition gating (all plugin screens)
 
-### Plan gating (all plugin screens)
-
-On full builds only (`checklistdek_includes_pro_package()`): `checklistdekAdmin.billing` (`CHECKLISTDEK_Licensing::get_summary()`), `billingUrl`, and strings `billingProRequired`, `billingViewPlans`, `billingSiteLimit`. Community builds omit those keys entirely (not empty stubs). PHP also unsets capture-related `strings.*` when `!can_use_auto_capture()` and vault strings when `!can_use_agency_vault()`. Community gates:
+PHP unsets capture-related `strings.*` when `!can_use_auto_capture()` and vault strings when `!can_use_agency_vault()`. Community gates:
 
 - `initAutoCapture()` — no-ops when Auto-Capture markup is absent (Community omits tab/panel in PHP).
 - `loadVaultTemplates()` — no-ops when `#checklistdek-vault-list` is absent (Community omits vault card in PHP).
 - Settings **Webhooks & Email** tab — rendered only when `CHECKLISTDEK_Licensing::can_use_notifications()`; scheduled drift toggle only when `can_use_scheduled_drift()` (Community sees no Pro placeholders in Settings).
-
-REST `403` responses with `checklistdek_pro_required` / `checklistdek_site_limit` should surface billing strings with link to `billingUrl` only when those strings are localized (full builds).
 
 Each page init no-ops if `[data-checklistdek-page="{page}"]` is absent (except `initTemplates()`, which keys off `#checklistdek-builtin-templates`). Template picker and onboarding inits no-op if their modal element is absent; `initConfirmModal()` always prepares the ConfirmDialog root.
 
@@ -172,8 +168,6 @@ Key elements: `#checklistdek-template-picker-filters`, `#checklistdek-template-p
 	adminUrl: string,
 	pageSlug: string,
 	roles: object,      // WP role slug => translated label (for step target_roles UI)
-	billing?: object,   // CHECKLISTDEK_Licensing::get_summary() — only when checklistdek_includes_pro_package()
-	billingUrl?: string, // admin Billing page URL — only when checklistdek_includes_pro_package()
 	templates?: {       // dashboard, checklists, settings — template picker / built-in grid preload
 		preloaded: boolean,
 		builtin: array,
@@ -322,7 +316,6 @@ Prefix all selectors with `.checklistdek-`.
 | `.checklistdek-integration-card` | Legacy integration card style (prefer connector list) |
 | `.checklistdek-import-export` | Checklist import/export controls |
 | `.checklistdek-settings-*`, `.checklistdek-settings-nav`, `.checklistdek-settings-tab-panel`, `.checklistdek-settings-exclude-options`, `.checklistdek-settings-exclude-hints`, `.checklistdek-settings-exclude-hints-label`, `.checklistdek-settings-exclude-common-fields`, `.checklistdek-settings-panel-layout-picker`, `.checklistdek-settings-panel-layout-controls`, `.checklistdek-settings-panel-layout-select`, `.checklistdek-panel-layout-preview`, `.checklistdek-panel-layout-preview-frame`, `.checklistdek-panel-layout-preview-description`, `.checklistdek-settings-email-events`, `.checklistdek-settings-email-event`, `.checklistdek-settings-email-address` | Settings page nav tabs + cards, toggles, exclude-options textarea (`#checklistdek-exclude-options`; value via `CHECKLISTDEK_Settings::format_exclude_options_textarea()`; common-field hints list), client panel layout picker (`#checklistdek-panel-layout`, `#checklistdek-panel-layout-preview` with `data-layout`), webhook channels, email notifications (`#checklistdek-email-notification-address`), role presets, perm table |
-| `.checklistdek-billing-intro`, `.checklistdek-billing-compare-wrap`, `.checklistdek-billing-compare`, `.checklistdek-billing-compare-feature-col`, `.checklistdek-billing-compare-plan-col`, `.checklistdek-billing-compare-value-col`, `.checklistdek-billing-feature-label`, `.checklistdek-billing-yes`, `.checklistdek-billing-no`, `.checklistdek-billing-compare-cta-row`, `.checklistdek-billing-cta`, `.checklistdek-billing-cta--current`, `.checklistdek-billing-plan-name`, `.checklistdek-billing-plan-price`, `.checklistdek-billing-upgrade-notice` | Billing comparison table (full build only) |
 | `.checklistdek-notice-area .notice` | Inline success/error (WordPress core notice classes) |
 | `.checklistdek-grid-2` | Two-column layout |
 | `.checklistdek-select`, `.checklistdek-muted` | Form controls |
@@ -335,7 +328,7 @@ Hub admin CSS uses stacked toolbars/forms and horizontal scroll on wide tables b
 
 ## Partials (`admin/partials/`)
 
-Thin shells only — no business logic. Each page partial sets `data-checklistdek-page` on `.checklistdek-admin` root (including `settings`; `billing` only when `checklistdek_includes_pro_package()`). Settings page uses Settings API form, not REST-driven CRUD. Billing page is static PHP (three-column feature comparison + purchase CTAs); no modal partials; submenu omitted on Community builds.
+Thin shells only — no business logic. Each page partial sets `data-checklistdek-page` on `.checklistdek-admin` root (including `settings`). Settings page uses Settings API form, not REST-driven CRUD.
 
 Shared modal partials (require at end of page partial, do not duplicate markup):
 

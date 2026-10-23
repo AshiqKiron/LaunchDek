@@ -133,11 +133,11 @@ Many multi-site management tools centralize dashboards in the cloud, charge per 
 * **Transparent Client Experience**
   The bundled client panel is explicit, GPL-friendly, and deployed by you via manual upload to each client site’s `mu-plugins` folder (Community build), with **Retry panel install** to verify. Clients see progress where they work: WordPress admin.
 * **Honest Outbound Scope**
-  Allowed connections: registered remote sites, user-configured webhooks, optional `wp_mail` notifications, and user-initiated MainWP or WP Umbrella API sync—not background telemetry.
+  Allowed connections: registered remote sites and user-initiated MainWP or WP Umbrella API sync—not background telemetry. Email and webhook notifications are Pro/Agency features and are not bundled in this WordPress.org build.
 
 #### Privacy
 
-ChecklistDek Community does not send site or user data to ChecklistDek-operated analytics servers. Outbound requests are limited to user-registered remote WordPress sites (Application Password REST), client panel snapshot sync when you push a run (after you have manually installed the panel on each client site), user-configured webhook URLs, optional email notifications via WordPress `wp_mail`, and user-initiated integration sync (MainWP child sites or WP Umbrella Public API when you configure a token). WP Umbrella tokens are stored encrypted on the hub and are never returned in REST responses. Client run callback tokens travel only between hub and client panel—not in audit entries shown to non-privileged users.
+ChecklistDek Community does not send site or user data to ChecklistDek-operated analytics servers. Outbound requests are limited to user-registered remote WordPress sites (Application Password REST), client panel snapshot sync when you push a run (after you have manually installed the panel on each client site), and user-initiated integration sync (MainWP child sites or WP Umbrella Public API when you configure a token). This build does not include email notification or Slack/Discord/Teams webhook PHP; notification dispatch is a no-op stub. WP Umbrella tokens are stored encrypted on the hub and are never returned in REST responses. Client run callback tokens travel only between hub and client panel—not in audit entries shown to non-privileged users.
 
 #### Performance
 
@@ -302,6 +302,15 @@ Use of WP Umbrella is subject to your agreement with WP Umbrella (Liven Studio).
 
 
 == Changelog ==
+
+= 1.0.56 =
+* Remove Pro billing/licensing PHP; all builds use `includes/community/class-checklistdek-licensing.php` (build-edition feature flags only, no plan gates or site limits)
+* Drop Billing admin submenu, `/billing/*` REST routes, and `checklistdek_pro_required` / template category licensing checks on the free distribution
+* Community zip limits built-in templates (four categories) and client panel layouts (three options) by what is packaged in the zip; Pro zip ships the full template set and all panel layouts — no runtime category or layout filtering in licensing
+
+= 1.0.55 =
+* Community zip: omits Pro PHP (auto-capture hub + client, billing, Freemius, `class-checklistdek-email-notifier.php`, `class-checklistdek-webhook-dispatcher.php`, scheduled drift cron, hub auto-install/MainWP agent) and loads `includes/community/class-checklistdek-webhook-dispatcher.php` (no-op `dispatch`) plus other community stubs
+* Community build: Settings omits Webhooks & Email tab; client bootstrap download excludes auto-capture and Pro-only install REST helper files
 
 = 1.0.54 =
 * Fix: hub admin and client panel scripts now refresh the REST nonce on WordPress Heartbeat (namespaced jQuery listeners never received core `heartbeat-tick` events)

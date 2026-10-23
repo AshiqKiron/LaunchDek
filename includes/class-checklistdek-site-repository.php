@@ -202,15 +202,6 @@ class CHECKLISTDEK_Site_Repository {
 			);
 		}
 
-		if ( ! CHECKLISTDEK_Licensing::can_add_site() ) {
-			return array(
-				'action'  => 'skipped',
-				'reason'  => 'site_limit',
-				'site_id' => 0,
-				'url'     => $url,
-			);
-		}
-
 		$create = array(
 			'name'               => ! empty( $mapped['name'] ) ? $mapped['name'] : $url,
 			'url'                => $url,

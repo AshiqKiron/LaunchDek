@@ -331,54 +331,53 @@ class CHECKLISTDEK_Settings {
 	 * @return array<string, array{label: string, description: string}>
 	 */
 	public static function get_client_panel_layouts() {
-		return array(
-			'sidebar'        => array(
-				'label'       => __( 'Right sidebar floater', 'checklistdek' ),
-				'description' => __( 'Sticky panel on the right edge with a vertical expand tab when collapsed.', 'checklistdek' ),
-			),
-			'live_topbar'    => array(
-				'label'       => __( 'Live top bar', 'checklistdek' ),
-				'description' => __( 'Compact progress strip below the admin bar with a slide-down step drawer.', 'checklistdek' ),
-			),
-			'bottom_dock'    => array(
-				'label'       => __( 'Bottom dock', 'checklistdek' ),
-				'description' => __( 'Slim progress bar docked above the footer with a slide-up step drawer.', 'checklistdek' ),
-			),
-			'floating_pill'  => array(
-				'label'       => __( 'Floating pill', 'checklistdek' ),
-				'description' => __( 'Small progress chip in the bottom-right corner that expands into a compact panel.', 'checklistdek' ),
-			),
-			'toast'          => array(
-				'label'       => __( 'Notification toast', 'checklistdek' ),
-				'description' => __( 'Dismissible toast with current-step summary; expands into the full checklist on click.', 'checklistdek' ),
-			),
-			'admin_menu'     => array(
-				'label'       => __( 'Admin bar flyout', 'checklistdek' ),
-				'description' => __( 'Hidden until opened from the WordPress admin bar checklist shortcut.', 'checklistdek' ),
-			),
-			'fullscreen'     => array(
-				'label'       => __( 'Fullscreen overlay', 'checklistdek' ),
-				'description' => __( 'Modal takeover centered on screen for focused checklist completion.', 'checklistdek' ),
-			),
-			'focus_mode'     => array(
-				'label'       => __( 'Focus mode', 'checklistdek' ),
-				'description' => __( 'Single current-step card centered on screen with minimal distractions.', 'checklistdek' ),
-			),
-			'inline_metabox' => array(
-				'label'       => __( 'Inline metabox', 'checklistdek' ),
-				'description' => __( 'Embeds the checklist in the post/page editor sidebar metabox area.', 'checklistdek' ),
-			),
-		);
+		static $layouts = null;
+
+		if ( null !== $layouts ) {
+			return $layouts;
+		}
+
+		$file = checklistdek_get_client_panel_layouts_file();
+		if ( ! is_readable( $file ) ) {
+			$layouts = array();
+			return $layouts;
+		}
+
+		$loaded  = require $file;
+		$layouts = is_array( $loaded ) ? $loaded : array();
+
+		return $layouts;
 	}
 
 	/**
-	 * Sanitize a client panel layout slug.
+	 * Sanitize a client panel layout slug against the layouts shipped in this build.
+	 *
+	 * Community builds never consult licensing — only keys from get_client_panel_layouts().
 	 *
 	 * @param mixed $layout Raw layout input.
 	 * @return string
 	 */
 	public static function sanitize_client_panel_layout( $layout ) {
-		return CHECKLISTDEK_Licensing::sanitize_panel_layout( $layout );
+		if ( ! checklistdek_is_community_build() ) {
+			return CHECKLISTDEK_Licensing::sanitize_panel_layout( $layout );
+		}
+
+		$layout  = sanitize_key( (string) $layout );
+		$allowed = self::get_client_panel_layouts();
+
+		if ( isset( $allowed[ $layout ] ) ) {
+			return $layout;
+		}
+
+		$default = sanitize_key( (string) ( self::get_defaults()['client_panel_layout'] ?? 'live_topbar' ) );
+
+		if ( isset( $allowed[ $default ] ) ) {
+			return $default;
+		}
+
+		$keys = array_keys( $allowed );
+
+		return $keys ? (string) $keys[0] : 'live_topbar';
 	}
 
 	/**
@@ -387,7 +386,14 @@ class CHECKLISTDEK_Settings {
 	 * @return string
 	 */
 	public static function get_client_panel_layout() {
-		return CHECKLISTDEK_Licensing::get_effective_panel_layout();
+		if ( ! checklistdek_is_community_build() ) {
+			return CHECKLISTDEK_Licensing::get_effective_panel_layout();
+		}
+
+		$settings = self::get();
+		$stored   = sanitize_key( (string) ( $settings['client_panel_layout'] ?? 'live_topbar' ) );
+
+		return self::sanitize_client_panel_layout( $stored );
 	}
 
 	/**

@@ -1,6 +1,6 @@
 <?php
 /**
- * Community build stub — no Pro billing, plan gates, or trialware in the free distribution.
+ * Feature availability helpers (build edition only — no plan billing or trial gates).
  *
  * @package ChecklistDek
  */
@@ -10,51 +10,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Minimal licensing helpers for the WordPress.org Community build.
+ * Distribution helpers for templates, panel layout, and optional Pro PHP modules.
  */
 class CHECKLISTDEK_Licensing {
 
 	const OPTION_NAME = 'checklistdek_billing';
-
-	/**
-	 * Built-in template categories included in the WordPress.org Community build.
-	 *
-	 * @return string[]
-	 */
-	public static function get_community_template_categories() {
-		return array( 'security', 'maintenance', 'performance', 'ecommerce' );
-	}
-
-	/**
-	 * REST error when a feature is not in the Community distribution.
-	 *
-	 * @param string $feature_name Short feature label for the message.
-	 * @return WP_Error
-	 */
-	public static function pro_required_error( $feature_name ) {
-		return new WP_Error(
-			'checklistdek_pro_required',
-			sprintf(
-				/* translators: %s: feature name */
-				__( '%s is not available in the Community build.', 'checklistdek' ),
-				$feature_name
-			),
-			array(
-				'status' => 403,
-				'plan'   => 'community',
-			)
-		);
-	}
-
-	/**
-	 * Whether a built-in template category is available in Community.
-	 *
-	 * @param string $category Category slug.
-	 * @return bool
-	 */
-	public static function is_template_category_allowed( $category ) {
-		return in_array( sanitize_key( $category ), self::get_community_template_categories(), true );
-	}
 
 	/**
 	 * @return bool
@@ -67,60 +27,41 @@ class CHECKLISTDEK_Licensing {
 	 * @return bool
 	 */
 	public static function can_use_agency_vault() {
-		return false;
+		return checklistdek_includes_pro_package();
 	}
 
 	/**
 	 * @return bool
 	 */
 	public static function can_use_auto_capture() {
-		return false;
+		return checklistdek_includes_pro_package();
 	}
 
 	/**
 	 * @return bool
 	 */
 	public static function can_use_notifications() {
-		return false;
+		return checklistdek_includes_pro_package();
 	}
 
 	/**
 	 * @return bool
 	 */
 	public static function can_use_scheduled_drift() {
-		return false;
+		return checklistdek_includes_pro_package();
 	}
 
 	/**
-	 * Client panel layouts included in the Community distribution.
-	 *
-	 * @return string[]
-	 */
-	public static function get_community_panel_layouts() {
-		return array( 'live_topbar', 'bottom_dock', 'floating_pill' );
-	}
-
-	/**
-	 * Panel layout choices for Settings UI (Community subset only).
+	 * Panel layout choices for Settings UI (full / Pro hub only — not used on Community builds).
 	 *
 	 * @return array<string, array{label: string, description: string}>
 	 */
 	public static function get_panel_layouts_for_plan() {
-		$all     = CHECKLISTDEK_Settings::get_client_panel_layouts();
-		$allowed = self::get_community_panel_layouts();
-		$out     = array();
-
-		foreach ( $allowed as $slug ) {
-			if ( isset( $all[ $slug ] ) ) {
-				$out[ $slug ] = $all[ $slug ];
-			}
-		}
-
-		return $out;
+		return CHECKLISTDEK_Settings::get_client_panel_layouts();
 	}
 
 	/**
-	 * Sanitize a panel layout slug for Community.
+	 * Sanitize a panel layout slug for the current plan (full / Pro hub only).
 	 *
 	 * @param mixed $layout Raw layout.
 	 * @return string
@@ -133,13 +74,13 @@ class CHECKLISTDEK_Licensing {
 			return $layout;
 		}
 
-		$community = self::get_community_panel_layouts();
+		$default = sanitize_key( (string) ( CHECKLISTDEK_Settings::get_defaults()['client_panel_layout'] ?? 'live_topbar' ) );
 
-		return $community[0];
+		return isset( $allowed[ $default ] ) ? $default : 'live_topbar';
 	}
 
 	/**
-	 * Layout pushed to client snapshots (Community plan layouts only).
+	 * Layout pushed to client snapshots (full / Pro hub only).
 	 *
 	 * @return string
 	 */
@@ -159,23 +100,11 @@ class CHECKLISTDEK_Licensing {
 			return array();
 		}
 
-		return array_values(
-			array_filter(
-				$templates,
-				function ( $row ) {
-					if ( ! is_array( $row ) ) {
-						return false;
-					}
-					$category = CHECKLISTDEK_Templates::normalize_category( $row['category'] ?? '' );
-
-					return self::is_template_category_allowed( $category );
-				}
-			)
-		);
+		return array_values( $templates );
 	}
 
 	/**
-	 * Template category metadata for admin UI (only categories present in the shipped catalog).
+	 * Template category metadata for admin UI (categories present in the shipped catalog).
 	 *
 	 * @return array<string, array{label: string, description: string}>
 	 */
@@ -203,11 +132,15 @@ class CHECKLISTDEK_Licensing {
 	}
 
 	/**
-	 * Schedule or clear automated drift verification (Community: always clear).
+	 * Schedule or clear automated drift verification based on build edition.
 	 *
 	 * @return void
 	 */
 	public static function sync_drift_cron() {
-		CHECKLISTDEK_Drift_Cron::deactivate();
+		if ( self::can_use_scheduled_drift() ) {
+			CHECKLISTDEK_Drift_Cron::activate();
+		} else {
+			CHECKLISTDEK_Drift_Cron::deactivate();
+		}
 	}
 }

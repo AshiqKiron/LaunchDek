@@ -26,10 +26,10 @@ class CHECKLISTDEK_Activator {
 		require_once CHECKLISTDEK_PLUGIN_DIR . 'includes/class-checklistdek-site-repository.php';
 		require_once CHECKLISTDEK_PLUGIN_DIR . 'includes/class-checklistdek-checklist-repository.php';
 		require_once CHECKLISTDEK_PLUGIN_DIR . 'includes/class-checklistdek-run-repository.php';
-		require_once CHECKLISTDEK_PLUGIN_DIR . 'includes/class-checklistdek-licensing.php';
-		if ( ! function_exists( 'checklistdek_get_drift_cron_file' ) ) {
+		if ( ! function_exists( 'checklistdek_get_licensing_file' ) ) {
 			require_once CHECKLISTDEK_PLUGIN_DIR . 'includes/checklistdek-build.php';
 		}
+		require_once checklistdek_get_licensing_file();
 		require_once checklistdek_get_drift_cron_file();
 		require_once CHECKLISTDEK_PLUGIN_DIR . 'includes/class-checklistdek-admin.php';
 

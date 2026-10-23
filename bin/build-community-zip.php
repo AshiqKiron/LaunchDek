@@ -52,13 +52,14 @@ $exclude_paths = array(
 	'includes/class-checklistdek-email-notifier.php',
 	'includes/class-checklistdek-webhook-dispatcher.php',
 	'includes/class-checklistdek-drift-cron.php',
-	'includes/class-checklistdek-licensing.php',
+	'includes/client-panel-layouts.php',
 	'includes/checklistdek-freemius.php',
 	'admin/partials/checklistdek-billing-page.php',
 	'composer.json',
 	'composer.lock',
 	'phpcs.xml.dist',
 	'phpunit.xml.dist',
+	'ChecklistDek.code-workspace',
 );
 
 $staging = sys_get_temp_dir() . '/checklistdek-community-' . uniqid( '', true );

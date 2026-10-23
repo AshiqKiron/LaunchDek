@@ -46,10 +46,6 @@ class CHECKLISTDEK_Admin {
 			self::PAGE_SLUG . '-settings' => array( __( 'Settings', 'checklistdek' ), 'render_settings_page' ),
 		);
 
-		if ( checklistdek_includes_pro_package() ) {
-			$pages[ self::PAGE_SLUG . '-billing' ] = array( __( 'Billing', 'checklistdek' ), 'render_billing_page' );
-		}
-
 		foreach ( $pages as $slug => $page ) {
 			add_submenu_page(
 				self::PAGE_SLUG,
@@ -548,14 +544,6 @@ class CHECKLISTDEK_Admin {
 				),
 		);
 
-		if ( checklistdek_includes_pro_package() ) {
-			$localize['billing']     = CHECKLISTDEK_Licensing::get_summary();
-			$localize['billingUrl']  = admin_url( 'admin.php?page=' . self::PAGE_SLUG . '-billing' );
-			$localize['strings']['billingProRequired'] = __( 'This feature is available on Pro and Agency plans.', 'checklistdek' );
-			$localize['strings']['billingViewPlans']   = __( 'View plans', 'checklistdek' );
-			$localize['strings']['billingSiteLimit']   = __( 'Your plan has reached its site limit. Upgrade on Billing to add more sites.', 'checklistdek' );
-		}
-
 		if ( ! CHECKLISTDEK_Licensing::can_use_auto_capture() ) {
 			foreach ( array(
 				'captureSelectSite',
@@ -760,18 +748,6 @@ class CHECKLISTDEK_Admin {
 			array(
 				'page'                   => 'integrations',
 				'integrations_bootstrap' => CHECKLISTDEK_Integrations::get_page_bootstrap(),
-			)
-		);
-	}
-
-	public function render_billing_page() {
-		if ( ! CHECKLISTDEK_Capabilities::current_user_can( CHECKLISTDEK_Capabilities::MANAGE_SETTINGS ) ) {
-			wp_die( esc_html__( 'You do not have sufficient permissions.', 'checklistdek' ) );
-		}
-		$this->render_page(
-			'checklistdek-billing-page.php',
-			array(
-				'page' => 'billing',
 			)
 		);
 	}

@@ -48,11 +48,22 @@ function checklistdek_can_auto_deploy_client_panel() {
  * @return string
  */
 function checklistdek_get_licensing_file() {
+	return CHECKLISTDEK_PLUGIN_DIR . 'includes/community/class-checklistdek-licensing.php';
+}
+
+/**
+ * Client panel layout catalog for this build edition.
+ *
+ * Community zips ship `includes/community/client-panel-layouts.php` only; Pro/full zips ship all layouts.
+ *
+ * @return string
+ */
+function checklistdek_get_client_panel_layouts_file() {
 	if ( checklistdek_is_community_build() ) {
-		return CHECKLISTDEK_PLUGIN_DIR . 'includes/community/class-checklistdek-licensing.php';
+		return CHECKLISTDEK_PLUGIN_DIR . 'includes/community/client-panel-layouts.php';
 	}
 
-	return CHECKLISTDEK_PLUGIN_DIR . 'includes/class-checklistdek-licensing.php';
+	return CHECKLISTDEK_PLUGIN_DIR . 'includes/client-panel-layouts.php';
 }
 
 /**
