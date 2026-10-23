@@ -26,10 +26,9 @@ class CHECKLISTDEK_Activator {
 		require_once CHECKLISTDEK_PLUGIN_DIR . 'includes/class-checklistdek-site-repository.php';
 		require_once CHECKLISTDEK_PLUGIN_DIR . 'includes/class-checklistdek-checklist-repository.php';
 		require_once CHECKLISTDEK_PLUGIN_DIR . 'includes/class-checklistdek-run-repository.php';
-		if ( ! function_exists( 'checklistdek_get_licensing_file' ) ) {
+		if ( ! function_exists( 'checklistdek_sync_drift_cron' ) ) {
 			require_once CHECKLISTDEK_PLUGIN_DIR . 'includes/checklistdek-build.php';
 		}
-		require_once checklistdek_get_licensing_file();
 		require_once checklistdek_get_drift_cron_file();
 		require_once CHECKLISTDEK_PLUGIN_DIR . 'includes/class-checklistdek-admin.php';
 
@@ -41,7 +40,7 @@ class CHECKLISTDEK_Activator {
 
 		CHECKLISTDEK_Installer::install();
 		CHECKLISTDEK_Capabilities::register();
-		CHECKLISTDEK_Licensing::sync_drift_cron();
+		checklistdek_sync_drift_cron();
 
 		update_option( CHECKLISTDEK_Settings::VERSION_OPTION, CHECKLISTDEK_VERSION, false );
 		update_option( CHECKLISTDEK_Installer::DB_VERSION_OPTION, CHECKLISTDEK_Installer::DB_VERSION, false );

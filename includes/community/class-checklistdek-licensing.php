@@ -1,6 +1,8 @@
 <?php
 /**
- * Feature availability helpers (build edition only — no plan billing or trial gates).
+ * Full / Pro distribution licensing helpers (panel plan scope, template filters).
+ *
+ * Not loaded or shipped in the Community zip — use checklistdek_includes_pro_package() there.
  *
  * @package ChecklistDek
  */
@@ -137,10 +139,6 @@ class CHECKLISTDEK_Licensing {
 	 * @return void
 	 */
 	public static function sync_drift_cron() {
-		if ( self::can_use_scheduled_drift() ) {
-			CHECKLISTDEK_Drift_Cron::activate();
-		} else {
-			CHECKLISTDEK_Drift_Cron::deactivate();
-		}
+		checklistdek_sync_drift_cron();
 	}
 }

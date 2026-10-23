@@ -4,7 +4,7 @@ Tags: agency, checklist, site management, onboarding, workflow
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.0.0
+Stable tag: 1.0.56
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 

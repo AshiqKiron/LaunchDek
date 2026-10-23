@@ -544,7 +544,7 @@ class CHECKLISTDEK_Admin {
 				),
 		);
 
-		if ( ! CHECKLISTDEK_Licensing::can_use_auto_capture() ) {
+		if ( ! checklistdek_includes_pro_package() ) {
 			foreach ( array(
 				'captureSelectSite',
 				'captureNeedPanel',
@@ -560,7 +560,7 @@ class CHECKLISTDEK_Admin {
 			}
 		}
 
-		if ( ! CHECKLISTDEK_Licensing::can_use_agency_vault() ) {
+		if ( ! checklistdek_includes_pro_package() ) {
 			unset( $localize['strings']['savedToVault'], $localize['strings']['noVaultTemplates'] );
 		}
 
@@ -590,7 +590,7 @@ class CHECKLISTDEK_Admin {
 			$localize['templates'] = array(
 				'preloaded'  => true,
 				'builtin'    => CHECKLISTDEK_Templates::get_catalog(),
-				'categories' => CHECKLISTDEK_Licensing::get_template_categories_for_plan(),
+				'categories' => CHECKLISTDEK_Templates::get_categories_for_catalog(),
 			);
 		}
 

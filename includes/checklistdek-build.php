@@ -13,6 +13,10 @@ if ( ! defined( 'CHECKLISTDEK_BUILD' ) ) {
 	define( 'CHECKLISTDEK_BUILD', 'full' );
 }
 
+if ( ! defined( 'CHECKLISTDEK_LEGACY_BILLING_OPTION' ) ) {
+	define( 'CHECKLISTDEK_LEGACY_BILLING_OPTION', 'checklistdek_billing' );
+}
+
 /**
  * Whether this install is the Community (free) distribution build.
  *
@@ -43,12 +47,42 @@ function checklistdek_can_auto_deploy_client_panel() {
 }
 
 /**
- * Licensing class file for this build.
+ * Licensing class file for full / Pro distributions (not shipped or loaded on Community).
  *
  * @return string
  */
 function checklistdek_get_licensing_file() {
 	return CHECKLISTDEK_PLUGIN_DIR . 'includes/community/class-checklistdek-licensing.php';
+}
+
+/**
+ * Load plan / edition licensing helpers when bundled (full build only).
+ *
+ * @return void
+ */
+function checklistdek_require_licensing() {
+	if ( checklistdek_is_community_build() ) {
+		return;
+	}
+
+	require_once checklistdek_get_licensing_file();
+}
+
+/**
+ * Schedule or clear automated drift verification based on build edition.
+ *
+ * @return void
+ */
+function checklistdek_sync_drift_cron() {
+	if ( ! class_exists( 'CHECKLISTDEK_Drift_Cron', false ) ) {
+		return;
+	}
+
+	if ( checklistdek_includes_pro_package() ) {
+		CHECKLISTDEK_Drift_Cron::activate();
+	} else {
+		CHECKLISTDEK_Drift_Cron::deactivate();
+	}
 }
 
 /**

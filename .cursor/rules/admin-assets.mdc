@@ -40,11 +40,11 @@ alwaysApply: false
 
 ### Build edition gating (all plugin screens)
 
-PHP unsets capture-related `strings.*` when `!can_use_auto_capture()` and vault strings when `!can_use_agency_vault()`. Community gates:
+PHP unsets capture/vault-related `strings.*` when `!checklistdek_includes_pro_package()`. Community gates:
 
 - `initAutoCapture()` — no-ops when Auto-Capture markup is absent (Community omits tab/panel in PHP).
 - `loadVaultTemplates()` — no-ops when `#checklistdek-vault-list` is absent (Community omits vault card in PHP).
-- Settings **Webhooks & Email** tab — rendered only when `CHECKLISTDEK_Licensing::can_use_notifications()`; scheduled drift toggle only when `can_use_scheduled_drift()` (Community sees no Pro placeholders in Settings).
+- Settings **Webhooks & Email** tab — rendered only when `checklistdek_includes_pro_package()`; scheduled drift toggle only when `checklistdek_includes_pro_package()` (Community sees no Pro placeholders in Settings).
 
 Each page init no-ops if `[data-checklistdek-page="{page}"]` is absent (except `initTemplates()`, which keys off `#checklistdek-builtin-templates`). Template picker and onboarding inits no-op if their modal element is absent; `initConfirmModal()` always prepares the ConfirmDialog root.
 

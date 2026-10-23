@@ -125,7 +125,7 @@ class CHECKLISTDEK_Settings {
 		}
 
 		$checkboxes = array( 'enabled', 'encrypt_credentials' );
-		if ( CHECKLISTDEK_Licensing::can_use_scheduled_drift() ) {
+		if ( checklistdek_includes_pro_package() ) {
 			$checkboxes[] = 'drift_verification_enabled';
 		}
 		foreach ( $checkboxes as $key ) {
@@ -136,7 +136,7 @@ class CHECKLISTDEK_Settings {
 			}
 		}
 
-		if ( CHECKLISTDEK_Licensing::can_use_notifications() ) {
+		if ( checklistdek_includes_pro_package() ) {
 			$urls = array( 'slack_webhook', 'discord_webhook', 'teams_webhook' );
 			foreach ( $urls as $key ) {
 				if ( isset( $input[ $key ] ) ) {
@@ -350,20 +350,29 @@ class CHECKLISTDEK_Settings {
 	}
 
 	/**
-	 * Sanitize a client panel layout slug against the layouts shipped in this build.
+	 * Panel layout options allowed for Settings UI and sanitization on this install.
 	 *
-	 * Community builds never consult licensing — only keys from get_client_panel_layouts().
+	 * Community builds: catalog shipped in the zip (no licensing). Full builds: plan-scoped via licensing.
+	 *
+	 * @return array<string, array{label: string, description: string}>
+	 */
+	public static function get_client_panel_layout_choices() {
+		if ( checklistdek_is_community_build() ) {
+			return self::get_client_panel_layouts();
+		}
+
+		return CHECKLISTDEK_Licensing::get_panel_layouts_for_plan();
+	}
+
+	/**
+	 * Sanitize a client panel layout slug.
 	 *
 	 * @param mixed $layout Raw layout input.
 	 * @return string
 	 */
 	public static function sanitize_client_panel_layout( $layout ) {
-		if ( ! checklistdek_is_community_build() ) {
-			return CHECKLISTDEK_Licensing::sanitize_panel_layout( $layout );
-		}
-
 		$layout  = sanitize_key( (string) $layout );
-		$allowed = self::get_client_panel_layouts();
+		$allowed = self::get_client_panel_layout_choices();
 
 		if ( isset( $allowed[ $layout ] ) ) {
 			return $layout;
@@ -386,10 +395,6 @@ class CHECKLISTDEK_Settings {
 	 * @return string
 	 */
 	public static function get_client_panel_layout() {
-		if ( ! checklistdek_is_community_build() ) {
-			return CHECKLISTDEK_Licensing::get_effective_panel_layout();
-		}
-
 		$settings = self::get();
 		$stored   = sanitize_key( (string) ( $settings['client_panel_layout'] ?? 'live_topbar' ) );
 

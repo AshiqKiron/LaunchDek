@@ -52,6 +52,7 @@ $exclude_paths = array(
 	'includes/class-checklistdek-email-notifier.php',
 	'includes/class-checklistdek-webhook-dispatcher.php',
 	'includes/class-checklistdek-drift-cron.php',
+	'includes/community/class-checklistdek-licensing.php',
 	'includes/client-panel-layouts.php',
 	'includes/checklistdek-freemius.php',
 	'admin/partials/checklistdek-billing-page.php',

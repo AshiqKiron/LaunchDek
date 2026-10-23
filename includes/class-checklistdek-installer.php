@@ -128,7 +128,7 @@ class CHECKLISTDEK_Installer {
 
 		$option_map = array(
 			'launchdek_settings'            => CHECKLISTDEK_Settings::OPTION_NAME,
-			'launchdek_billing'             => CHECKLISTDEK_Licensing::OPTION_NAME,
+			'launchdek_billing'             => CHECKLISTDEK_LEGACY_BILLING_OPTION,
 			'launchdek_version'             => CHECKLISTDEK_Settings::VERSION_OPTION,
 			'launchdek_templates_seeded'    => 'checklistdek_templates_seeded',
 			'launchdek_templates_catalog'   => CHECKLISTDEK_Templates::CATALOG_OPTION,

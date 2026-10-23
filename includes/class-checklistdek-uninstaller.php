@@ -21,7 +21,7 @@ class CHECKLISTDEK_Uninstaller {
 	 */
 	public static function run() {
 		delete_option( CHECKLISTDEK_Settings::OPTION_NAME );
-		delete_option( CHECKLISTDEK_Licensing::OPTION_NAME );
+		delete_option( CHECKLISTDEK_LEGACY_BILLING_OPTION );
 		delete_option( CHECKLISTDEK_Settings::VERSION_OPTION );
 		delete_option( 'checklistdek_templates_seeded' );
 		delete_option( CHECKLISTDEK_Templates::CATALOG_OPTION );

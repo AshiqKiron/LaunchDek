@@ -1408,7 +1408,7 @@ class CHECKLISTDEK_REST_API {
 	public static function get_templates() {
 		return rest_ensure_response( array(
 			'builtin'    => CHECKLISTDEK_Templates::get_catalog(),
-			'categories' => CHECKLISTDEK_Licensing::get_template_categories_for_plan(),
+			'categories' => CHECKLISTDEK_Templates::get_categories_for_catalog(),
 		) );
 	}
 

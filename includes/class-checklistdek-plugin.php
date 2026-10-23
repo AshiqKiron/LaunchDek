@@ -52,7 +52,7 @@ class CHECKLISTDEK_Plugin {
 		CHECKLISTDEK_Installer::maybe_install();
 		CHECKLISTDEK_Capabilities::register();
 		CHECKLISTDEK_Templates::bootstrap_builtin_templates();
-		CHECKLISTDEK_Licensing::sync_drift_cron();
+		checklistdek_sync_drift_cron();
 	}
 
 	/**

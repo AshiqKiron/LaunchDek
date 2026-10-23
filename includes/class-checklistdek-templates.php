@@ -99,7 +99,7 @@ class CHECKLISTDEK_Templates {
 			&& is_array( $stored['catalog'] )
 			&& $stored['key'] === $cache_key
 		) {
-			return CHECKLISTDEK_Licensing::filter_builtin_templates( $stored['catalog'] );
+			return self::finalize_catalog( $stored['catalog'] );
 		}
 
 		$catalog = self::build_catalog();
@@ -113,7 +113,53 @@ class CHECKLISTDEK_Templates {
 			false
 		);
 
-		return CHECKLISTDEK_Licensing::filter_builtin_templates( $catalog );
+		return self::finalize_catalog( $catalog );
+	}
+
+	/**
+	 * Category metadata for templates present in the shipped built-in catalog.
+	 *
+	 * @return array<string, array{label: string, description: string}>
+	 */
+	public static function get_categories_for_catalog() {
+		$all     = self::get_categories();
+		$catalog = self::get_catalog();
+		$slugs   = array();
+
+		foreach ( $catalog as $row ) {
+			if ( ! is_array( $row ) ) {
+				continue;
+			}
+			$slug           = self::normalize_category( $row['category'] ?? '' );
+			$slugs[ $slug ] = true;
+		}
+
+		$out = array();
+		foreach ( array_keys( $slugs ) as $slug ) {
+			if ( isset( $all[ $slug ] ) ) {
+				$out[ $slug ] = $all[ $slug ];
+			}
+		}
+
+		return $out;
+	}
+
+	/**
+	 * Apply edition or plan filters to a built-in template catalog list.
+	 *
+	 * @param array $catalog Raw catalog rows.
+	 * @return array
+	 */
+	protected static function finalize_catalog( $catalog ) {
+		if ( ! is_array( $catalog ) ) {
+			return array();
+		}
+
+		if ( checklistdek_includes_pro_package() && class_exists( 'CHECKLISTDEK_Licensing', false ) ) {
+			return CHECKLISTDEK_Licensing::filter_builtin_templates( $catalog );
+		}
+
+		return array_values( $catalog );
 	}
 
 	/**
