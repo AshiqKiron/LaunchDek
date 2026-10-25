@@ -155,11 +155,7 @@ class CHECKLISTDEK_Templates {
 			return array();
 		}
 
-		if ( checklistdek_includes_pro_package() && class_exists( 'CHECKLISTDEK_Licensing', false ) ) {
-			return CHECKLISTDEK_Licensing::filter_builtin_templates( $catalog );
-		}
-
-		return array_values( $catalog );
+		return checklistdek_filter_builtin_templates( $catalog );
 	}
 
 	/**

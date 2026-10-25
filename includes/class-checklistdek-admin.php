@@ -69,6 +69,36 @@ class CHECKLISTDEK_Admin {
 		if ( $activity_logs_hook ) {
 			add_action( 'load-' . $activity_logs_hook, array( $this, 'prepare_activity_logs_page' ) );
 		}
+
+		if ( checklistdek_should_show_upgrade_submenu() ) {
+			add_submenu_page(
+				self::PAGE_SLUG,
+				__( 'Upgrade to Pro', 'checklistdek' ),
+				__( 'Upgrade', 'checklistdek' ),
+				$cap,
+				self::PAGE_SLUG . '-upgrade',
+				array( $this, 'redirect_to_upgrade_page' )
+			);
+		}
+	}
+
+	/**
+	 * Send Community users to the public upgrade / pricing page (no in-plugin billing UI).
+	 *
+	 * @return void
+	 */
+	public function redirect_to_upgrade_page() {
+		if ( ! CHECKLISTDEK_Capabilities::current_user_can( CHECKLISTDEK_Capabilities::VIEW_DASHBOARD ) ) {
+			wp_die( esc_html__( 'You do not have permission to access this page.', 'checklistdek' ) );
+		}
+
+		$upgrade_url = CHECKLISTDEK_UPGRADE_URL;
+		if ( ! is_string( $upgrade_url ) || '' === $upgrade_url ) {
+			wp_die( esc_html__( 'Upgrade URL is not configured.', 'checklistdek' ) );
+		}
+
+		wp_redirect( esc_url_raw( $upgrade_url ) );
+		exit;
 	}
 
 	/**
@@ -106,6 +136,10 @@ class CHECKLISTDEK_Admin {
 		if ( self::PAGE_SLUG . '-templates' === $page ) {
 			wp_safe_redirect( admin_url( 'admin.php?page=' . self::PAGE_SLUG . '-checklists' ) );
 			exit;
+		}
+
+		if ( self::PAGE_SLUG . '-billing' === $page ) {
+			$this->redirect_to_upgrade_page();
 		}
 
 		if ( self::PAGE_SLUG . '-sites' === $page && self::has_admin_query_flag( 'activity_logs' ) ) {
@@ -544,7 +578,7 @@ class CHECKLISTDEK_Admin {
 				),
 		);
 
-		if ( ! checklistdek_includes_pro_package() ) {
+		if ( ! checklistdek_can_use_auto_capture() ) {
 			foreach ( array(
 				'captureSelectSite',
 				'captureNeedPanel',
@@ -560,7 +594,7 @@ class CHECKLISTDEK_Admin {
 			}
 		}
 
-		if ( ! checklistdek_includes_pro_package() ) {
+		if ( ! checklistdek_can_use_agency_vault() ) {
 			unset( $localize['strings']['savedToVault'], $localize['strings']['noVaultTemplates'] );
 		}
 

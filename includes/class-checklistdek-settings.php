@@ -125,7 +125,7 @@ class CHECKLISTDEK_Settings {
 		}
 
 		$checkboxes = array( 'enabled', 'encrypt_credentials' );
-		if ( checklistdek_includes_pro_package() ) {
+		if ( checklistdek_can_use_scheduled_drift() ) {
 			$checkboxes[] = 'drift_verification_enabled';
 		}
 		foreach ( $checkboxes as $key ) {
@@ -136,7 +136,7 @@ class CHECKLISTDEK_Settings {
 			}
 		}
 
-		if ( checklistdek_includes_pro_package() ) {
+		if ( checklistdek_can_use_notifications() ) {
 			$urls = array( 'slack_webhook', 'discord_webhook', 'teams_webhook' );
 			foreach ( $urls as $key ) {
 				if ( isset( $input[ $key ] ) ) {
@@ -352,16 +352,12 @@ class CHECKLISTDEK_Settings {
 	/**
 	 * Panel layout options allowed for Settings UI and sanitization on this install.
 	 *
-	 * Community builds: catalog shipped in the zip (no licensing). Full builds: plan-scoped via licensing.
+	 * Plan-scoped via licensing (org zip ships a smaller layout catalog at build time).
 	 *
 	 * @return array<string, array{label: string, description: string}>
 	 */
 	public static function get_client_panel_layout_choices() {
-		if ( checklistdek_is_community_build() ) {
-			return self::get_client_panel_layouts();
-		}
-
-		return CHECKLISTDEK_Licensing::get_panel_layouts_for_plan();
+		return checklistdek_get_panel_layouts_for_plan();
 	}
 
 	/**

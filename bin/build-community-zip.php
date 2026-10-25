@@ -52,9 +52,10 @@ $exclude_paths = array(
 	'includes/class-checklistdek-email-notifier.php',
 	'includes/class-checklistdek-webhook-dispatcher.php',
 	'includes/class-checklistdek-drift-cron.php',
+	'includes/class-checklistdek-licensing.php',
+	'includes/checklistdek-freemius.php',
 	'includes/community/class-checklistdek-licensing.php',
 	'includes/client-panel-layouts.php',
-	'includes/checklistdek-freemius.php',
 	'admin/partials/checklistdek-billing-page.php',
 	'composer.json',
 	'composer.lock',
@@ -112,6 +113,7 @@ function copy_file( $source, $dest ) {
  */
 function should_exclude( $path, $exclude_paths ) {
 	$path = str_replace( '\\', '/', $path );
+
 	foreach ( $exclude_paths as $exclude ) {
 		$exclude = str_replace( '\\', '/', $exclude );
 		if ( $path === $exclude || 0 === strpos( $path, $exclude . '/' ) ) {
@@ -156,6 +158,96 @@ function template_allowed( $json_path, $community_categories ) {
 	return in_array( $category, $community_categories, true );
 }
 
+/**
+ * Strip translation entries from the shipped .pot that reference Pro-only or removed sources.
+ *
+ * Keeps the WordPress.org zip free of stale billing / license-limit strings for Plugin Check.
+ *
+ * @param string $pot_path Absolute path to checklistdek.pot in the staging tree.
+ * @return void
+ */
+function filter_community_pot( $pot_path ) {
+	if ( ! is_readable( $pot_path ) ) {
+		return;
+	}
+
+	$content = file_get_contents( $pot_path );
+	if ( false === $content ) {
+		return;
+	}
+
+	$exclude_source_fragments = array(
+		'admin/partials/checklistdek-billing-page.php',
+		'includes/class-checklistdek-auto-capture.php',
+		'includes/class-checklistdek-email-notifier.php',
+		'includes/class-checklistdek-webhook-dispatcher.php',
+		'includes/class-checklistdek-drift-cron.php',
+		'includes/class-checklistdek-mu-plugin-installer.php',
+		'includes/integrations/class-checklistdek-mainwp-agent.php',
+		'mu-plugin/checklistdek-client/class-rest-api-install.php',
+		'mu-plugin/checklistdek-client/class-auto-capture.php',
+		'includes/checklistdek-freemius.php',
+		'includes/class-checklistdek-licensing.php',
+		'includes/community/class-checklistdek-licensing.php',
+	);
+
+	$exclude_msgid_fragments = array(
+		'Upgrade on Billing',
+		'Get Pro',
+		'site limit',
+		'Compare Community and paid plans',
+		'Pro and Agency plans',
+		'Billing admin page',
+	);
+
+	$pos     = strpos( $content, "\n#:" );
+	$header  = false === $pos ? $content : substr( $content, 0, $pos );
+	$entries = false === $pos ? '' : substr( $content, $pos + 1 );
+
+	if ( '' === trim( $entries ) ) {
+		return;
+	}
+
+	$blocks = preg_split( '/\n(?=#:)/', trim( $entries ), -1, PREG_SPLIT_NO_EMPTY );
+	$kept   = array();
+
+	foreach ( $blocks as $block ) {
+		$block = trim( $block );
+		if ( '' === $block ) {
+			continue;
+		}
+
+		$drop = false;
+		foreach ( $exclude_source_fragments as $fragment ) {
+			if ( false !== strpos( $block, $fragment ) ) {
+				$drop = true;
+				break;
+			}
+		}
+
+		if ( ! $drop ) {
+			foreach ( $exclude_msgid_fragments as $fragment ) {
+				if ( false !== stripos( $block, $fragment ) ) {
+					$drop = true;
+					break;
+				}
+			}
+		}
+
+		// Stale menu label — Billing submenu was removed; do not ship in the Community catalog.
+		if ( ! $drop && preg_match( '/^msgid "Billing"$/m', $block ) ) {
+			$drop = true;
+		}
+
+		if ( ! $drop ) {
+			$kept[] = $block;
+		}
+	}
+
+	$filtered = rtrim( $header ) . "\n\n" . implode( "\n\n", $kept ) . "\n";
+	file_put_contents( $pot_path, $filtered );
+}
+
 if ( is_dir( $staging ) ) {
 	rrmdir( $staging );
 }
@@ -192,29 +284,9 @@ foreach ( $iterator as $file ) {
 	copy_file( $file->getPathname(), $target );
 }
 
-$bootstrap = $plugin_dir . '/checklistdek.php';
-$contents  = file_get_contents( $bootstrap );
-if ( false === $contents ) {
-	fwrite( STDERR, "Could not read checklistdek.php in staging.\n" );
-	exit( 1 );
-}
-
-$needle = "require_once CHECKLISTDEK_PLUGIN_DIR . 'includes/checklistdek-build.php';";
-$insert = "define( 'CHECKLISTDEK_BUILD', 'community' );\n\n" . $needle;
-if ( false === strpos( $contents, $needle ) ) {
-	fwrite( STDERR, "checklistdek.php bootstrap marker not found.\n" );
-	exit( 1 );
-}
-if ( false === strpos( $contents, "define( 'CHECKLISTDEK_BUILD', 'community' );" ) ) {
-	$contents = str_replace( $needle, $insert, $contents );
-}
-
-$freemius_block = "if ( ! checklistdek_is_community_build() ) {\n\trequire_once CHECKLISTDEK_PLUGIN_DIR . 'includes/checklistdek-freemius.php';\n}\n\n";
-if ( false !== strpos( $contents, $freemius_block ) ) {
-	$contents = str_replace( $freemius_block, '', $contents );
-}
-
-file_put_contents( $bootstrap, $contents );
+$community_pot = $plugin_dir . '/languages/checklistdek.pot';
+filter_community_pot( $community_pot );
+copy( $community_pot, $root . '/languages/checklistdek.pot' );
 
 $out_dir = dirname( $out );
 if ( ! is_dir( $out_dir ) ) {

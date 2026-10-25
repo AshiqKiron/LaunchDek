@@ -6,7 +6,7 @@
  * plugins are not forced to bootstrap the full REST route registry on each sync.
  *
  * All handlers register on Community and Pro builds (see CHECKLISTDEK_Plugin::run()).
- * Do not gate registration behind checklistdek_includes_pro_package().
+ * Do not gate registration behind CHECKLISTDEK_Licensing plan checks.
  *
  * @package ChecklistDek
  */

@@ -161,7 +161,7 @@ class CHECKLISTDEK_REST_API {
 			'permission_callback' => array( __CLASS__, 'can_manage_sites' ),
 		) );
 
-		if ( checklistdek_includes_pro_package() ) {
+		if ( checklistdek_can_use_auto_capture() ) {
 			register_rest_route( self::NAMESPACE, '/sites/(?P<id>\d+)/capture', array(
 				array(
 					'methods'             => 'GET',
@@ -363,7 +363,7 @@ class CHECKLISTDEK_REST_API {
 			'permission_callback' => array( __CLASS__, 'can_edit_checklists' ),
 		) );
 
-		if ( checklistdek_includes_pro_package() ) {
+		if ( checklistdek_can_use_agency_vault() ) {
 			register_rest_route( self::NAMESPACE, '/templates/vault', array(
 				array(
 					'methods'             => 'GET',

@@ -46,7 +46,7 @@ Developed by [Asphalt Themes](https://asphaltthemes.com/). Use the onboarding wi
 5. Sites registry with connection health, tags, expandable checklist run history, and client panel setup
 6. Batch Run — Run Checklist wizard, batch queue, and drift monitor tabs
 7. Activity Logs — filtered audit table with readable summaries and expandable detail fields
-8. Integrations — MainWP and WP Umbrella connectors with sync preview and client panel push
+8. Integrations — MainWP and WP Umbrella connectors with sync preview (manual client panel setup on Community)
 9. Settings — panel layout picker, exclude-options, credential vault, and role permissions
 10. Remote client wp-admin — checklist panel with progress, deep links, notes, and manual step completion
 
@@ -105,7 +105,9 @@ Yes. Integrations are optional. You can register sites manually with Application
 
 = What is the difference between Community, Pro, and Agency? =
 
-**Community** (this WordPress.org build) includes unlimited hub sites, core checklist and batch features, integrations, audit logs, **17** templates in four categories, and all **9** bundled client panel layouts. **Pro** and **Agency** unlock the full **86** templates, agency vault, auto-capture, email and webhook notifications, and scheduled drift cron; **Pro** supports up to **99** licensed sites and **Agency** up to **199**. Compare details under **ChecklistDek → Billing** on a full install or on [Asphalt Themes](https://asphaltthemes.com/checklistdek).
+**Community** (this WordPress.org plugin) is complete for its scope: unlimited hub sites, custom checklists, batch runs, integrations, Activity Logs, manual drift verification, **17** built-in templates in four categories, and **three** client panel layout choices in Settings. Client sites use the bundled mu-plugin you upload manually (this build does not auto-write panel files to remote servers).
+
+**Pro** and **Agency** are separate downloads from [Asphalt Themes](https://asphaltthemes.com/checklistdek) with a larger template library, agency vault, Auto-Capture, email and webhook notifications, scheduled drift cron, hub auto-deploy of the client panel, nine panel layout choices, and licensed site tiers on paid plans. They replace this plugin on your hub; your existing sites and checklists stay in the database.
 
 = Are credentials stored securely? =
 
@@ -114,10 +116,9 @@ When enabled in Settings, site Application Passwords are encrypted at rest using
 = What outbound connections does ChecklistDek make? =
 
 * User-registered remote WordPress sites (Application Password REST calls)
-* Client panel deploy and checklist sync to registered sites (when you connect, test, or push a run)
-* User-configured webhook URLs (Slack, Discord, Teams) on Pro and Agency when events are enabled
-* Optional email alerts for checklist events via WordPress `wp_mail` on Pro and Agency
-* User-initiated integration sync and panel push (MainWP child sites or WP Umbrella Public API when configured)
+* Checklist run snapshots synced to registered sites after you install the client panel and push a run (Community uses manual panel upload; Pro/Agency may also auto-deploy panel files from the hub)
+* User-initiated integration sync (MainWP child sites or WP Umbrella Public API when configured)
+* Pro and Agency only: user-configured webhook URLs (Slack, Discord, Teams) and optional email alerts via WordPress `wp_mail` when those events are enabled in the separate paid package
 
 = Does ChecklistDek require WooCommerce on client sites? =
 
@@ -133,7 +134,7 @@ Uninstall removes ChecklistDek tables, options, and custom capabilities from the
 
 = How do I upgrade to Pro or Agency? =
 
-Purchase from [Asphalt Themes](https://asphaltthemes.com/checklistdek), install the full plugin package on your hub (replacing the Community build if needed), activate your license under **ChecklistDek → Billing**, and continue using existing sites and checklists stored in your database.
+Purchase from [Asphalt Themes](https://asphaltthemes.com/checklistdek), install the Pro or Agency plugin package on your hub (replacing this WordPress.org build), and complete license activation in that package. Your existing sites and checklists remain in the database.
 
 
 == External services ==
@@ -168,6 +169,8 @@ Optional connectors run only when an administrator with **Manage Settings** star
 == Changelog ==
 
 = 1.0.6 =
+* Community zip: plan-based `CHECKLISTDEK_Licensing` gates (no Freemius SDK in the org package; Pro zip bundles Freemius).
 * Sites: per-site Push Checklist, cached connection health, and unreachable-site warnings.
 * Dashboard: unify live log feed copy in audit `format_row()`; legacy cached feed rows backfill `show_site_label` only.
-* Readme: shorter WordPress.org description and FAQ-focused copy.
+* Readme: WordPress.org Community scope, Pro as a separate download, and accurate Community feature list (no license-gated features in this build).
+* Community: removed in-plugin Billing page; **Upgrade** submenu opens the public ChecklistDek pricing page on asphaltthemes.com.

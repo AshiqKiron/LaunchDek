@@ -165,77 +165,29 @@ class CHECKLISTDEK_Audit_Log {
 
 		$args = wp_parse_args( $args, $defaults );
 
-		$where = array( '1=1' );
-		$vals  = array();
-
-		if ( $args['id'] ) {
-			$where[] = 'lau.id = %d';
-			$vals[]  = absint( $args['id'] );
-		}
-
-		if ( $args['user_id'] ) {
-			$where[] = 'lau.user_id = %d';
-			$vals[]  = absint( $args['user_id'] );
-		}
-
-		if ( $args['site_id'] ) {
-			$filtered_site_id = absint( $args['site_id'] );
-			$runs_table       = CHECKLISTDEK_Run_Repository::table();
-			$where[]          = '(lau.site_id = %d OR EXISTS (SELECT 1 FROM ' . $runs_table . ' checklistdek_audit_runs WHERE checklistdek_audit_runs.id = lau.run_id AND checklistdek_audit_runs.site_id = %d))';
-			$vals[]           = $filtered_site_id;
-			$vals[]           = $filtered_site_id;
-		}
-
-		if ( $args['run_id'] ) {
-			$where[] = 'lau.run_id = %d';
-			$vals[]  = absint( $args['run_id'] );
-		}
-
-		if ( $args['action'] ) {
-			$where[] = 'lau.action = %s';
-			$vals[]  = sanitize_key( $args['action'] );
-		}
-
-		if ( $args['search'] ) {
-			$where[] = 'lau.details_json LIKE %s';
-			$vals[]  = '%' . $wpdb->esc_like( $args['search'] ) . '%';
-		}
-
-		if ( $args['date_from'] && preg_match( '/^\d{4}-\d{2}-\d{2}$/', $args['date_from'] ) ) {
-			$where[] = 'lau.created_at >= %s';
-			$vals[]  = $args['date_from'] . ' 00:00:00';
-		}
-
-		if ( $args['date_to'] && preg_match( '/^\d{4}-\d{2}-\d{2}$/', $args['date_to'] ) ) {
-			$where[] = 'lau.created_at <= %s';
-			$vals[]  = $args['date_to'] . ' 23:59:59';
-		}
-
-		if ( $args['status'] ) {
-			$status_clause = self::status_where_clause( $args['status'], 'lau.' );
-			if ( $status_clause ) {
-				$where[] = $status_clause;
-			}
-		}
-
+		$filter          = self::build_query_where_parts( $args );
 		$order           = 'ASC' === strtoupper( $args['order'] ) ? 'ASC' : 'DESC';
 		$limit           = max( 1, min( self::LIST_MAX_LIMIT, absint( $args['limit'] ) ) );
 		$offset          = max( 0, absint( $args['offset'] ) );
 		$paginate        = ! empty( $args['paginate'] );
 		$fetch_limit     = $paginate ? $limit + 1 : $limit;
-		$where_sql       = implode( ' AND ', $where );
 		$include_details = ! empty( $args['include_details'] );
 		$lean_list       = ! $include_details;
 
-		$vals[] = $fetch_limit;
-		$vals[] = $offset;
+		$query_vals = array_merge(
+			array( self::table() ),
+			$filter['vals'],
+			array( $fetch_limit, $offset )
+		);
 
-		$query_vals = array_merge( array( self::table() ), $vals );
-		$sql        = 'SELECT lau.id, lau.user_id, lau.site_id, lau.run_id, lau.action, lau.details_json, lau.payload_hash, lau.created_at FROM %i AS lau WHERE ' . $where_sql . ' ORDER BY lau.created_at ' . $order . ' LIMIT %d OFFSET %d';
-		$prepared   = $wpdb->prepare( $sql, $query_vals ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Plugin-owned table via %i; join/order are trusted; WHERE placeholders match $query_vals.
-
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter
-		$rows = $wpdb->get_results( $prepared, ARRAY_A );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Plugin-owned table via %i; WHERE clauses are placeholder-only; values in $query_vals; $order is ASC|DESC only.
+		$rows = $wpdb->get_results(
+			$wpdb->prepare(
+				'SELECT lau.id, lau.user_id, lau.site_id, lau.run_id, lau.action, lau.details_json, lau.payload_hash, lau.created_at FROM %i AS lau WHERE ' . implode( ' AND ', $filter['clauses'] ) . ' ORDER BY lau.created_at ' . $order . ' LIMIT %d OFFSET %d', // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- WHERE fragments are static placeholder strings; filter values passed via $query_vals.
+				$query_vals
+			),
+			ARRAY_A
+		);
 		if ( ! is_array( $rows ) ) {
 			$rows = array();
 		}
@@ -452,6 +404,77 @@ class CHECKLISTDEK_Audit_Log {
 		return array(
 			'steps'  => $steps,
 			'counts' => $counts,
+		);
+	}
+
+	/**
+	 * Build WHERE clause fragments and prepare values for audit log queries.
+	 *
+	 * Each clause string contains only static SQL plus wpdb placeholders; user input
+	 * is bound exclusively through the returned values array.
+	 *
+	 * @param array $args Query arguments (same shape as query()).
+	 * @return array{clauses:string[],vals:array}
+	 */
+	private static function build_query_where_parts( array $args ) {
+		global $wpdb;
+
+		$clauses = array( '1=1' );
+		$vals    = array();
+
+		if ( $args['id'] ) {
+			$clauses[] = 'lau.id = %d';
+			$vals[]    = absint( $args['id'] );
+		}
+
+		if ( $args['user_id'] ) {
+			$clauses[] = 'lau.user_id = %d';
+			$vals[]    = absint( $args['user_id'] );
+		}
+
+		if ( $args['site_id'] ) {
+			$filtered_site_id = absint( $args['site_id'] );
+			$clauses[]        = '(lau.site_id = %d OR EXISTS (SELECT 1 FROM %i checklistdek_audit_runs WHERE checklistdek_audit_runs.id = lau.run_id AND checklistdek_audit_runs.site_id = %d))';
+			$vals[]           = $filtered_site_id;
+			$vals[]           = CHECKLISTDEK_Run_Repository::table();
+			$vals[]           = $filtered_site_id;
+		}
+
+		if ( $args['run_id'] ) {
+			$clauses[] = 'lau.run_id = %d';
+			$vals[]    = absint( $args['run_id'] );
+		}
+
+		if ( $args['action'] ) {
+			$clauses[] = 'lau.action = %s';
+			$vals[]    = sanitize_key( $args['action'] );
+		}
+
+		if ( $args['search'] ) {
+			$clauses[] = 'lau.details_json LIKE %s';
+			$vals[]    = '%' . $wpdb->esc_like( $args['search'] ) . '%';
+		}
+
+		if ( $args['date_from'] && preg_match( '/^\d{4}-\d{2}-\d{2}$/', $args['date_from'] ) ) {
+			$clauses[] = 'lau.created_at >= %s';
+			$vals[]    = $args['date_from'] . ' 00:00:00';
+		}
+
+		if ( $args['date_to'] && preg_match( '/^\d{4}-\d{2}-\d{2}$/', $args['date_to'] ) ) {
+			$clauses[] = 'lau.created_at <= %s';
+			$vals[]    = $args['date_to'] . ' 23:59:59';
+		}
+
+		if ( $args['status'] ) {
+			$status_clause = self::status_where_clause( $args['status'], 'lau.' );
+			if ( $status_clause ) {
+				$clauses[] = $status_clause;
+			}
+		}
+
+		return array(
+			'clauses' => $clauses,
+			'vals'    => $vals,
 		);
 	}
 

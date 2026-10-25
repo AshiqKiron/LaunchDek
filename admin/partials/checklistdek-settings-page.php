@@ -31,8 +31,8 @@ $exclude_options   = CHECKLISTDEK_Settings::get_exclude_options();
 $exclude_labels    = CHECKLISTDEK_Settings::get_exclude_option_labels();
 $panel_layouts = CHECKLISTDEK_Settings::get_client_panel_layout_choices();
 $panel_layout  = CHECKLISTDEK_Settings::get_client_panel_layout();
-$show_notifications   = checklistdek_includes_pro_package();
-$show_scheduled_drift = checklistdek_includes_pro_package();
+$show_notifications   = checklistdek_can_use_notifications();
+$show_scheduled_drift = checklistdek_can_use_scheduled_drift();
 $section_tooltips = array(
 	'platform'        => $show_scheduled_drift
 		? __(

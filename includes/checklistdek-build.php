@@ -18,58 +18,147 @@ if ( ! defined( 'CHECKLISTDEK_LEGACY_BILLING_OPTION' ) ) {
 }
 
 /**
- * Whether this install is the Community (free) distribution build.
+ * Load Freemius when bundled (Pro / premium zip — omitted from WordPress.org Community zip).
  *
- * @return bool
+ * @return void
  */
-function checklistdek_is_community_build() {
-	return 'community' === CHECKLISTDEK_BUILD;
+function checklistdek_load_freemius() {
+	static $loaded = false;
+
+	if ( $loaded ) {
+		return;
+	}
+
+	$file = CHECKLISTDEK_PLUGIN_DIR . 'includes/checklistdek-freemius.php';
+	if ( ! is_readable( $file ) ) {
+		return;
+	}
+
+	require_once $file;
+	$loaded = true;
 }
 
 /**
- * Whether Pro-only PHP modules are bundled and may be loaded.
+ * Load Pro licensing when bundled (WordPress.org free zip omits all licensing PHP).
+ *
+ * @return void
+ */
+function checklistdek_load_licensing() {
+	static $loaded = false;
+
+	if ( $loaded ) {
+		return;
+	}
+
+	$file = CHECKLISTDEK_PLUGIN_DIR . 'includes/class-checklistdek-licensing.php';
+	if ( is_readable( $file ) ) {
+		require_once $file;
+	}
+
+	$loaded = true;
+}
+
+/**
+ * Whether the admin sidebar should include the external Upgrade item.
  *
  * @return bool
  */
-function checklistdek_includes_pro_package() {
-	return ! checklistdek_is_community_build();
+function checklistdek_should_show_upgrade_submenu() {
+	if ( class_exists( 'CHECKLISTDEK_Licensing', false ) ) {
+		return CHECKLISTDEK_Licensing::should_show_upgrade_submenu();
+	}
+
+	return true;
 }
 
 /**
  * Whether the hub may auto-deploy or sync the client panel (REST, local path, MainWP ZIP).
  *
- * WordPress.org Community builds must use manual mu-plugin upload only.
- *
  * @return bool
  */
 function checklistdek_can_auto_deploy_client_panel() {
-	return checklistdek_includes_pro_package();
-}
-
-/**
- * Licensing class file for full / Pro distributions (not shipped or loaded on Community).
- *
- * @return string
- */
-function checklistdek_get_licensing_file() {
-	return CHECKLISTDEK_PLUGIN_DIR . 'includes/community/class-checklistdek-licensing.php';
-}
-
-/**
- * Load plan / edition licensing helpers when bundled (full build only).
- *
- * @return void
- */
-function checklistdek_require_licensing() {
-	if ( checklistdek_is_community_build() ) {
-		return;
+	if ( class_exists( 'CHECKLISTDEK_Licensing', false ) ) {
+		return CHECKLISTDEK_Licensing::can_auto_deploy_client_panel();
 	}
 
-	require_once checklistdek_get_licensing_file();
+	return is_readable( CHECKLISTDEK_PLUGIN_DIR . 'includes/class-checklistdek-mu-plugin-installer.php' );
 }
 
 /**
- * Schedule or clear automated drift verification based on build edition.
+ * @return bool
+ */
+function checklistdek_can_use_agency_vault() {
+	if ( class_exists( 'CHECKLISTDEK_Licensing', false ) ) {
+		return CHECKLISTDEK_Licensing::can_use_agency_vault();
+	}
+
+	return false;
+}
+
+/**
+ * @return bool
+ */
+function checklistdek_can_use_auto_capture() {
+	if ( class_exists( 'CHECKLISTDEK_Licensing', false ) ) {
+		return CHECKLISTDEK_Licensing::can_use_auto_capture();
+	}
+
+	return is_readable( CHECKLISTDEK_PLUGIN_DIR . 'includes/class-checklistdek-auto-capture.php' );
+}
+
+/**
+ * @return bool
+ */
+function checklistdek_can_use_notifications() {
+	if ( class_exists( 'CHECKLISTDEK_Licensing', false ) ) {
+		return CHECKLISTDEK_Licensing::can_use_notifications();
+	}
+
+	return is_readable( CHECKLISTDEK_PLUGIN_DIR . 'includes/class-checklistdek-webhook-dispatcher.php' );
+}
+
+/**
+ * @return bool
+ */
+function checklistdek_can_use_scheduled_drift() {
+	if ( class_exists( 'CHECKLISTDEK_Licensing', false ) ) {
+		return CHECKLISTDEK_Licensing::can_use_scheduled_drift();
+	}
+
+	return is_readable( CHECKLISTDEK_PLUGIN_DIR . 'includes/class-checklistdek-drift-cron.php' );
+}
+
+/**
+ * Panel layout choices for Settings UI.
+ *
+ * @return array<string, array{label: string, description: string}>
+ */
+function checklistdek_get_panel_layouts_for_plan() {
+	if ( class_exists( 'CHECKLISTDEK_Licensing', false ) ) {
+		return CHECKLISTDEK_Licensing::get_panel_layouts_for_plan();
+	}
+
+	return CHECKLISTDEK_Settings::get_client_panel_layouts();
+}
+
+/**
+ * @param array $templates Template definitions.
+ * @return array
+ */
+function checklistdek_filter_builtin_templates( $templates ) {
+	if ( class_exists( 'CHECKLISTDEK_Licensing', false ) ) {
+		return CHECKLISTDEK_Licensing::filter_builtin_templates( $templates );
+	}
+
+	if ( ! is_array( $templates ) ) {
+		return array();
+	}
+
+	return array_values( $templates );
+}
+
+/**
+ * Schedule or clear automated drift verification based on plan and bundled modules.
  *
  * @return void
  */
@@ -78,7 +167,7 @@ function checklistdek_sync_drift_cron() {
 		return;
 	}
 
-	if ( checklistdek_includes_pro_package() ) {
+	if ( checklistdek_can_use_scheduled_drift() ) {
 		CHECKLISTDEK_Drift_Cron::activate();
 	} else {
 		CHECKLISTDEK_Drift_Cron::deactivate();
@@ -86,18 +175,17 @@ function checklistdek_sync_drift_cron() {
 }
 
 /**
- * Client panel layout catalog for this build edition.
- *
- * Community zips ship `includes/community/client-panel-layouts.php` only; Pro/full zips ship all layouts.
+ * Client panel layout catalog for this install (full catalog when bundled, else Community file).
  *
  * @return string
  */
 function checklistdek_get_client_panel_layouts_file() {
-	if ( checklistdek_is_community_build() ) {
-		return CHECKLISTDEK_PLUGIN_DIR . 'includes/community/client-panel-layouts.php';
+	$full = CHECKLISTDEK_PLUGIN_DIR . 'includes/client-panel-layouts.php';
+	if ( is_readable( $full ) ) {
+		return $full;
 	}
 
-	return CHECKLISTDEK_PLUGIN_DIR . 'includes/client-panel-layouts.php';
+	return CHECKLISTDEK_PLUGIN_DIR . 'includes/community/client-panel-layouts.php';
 }
 
 /**
@@ -106,8 +194,9 @@ function checklistdek_get_client_panel_layouts_file() {
  * @return string
  */
 function checklistdek_get_mu_plugin_installer_file() {
-	if ( checklistdek_can_auto_deploy_client_panel() ) {
-		return CHECKLISTDEK_PLUGIN_DIR . 'includes/class-checklistdek-mu-plugin-installer.php';
+	$full = CHECKLISTDEK_PLUGIN_DIR . 'includes/class-checklistdek-mu-plugin-installer.php';
+	if ( is_readable( $full ) ) {
+		return $full;
 	}
 
 	return CHECKLISTDEK_PLUGIN_DIR . 'includes/community/class-checklistdek-mu-plugin-installer.php';
@@ -119,8 +208,9 @@ function checklistdek_get_mu_plugin_installer_file() {
  * @return string
  */
 function checklistdek_get_mainwp_agent_file() {
-	if ( checklistdek_can_auto_deploy_client_panel() ) {
-		return CHECKLISTDEK_PLUGIN_DIR . 'includes/integrations/class-checklistdek-mainwp-agent.php';
+	$full = CHECKLISTDEK_PLUGIN_DIR . 'includes/integrations/class-checklistdek-mainwp-agent.php';
+	if ( is_readable( $full ) ) {
+		return $full;
 	}
 
 	return CHECKLISTDEK_PLUGIN_DIR . 'includes/community/class-checklistdek-mainwp-agent.php';
@@ -132,8 +222,9 @@ function checklistdek_get_mainwp_agent_file() {
  * @return string
  */
 function checklistdek_get_webhook_dispatcher_file() {
-	if ( checklistdek_includes_pro_package() ) {
-		return CHECKLISTDEK_PLUGIN_DIR . 'includes/class-checklistdek-webhook-dispatcher.php';
+	$full = CHECKLISTDEK_PLUGIN_DIR . 'includes/class-checklistdek-webhook-dispatcher.php';
+	if ( is_readable( $full ) ) {
+		return $full;
 	}
 
 	return CHECKLISTDEK_PLUGIN_DIR . 'includes/community/class-checklistdek-webhook-dispatcher.php';
@@ -145,23 +236,29 @@ function checklistdek_get_webhook_dispatcher_file() {
  * @return string
  */
 function checklistdek_get_drift_cron_file() {
-	if ( checklistdek_includes_pro_package() ) {
-		return CHECKLISTDEK_PLUGIN_DIR . 'includes/class-checklistdek-drift-cron.php';
+	$full = CHECKLISTDEK_PLUGIN_DIR . 'includes/class-checklistdek-drift-cron.php';
+	if ( is_readable( $full ) ) {
+		return $full;
 	}
 
 	return CHECKLISTDEK_PLUGIN_DIR . 'includes/community/class-checklistdek-drift-cron.php';
 }
 
 /**
- * Load Pro-only class files when present in this build.
+ * Load Pro-only class files when present in this install.
  *
  * @return void
  */
 function checklistdek_require_pro_modules() {
-	if ( ! checklistdek_includes_pro_package() ) {
-		return;
+	$base = CHECKLISTDEK_PLUGIN_DIR . 'includes/';
+
+	$auto_capture = $base . 'class-checklistdek-auto-capture.php';
+	if ( is_readable( $auto_capture ) ) {
+		require_once $auto_capture;
 	}
 
-	require_once CHECKLISTDEK_PLUGIN_DIR . 'includes/class-checklistdek-auto-capture.php';
-	require_once CHECKLISTDEK_PLUGIN_DIR . 'includes/class-checklistdek-email-notifier.php';
+	$email_notifier = $base . 'class-checklistdek-email-notifier.php';
+	if ( is_readable( $email_notifier ) ) {
+		require_once $email_notifier;
+	}
 }

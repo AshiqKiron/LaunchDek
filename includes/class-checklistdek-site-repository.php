@@ -757,12 +757,11 @@ class CHECKLISTDEK_Site_Repository {
 		}
 
 		$placeholders = implode( ',', array_fill( 0, count( $site_ids ), '%d' ) );
-		$prepared     = $wpdb->prepare(
-			'SELECT site_id, tag, group_type FROM ' . self::tags_table() . ' WHERE site_id IN (' . $placeholders . ') ORDER BY site_id ASC, group_type ASC, tag ASC', // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Table from tags_table(); site_id IN list uses %d placeholders only.
-			...$site_ids
-		);
+		$sql          = 'SELECT site_id, tag, group_type FROM %i WHERE site_id IN (' . $placeholders . ') ORDER BY site_id ASC, group_type ASC, tag ASC';
+		$query_vals   = array_merge( array( self::tags_table() ), $site_ids );
+		$prepared     = $wpdb->prepare( $sql, $query_vals ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber -- Plugin-owned table via %i; site_id IN list uses %d placeholders only.
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared
 		$rows = $wpdb->get_results( $prepared, ARRAY_A );
 
 		if ( ! is_array( $rows ) ) {

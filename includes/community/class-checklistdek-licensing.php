@@ -1,8 +1,8 @@
 <?php
 /**
- * Full / Pro distribution licensing helpers (panel plan scope, template filters).
+ * WordPress.org / free distribution licensing helpers (no Freemius).
  *
- * Not loaded or shipped in the Community zip — use checklistdek_includes_pro_package() there.
+ * Pro features are unavailable when Pro PHP is not bundled in the package.
  *
  * @package ChecklistDek
  */
@@ -19,6 +19,15 @@ class CHECKLISTDEK_Licensing {
 	const OPTION_NAME = 'checklistdek_billing';
 
 	/**
+	 * Whether the admin sidebar should include the external Upgrade item.
+	 *
+	 * @return bool
+	 */
+	public static function should_show_upgrade_submenu() {
+		return true;
+	}
+
+	/**
 	 * @return bool
 	 */
 	public static function can_add_site() {
@@ -28,33 +37,40 @@ class CHECKLISTDEK_Licensing {
 	/**
 	 * @return bool
 	 */
+	public static function can_auto_deploy_client_panel() {
+		return is_readable( CHECKLISTDEK_PLUGIN_DIR . 'includes/class-checklistdek-mu-plugin-installer.php' );
+	}
+
+	/**
+	 * @return bool
+	 */
 	public static function can_use_agency_vault() {
-		return checklistdek_includes_pro_package();
+		return false;
 	}
 
 	/**
 	 * @return bool
 	 */
 	public static function can_use_auto_capture() {
-		return checklistdek_includes_pro_package();
+		return is_readable( CHECKLISTDEK_PLUGIN_DIR . 'includes/class-checklistdek-auto-capture.php' );
 	}
 
 	/**
 	 * @return bool
 	 */
 	public static function can_use_notifications() {
-		return checklistdek_includes_pro_package();
+		return is_readable( CHECKLISTDEK_PLUGIN_DIR . 'includes/class-checklistdek-webhook-dispatcher.php' );
 	}
 
 	/**
 	 * @return bool
 	 */
 	public static function can_use_scheduled_drift() {
-		return checklistdek_includes_pro_package();
+		return is_readable( CHECKLISTDEK_PLUGIN_DIR . 'includes/class-checklistdek-drift-cron.php' );
 	}
 
 	/**
-	 * Panel layout choices for Settings UI (full / Pro hub only — not used on Community builds).
+	 * Panel layout choices for Settings UI.
 	 *
 	 * @return array<string, array{label: string, description: string}>
 	 */
@@ -63,7 +79,7 @@ class CHECKLISTDEK_Licensing {
 	}
 
 	/**
-	 * Sanitize a panel layout slug for the current plan (full / Pro hub only).
+	 * Sanitize a panel layout slug for the current plan.
 	 *
 	 * @param mixed $layout Raw layout.
 	 * @return string
@@ -82,7 +98,7 @@ class CHECKLISTDEK_Licensing {
 	}
 
 	/**
-	 * Layout pushed to client snapshots (full / Pro hub only).
+	 * Layout pushed to client snapshots.
 	 *
 	 * @return string
 	 */
@@ -134,7 +150,7 @@ class CHECKLISTDEK_Licensing {
 	}
 
 	/**
-	 * Schedule or clear automated drift verification based on build edition.
+	 * Schedule or clear automated drift verification based on bundled cron class.
 	 *
 	 * @return void
 	 */

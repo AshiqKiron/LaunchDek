@@ -30,13 +30,12 @@ define( 'CHECKLISTDEK_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
 define( 'CHECKLISTDEK_PLUGIN_SLUG', 'checklistdek' );
 define( 'CHECKLISTDEK_TEXT_DOMAIN', 'checklistdek' );
 define( 'CHECKLISTDEK_PLUGIN_DOCS_URL', 'https://asphaltthemes.com/checklistdek/docs' );
+define( 'CHECKLISTDEK_UPGRADE_URL', 'https://asphaltthemes.com/checklistdek' );
 define( 'CHECKLISTDEK_REST_NAMESPACE', 'checklistdek/v1' );
 
 require_once CHECKLISTDEK_PLUGIN_DIR . 'includes/checklistdek-build.php';
 
-if ( ! checklistdek_is_community_build() ) {
-	require_once CHECKLISTDEK_PLUGIN_DIR . 'includes/checklistdek-freemius.php';
-}
+checklistdek_load_freemius();
 
 // Core.
 require_once CHECKLISTDEK_PLUGIN_DIR . 'includes/class-checklistdek-settings.php';
@@ -50,7 +49,7 @@ require_once CHECKLISTDEK_PLUGIN_DIR . 'includes/class-checklistdek-telemetry-ma
 // Data layer.
 require_once CHECKLISTDEK_PLUGIN_DIR . 'includes/class-checklistdek-site-repository.php';
 require_once CHECKLISTDEK_PLUGIN_DIR . 'includes/class-checklistdek-checklist-repository.php';
-checklistdek_require_licensing();
+checklistdek_load_licensing();
 require_once CHECKLISTDEK_PLUGIN_DIR . 'includes/class-checklistdek-run-repository.php';
 require_once CHECKLISTDEK_PLUGIN_DIR . 'includes/class-checklistdek-installer.php';
 require_once CHECKLISTDEK_PLUGIN_DIR . 'includes/class-checklistdek-dashboard-cache.php';
@@ -82,10 +81,10 @@ require_once CHECKLISTDEK_PLUGIN_DIR . 'includes/class-checklistdek-plugin.php';
 register_activation_hook( __FILE__, array( 'CHECKLISTDEK_Activator', 'activate' ) );
 register_deactivation_hook( __FILE__, array( 'CHECKLISTDEK_Deactivator', 'deactivate' ) );
 
-if ( checklistdek_is_community_build() ) {
-	register_uninstall_hook( __FILE__, array( 'CHECKLISTDEK_Uninstaller', 'run' ) );
-} elseif ( function_exists( 'cld_fs' ) ) {
+if ( function_exists( 'cld_fs' ) ) {
 	cld_fs()->add_action( 'after_uninstall', array( 'CHECKLISTDEK_Uninstaller', 'run' ) );
+} else {
+	register_uninstall_hook( __FILE__, array( 'CHECKLISTDEK_Uninstaller', 'run' ) );
 }
 
 /**
