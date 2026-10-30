@@ -5,7 +5,7 @@
  * Plugin Name: ChecklistDek
  * Plugin URI: https://asphaltthemes.com/checklistdek
  * Description: Remote WordPress site orchestration for agencies — checklists, audit, and integrations.
- * Version: 1.0.6
+ * Version: 1.0.8
  * Requires at least: 6.2
  * Requires PHP: 7.4
  * Author: ashiquzzaman
@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'CHECKLISTDEK_VERSION', '1.0.6' );
+define( 'CHECKLISTDEK_VERSION', '1.0.8' );
 define( 'CHECKLISTDEK_PLUGIN_FILE', __FILE__ );
 define( 'CHECKLISTDEK_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'CHECKLISTDEK_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
@@ -69,6 +69,8 @@ require_once CHECKLISTDEK_PLUGIN_DIR . 'includes/class-checklistdek-templates.ph
 require_once CHECKLISTDEK_PLUGIN_DIR . 'includes/class-checklistdek-integration-sync.php';
 require_once checklistdek_get_drift_cron_file();
 require_once CHECKLISTDEK_PLUGIN_DIR . 'includes/class-checklistdek-rest-api.php';
+
+checklistdek_load_premium_modules();
 
 // Admin.
 require_once CHECKLISTDEK_PLUGIN_DIR . 'includes/class-checklistdek-activator.php';

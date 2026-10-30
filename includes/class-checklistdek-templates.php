@@ -1,6 +1,6 @@
 <?php
 /**
- * Built-in checklist templates and agency vault.
+ * Built-in checklist templates.
  *
  * @package ChecklistDek
  */
@@ -504,31 +504,6 @@ class CHECKLISTDEK_Templates {
 	}
 
 	/**
-	 * Get agency vault checklists.
-	 *
-	 * @return array
-	 */
-	public static function get_vault() {
-		return CHECKLISTDEK_Checklist_Repository::all( array(
-			'is_vault' => true,
-			'limit'    => 100,
-		) );
-	}
-
-	/**
-	 * Save checklist to agency vault.
-	 *
-	 * @param int $checklist_id Checklist ID.
-	 * @return bool
-	 */
-	public static function save_to_vault( $checklist_id ) {
-		return CHECKLISTDEK_Checklist_Repository::update( $checklist_id, array(
-			'is_vault'    => true,
-			'is_template' => true,
-		) );
-	}
-
-	/**
 	 * Clone a template into an editable checklist.
 	 *
 	 * @param array $template Template data.
@@ -538,7 +513,6 @@ class CHECKLISTDEK_Templates {
 		unset( $template['id'], $template['source'] );
 
 		$template['is_template'] = false;
-		$template['is_vault']    = false;
 
 		return CHECKLISTDEK_Checklist_Repository::create( $template );
 	}

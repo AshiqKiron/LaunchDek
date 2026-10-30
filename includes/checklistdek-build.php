@@ -59,15 +59,29 @@ function checklistdek_load_licensing() {
 }
 
 /**
- * Whether the admin sidebar should include the external Upgrade item.
+ * Whether this install ships the Pro module bundle (Pro zip only — omitted from WordPress.org free zip).
+ *
+ * @return bool
+ */
+function checklistdek_is_pro_distribution() {
+	return checklistdek_install_bundles_premium_modules();
+}
+
+/**
+ * Whether the admin sidebar should include the external Upgrade item (Pro zip without an active license only).
  *
  * @return bool
  */
 function checklistdek_should_show_upgrade_submenu() {
-	if ( class_exists( 'CHECKLISTDEK_Licensing', false ) ) {
-		return CHECKLISTDEK_Licensing::should_show_upgrade_submenu();
+	if ( checklistdek_is_pro_distribution() ) {
+		if ( class_exists( 'CHECKLISTDEK_Licensing', false ) ) {
+			return CHECKLISTDEK_Licensing::should_show_upgrade_submenu();
+		}
+
+		return false;
 	}
 
+	// WordPress.org package: external pricing link only (no in-plugin licensing UI).
 	return true;
 }
 
@@ -77,6 +91,10 @@ function checklistdek_should_show_upgrade_submenu() {
  * @return bool
  */
 function checklistdek_can_auto_deploy_client_panel() {
+	if ( ! checklistdek_is_pro_distribution() ) {
+		return false;
+	}
+
 	if ( class_exists( 'CHECKLISTDEK_Licensing', false ) ) {
 		return CHECKLISTDEK_Licensing::can_auto_deploy_client_panel();
 	}
@@ -85,11 +103,44 @@ function checklistdek_can_auto_deploy_client_panel() {
 }
 
 /**
+ * Whether this install bundles Pro-only premium modules (WordPress.org zip omits the loader file).
+ *
  * @return bool
  */
-function checklistdek_can_use_agency_vault() {
+function checklistdek_install_bundles_premium_modules() {
+	return is_readable( CHECKLISTDEK_PLUGIN_DIR . 'includes/checklistdek-premium-modules.php' );
+}
+
+/**
+ * Load Pro-only modules when the premium loader is bundled.
+ *
+ * @return void
+ */
+function checklistdek_load_premium_modules() {
+	static $loaded = false;
+
+	if ( $loaded ) {
+		return;
+	}
+
+	$file = CHECKLISTDEK_PLUGIN_DIR . 'includes/checklistdek-premium-modules.php';
+	if ( is_readable( $file ) ) {
+		require_once $file;
+	}
+
+	$loaded = true;
+}
+
+/**
+ * @return bool
+ */
+function checklistdek_can_use_auto_capture() {
+	if ( ! checklistdek_is_pro_distribution() ) {
+		return false;
+	}
+
 	if ( class_exists( 'CHECKLISTDEK_Licensing', false ) ) {
-		return CHECKLISTDEK_Licensing::can_use_agency_vault();
+		return CHECKLISTDEK_Licensing::can_use_auto_capture();
 	}
 
 	return false;
@@ -98,34 +149,31 @@ function checklistdek_can_use_agency_vault() {
 /**
  * @return bool
  */
-function checklistdek_can_use_auto_capture() {
-	if ( class_exists( 'CHECKLISTDEK_Licensing', false ) ) {
-		return CHECKLISTDEK_Licensing::can_use_auto_capture();
+function checklistdek_can_use_notifications() {
+	if ( ! checklistdek_is_pro_distribution() ) {
+		return false;
 	}
 
-	return is_readable( CHECKLISTDEK_PLUGIN_DIR . 'includes/class-checklistdek-auto-capture.php' );
-}
-
-/**
- * @return bool
- */
-function checklistdek_can_use_notifications() {
 	if ( class_exists( 'CHECKLISTDEK_Licensing', false ) ) {
 		return CHECKLISTDEK_Licensing::can_use_notifications();
 	}
 
-	return is_readable( CHECKLISTDEK_PLUGIN_DIR . 'includes/class-checklistdek-webhook-dispatcher.php' );
+	return false;
 }
 
 /**
  * @return bool
  */
 function checklistdek_can_use_scheduled_drift() {
+	if ( ! checklistdek_is_pro_distribution() ) {
+		return false;
+	}
+
 	if ( class_exists( 'CHECKLISTDEK_Licensing', false ) ) {
 		return CHECKLISTDEK_Licensing::can_use_scheduled_drift();
 	}
 
-	return is_readable( CHECKLISTDEK_PLUGIN_DIR . 'includes/class-checklistdek-drift-cron.php' );
+	return false;
 }
 
 /**

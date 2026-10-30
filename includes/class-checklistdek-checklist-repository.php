@@ -78,7 +78,6 @@ class CHECKLISTDEK_Checklist_Repository {
 
 		$defaults = array(
 			'is_template' => null,
-			'is_vault'    => null,
 			'limit'       => self::LIST_DEFAULT_LIMIT,
 		);
 
@@ -89,11 +88,6 @@ class CHECKLISTDEK_Checklist_Repository {
 		if ( null !== $args['is_template'] ) {
 			$where[] = 'is_template = %d';
 			$vals[]  = $args['is_template'] ? 1 : 0;
-		}
-
-		if ( null !== $args['is_vault'] ) {
-			$where[] = 'is_vault = %d';
-			$vals[]  = $args['is_vault'] ? 1 : 0;
 		}
 
 		$vals[] = min( self::LIST_MAX_LIMIT, max( 1, absint( $args['limit'] ) ) );
@@ -120,7 +114,6 @@ class CHECKLISTDEK_Checklist_Repository {
 
 		$defaults = array(
 			'is_template' => null,
-			'is_vault'    => null,
 			'limit'       => self::LIST_DEFAULT_LIMIT,
 		);
 
@@ -131,11 +124,6 @@ class CHECKLISTDEK_Checklist_Repository {
 		if ( null !== $args['is_template'] ) {
 			$where[] = 'is_template = %d';
 			$vals[]  = $args['is_template'] ? 1 : 0;
-		}
-
-		if ( null !== $args['is_vault'] ) {
-			$where[] = 'is_vault = %d';
-			$vals[]  = $args['is_vault'] ? 1 : 0;
 		}
 
 		$vals[] = min( self::LIST_MAX_LIMIT, max( 1, absint( $args['limit'] ) ) );
@@ -255,14 +243,13 @@ class CHECKLISTDEK_Checklist_Repository {
 				'description'   => sanitize_textarea_field( $data['description'] ?? '' ),
 				'steps_json'    => wp_json_encode( $steps ),
 				'is_template'   => ! empty( $data['is_template'] ) ? 1 : 0,
-				'is_vault'      => ! empty( $data['is_vault'] ) ? 1 : 0,
 				'template_slug' => sanitize_key( $data['template_slug'] ?? '' ),
 				'version'       => sanitize_text_field( $data['version'] ?? '1.0.0' ),
 				'created_by'    => get_current_user_id(),
 				'created_at'    => current_time( 'mysql', true ),
 				'updated_at'    => current_time( 'mysql', true ),
 			),
-			array( '%s', '%s', '%s', '%d', '%d', '%s', '%s', '%d', '%s', '%s' )
+			array( '%s', '%s', '%s', '%d', '%s', '%s', '%d', '%s', '%s' )
 		);
 
 		if ( false === $result ) {
@@ -304,11 +291,9 @@ class CHECKLISTDEK_Checklist_Repository {
 			$format[]             = '%s';
 		}
 
-		foreach ( array( 'is_template', 'is_vault' ) as $key ) {
-			if ( isset( $data[ $key ] ) ) {
-				$fields[ $key ] = $data[ $key ] ? 1 : 0;
-				$format[]       = '%d';
-			}
+		if ( isset( $data['is_template'] ) ) {
+			$fields['is_template'] = $data['is_template'] ? 1 : 0;
+			$format[]              = '%d';
 		}
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
@@ -362,7 +347,6 @@ class CHECKLISTDEK_Checklist_Repository {
 				'steps'       => $payload['steps'] ?? array(),
 				'version'     => $payload['version'] ?? '1.0.0',
 				'is_template' => false,
-				'is_vault'    => false,
 			)
 		);
 	}
@@ -495,7 +479,6 @@ class CHECKLISTDEK_Checklist_Repository {
 			'description'   => $row['description'],
 			'steps'         => is_array( $steps ) ? $steps : array(),
 			'is_template'   => (bool) $row['is_template'],
-			'is_vault'      => (bool) $row['is_vault'],
 			'template_slug' => $row['template_slug'],
 			'version'       => $row['version'],
 			'created_by'    => (int) $row['created_by'],

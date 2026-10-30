@@ -43,8 +43,8 @@ $section_tooltips = array(
 			'Turn ChecklistDek on or off for this hub.',
 			'checklistdek'
 		),
-	'credential_vault' => __(
-		'AES-256-CBC encryption using local WordPress salts. When enabled, application passwords are encrypted at rest and decrypted only when a remote request is made.',
+	'application_password_encryption' => __(
+		'AES-256-CBC encryption using local WordPress salts. Encrypts Application Passwords stored for connected sites on this hub; decrypted only when a remote request is made.',
 		'checklistdek'
 	),
 	'client_panel'    => __(
@@ -142,10 +142,10 @@ $channels        = array(
 
 		<div class="checklistdek-card checklistdek-settings-card">
 			<div class="checklistdek-card-heading-row checklistdek-card-heading-row--info-first">
-				<button type="button" class="checklistdek-field-info checklistdek-has-tooltip" data-tooltip="<?php echo esc_attr( $section_tooltips['credential_vault'] ); ?>" aria-label="<?php echo esc_attr( $section_tooltips['credential_vault'] ); ?>">
+				<button type="button" class="checklistdek-field-info checklistdek-has-tooltip" data-tooltip="<?php echo esc_attr( $section_tooltips['application_password_encryption'] ); ?>" aria-label="<?php echo esc_attr( $section_tooltips['application_password_encryption'] ); ?>">
 					<span class="dashicons dashicons-info-outline" aria-hidden="true"></span>
 				</button>
-				<h2><?php esc_html_e( 'Credential Vault Security', 'checklistdek' ); ?></h2>
+				<h2><?php esc_html_e( 'Application password encryption', 'checklistdek' ); ?></h2>
 			</div>
 			<label class="checklistdek-settings-toggle">
 				<input type="checkbox" name="<?php echo esc_attr( $option_name ); ?>[encrypt_credentials]" value="1" <?php checked( ! empty( $settings['encrypt_credentials'] ) ); ?> />

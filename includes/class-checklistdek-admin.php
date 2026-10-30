@@ -138,8 +138,12 @@ class CHECKLISTDEK_Admin {
 			exit;
 		}
 
-		if ( self::PAGE_SLUG . '-billing' === $page ) {
-			$this->redirect_to_upgrade_page();
+		if ( self::PAGE_SLUG . '-billing' === $page || self::PAGE_SLUG . '-upgrade' === $page ) {
+			if ( checklistdek_should_show_upgrade_submenu() ) {
+				$this->redirect_to_upgrade_page();
+			}
+			wp_safe_redirect( admin_url( 'admin.php?page=' . self::PAGE_SLUG ) );
+			exit;
 		}
 
 		if ( self::PAGE_SLUG . '-sites' === $page && self::has_admin_query_flag( 'activity_logs' ) ) {
@@ -435,8 +439,6 @@ class CHECKLISTDEK_Admin {
 					'customChecklistBadge' => __( 'Custom', 'checklistdek' ),
 					'checklistDuplicated' => __( 'Checklist duplicated.', 'checklistdek' ),
 					'confirmDeleteChecklist' => __( 'Are you sure you want to delete this checklist?', 'checklistdek' ),
-					'savedToVault'    => __( 'Saved to vault.', 'checklistdek' ),
-					'noVaultTemplates' => __( 'No vault templates yet.', 'checklistdek' ),
 					'noCategoryTemplates' => __( 'No templates in this category yet.', 'checklistdek' ),
 					'noSearchTemplates'   => __( 'No templates match your search.', 'checklistdek' ),
 					/* translators: %d: number of matching templates. */
@@ -592,10 +594,6 @@ class CHECKLISTDEK_Admin {
 			) as $capture_string_key ) {
 				unset( $localize['strings'][ $capture_string_key ] );
 			}
-		}
-
-		if ( ! checklistdek_can_use_agency_vault() ) {
-			unset( $localize['strings']['savedToVault'], $localize['strings']['noVaultTemplates'] );
 		}
 
 		if ( 'toplevel_page_' . self::PAGE_SLUG === $hook ) {

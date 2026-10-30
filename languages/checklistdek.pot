@@ -2,43 +2,52 @@
 # This file is distributed under the GPL-3.0-or-later.
 msgid ""
 msgstr ""
-"Project-Id-Version: ChecklistDek 1.0.6\n"
-"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/checklistdek\n"
+"Project-Id-Version: ChecklistDek 1.0.7\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/ChecklistDek\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-25T20:04:12+00:00\n"
+"POT-Creation-Date: 2026-10-25T20:21:14+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: checklistdek\n"
 
 #. Plugin Name of the plugin
+
 #: checklistdek.php
+
 #: includes/class-checklistdek-admin.php:31
+
 #: includes/class-checklistdek-admin.php:32
+
 #: includes/class-checklistdek-admin.php:670
+
 #: mu-plugin/checklistdek-client/class-panel.php:175
 msgid "ChecklistDek"
 msgstr ""
 
 #. Plugin URI of the plugin
+
 #: checklistdek.php
 msgid "https://asphaltthemes.com/checklistdek"
 msgstr ""
 
 #. Description of the plugin
+
 #: checklistdek.php
 msgid "Remote WordPress site orchestration for agencies — checklists, audit, and integrations."
 msgstr ""
 
 #. Author of the plugin
+
 #: checklistdek.php
 msgid "ashiquzzaman"
 msgstr ""
 
 #. Author URI of the plugin
+
 #: checklistdek.php
 msgid "https://asphaltthemes.com"
 msgstr ""
@@ -52,24 +61,35 @@ msgid "Back to Sites"
 msgstr ""
 
 #: admin/partials/checklistdek-activity-logs-page.php:26
+
 #: admin/partials/checklistdek-activity-logs-page.php:62
+
 #: admin/partials/checklistdek-automation-page.php:158
+
 #: includes/class-checklistdek-audit-log.php:651
+
 #: includes/class-checklistdek-audit-log.php:784
+
 #: includes/class-checklistdek-audit-log.php:1752
 msgid "Site"
 msgstr ""
 
 #: admin/partials/checklistdek-activity-logs-page.php:28
+
 #: admin/partials/checklistdek-automation-page.php:187
 msgid "All sites"
 msgstr ""
 
 #: admin/partials/checklistdek-activity-logs-page.php:32
+
 #: admin/partials/checklistdek-automation-page.php:160
+
 #: admin/partials/checklistdek-sites-page.php:241
+
 #: includes/class-checklistdek-admin.php:395
+
 #: includes/class-checklistdek-audit-log.php:655
+
 #: includes/class-checklistdek-audit-log.php:1756
 msgid "Status"
 msgstr ""
@@ -79,13 +99,17 @@ msgid "All statuses"
 msgstr ""
 
 #: admin/partials/checklistdek-activity-logs-page.php:35
+
 #: includes/class-checklistdek-audit-log.php:668
+
 #: includes/class-checklistdek-audit-log.php:1765
 msgid "Success"
 msgstr ""
 
 #: admin/partials/checklistdek-activity-logs-page.php:36
+
 #: includes/class-checklistdek-admin.php:398
+
 #: includes/class-checklistdek-audit-log.php:856
 msgid "Failed"
 msgstr ""
@@ -103,6 +127,7 @@ msgid "To"
 msgstr ""
 
 #: admin/partials/checklistdek-activity-logs-page.php:49
+
 #: admin/partials/checklistdek-checklists-page.php:34
 msgid "Search"
 msgstr ""
@@ -148,6 +173,7 @@ msgid "API Connection Status"
 msgstr ""
 
 #: admin/partials/checklistdek-admin-page.php:38
+
 #: includes/class-checklistdek-capabilities.php:295
 msgid "Manage Sites"
 msgstr ""
@@ -157,16 +183,19 @@ msgid "Connection status summary"
 msgstr ""
 
 #: admin/partials/checklistdek-admin-page.php:43
+
 #: includes/class-checklistdek-admin.php:342
 msgid "All Sites"
 msgstr ""
 
 #: admin/partials/checklistdek-admin-page.php:47
+
 #: includes/class-checklistdek-admin.php:343
 msgid "Healthy"
 msgstr ""
 
 #: admin/partials/checklistdek-admin-page.php:51
+
 #: includes/class-checklistdek-admin.php:344
 msgid "Issues"
 msgstr ""
@@ -176,11 +205,13 @@ msgid "Live Log Feed"
 msgstr ""
 
 #: admin/partials/checklistdek-admin-page.php:63
+
 #: admin/partials/checklistdek-automation-page.php:121
 msgid "View all activity logs"
 msgstr ""
 
 #. translators: %s: link to activity logs page
+
 #: admin/partials/checklistdek-admin-page.php:68
 #, php-format
 msgid "Showing the latest 15 entries. %s"
@@ -199,9 +230,13 @@ msgid "Select site"
 msgstr ""
 
 #: admin/partials/checklistdek-admin-page.php:105
+
 #: admin/partials/checklistdek-checklists-page.php:191
+
 #: admin/partials/checklistdek-onboarding-modal.php:78
+
 #: includes/class-checklistdek-admin.php:513
+
 #: includes/class-checklistdek-admin.php:530
 msgid "Select site…"
 msgstr ""
@@ -211,15 +246,21 @@ msgid "Select checklist"
 msgstr ""
 
 #: admin/partials/checklistdek-admin-page.php:111
+
 #: admin/partials/checklistdek-automation-page.php:76
+
 #: admin/partials/checklistdek-automation-page.php:139
+
 #: admin/partials/checklistdek-checklists-page.php:82
+
 #: includes/class-checklistdek-admin.php:381
 msgid "Select checklist…"
 msgstr ""
 
 #: admin/partials/checklistdek-admin-page.php:116
+
 #: admin/partials/checklistdek-automation-page.php:23
+
 #: includes/class-checklistdek-admin.php:565
 msgid "Run Checklist"
 msgstr ""
@@ -229,12 +270,15 @@ msgid "Batch run sections"
 msgstr ""
 
 #: admin/partials/checklistdek-automation-page.php:24
+
 #: admin/partials/checklistdek-automation-page.php:132
+
 #: includes/class-checklistdek-admin.php:566
 msgid "Batch Queue"
 msgstr ""
 
 #: admin/partials/checklistdek-automation-page.php:25
+
 #: includes/class-checklistdek-admin.php:567
 msgid "Drift Monitor"
 msgstr ""
@@ -252,59 +296,85 @@ msgid "Run checklist progress"
 msgstr ""
 
 #: admin/partials/checklistdek-automation-page.php:50
+
 #: admin/partials/checklistdek-onboarding-modal.php:37
+
 #: includes/class-checklistdek-admin.php:505
+
 #: includes/class-checklistdek-admin.php:568
 msgid "Step 1"
 msgstr ""
 
 #: admin/partials/checklistdek-automation-page.php:51
+
 #: includes/class-checklistdek-admin.php:569
 msgid "Choose checklist"
 msgstr ""
 
 #: admin/partials/checklistdek-automation-page.php:57
+
 #: admin/partials/checklistdek-onboarding-modal.php:44
+
 #: includes/class-checklistdek-admin.php:507
+
 #: includes/class-checklistdek-admin.php:570
 msgid "Step 2"
 msgstr ""
 
 #: admin/partials/checklistdek-automation-page.php:58
+
 #: includes/class-checklistdek-admin.php:571
 msgid "Choose site"
 msgstr ""
 
 #: admin/partials/checklistdek-automation-page.php:64
+
 #: includes/class-checklistdek-admin.php:572
 msgid "Step 3"
 msgstr ""
 
 #: admin/partials/checklistdek-automation-page.php:65
+
 #: includes/class-checklistdek-admin.php:573
 msgid "Execute steps"
 msgstr ""
 
 #: admin/partials/checklistdek-automation-page.php:74
+
 #: admin/partials/checklistdek-automation-page.php:75
+
 #: admin/partials/checklistdek-automation-page.php:138
+
 #: admin/partials/checklistdek-automation-page.php:159
+
 #: admin/partials/checklistdek-checklists-page.php:80
+
 #: includes/class-checklistdek-admin.php:391
+
 #: includes/class-checklistdek-audit-log.php:645
+
 #: includes/class-checklistdek-audit-log.php:647
+
 #: includes/class-checklistdek-audit-log.php:776
+
 #: includes/class-checklistdek-audit-log.php:1102
+
 #: includes/class-checklistdek-audit-log.php:1124
+
 #: includes/class-checklistdek-audit-log.php:1143
+
 #: includes/class-checklistdek-audit-log.php:1214
+
 #: includes/class-checklistdek-audit-log.php:1324
+
 #: includes/class-checklistdek-audit-log.php:1746
+
 #: includes/class-checklistdek-audit-log.php:1748
 msgid "Checklist"
 msgstr ""
 
 #: admin/partials/checklistdek-automation-page.php:80
+
 #: includes/class-checklistdek-admin.php:574
 msgid "Next"
 msgstr ""
@@ -314,26 +384,35 @@ msgid "Target site"
 msgstr ""
 
 #: admin/partials/checklistdek-automation-page.php:92
+
 #: admin/partials/checklistdek-onboarding-modal.php:114
+
 #: admin/partials/checklistdek-sites-page.php:304
+
 #: admin/partials/checklistdek-sites-page.php:387
+
 #: includes/class-checklistdek-admin.php:375
+
 #: includes/class-checklistdek-admin.php:518
+
 #: includes/class-checklistdek-admin.php:575
 msgid "Back"
 msgstr ""
 
 #: admin/partials/checklistdek-automation-page.php:93
+
 #: includes/class-checklistdek-admin.php:576
 msgid "Start Run"
 msgstr ""
 
 #: admin/partials/checklistdek-automation-page.php:101
+
 #: includes/class-checklistdek-admin.php:577
 msgid "Back to setup"
 msgstr ""
 
 #: admin/partials/checklistdek-automation-page.php:103
+
 #: includes/class-checklistdek-admin.php:547
 msgid "Complete steps 1–2 to start a run, or open an existing run from Sites."
 msgstr ""
@@ -359,6 +438,7 @@ msgid "Recent Activity"
 msgstr ""
 
 #: admin/partials/checklistdek-automation-page.php:124
+
 #: includes/class-checklistdek-admin.php:550
 msgid "Start a run to see site activity here, or open the full activity log."
 msgstr ""
@@ -384,6 +464,7 @@ msgid "Target sites"
 msgstr ""
 
 #: admin/partials/checklistdek-automation-page.php:161
+
 #: includes/class-checklistdek-audit-log.php:770
 msgid "Run"
 msgstr ""
@@ -440,24 +521,8 @@ msgstr ""
 msgid "Save a checklist from My Checklists as a reusable template for your team. Vault items stay on this hub only—not in ChecklistDek's built-in library. Click Use Checklist to start from a copy."
 msgstr ""
 
-#: admin/partials/checklistdek-checklists-page.php:59
-msgid "Private Agency Vault"
-msgstr ""
-
 #: admin/partials/checklistdek-checklists-page.php:64
 msgid "Save your best custom checklists here and reuse them across client sites."
-msgstr ""
-
-#: admin/partials/checklistdek-checklists-page.php:66
-msgid "Select checklist to vault"
-msgstr ""
-
-#: admin/partials/checklistdek-checklists-page.php:68
-msgid "Select checklist to vault…"
-msgstr ""
-
-#: admin/partials/checklistdek-checklists-page.php:70
-msgid "Save to Vault"
 msgstr ""
 
 #: admin/partials/checklistdek-checklists-page.php:88
@@ -466,10 +531,6 @@ msgstr ""
 
 #: admin/partials/checklistdek-checklists-page.php:90
 msgid "The checklist name shown in the hub, run history, and client panel when this checklist is pushed to a site."
-msgstr ""
-
-#: admin/partials/checklistdek-checklists-page.php:94
-msgid "Optional short summary for your team. Appears in checklist pickers and helps identify this checklist when vaulting or launching runs."
 msgstr ""
 
 #: admin/partials/checklistdek-checklists-page.php:106
@@ -517,12 +578,15 @@ msgid "Checklist preview panel"
 msgstr ""
 
 #: admin/partials/checklistdek-checklists-page.php:155
+
 #: admin/partials/checklistdek-onboarding-modal.php:54
+
 #: includes/class-checklistdek-admin.php:511
 msgid "Preview"
 msgstr ""
 
 #: admin/partials/checklistdek-checklists-page.php:157
+
 #: includes/class-checklistdek-admin.php:682
 msgid "Add a title and steps to preview the client panel."
 msgstr ""
@@ -540,7 +604,9 @@ msgid "Export JSON"
 msgstr ""
 
 #: admin/partials/checklistdek-checklists-page.php:166
+
 #: admin/partials/checklistdek-sites-page.php:180
+
 #: includes/class-checklistdek-admin.php:408
 msgid "Delete"
 msgstr ""
@@ -615,23 +681,28 @@ msgstr ""
 
 #. translators: %s: synced site count
 #. translators: %s: number of synced sites.
+
 #: admin/partials/checklistdek-integrations-page.php:67
+
 #: includes/class-checklistdek-admin.php:496
 #, php-format
 msgid "%s synced sites"
 msgstr ""
 
 #: admin/partials/checklistdek-integrations-page.php:76
+
 #: includes/class-checklistdek-admin.php:483
 msgid "Connected"
 msgstr ""
 
 #: admin/partials/checklistdek-integrations-page.php:76
+
 #: includes/class-checklistdek-admin.php:484
 msgid "Not Detected"
 msgstr ""
 
 #: admin/partials/checklistdek-integrations-page.php:79
+
 #: includes/class-checklistdek-admin.php:485
 msgid "Setup"
 msgstr ""
@@ -649,7 +720,9 @@ msgid "Enabled"
 msgstr ""
 
 #: admin/partials/checklistdek-integrations-page.php:101
+
 #: includes/class-checklistdek-audit-log.php:1219
+
 #: includes/class-checklistdek-audit-log.php:1231
 msgid "Connector"
 msgstr ""
@@ -691,16 +764,19 @@ msgid "Remove API Token"
 msgstr ""
 
 #: admin/partials/checklistdek-integrations-page.php:144
+
 #: includes/class-checklistdek-admin.php:486
 msgid "Sync Sites"
 msgstr ""
 
 #: admin/partials/checklistdek-integrations-page.php:145
+
 #: includes/class-checklistdek-admin.php:487
 msgid "Preview Sync"
 msgstr ""
 
 #: admin/partials/checklistdek-integrations-page.php:146
+
 #: includes/class-checklistdek-admin.php:488
 msgid "Push Client Panel"
 msgstr ""
@@ -710,17 +786,21 @@ msgid "Documentation"
 msgstr ""
 
 #: admin/partials/checklistdek-integrations-page.php:148
+
 #: admin/partials/checklistdek-sites-page.php:357
+
 #: admin/partials/checklistdek-sites-page.php:417
 msgid "Close"
 msgstr ""
 
 #: admin/partials/checklistdek-onboarding-modal.php:17
+
 #: includes/class-checklistdek-admin.php:503
 msgid "ChecklistDek Onboarding"
 msgstr ""
 
 #: admin/partials/checklistdek-onboarding-modal.php:19
+
 #: includes/class-checklistdek-admin.php:509
 msgid "Turn your messy Notion SOPs or Google Docs into an active Checklist."
 msgstr ""
@@ -730,21 +810,25 @@ msgid "Close onboarding"
 msgstr ""
 
 #: admin/partials/checklistdek-onboarding-modal.php:31
+
 #: includes/class-checklistdek-admin.php:504
 msgid "Onboarding progress"
 msgstr ""
 
 #: admin/partials/checklistdek-onboarding-modal.php:38
+
 #: includes/class-checklistdek-admin.php:506
 msgid "Import your checklist from SOPs or docs"
 msgstr ""
 
 #: admin/partials/checklistdek-onboarding-modal.php:45
+
 #: includes/class-checklistdek-admin.php:508
 msgid "Connect a client site with App Passwords"
 msgstr ""
 
 #: admin/partials/checklistdek-onboarding-modal.php:53
+
 #: includes/class-checklistdek-admin.php:510
 msgid "Paste your checklist text here:"
 msgstr ""
@@ -758,32 +842,39 @@ msgid ""
 msgstr ""
 
 #: admin/partials/checklistdek-onboarding-modal.php:57
+
 #: includes/class-checklistdek-admin.php:526
 msgid "Start typing to see your checklist preview."
 msgstr ""
 
 #: admin/partials/checklistdek-onboarding-modal.php:64
+
 #: includes/class-checklistdek-admin.php:514
 msgid "Start from a template instead"
 msgstr ""
 
 #: admin/partials/checklistdek-onboarding-modal.php:66
+
 #: admin/partials/checklistdek-onboarding-modal.php:116
+
 #: includes/class-checklistdek-admin.php:515
 msgid "Skip"
 msgstr ""
 
 #: admin/partials/checklistdek-onboarding-modal.php:67
+
 #: includes/class-checklistdek-admin.php:516
 msgid "Next: Connect"
 msgstr ""
 
 #: admin/partials/checklistdek-onboarding-modal.php:73
+
 #: includes/class-checklistdek-admin.php:517
 msgid "Connect your first remote client site using WordPress App Passwords."
 msgstr ""
 
 #: admin/partials/checklistdek-onboarding-modal.php:76
+
 #: includes/class-checklistdek-admin.php:512
 msgid "Test workflow immediately on:"
 msgstr ""
@@ -805,23 +896,29 @@ msgid "Application Password:"
 msgstr ""
 
 #: admin/partials/checklistdek-onboarding-modal.php:96
+
 #: admin/partials/checklistdek-sites-page.php:315
+
 #: admin/partials/checklistdek-sites-page.php:416
+
 #: includes/class-checklistdek-admin.php:521
 msgid "Test Connection"
 msgstr ""
 
 #: admin/partials/checklistdek-onboarding-modal.php:109
+
 #: includes/class-checklistdek-admin.php:520
 msgid "Your imported checklist workflow will be ready to push instantly."
 msgstr ""
 
 #: admin/partials/checklistdek-onboarding-modal.php:117
+
 #: includes/class-checklistdek-admin.php:519
 msgid "Finish & Launch"
 msgstr ""
 
 #: admin/partials/checklistdek-panel-setup-block.php:33
+
 #: includes/class-checklistdek-admin.php:422
 msgid "Client checklist panel setup"
 msgstr ""
@@ -863,7 +960,7 @@ msgid "Turn ChecklistDek on or off for this hub."
 msgstr ""
 
 #: admin/partials/checklistdek-settings-page.php:46
-msgid "AES-256-CBC encryption using local WordPress salts. When enabled, application passwords are encrypted at rest and decrypted only when a remote request is made."
+msgid "AES-256-CBC encryption using local WordPress salts. Encrypts Application Passwords stored for connected sites on this hub; decrypted only when a remote request is made."
 msgstr ""
 
 #: admin/partials/checklistdek-settings-page.php:50
@@ -947,7 +1044,7 @@ msgid "Show onboarding wizard"
 msgstr ""
 
 #: admin/partials/checklistdek-settings-page.php:148
-msgid "Credential Vault Security"
+msgid "Application password encryption"
 msgstr ""
 
 #: admin/partials/checklistdek-settings-page.php:152
@@ -1043,82 +1140,102 @@ msgid "Capability"
 msgstr ""
 
 #. translators: 1: capability label, 2: role name
+
 #: admin/partials/checklistdek-settings-page.php:415
 #, php-format
 msgid "Allow %1$s for %2$s"
 msgstr ""
 
 #: admin/partials/checklistdek-sites-page.php:30
+
 #: includes/class-checklistdek-admin.php:335
 msgid "OK"
 msgstr ""
 
 #: admin/partials/checklistdek-sites-page.php:33
+
 #: includes/class-checklistdek-admin.php:336
 msgid "Fail"
 msgstr ""
 
 #: admin/partials/checklistdek-sites-page.php:36
+
 #: admin/partials/checklistdek-sites-page.php:59
+
 #: includes/class-checklistdek-admin.php:337
+
 #: includes/class-checklistdek-admin.php:345
 msgid "Unknown"
 msgstr ""
 
 #: admin/partials/checklistdek-sites-page.php:52
+
 #: includes/class-checklistdek-admin.php:338
 msgid "Connection OK"
 msgstr ""
 
 #: admin/partials/checklistdek-sites-page.php:54
+
 #: includes/class-checklistdek-admin.php:340
 msgid "Connection not working"
 msgstr ""
 
 #: admin/partials/checklistdek-sites-page.php:144
+
 #: includes/class-checklistdek-admin.php:363
+
 #: includes/class-checklistdek-admin.php:418
 msgid "Client panel"
 msgstr ""
 
 #: admin/partials/checklistdek-sites-page.php:164
+
 #: includes/class-checklistdek-admin.php:349
 msgid "More site actions"
 msgstr ""
 
 #: admin/partials/checklistdek-sites-page.php:168
+
 #: includes/class-checklistdek-admin.php:346
 msgid "Edit"
 msgstr ""
 
 #: admin/partials/checklistdek-sites-page.php:174
+
 #: admin/partials/checklistdek-sites-page.php:327
+
 #: includes/class-checklistdek-admin.php:380
 msgid "Push Checklist"
 msgstr ""
 
 #: admin/partials/checklistdek-sites-page.php:175
+
 #: includes/class-checklistdek-admin.php:347
 msgid "Test"
 msgstr ""
 
 #: admin/partials/checklistdek-sites-page.php:176
+
 #: includes/class-checklistdek-admin.php:350
 msgid "More info"
 msgstr ""
 
 #: admin/partials/checklistdek-sites-page.php:177
+
 #: admin/partials/checklistdek-sites-page.php:365
+
 #: includes/class-checklistdek-admin.php:378
 msgid "Add to group"
 msgstr ""
 
 #: admin/partials/checklistdek-sites-page.php:179
+
 #: includes/class-checklistdek-admin.php:348
 msgid "Activity Log"
 msgstr ""
 
 #: admin/partials/checklistdek-sites-page.php:197
+
 #: includes/class-checklistdek-admin.php:386
 msgid "Show checklist history"
 msgstr ""
@@ -1128,13 +1245,17 @@ msgid "Add Site"
 msgstr ""
 
 #: admin/partials/checklistdek-sites-page.php:213
+
 #: admin/partials/checklistdek-sites-page.php:402
 msgid "Connection Tester"
 msgstr ""
 
 #: admin/partials/checklistdek-sites-page.php:214
+
 #: includes/class-checklistdek-admin.php:63
+
 #: includes/class-checklistdek-admin.php:64
+
 #: includes/class-checklistdek-admin.php:761
 msgid "Activity Logs"
 msgstr ""
@@ -1144,6 +1265,7 @@ msgid "Tagging and grouping filters"
 msgstr ""
 
 #: admin/partials/checklistdek-sites-page.php:221
+
 #: admin/partials/checklistdek-sites-page.php:222
 msgid "Filter by tag"
 msgstr ""
@@ -1153,6 +1275,7 @@ msgid "All tags"
 msgstr ""
 
 #: admin/partials/checklistdek-sites-page.php:227
+
 #: admin/partials/checklistdek-sites-page.php:228
 msgid "Filter by group"
 msgstr ""
@@ -1162,7 +1285,9 @@ msgid "All groups"
 msgstr ""
 
 #: admin/partials/checklistdek-sites-page.php:240
+
 #: admin/partials/checklistdek-sites-page.php:283
+
 #: includes/class-checklistdek-integrations.php:119
 msgid "Site Name"
 msgstr ""
@@ -1180,6 +1305,7 @@ msgid "Actions"
 msgstr ""
 
 #: admin/partials/checklistdek-sites-page.php:250
+
 #: includes/class-checklistdek-admin.php:332
 msgid "No sites registered yet."
 msgstr ""
@@ -1189,18 +1315,23 @@ msgid "Add Remote Site"
 msgstr ""
 
 #: admin/partials/checklistdek-sites-page.php:284
+
 #: admin/partials/checklistdek-sites-page.php:405
+
 #: includes/class-checklistdek-integrations.php:120
+
 #: includes/class-checklistdek-settings.php:303
 msgid "Site URL"
 msgstr ""
 
 #: admin/partials/checklistdek-sites-page.php:285
+
 #: admin/partials/checklistdek-sites-page.php:406
 msgid "Admin Username"
 msgstr ""
 
 #: admin/partials/checklistdek-sites-page.php:286
+
 #: admin/partials/checklistdek-sites-page.php:407
 msgid "Application Password"
 msgstr ""
@@ -1214,18 +1345,23 @@ msgid "Tag Group"
 msgstr ""
 
 #: admin/partials/checklistdek-sites-page.php:294
+
 #: includes/class-checklistdek-admin.php:372
 msgid "Add group…"
 msgstr ""
 
 #: admin/partials/checklistdek-sites-page.php:299
+
 #: admin/partials/checklistdek-sites-page.php:382
+
 #: includes/class-checklistdek-admin.php:373
 msgid "New group name"
 msgstr ""
 
 #: admin/partials/checklistdek-sites-page.php:303
+
 #: admin/partials/checklistdek-sites-page.php:386
+
 #: includes/class-checklistdek-admin.php:374
 msgid "Add group"
 msgstr ""
@@ -1239,9 +1375,13 @@ msgid "Delete Site"
 msgstr ""
 
 #: admin/partials/checklistdek-sites-page.php:318
+
 #: admin/partials/checklistdek-sites-page.php:345
+
 #: admin/partials/checklistdek-sites-page.php:394
+
 #: admin/partials/checklistdek-template-picker-modal.php:38
+
 #: includes/class-checklistdek-admin.php:447
 msgid "Cancel"
 msgstr ""
@@ -1263,11 +1403,13 @@ msgid "Push & Start Run"
 msgstr ""
 
 #: admin/partials/checklistdek-sites-page.php:353
+
 #: includes/class-checklistdek-admin.php:351
 msgid "Site details"
 msgstr ""
 
 #: admin/partials/checklistdek-sites-page.php:356
+
 #: includes/class-checklistdek-admin.php:352
 msgid "Edit site"
 msgstr ""
@@ -1293,6 +1435,7 @@ msgid "Test credentials against a remote site without saving."
 msgstr ""
 
 #: admin/partials/checklistdek-template-picker-modal.php:16
+
 #: includes/class-checklistdek-admin.php:444
 msgid "Choose a Template"
 msgstr ""
@@ -1314,26 +1457,31 @@ msgid "Loading templates…"
 msgstr ""
 
 #: admin/partials/checklistdek-template-picker-modal.php:29
+
 #: includes/class-checklistdek-admin.php:451
 msgid "Steps preview"
 msgstr ""
 
 #: admin/partials/checklistdek-template-picker-modal.php:30
+
 #: includes/class-checklistdek-admin.php:452
 msgid "Select a template to preview its steps."
 msgstr ""
 
 #: admin/partials/checklistdek-template-picker-modal.php:36
+
 #: includes/class-checklistdek-admin.php:445
 msgid "Start blank instead"
 msgstr ""
 
 #: admin/partials/checklistdek-template-picker-modal.php:39
+
 #: includes/class-checklistdek-admin.php:446
 msgid "Import Template"
 msgstr ""
 
 #: includes/class-checklistdek-admin-ajax.php:83
+
 #: includes/class-checklistdek-admin.php:330
 msgid "Your session has expired. Please reload the page and try again."
 msgstr ""
@@ -1351,8 +1499,11 @@ msgid "You do not have permission to view activity logs."
 msgstr ""
 
 #: includes/class-checklistdek-admin-ajax.php:198
+
 #: includes/class-checklistdek-admin-ajax.php:235
+
 #: includes/class-checklistdek-integration-sync.php:50
+
 #: includes/class-checklistdek-rest-api.php:1489
 msgid "Integration not found."
 msgstr ""
@@ -1370,15 +1521,25 @@ msgid "WP Umbrella API token removed."
 msgstr ""
 
 #: includes/class-checklistdek-admin-ajax.php:387
+
 #: includes/class-checklistdek-checklist-runner.php:28
+
 #: includes/class-checklistdek-drift-verifier.php:57
+
 #: includes/class-checklistdek-rest-api.php:638
+
 #: includes/class-checklistdek-rest-api.php:654
+
 #: includes/class-checklistdek-rest-api.php:714
+
 #: includes/class-checklistdek-rest-api.php:738
+
 #: includes/class-checklistdek-rest-api.php:762
+
 #: includes/class-checklistdek-rest-api.php:789
+
 #: includes/class-checklistdek-rest-api.php:813
+
 #: includes/class-checklistdek-rest-api.php:845
 msgid "Site not found."
 msgstr ""
@@ -1408,12 +1569,9 @@ msgid "Integrations"
 msgstr ""
 
 #: includes/class-checklistdek-admin.php:46
+
 #: includes/class-checklistdek-admin.php:697
 msgid "Settings"
-msgstr ""
-
-#: includes/class-checklistdek-admin.php:76
-msgid "Upgrade to Pro"
 msgstr ""
 
 #: includes/class-checklistdek-admin.php:77
@@ -1422,10 +1580,6 @@ msgstr ""
 
 #: includes/class-checklistdek-admin.php:92
 msgid "You do not have permission to access this page."
-msgstr ""
-
-#: includes/class-checklistdek-admin.php:97
-msgid "Upgrade URL is not configured."
 msgstr ""
 
 #: includes/class-checklistdek-admin.php:325
@@ -1473,13 +1627,17 @@ msgid "Site name"
 msgstr ""
 
 #: includes/class-checklistdek-admin.php:354
+
 #: includes/class-checklistdek-audit-log.php:653
+
 #: includes/class-checklistdek-audit-log.php:1754
 msgid "URL"
 msgstr ""
 
 #: includes/class-checklistdek-admin.php:355
+
 #: includes/class-checklistdek-audit-log.php:650
+
 #: includes/class-checklistdek-audit-log.php:1751
 msgid "Site ID"
 msgstr ""
@@ -1497,12 +1655,14 @@ msgid "Environment"
 msgstr ""
 
 #. translators: 1: WordPress version, 2: PHP version.
+
 #: includes/class-checklistdek-admin.php:360
 #, php-format
 msgid "WP %1$s · PHP %2$s"
 msgstr ""
 
 #: includes/class-checklistdek-admin.php:361
+
 #: includes/class-checklistdek-audit-log.php:856
 msgid "Connection"
 msgstr ""
@@ -1516,7 +1676,9 @@ msgid "App password"
 msgstr ""
 
 #: includes/class-checklistdek-admin.php:365
+
 #: includes/class-checklistdek-audit-log.php:672
+
 #: includes/class-checklistdek-settings.php:670
 msgid "Integration"
 msgstr ""
@@ -1530,13 +1692,17 @@ msgid "Updated"
 msgstr ""
 
 #: includes/class-checklistdek-admin.php:368
+
 #: includes/class-checklistdek-audit-log.php:619
+
 #: includes/class-checklistdek-audit-log.php:1782
 msgid "Yes"
 msgstr ""
 
 #: includes/class-checklistdek-admin.php:369
+
 #: includes/class-checklistdek-audit-log.php:619
+
 #: includes/class-checklistdek-audit-log.php:1782
 msgid "No"
 msgstr ""
@@ -1550,6 +1716,7 @@ msgid "Missing"
 msgstr ""
 
 #: includes/class-checklistdek-admin.php:376
+
 #: includes/class-checklistdek-settings.php:741
 msgid "Enter a group name."
 msgstr ""
@@ -1599,14 +1766,18 @@ msgid "Steps"
 msgstr ""
 
 #. translators: 1: completed step count, 2: total step count.
+
 #: includes/class-checklistdek-admin.php:394
 #, php-format
 msgid "%1$d of %2$d steps completed"
 msgstr ""
 
 #: includes/class-checklistdek-admin.php:396
+
 #: includes/class-checklistdek-admin.php:401
+
 #: includes/class-checklistdek-audit-log.php:1242
+
 #: mu-plugin/checklistdek-client/class-panel.php:188
 msgid "Completed"
 msgstr ""
@@ -1684,6 +1855,7 @@ msgid "Open runner →"
 msgstr ""
 
 #: includes/class-checklistdek-admin.php:419
+
 #: includes/class-checklistdek-client-push.php:256
 msgid "Checklist pushed to client admin panel."
 msgstr ""
@@ -1729,6 +1901,7 @@ msgid "Checklist created."
 msgstr ""
 
 #: includes/class-checklistdek-admin.php:431
+
 #: includes/class-checklistdek-rest-api.php:1045
 msgid "Checklist title is required."
 msgstr ""
@@ -1757,14 +1930,6 @@ msgstr ""
 msgid "Are you sure you want to delete this checklist?"
 msgstr ""
 
-#: includes/class-checklistdek-admin.php:438
-msgid "Saved to vault."
-msgstr ""
-
-#: includes/class-checklistdek-admin.php:439
-msgid "No vault templates yet."
-msgstr ""
-
 #: includes/class-checklistdek-admin.php:440
 msgid "No templates in this category yet."
 msgstr ""
@@ -1774,6 +1939,7 @@ msgid "No templates match your search."
 msgstr ""
 
 #. translators: %d: number of matching templates.
+
 #: includes/class-checklistdek-admin.php:443
 #, php-format
 msgid "Showing %d results across all categories."
@@ -1796,12 +1962,14 @@ msgid "This template has no steps yet."
 msgstr ""
 
 #. translators: %d: number of steps.
+
 #: includes/class-checklistdek-admin.php:455
 #, php-format
 msgid "%d step"
 msgstr ""
 
 #. translators: %d: number of steps.
+
 #: includes/class-checklistdek-admin.php:457
 #, php-format
 msgid "%d steps"
@@ -1812,6 +1980,7 @@ msgid "View steps"
 msgstr ""
 
 #: includes/class-checklistdek-admin.php:459
+
 #: mu-plugin/checklistdek-client/class-panel.php:180
 msgid "Hide steps"
 msgstr ""
@@ -1833,6 +2002,7 @@ msgid "All roles"
 msgstr ""
 
 #. translators: %d: number of selected roles.
+
 #: includes/class-checklistdek-admin.php:465
 #, php-format
 msgid "%d roles selected"
@@ -1843,6 +2013,7 @@ msgid "Select sites…"
 msgstr ""
 
 #. translators: %d: number of selected sites.
+
 #: includes/class-checklistdek-admin.php:468
 #, php-format
 msgid "%d sites selected"
@@ -1905,18 +2076,21 @@ msgid "When enabled, clients can attach a screenshot from the media library when
 msgstr ""
 
 #. translators: 1: sites created, 2: sites updated, 3: sites skipped, 4: sites needing credentials.
+
 #: includes/class-checklistdek-admin.php:490
 #, php-format
 msgid "Sync complete: %1$s created, %2$s updated, %3$s skipped. %4$s need credentials on the Sites page."
 msgstr ""
 
 #. translators: 1: sites that would be created, 2: updated, 3: skipped, 4: total platform sites.
+
 #: includes/class-checklistdek-admin.php:492
 #, php-format
 msgid "Preview: %1$s would be created, %2$s updated, %3$s skipped out of %4$s platform sites."
 msgstr ""
 
 #. translators: 1: successful pushes, 2: failed pushes, 3: skipped sites.
+
 #: includes/class-checklistdek-admin.php:494
 #, php-format
 msgid "Client panel push finished: %1$s succeeded, %2$s failed, %3$s skipped."
@@ -1995,6 +2169,7 @@ msgid "Import 1 Captured Step"
 msgstr ""
 
 #. translators: %d: number of captured steps.
+
 #: includes/class-checklistdek-admin.php:537
 #, php-format
 msgid "Import %d Captured Steps"
@@ -2029,12 +2204,14 @@ msgid "Batch queue processed."
 msgstr ""
 
 #. translators: %d: checklist run ID.
+
 #: includes/class-checklistdek-admin.php:546
 #, php-format
 msgid "Run #%d started."
 msgstr ""
 
 #. translators: %s: site name.
+
 #: includes/class-checklistdek-admin.php:549
 #, php-format
 msgid "Recent activity for %s."
@@ -2058,15 +2235,13 @@ msgstr ""
 
 #. translators: %s: user display name.
 #. translators: %s: client user display name
-#: includes/class-checklistdek-admin.php:556
-#: includes/class-checklistdek-webhook-dispatcher.php:87
-#, php-format
-msgid "by %s"
-msgstr ""
 
-#. translators: %d: step number.
+#: includes/class-checklistdek-admin.php:556
+
 #: includes/class-checklistdek-admin.php:558
+
 #: includes/class-checklistdek-admin.php:560
+
 #: includes/class-checklistdek-checklist-repository.php:437
 #, php-format
 msgid "Step %d"
@@ -2089,48 +2264,58 @@ msgid "Loading more activity…"
 msgstr ""
 
 #: includes/class-checklistdek-admin.php:672
+
 #: mu-plugin/checklistdek-client/class-panel.php:177
 msgid "Collapse"
 msgstr ""
 
 #. translators: 1: current step number, 2: total step count.
+
 #: includes/class-checklistdek-admin.php:674
+
 #: mu-plugin/checklistdek-client/class-panel.php:201
 #, php-format
 msgid "Step %1$s of %2$s"
 msgstr ""
 
 #: includes/class-checklistdek-admin.php:675
+
 #: mu-plugin/checklistdek-client/class-panel.php:183
 msgid "Mark complete"
 msgstr ""
 
 #: includes/class-checklistdek-admin.php:676
+
 #: mu-plugin/checklistdek-client/class-panel.php:191
 msgid "Go to settings"
 msgstr ""
 
 #: includes/class-checklistdek-admin.php:677
+
 #: mu-plugin/checklistdek-client/class-panel.php:192
 msgid "Toggle step details"
 msgstr ""
 
 #: includes/class-checklistdek-admin.php:678
+
 #: mu-plugin/checklistdek-client/class-panel.php:189
 msgid "Waiting on agency"
 msgstr ""
 
 #: includes/class-checklistdek-admin.php:679
+
 #: mu-plugin/checklistdek-client/class-panel.php:207
 msgid "Add notes"
 msgstr ""
 
 #: includes/class-checklistdek-admin.php:680
+
 #: mu-plugin/checklistdek-client/class-panel.php:212
 msgid "Attach screenshot"
 msgstr ""
 
 #: includes/class-checklistdek-admin.php:681
+
 #: mu-plugin/checklistdek-client/class-panel.php:208
 msgid "Add a note about this step…"
 msgstr ""
@@ -2140,7 +2325,9 @@ msgid "Docs"
 msgstr ""
 
 #: includes/class-checklistdek-admin.php:778
+
 #: includes/class-checklistdek-admin.php:791
+
 #: includes/class-checklistdek-admin.php:799
 msgid "You do not have sufficient permissions."
 msgstr ""
@@ -2154,67 +2341,85 @@ msgid "Manual step"
 msgstr ""
 
 #: includes/class-checklistdek-audit-log.php:646
+
 #: includes/class-checklistdek-audit-log.php:648
+
 #: includes/class-checklistdek-audit-log.php:1747
+
 #: includes/class-checklistdek-audit-log.php:1749
 msgid "Checklist ID"
 msgstr ""
 
 #: includes/class-checklistdek-audit-log.php:649
+
 #: includes/class-checklistdek-audit-log.php:1750
 msgid "Run ID"
 msgstr ""
 
 #: includes/class-checklistdek-audit-log.php:652
+
 #: includes/class-checklistdek-audit-log.php:1753
 msgid "Name"
 msgstr ""
 
 #: includes/class-checklistdek-audit-log.php:654
+
 #: includes/class-checklistdek-audit-log.php:1755
 msgid "Title"
 msgstr ""
 
 #: includes/class-checklistdek-audit-log.php:656
+
 #: includes/class-checklistdek-audit-log.php:1757
 msgid "Message"
 msgstr ""
 
 #: includes/class-checklistdek-audit-log.php:657
+
 #: includes/class-checklistdek-audit-log.php:824
 msgid "HTTP method"
 msgstr ""
 
 #: includes/class-checklistdek-audit-log.php:658
+
 #: includes/class-checklistdek-audit-log.php:828
 msgid "API route"
 msgstr ""
 
 #: includes/class-checklistdek-audit-log.php:659
+
 #: includes/class-checklistdek-audit-log.php:832
 msgid "HTTP status"
 msgstr ""
 
 #: includes/class-checklistdek-audit-log.php:660
+
 #: includes/class-checklistdek-audit-log.php:698
+
 #: includes/class-checklistdek-audit-log.php:1760
 msgid "Step"
 msgstr ""
 
 #: includes/class-checklistdek-audit-log.php:661
+
 #: includes/class-checklistdek-audit-log.php:714
 msgid "Step number"
 msgstr ""
 
 #: includes/class-checklistdek-audit-log.php:662
+
 #: includes/class-checklistdek-audit-log.php:730
+
 #: includes/class-checklistdek-audit-log.php:1260
+
 #: includes/class-checklistdek-audit-log.php:1282
+
 #: includes/class-checklistdek-audit-log.php:1762
 msgid "Client user"
 msgstr ""
 
 #: includes/class-checklistdek-audit-log.php:663
+
 #: includes/class-checklistdek-audit-log.php:733
 msgid "Client email"
 msgstr ""
@@ -2224,17 +2429,21 @@ msgid "Client user ID"
 msgstr ""
 
 #: includes/class-checklistdek-audit-log.php:665
+
 #: includes/class-checklistdek-audit-log.php:812
+
 #: includes/class-checklistdek-audit-log.php:1763
 msgid "Note"
 msgstr ""
 
 #: includes/class-checklistdek-audit-log.php:666
+
 #: includes/class-checklistdek-audit-log.php:816
 msgid "Screenshot attached"
 msgstr ""
 
 #: includes/class-checklistdek-audit-log.php:667
+
 #: includes/class-checklistdek-audit-log.php:1764
 msgid "Count"
 msgstr ""
@@ -2252,16 +2461,19 @@ msgid "Client panel installed"
 msgstr ""
 
 #: includes/class-checklistdek-audit-log.php:673
+
 #: includes/class-checklistdek-audit-log.php:838
 msgid "Excluded fields"
 msgstr ""
 
 #: includes/class-checklistdek-audit-log.php:674
+
 #: includes/class-checklistdek-audit-log.php:844
 msgid "Request body"
 msgstr ""
 
 #: includes/class-checklistdek-audit-log.php:675
+
 #: includes/class-checklistdek-audit-log.php:896
 msgid "Results"
 msgstr ""
@@ -2271,11 +2483,13 @@ msgid "Drift findings"
 msgstr ""
 
 #: includes/class-checklistdek-audit-log.php:705
+
 #: mu-plugin/checklistdek-client/class-panel.php:199
 msgid "Progress"
 msgstr ""
 
 #. translators: 1: step number, 2: total steps
+
 #: includes/class-checklistdek-audit-log.php:708
 #, php-format
 msgid "Step %1$d of %2$d"
@@ -2322,182 +2536,213 @@ msgid "Drift count"
 msgstr ""
 
 #. translators: %d: drift item number
+
 #: includes/class-checklistdek-audit-log.php:872
 #, php-format
 msgid "Check %d"
 msgstr ""
 
 #. translators: %s: checklist title
+
 #: includes/class-checklistdek-audit-log.php:1107
 #, php-format
 msgid "Checklist '%s' started"
 msgstr ""
 
 #. translators: 1: checklist title, 2: site name
+
 #: includes/class-checklistdek-audit-log.php:1114
 #, php-format
 msgid "Checklist '%1$s' started on %2$s"
 msgstr ""
 
 #. translators: %s: checklist title
+
 #: includes/class-checklistdek-audit-log.php:1129
 #, php-format
 msgid "Checklist '%s' completed"
 msgstr ""
 
 #. translators: 1: workflow title, 2: site name
+
 #: includes/class-checklistdek-audit-log.php:1136
 #, php-format
 msgid "Checklist '%1$s' completed on %2$s"
 msgstr ""
 
 #. translators: %s: checklist title
+
 #: includes/class-checklistdek-audit-log.php:1148
 #, php-format
 msgid "Checklist '%s' failed"
 msgstr ""
 
 #. translators: 1: workflow title, 2: site name
+
 #: includes/class-checklistdek-audit-log.php:1155
 #, php-format
 msgid "Checklist '%1$s' failed on %2$s"
 msgstr ""
 
 #. translators: %s: status
+
 #: includes/class-checklistdek-audit-log.php:1164
 #, php-format
 msgid "Run status changed to %s"
 msgstr ""
 
 #. translators: 1: status, 2: site name
+
 #: includes/class-checklistdek-audit-log.php:1171
 #, php-format
 msgid "Run status changed to %1$s on %2$s"
 msgstr ""
 
 #: includes/class-checklistdek-audit-log.php:1178
+
 #: includes/class-checklistdek-audit-log.php:1803
 msgid "Site registered"
 msgstr ""
 
 #. translators: %s: site name
+
 #: includes/class-checklistdek-audit-log.php:1183
 #, php-format
 msgid "Site %s registered"
 msgstr ""
 
 #: includes/class-checklistdek-audit-log.php:1189
+
 #: includes/class-checklistdek-audit-log.php:1804
 msgid "Site updated"
 msgstr ""
 
 #. translators: %s: site name
+
 #: includes/class-checklistdek-audit-log.php:1194
 #, php-format
 msgid "Site %s updated"
 msgstr ""
 
 #: includes/class-checklistdek-audit-log.php:1200
+
 #: includes/class-checklistdek-audit-log.php:1805
 msgid "Site removed"
 msgstr ""
 
 #. translators: %s: site name
+
 #: includes/class-checklistdek-audit-log.php:1205
 #, php-format
 msgid "Site %s removed"
 msgstr ""
 
 #. translators: %s: checklist title
+
 #: includes/class-checklistdek-audit-log.php:1213
 #, php-format
 msgid "Checklist '%s' created"
 msgstr ""
 
 #. translators: 1: connector slug, 2: created count, 3: updated count
+
 #: includes/class-checklistdek-audit-log.php:1223
 #, php-format
 msgid "%1$s sync: %2$s created, %3$s updated"
 msgstr ""
 
 #. translators: 1: connector slug, 2: success count, 3: failed count
+
 #: includes/class-checklistdek-audit-log.php:1235
 #, php-format
 msgid "%1$s client panel push: %2$s succeeded, %3$s failed"
 msgstr ""
 
 #. translators: %s: result message
+
 #: includes/class-checklistdek-audit-log.php:1247
 #, php-format
 msgid "Connection test: %s"
 msgstr ""
 
 #. translators: 1: site name, 2: result message
+
 #: includes/class-checklistdek-audit-log.php:1254
 #, php-format
 msgid "Connection test on %1$s: %2$s"
 msgstr ""
 
 #: includes/class-checklistdek-audit-log.php:1261
+
 #: includes/class-checklistdek-audit-log.php:1283
 msgid "step"
 msgstr ""
 
 #. translators: 1: client user, 2: step title
+
 #: includes/class-checklistdek-audit-log.php:1266
 #, php-format
 msgid "%1$s completed \"%2$s\""
 msgstr ""
 
 #. translators: 1: client user, 2: step title, 3: site name
+
 #: includes/class-checklistdek-audit-log.php:1274
 #, php-format
 msgid "%1$s completed \"%2$s\" on %3$s"
 msgstr ""
 
 #. translators: 1: client user, 2: step title, 3: note preview
+
 #: includes/class-checklistdek-audit-log.php:1289
 #, php-format
 msgid "%1$s added a note on \"%2$s\": %3$s"
 msgstr ""
 
 #. translators: 1: client user, 2: step title, 3: site name, 4: note preview
+
 #: includes/class-checklistdek-audit-log.php:1298
 #, php-format
 msgid "%1$s added a note on \"%2$s\" (%3$s): %4$s"
 msgstr ""
 
 #. translators: 1: client user, 2: step title
+
 #: includes/class-checklistdek-audit-log.php:1309
 #, php-format
 msgid "%1$s added a note on \"%2$s\""
 msgstr ""
 
 #. translators: 1: client user, 2: step title, 3: site name
+
 #: includes/class-checklistdek-audit-log.php:1317
 #, php-format
 msgid "%1$s added a note on \"%2$s\" (%3$s)"
 msgstr ""
 
 #. translators: %s: checklist title
+
 #: includes/class-checklistdek-audit-log.php:1329
 #, php-format
 msgid "Checklist '%s' pushed to client panel"
 msgstr ""
 
 #. translators: 1: checklist title, 2: site name
+
 #: includes/class-checklistdek-audit-log.php:1336
 #, php-format
 msgid "Checklist '%1$s' pushed to %2$s"
 msgstr ""
 
 #. translators: %d: drift count
+
 #: includes/class-checklistdek-audit-log.php:1348
 #, php-format
 msgid "%d drift issue(s) detected"
 msgstr ""
 
 #. translators: 1: drift count, 2: site name
+
 #: includes/class-checklistdek-audit-log.php:1355
 #, php-format
 msgid "%1$d drift issue(s) detected on %2$s"
@@ -2508,29 +2753,34 @@ msgid "Drift check passed"
 msgstr ""
 
 #. translators: %s: site name
+
 #: includes/class-checklistdek-audit-log.php:1367
 #, php-format
 msgid "Drift check passed on %s"
 msgstr ""
 
 #: includes/class-checklistdek-audit-log.php:1373
+
 #: includes/class-checklistdek-audit-log.php:1801
 msgid "Manual step completed"
 msgstr ""
 
 #. translators: %s: site name
+
 #: includes/class-checklistdek-audit-log.php:1378
 #, php-format
 msgid "Manual step completed on %s"
 msgstr ""
 
 #. translators: 1: HTTP method, 2: route
+
 #: includes/class-checklistdek-audit-log.php:1389
 #, php-format
 msgid "%1$s %2$s executed"
 msgstr ""
 
 #. translators: 1: HTTP method, 2: route, 3: site name
+
 #: includes/class-checklistdek-audit-log.php:1397
 #, php-format
 msgid "%1$s %2$s executed on %3$s"
@@ -2541,59 +2791,52 @@ msgid "Unknown site"
 msgstr ""
 
 #. translators: 1: checklist title, 2: checklist ID
+
 #: includes/class-checklistdek-audit-log.php:1579
 #, php-format
 msgid "Checklist: %1$s (ID %2$d)"
 msgstr ""
 
 #. translators: %s: checklist title
+
 #: includes/class-checklistdek-audit-log.php:1586
+
 #: includes/class-checklistdek-audit-log.php:1593
+
 #: includes/class-checklistdek-audit-log.php:1636
-#: includes/class-checklistdek-email-notifier.php:132
-#, php-format
-msgid "Checklist: %s"
-msgstr ""
 
-#. translators: %s: step title
 #: includes/class-checklistdek-audit-log.php:1610
-#: includes/class-checklistdek-email-notifier.php:137
-#, php-format
-msgid "Step: %s"
-msgstr ""
 
-#. translators: %s: site name
 #: includes/class-checklistdek-audit-log.php:1624
-#: includes/class-checklistdek-email-notifier.php:122
-#, php-format
-msgid "Site: %s"
-msgstr ""
 
-#. translators: %d: number of rules
 #: includes/class-checklistdek-audit-log.php:1647
 #, php-format
 msgid "%d mapping rules saved"
 msgstr ""
 
 #. translators: %s: checklist title
+
 #: includes/class-checklistdek-audit-log.php:1657
 #, php-format
 msgid "Checklist completed: %s"
 msgstr ""
 
 #. translators: %s: checklist title
+
 #: includes/class-checklistdek-audit-log.php:1664
 #, php-format
 msgid "Checklist failed: %s"
 msgstr ""
 
 #. translators: 1: checklist title, 2: run status
+
 #: includes/class-checklistdek-audit-log.php:1670
 #, php-format
 msgid "Checklist %1$s — status %2$s"
 msgstr ""
 
 #. translators: %s: run status
+
 #: includes/class-checklistdek-audit-log.php:1677
 #, php-format
 msgid "Status changed to %s"
@@ -2604,6 +2847,7 @@ msgid "No drift detected."
 msgstr ""
 
 #. translators: 1: step title, 2: client user name
+
 #: includes/class-checklistdek-audit-log.php:1713
 #, php-format
 msgid "Step %1$s completed by %2$s"
@@ -2638,16 +2882,19 @@ msgid "Manual step uncompleted"
 msgstr ""
 
 #: includes/class-checklistdek-audit-log.php:1806
+
 #: includes/class-checklistdek-audit-log.php:1809
 msgid "Checklist created"
 msgstr ""
 
 #: includes/class-checklistdek-audit-log.php:1807
+
 #: includes/class-checklistdek-audit-log.php:1810
 msgid "Checklist updated"
 msgstr ""
 
 #: includes/class-checklistdek-audit-log.php:1808
+
 #: includes/class-checklistdek-audit-log.php:1811
 msgid "Checklist deleted"
 msgstr ""
@@ -2677,9 +2924,6 @@ msgid "Checklist pushed to client"
 msgstr ""
 
 #: includes/class-checklistdek-audit-log.php:1818
-#: includes/class-checklistdek-webhook-dispatcher.php:63
-msgid "Client step completed"
-msgstr ""
 
 #: includes/class-checklistdek-audit-log.php:1819
 msgid "Client step uncompleted"
@@ -2705,16 +2949,12 @@ msgstr ""
 msgid "Automated"
 msgstr ""
 
-#: includes/class-checklistdek-auto-capture.php:73
 #: includes/class-checklistdek-client-push.php:228
-#: includes/class-checklistdek-mu-plugin-installer.php:35
+
 #: includes/class-checklistdek-payload-mapper.php:29
+
 #: includes/community/class-checklistdek-mu-plugin-installer.php:33
 msgid "Unable to connect to remote site."
-msgstr ""
-
-#: includes/class-checklistdek-auto-capture.php:80
-msgid "Auto-capture requires the client checklist panel on the remote site."
 msgstr ""
 
 #: includes/class-checklistdek-capabilities.php:255
@@ -2770,9 +3010,13 @@ msgid "Imported Checklist"
 msgstr ""
 
 #: includes/class-checklistdek-checklist-runner.php:34
+
 #: includes/class-checklistdek-checklist-runner.php:97
+
 #: includes/class-checklistdek-rest-api.php:952
+
 #: includes/class-checklistdek-rest-api.php:983
+
 #: includes/class-checklistdek-rest-api.php:1095
 msgid "Checklist not found."
 msgstr ""
@@ -2782,13 +3026,21 @@ msgid "Failed to create run."
 msgstr ""
 
 #: includes/class-checklistdek-checklist-runner.php:91
+
 #: includes/class-checklistdek-client-push.php:117
+
 #: includes/class-checklistdek-client-push.php:196
+
 #: includes/class-checklistdek-client-push.php:307
+
 #: includes/class-checklistdek-client-push.php:430
+
 #: includes/class-checklistdek-client-push.php:522
+
 #: includes/class-checklistdek-rest-api.php:1156
+
 #: includes/class-checklistdek-rest-api.php:1172
+
 #: includes/class-checklistdek-rest-api.php:1193
 msgid "Run not found."
 msgstr ""
@@ -2802,7 +3054,9 @@ msgid "Client checklist panel is not installed on this site."
 msgstr ""
 
 #: includes/class-checklistdek-client-push.php:319
+
 #: includes/class-checklistdek-client-push.php:442
+
 #: includes/class-checklistdek-client-push.php:542
 msgid "Step not found."
 msgstr ""
@@ -2812,11 +3066,13 @@ msgid "Only manual steps can be completed from the client panel."
 msgstr ""
 
 #: includes/class-checklistdek-client-push.php:333
+
 #: mu-plugin/checklistdek-client/class-rest-api.php:281
 msgid "This step cannot be marked complete."
 msgstr ""
 
 #: includes/class-checklistdek-client-push.php:361
+
 #: includes/class-checklistdek-client-push.php:476
 msgid "Failed to update step."
 msgstr ""
@@ -2826,6 +3082,7 @@ msgid "Only manual steps can be updated from the client panel."
 msgstr ""
 
 #: includes/class-checklistdek-client-push.php:456
+
 #: mu-plugin/checklistdek-client/class-rest-api.php:364
 msgid "This step is not marked complete."
 msgstr ""
@@ -2835,7 +3092,9 @@ msgid "This checklist run is no longer active."
 msgstr ""
 
 #: includes/class-checklistdek-client-push.php:551
+
 #: mu-plugin/checklistdek-client/class-panel.php:209
+
 #: mu-plugin/checklistdek-client/class-rest-api.php:446
 msgid "Type a note before saving."
 msgstr ""
@@ -2849,6 +3108,7 @@ msgid "Site not found or missing credentials."
 msgstr ""
 
 #: includes/class-checklistdek-connection-tester.php:81
+
 #: includes/community/class-checklistdek-mu-plugin-installer.php:47
 msgid "Client checklist panel is installed and ready."
 msgstr ""
@@ -2858,93 +3118,18 @@ msgid "Client panel is not installed yet. Download the bootstrap file, upload it
 msgstr ""
 
 #: includes/class-checklistdek-drift-verifier.php:29
-#: mu-plugin/checklistdek-client/class-auto-capture.php:465
-msgid "Permalink Structure"
-msgstr ""
 
 #: includes/class-checklistdek-drift-verifier.php:34
+
 #: includes/class-checklistdek-settings.php:307
-#: mu-plugin/checklistdek-client/class-auto-capture.php:469
-msgid "Search Engine Visibility"
-msgstr ""
 
 #: includes/class-checklistdek-drift-verifier.php:39
+
 #: includes/class-checklistdek-settings.php:308
 msgid "Environment Type"
 msgstr ""
 
 #. translators: 1: event label
-#: includes/class-checklistdek-email-notifier.php:91
-#: includes/class-checklistdek-webhook-dispatcher.php:69
-#, php-format
-msgid "ChecklistDek: %s"
-msgstr ""
-
-#. translators: 1: event label
-#: includes/class-checklistdek-email-notifier.php:117
-#, php-format
-msgid "ChecklistDek alert: %s"
-msgstr ""
-
-#. translators: %s: site URL
-#: includes/class-checklistdek-email-notifier.php:127
-#, php-format
-msgid "URL: %s"
-msgstr ""
-
-#. translators: %s: client user display name
-#: includes/class-checklistdek-email-notifier.php:142
-#, php-format
-msgid "Completed by: %s"
-msgstr ""
-
-#. translators: %s: note excerpt
-#: includes/class-checklistdek-email-notifier.php:147
-#, php-format
-msgid "Note: %s"
-msgstr ""
-
-#. translators: %s: comma-separated setting labels
-#: includes/class-checklistdek-email-notifier.php:152
-#, php-format
-msgid "Drift: %s"
-msgstr ""
-
-#. translators: %s: error message
-#: includes/class-checklistdek-email-notifier.php:157
-#, php-format
-msgid "Error: %s"
-msgstr ""
-
-#. translators: %s: user display name
-#: includes/class-checklistdek-email-notifier.php:162
-#, php-format
-msgid "Started by: %s"
-msgstr ""
-
-#. translators: %s: datetime
-#: includes/class-checklistdek-email-notifier.php:167
-#, php-format
-msgid "Started: %s"
-msgstr ""
-
-#. translators: %s: datetime
-#: includes/class-checklistdek-email-notifier.php:172
-#, php-format
-msgid "Completed: %s"
-msgstr ""
-
-#. translators: %s: admin URL
-#: includes/class-checklistdek-email-notifier.php:181
-#, php-format
-msgid "View run: %s"
-msgstr ""
-
-#. translators: %s: site name
-#: includes/class-checklistdek-email-notifier.php:186
-#, php-format
-msgid "Sent from %s"
-msgstr ""
 
 #: includes/class-checklistdek-integration-sync.php:58
 msgid "This connector does not support site sync yet."
@@ -2956,56 +3141,6 @@ msgstr ""
 
 #: includes/class-checklistdek-integrations.php:122
 msgid "PHP Version"
-msgstr ""
-
-#: includes/class-checklistdek-mu-plugin-installer.php:54
-msgid "Client checklist panel is installed, but the latest panel files could not be synced."
-msgstr ""
-
-#: includes/class-checklistdek-mu-plugin-installer.php:62
-msgid "Client checklist panel updated."
-msgstr ""
-
-#: includes/class-checklistdek-mu-plugin-installer.php:71
-#: includes/class-checklistdek-mu-plugin-installer.php:152
-#: includes/integrations/class-checklistdek-mainwp-agent.php:142
-msgid "Client panel bundle files are missing on the hub."
-msgstr ""
-
-#: includes/class-checklistdek-mu-plugin-installer.php:101
-msgid "Client panel bootstrap required. Download checklistdek-client.php from onboarding or ChecklistDek → Sites, upload it to wp-content/mu-plugins/ on the client site, then click Retry panel install."
-msgstr ""
-
-#: includes/class-checklistdek-mu-plugin-installer.php:115
-msgid "Client panel files were written but the panel is still unavailable."
-msgstr ""
-
-#: includes/class-checklistdek-mu-plugin-installer.php:187
-msgid "Client checklist panel installed via REST."
-msgstr ""
-
-#: includes/class-checklistdek-mu-plugin-installer.php:206
-msgid "Could not resolve a local path for the client site. Install the panel via REST on first connect."
-msgstr ""
-
-#: includes/class-checklistdek-mu-plugin-installer.php:216
-msgid "Could not create the client mu-plugins directory."
-msgstr ""
-
-#: includes/class-checklistdek-mu-plugin-installer.php:234
-msgid "Could not create a client panel directory."
-msgstr ""
-
-#: includes/class-checklistdek-mu-plugin-installer.php:241
-msgid "Could not write client panel files locally."
-msgstr ""
-
-#: includes/class-checklistdek-mu-plugin-installer.php:251
-msgid "No valid client panel files were written locally."
-msgstr ""
-
-#: includes/class-checklistdek-mu-plugin-installer.php:257
-msgid "Client checklist panel installed locally on this server."
 msgstr ""
 
 #: includes/class-checklistdek-payload-mapper.php:35
@@ -3025,12 +3160,14 @@ msgid "Invalid HTTP method."
 msgstr ""
 
 #. translators: %s: comma-separated setting field names
+
 #: includes/class-checklistdek-payload-mapper.php:124
 #, php-format
 msgid "These fields are excluded by hub settings and will be skipped on remote sites: %s"
 msgstr ""
 
 #. translators: %s: comma-separated setting field names
+
 #: includes/class-checklistdek-payload-mapper.php:195
 #, php-format
 msgid "All settings in this step are excluded by hub settings: %s"
@@ -3041,11 +3178,13 @@ msgid "Authentication failed."
 msgstr ""
 
 #: includes/class-checklistdek-remote-client.php:151
+
 #: includes/class-checklistdek-remote-client.php:167
 msgid "Connection verified."
 msgstr ""
 
 #. translators: %d: HTTP status code.
+
 #: includes/class-checklistdek-remote-client.php:199
 #, php-format
 msgid "Remote request failed with status %d."
@@ -3056,6 +3195,7 @@ msgid "Missing remote credentials."
 msgstr ""
 
 #: includes/class-checklistdek-rest-api.php:544
+
 #: includes/class-checklistdek-rest-api.php:558
 msgid "Activity log entry not found."
 msgstr ""
@@ -3065,6 +3205,7 @@ msgid "Invalid site data."
 msgstr ""
 
 #: includes/class-checklistdek-rest-api.php:687
+
 #: includes/class-checklistdek-rest-api.php:893
 msgid "URL, username, and app password are required."
 msgstr ""
@@ -3078,6 +3219,7 @@ msgid "Failed to delete site."
 msgstr ""
 
 #: includes/class-checklistdek-rest-api.php:823
+
 #: mu-plugin/checklistdek-client/class-rest-api.php:538
 msgid "Invalid capture action."
 msgstr ""
@@ -3155,14 +3297,8 @@ msgid "Admin Email"
 msgstr ""
 
 #: includes/class-checklistdek-settings.php:305
-#: mu-plugin/checklistdek-client/class-auto-capture.php:445
-msgid "Site Title"
-msgstr ""
 
 #: includes/class-checklistdek-settings.php:306
-#: mu-plugin/checklistdek-client/class-auto-capture.php:449
-msgid "Tagline"
-msgstr ""
 
 #: includes/class-checklistdek-settings.php:309
 msgid "Site Logo"
@@ -3193,9 +3329,6 @@ msgid "Step failed"
 msgstr ""
 
 #: includes/class-checklistdek-settings.php:461
-#: includes/class-checklistdek-webhook-dispatcher.php:62
-msgid "Configuration drift detected"
-msgstr ""
 
 #: includes/class-checklistdek-settings.php:462
 msgid "Client completed a checklist step"
@@ -3369,10 +3502,6 @@ msgstr ""
 msgid "Step-by-step fixes for common WordPress errors and outages."
 msgstr ""
 
-#: includes/class-checklistdek-webhook-dispatcher.php:64
-msgid "Client note added"
-msgstr ""
-
 #: includes/client-panel-layouts.php:14
 msgid "Right sidebar floater"
 msgstr ""
@@ -3382,31 +3511,37 @@ msgid "Sticky panel on the right edge with a vertical expand tab when collapsed.
 msgstr ""
 
 #: includes/client-panel-layouts.php:18
+
 #: includes/community/client-panel-layouts.php:14
 msgid "Live top bar"
 msgstr ""
 
 #: includes/client-panel-layouts.php:19
+
 #: includes/community/client-panel-layouts.php:15
 msgid "Compact progress strip below the admin bar with a slide-down step drawer."
 msgstr ""
 
 #: includes/client-panel-layouts.php:22
+
 #: includes/community/client-panel-layouts.php:18
 msgid "Bottom dock"
 msgstr ""
 
 #: includes/client-panel-layouts.php:23
+
 #: includes/community/client-panel-layouts.php:19
 msgid "Slim progress bar docked above the footer with a slide-up step drawer."
 msgstr ""
 
 #: includes/client-panel-layouts.php:26
+
 #: includes/community/client-panel-layouts.php:22
 msgid "Floating pill"
 msgstr ""
 
 #: includes/client-panel-layouts.php:27
+
 #: includes/community/client-panel-layouts.php:23
 msgid "Small progress chip in the bottom-right corner that expands into a compact panel."
 msgstr ""
@@ -3480,6 +3615,7 @@ msgid "Import child sites from MainWP and deploy the ChecklistDek client checkli
 msgstr ""
 
 #: includes/integrations/class-checklistdek-integration-mainwp.php:141
+
 #: includes/integrations/class-checklistdek-integration-wp-umbrella.php:226
 msgid "Invalid site."
 msgstr ""
@@ -3561,6 +3697,7 @@ msgid "Add your WP Umbrella Public API token in connector setup before syncing s
 msgstr ""
 
 #: includes/integrations/class-checklistdek-integration-wp-umbrella.php:93
+
 #: includes/integrations/class-checklistdek-integration-wp-umbrella.php:340
 msgid "WP Umbrella API token is not configured."
 msgstr ""
@@ -3625,185 +3762,12 @@ msgstr ""
 msgid "Allows WPvibe to push ChecklistDek to child sites."
 msgstr ""
 
-#: includes/integrations/class-checklistdek-mainwp-agent.php:35
-msgid "This MainWP child site is disconnected or has sync errors."
-msgstr ""
-
-#: includes/integrations/class-checklistdek-mainwp-agent.php:42
-msgid "MainWP Connect is unavailable. Update MainWP and try again."
-msgstr ""
-
-#: includes/integrations/class-checklistdek-mainwp-agent.php:79
-msgid "Client checklist panel installed via MainWP."
-msgstr ""
-
-#: includes/integrations/class-checklistdek-mainwp-agent.php:84
-msgid "MainWP could not install the client panel on this child site."
-msgstr ""
-
-#: includes/integrations/class-checklistdek-mainwp-agent.php:111
-msgid "Invalid MainWP site ID."
-msgstr ""
-
-#: includes/integrations/class-checklistdek-mainwp-agent.php:126
-msgid "MainWP child site not found."
-msgstr ""
-
-#: includes/integrations/class-checklistdek-mainwp-agent.php:149
-msgid "ZipArchive is required to deploy the client panel via MainWP."
-msgstr ""
-
-#: includes/integrations/class-checklistdek-mainwp-agent.php:159
-msgid "Could not create a temporary install package."
-msgstr ""
-
-#: includes/integrations/class-checklistdek-mainwp-agent.php:170
-msgid "Could not create the MainWP install package."
-msgstr ""
-
-#: includes/integrations/class-checklistdek-mainwp-agent.php:282
-msgid "Could not prepare the MainWP upload directory."
-msgstr ""
-
-#: includes/integrations/class-checklistdek-mainwp-agent.php:291
-msgid "Could not stage the client panel install package for MainWP."
-msgstr ""
-
-#: includes/integrations/class-checklistdek-mainwp-agent.php:314
-msgid "Could not prepare a temporary upload directory."
-msgstr ""
-
-#: includes/integrations/class-checklistdek-mainwp-agent.php:323
-msgid "Could not stage the client panel install package."
-msgstr ""
-
-#. translators: %s: option label
-#: mu-plugin/checklistdek-client/class-auto-capture.php:211
-#, php-format
-msgid "Set %s to the captured value when repeating this checklist."
-msgstr ""
-
-#. translators: %s: plugin name
-#: mu-plugin/checklistdek-client/class-auto-capture.php:241
-#, php-format
-msgid "Activate %s"
-msgstr ""
-
-#: mu-plugin/checklistdek-client/class-auto-capture.php:244
-msgid "Activate this plugin on the client site."
-msgstr ""
-
-#. translators: %s: plugin name
-#: mu-plugin/checklistdek-client/class-auto-capture.php:272
-#, php-format
-msgid "Deactivate %s"
-msgstr ""
-
-#: mu-plugin/checklistdek-client/class-auto-capture.php:275
-msgid "Deactivate this plugin on the client site."
-msgstr ""
-
-#: mu-plugin/checklistdek-client/class-auto-capture.php:297
-msgid "ChecklistDek auto-capture is recording."
-msgstr ""
-
-#. translators: %d: number of captured steps
-#: mu-plugin/checklistdek-client/class-auto-capture.php:301
-#, php-format
-msgid "%d step captured so far."
-msgid_plural "%d steps captured so far."
-msgstr[0] ""
-msgstr[1] ""
-
-#: mu-plugin/checklistdek-client/class-auto-capture.php:360
-msgid "Captured step"
-msgstr ""
-
-#. translators: 1: HTTP method, 2: REST route
-#: mu-plugin/checklistdek-client/class-auto-capture.php:390
-#, php-format
-msgid "%1$s %2$s"
-msgstr ""
-
-#: mu-plugin/checklistdek-client/class-auto-capture.php:394
-msgid "Repeat this REST API change on future client sites."
-msgstr ""
-
-#. translators: %s: comma-separated setting field names
-#: mu-plugin/checklistdek-client/class-auto-capture.php:401
-#, php-format
-msgid "Update settings: %s"
-msgstr ""
-
-#: mu-plugin/checklistdek-client/class-auto-capture.php:405
-msgid "Update site settings"
-msgstr ""
-
-#: mu-plugin/checklistdek-client/class-auto-capture.php:407
-msgid "Apply the same WordPress settings change captured during recording."
-msgstr ""
-
-#: mu-plugin/checklistdek-client/class-auto-capture.php:409
-msgid "Manage plugins"
-msgstr ""
-
-#: mu-plugin/checklistdek-client/class-auto-capture.php:410
-msgid "Repeat the plugin change captured during recording."
-msgstr ""
-
-#: mu-plugin/checklistdek-client/class-auto-capture.php:453
-msgid "Administration Email"
-msgstr ""
-
-#: mu-plugin/checklistdek-client/class-auto-capture.php:457
-msgid "Membership Setting"
-msgstr ""
-
-#: mu-plugin/checklistdek-client/class-auto-capture.php:461
-msgid "New User Default Role"
-msgstr ""
-
-#: mu-plugin/checklistdek-client/class-auto-capture.php:473
-msgid "Homepage Displays"
-msgstr ""
-
-#: mu-plugin/checklistdek-client/class-auto-capture.php:477
-msgid "Homepage"
-msgstr ""
-
-#: mu-plugin/checklistdek-client/class-auto-capture.php:481
-msgid "Posts Page"
-msgstr ""
-
-#: mu-plugin/checklistdek-client/class-auto-capture.php:485
-msgid "Default Comment Status"
-msgstr ""
-
-#: mu-plugin/checklistdek-client/class-auto-capture.php:489
-msgid "Timezone"
-msgstr ""
-
-#: mu-plugin/checklistdek-client/class-auto-capture.php:493
-msgid "Date Format"
-msgstr ""
-
-#: mu-plugin/checklistdek-client/class-auto-capture.php:497
-msgid "Time Format"
-msgstr ""
-
-#: mu-plugin/checklistdek-client/class-auto-capture.php:501
-msgid "Week Starts On"
-msgstr ""
-
-#: mu-plugin/checklistdek-client/class-auto-capture.php:505
-msgid "Site Language"
-msgstr ""
-
 #: mu-plugin/checklistdek-client/class-hub-client.php:51
 msgid "Hub connection details are missing for this checklist."
 msgstr ""
 
 #. translators: 1: error code, 2: HTTP status code
+
 #: mu-plugin/checklistdek-client/class-hub-client.php:111
 #, php-format
 msgid "Hub error: %1$s (HTTP %2$d)."
@@ -3831,7 +3795,9 @@ msgstr ""
 
 #. translators: 1: completed steps, 2: total steps
 #. translators: 1: completed step count, 2: total step count.
+
 #: mu-plugin/checklistdek-client/class-panel.php:56
+
 #: mu-plugin/checklistdek-client/class-panel.php:203
 #, php-format
 msgid "Checklist %1$d/%2$d"
@@ -3858,6 +3824,7 @@ msgid "Mark not complete"
 msgstr ""
 
 #. translators: 1: user display name, 2: completion date/time.
+
 #: mu-plugin/checklistdek-client/class-panel.php:186
 #, php-format
 msgid "Completed by %1$s on %2$s"
@@ -3908,6 +3875,7 @@ msgid "Add note"
 msgstr ""
 
 #. translators: 1: note author, 2: note timestamp.
+
 #: mu-plugin/checklistdek-client/class-panel.php:211
 #, php-format
 msgid "%1$s · %2$s"
@@ -3930,6 +3898,7 @@ msgid "Notes"
 msgstr ""
 
 #. translators: 1: notes section label, 2: note count.
+
 #: mu-plugin/checklistdek-client/class-panel.php:218
 #, php-format
 msgid "%1$s (%2$s)"
@@ -3943,29 +3912,12 @@ msgstr ""
 msgid "Could not open media library."
 msgstr ""
 
-#: mu-plugin/checklistdek-client/class-rest-api-install.php:48
-msgid "No panel files were provided."
-msgstr ""
-
-#: mu-plugin/checklistdek-client/class-rest-api-install.php:77
-msgid "Must-use plugins directory is not available."
-msgstr ""
-
-#: mu-plugin/checklistdek-client/class-rest-api-install.php:116
-msgid "Could not create the client panel directory."
-msgstr ""
-
-#: mu-plugin/checklistdek-client/class-rest-api-install.php:124
-msgid "Could not write the client panel files."
-msgstr ""
-
-#: mu-plugin/checklistdek-client/class-rest-api-install.php:135
-msgid "No valid panel files were written."
-msgstr ""
-
 #: mu-plugin/checklistdek-client/class-rest-api.php:212
+
 #: mu-plugin/checklistdek-client/class-rest-api.php:247
+
 #: mu-plugin/checklistdek-client/class-rest-api.php:330
+
 #: mu-plugin/checklistdek-client/class-rest-api.php:407
 msgid "No active checklist is assigned to this site."
 msgstr ""
@@ -3975,7 +3927,9 @@ msgid "Only completed checklists can be dismissed."
 msgstr ""
 
 #: mu-plugin/checklistdek-client/class-rest-api.php:257
+
 #: mu-plugin/checklistdek-client/class-rest-api.php:340
+
 #: mu-plugin/checklistdek-client/class-rest-api.php:417
 msgid "Checklist step not found."
 msgstr ""

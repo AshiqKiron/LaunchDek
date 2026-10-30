@@ -4,7 +4,7 @@ Tags: agency, checklist, site management, onboarding, workflow
 Requires at least: 6.2
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.0.6
+Stable tag: 1.0.8
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -22,13 +22,13 @@ Turn SOPs into structured **checklists**—build from scratch, clone built-in te
 * **Hub + client panel** — Orchestrate from your hub; clients complete steps in wp-admin (mu-plugin required on every managed site; see FAQ).
 * **Templates and builder** — Built-in stacks by category, three-column builder with live panel preview, import/export JSON.
 * **Sites and operations** — Site registry with tags and run history, dashboard quick launch, Batch Run and drift monitor, optional MainWP / WP Umbrella sync.
-* **Team controls** — Role capabilities, optional encrypted credential vault, onboarding wizard.
+* **Team controls** — Role capabilities, optional encryption for stored Application Passwords on the hub, onboarding wizard.
 
 #### Community vs Pro
 
 **Community (this build):** Unlimited hub sites; starter template library; custom checklists, integrations, Activity Logs, manual drift verify; client panel via manual mu-plugin upload and three panel layouts.
 
-**Pro and Agency:** Full template library, agency vault, Auto-Capture, email and Slack/Discord/Teams webhooks, scheduled drift, hub auto-deploy of the client panel, and nine panel layouts. [Compare plans](https://asphaltthemes.com/checklistdek).
+**Pro and Agency:** Full template library, Private Agency Vault (team checklist templates—not Application Password encryption), Auto-Capture, email and Slack/Discord/Teams webhooks, scheduled drift, hub auto-deploy of the client panel, and nine panel layouts. [Compare plans](https://asphaltthemes.com/checklistdek).
 
 #### Privacy
 
@@ -47,7 +47,7 @@ Developed by [Asphalt Themes](https://asphaltthemes.com/). Use the onboarding wi
 6. Batch Run — Run Checklist wizard, batch queue, and drift monitor tabs
 7. Activity Logs — filtered audit table with readable summaries and expandable detail fields
 8. Integrations — MainWP and WP Umbrella connectors with sync preview (manual client panel setup on Community)
-9. Settings — panel layout picker, exclude-options, credential vault, and role permissions
+9. Settings — panel layout picker, exclude-options, Application Password encryption, and role permissions
 10. Remote client wp-admin — checklist panel with progress, deep links, notes, and manual step completion
 
 
@@ -107,11 +107,15 @@ Yes. Integrations are optional. You can register sites manually with Application
 
 **Community** (this WordPress.org plugin) is complete for its scope: unlimited hub sites, custom checklists, batch runs, integrations, Activity Logs, manual drift verification, **17** built-in templates in four categories, and **three** client panel layout choices in Settings. Client sites use the bundled mu-plugin you upload manually (this build does not auto-write panel files to remote servers).
 
-**Pro** and **Agency** are separate downloads from [Asphalt Themes](https://asphaltthemes.com/checklistdek) with a larger template library, agency vault, Auto-Capture, email and webhook notifications, scheduled drift cron, hub auto-deploy of the client panel, nine panel layout choices, and licensed site tiers on paid plans. They replace this plugin on your hub; your existing sites and checklists stay in the database.
+**Pro** and **Agency** are separate downloads from [Asphalt Themes](https://asphaltthemes.com/checklistdek) with a larger template library, Private Agency Vault, Auto-Capture, email and webhook notifications, scheduled drift cron, hub auto-deploy of the client panel, nine panel layout choices, and licensed site tiers on paid plans. Application Password encryption in Settings is included in Community and Pro. They replace this plugin on your hub; your existing sites and checklists stay in the database.
 
 = Are credentials stored securely? =
 
-When enabled in Settings, site Application Passwords are encrypted at rest using your WordPress salt keys. Decrypted passwords are never exposed in REST responses or audit entries shown to non-privileged users.
+When enabled under **Settings → Application password encryption**, site Application Passwords are encrypted at rest using your WordPress salt keys. Decrypted passwords are never exposed in REST responses or audit entries shown to non-privileged users.
+
+= Is “Application password encryption” the same as Private Agency Vault? =
+
+No. **Application password encryption** (Settings, included in Community and Pro) protects Application Passwords stored on your hub for remote site connections. **Private Agency Vault** is a Pro feature for saving your own checklists as reusable team templates on the Checklists → Templates tab—it does not store site passwords.
 
 = What outbound connections does ChecklistDek make? =
 
@@ -168,9 +172,20 @@ Optional connectors run only when an administrator with **Manage Settings** star
 
 == Changelog ==
 
+= 1.0.8 =
+* Edition split: WordPress.org zip ships only working Community features (Pro PHP omitted at build time); Pro zip bundles premium modules and Freemius license gates.
+* WordPress.org zip omits all Private Agency Vault PHP, UI, and REST code; shared installer/build helpers no longer reference vault schema or license gates.
+* Checklists Templates tab: `checklistdek_checklists_after_builtin_templates` hook lets Pro inject Private Agency Vault UI without vault markup in the free package.
+* Private Agency Vault, Auto-Capture, notifications, scheduled drift, and hub panel auto-deploy are unavailable on Community (no in-plugin Pro upsell or disabled controls).
+* Pro hubs drop the legacy `is_vault` checklist column when Agency Vault is unavailable (cleanup omitted from WordPress.org zip).
+* WordPress.org build: no **Upgrade** sidebar item (legacy billing/upgrade admin URLs go to the dashboard).
+
+= 1.0.7 =
+* Settings: rename “Credential Vault Security” to “Application password encryption” and clarify it is separate from Private Agency Vault (team checklist templates).
+* Database 1.8.0: `is_vault` checklist column for Private Agency Vault.
+* Community: Pro-only UI omitted from Settings and Checklists where features are not bundled; org zip excludes Pro licensing PHP.
+
 = 1.0.6 =
-* Community zip: plan-based `CHECKLISTDEK_Licensing` gates (no Freemius SDK in the org package; Pro zip bundles Freemius).
 * Sites: per-site Push Checklist, cached connection health, and unreachable-site warnings.
 * Dashboard: unify live log feed copy in audit `format_row()`; legacy cached feed rows backfill `show_site_label` only.
-* Readme: WordPress.org Community scope, Pro as a separate download, and accurate Community feature list (no license-gated features in this build).
 * Community: removed in-plugin Billing page; **Upgrade** submenu opens the public ChecklistDek pricing page on asphaltthemes.com.

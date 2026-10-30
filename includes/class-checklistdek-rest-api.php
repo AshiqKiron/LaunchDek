@@ -363,21 +363,6 @@ class CHECKLISTDEK_REST_API {
 			'permission_callback' => array( __CLASS__, 'can_edit_checklists' ),
 		) );
 
-		if ( checklistdek_can_use_agency_vault() ) {
-			register_rest_route( self::NAMESPACE, '/templates/vault', array(
-				array(
-					'methods'             => 'GET',
-					'callback'            => array( __CLASS__, 'get_vault' ),
-					'permission_callback' => array( __CLASS__, 'can_edit_checklists' ),
-				),
-				array(
-					'methods'             => 'POST',
-					'callback'            => array( __CLASS__, 'save_to_vault' ),
-					'permission_callback' => array( __CLASS__, 'can_edit_checklists' ),
-				),
-			) );
-		}
-
 		register_rest_route( self::NAMESPACE, '/templates/(?P<slug>[a-z0-9\-_]+)/clone', array(
 			'methods'             => 'POST',
 			'callback'            => array( __CLASS__, 'clone_template' ),
@@ -937,9 +922,6 @@ class CHECKLISTDEK_REST_API {
 		if ( null !== $request->get_param( 'is_template' ) ) {
 			$args['is_template'] = rest_sanitize_boolean( $request->get_param( 'is_template' ) );
 		}
-		if ( null !== $request->get_param( 'is_vault' ) ) {
-			$args['is_vault'] = rest_sanitize_boolean( $request->get_param( 'is_vault' ) );
-		}
 		if ( rest_sanitize_boolean( $request->get_param( 'summary' ) ) ) {
 			return rest_ensure_response( CHECKLISTDEK_Checklist_Repository::summary_list( $args ) );
 		}
@@ -966,7 +948,6 @@ class CHECKLISTDEK_REST_API {
 		}
 
 		$data['is_template'] = false;
-		$data['is_vault']    = false;
 
 		$id = CHECKLISTDEK_Checklist_Repository::create( $data );
 		if ( ! $id ) {
@@ -1001,7 +982,7 @@ class CHECKLISTDEK_REST_API {
 			return $valid;
 		}
 
-		unset( $data['is_template'], $data['is_vault'] );
+		unset( $data['is_template'] );
 
 		if ( ! CHECKLISTDEK_Checklist_Repository::update( $id, $data ) ) {
 			return new WP_Error( 'update_failed', __( 'Failed to update checklist.', 'checklistdek' ), array( 'status' => 500 ) );
@@ -1080,7 +1061,7 @@ class CHECKLISTDEK_REST_API {
 			return new WP_Error( 'invalid_json', __( 'Invalid checklist JSON.', 'checklistdek' ), array( 'status' => 400 ) );
 		}
 
-		unset( $data['is_template'], $data['is_vault'] );
+		unset( $data['is_template'] );
 
 		$id = CHECKLISTDEK_Checklist_Repository::import( $data );
 		if ( ! $id ) {
@@ -1410,27 +1391,6 @@ class CHECKLISTDEK_REST_API {
 			'builtin'    => CHECKLISTDEK_Templates::get_catalog(),
 			'categories' => CHECKLISTDEK_Templates::get_categories_for_catalog(),
 		) );
-	}
-
-	public static function get_vault() {
-		return rest_ensure_response(
-			CHECKLISTDEK_Checklist_Repository::summary_list(
-				array(
-					'is_vault' => true,
-					'limit'    => 100,
-				)
-			)
-		);
-	}
-
-	public static function save_to_vault( $request ) {
-		$data = $request->get_json_params();
-		$id   = absint( $data['checklist_id'] ?? 0 );
-		if ( ! $id ) {
-			return new WP_Error( 'missing_id', __( 'Checklist ID required.', 'checklistdek' ), array( 'status' => 400 ) );
-		}
-		CHECKLISTDEK_Templates::save_to_vault( $id );
-		return rest_ensure_response( CHECKLISTDEK_Checklist_Repository::find( $id ) );
 	}
 
 	public static function clone_template( $request ) {

@@ -43,7 +43,7 @@ See `checklistdek-project.mdc` (architecture), `checklistdek-standards.mdc` (qua
 ## Directory & Privacy
 
 - No obfuscated code or undisclosed telemetry.
-- Outbound requests are limited to: user-registered remote sites (including mu-plugin deploy/push on Pro hubs only — Community hub does not push installer files), user-configured webhook URLs, WordPress `wp_mail()` for opt-in email notifications (no third-party mail API unless the site configures SMTP), and integration adapters (user-initiated site sync; client panel push via MainWP Connect only on Pro hubs when Application Passwords are not configured; WP Umbrella uses the user-configured Public API token at `public-api.wp-umbrella.com`, including a lightweight verify probe on token save). Document third-party connectors in `readme.txt` **External services**. **Freemius SDK** (full/premium distribution only — not loaded or shipped in the Community / WordPress.org zip) may contact Freemius for account, licensing, and updates per the SDK; keep `is_org_compliant` and omit `checklistdek-freemius.php` + `vendor/` from Community builds (`bin/build-community-zip.php`).
+- Outbound requests are limited to: user-registered remote sites (including mu-plugin deploy/push on Pro hubs only — Community hub does not push installer files), user-configured webhook URLs, WordPress `wp_mail()` for opt-in email notifications (no third-party mail API unless the site configures SMTP), and integration adapters (user-initiated site sync; client panel push via MainWP Connect only on Pro hubs when Application Passwords are not configured; WP Umbrella uses the user-configured Public API token at `public-api.wp-umbrella.com`, including a lightweight verify probe on token save). Document third-party connectors in `readme.txt` **External services**. **Freemius SDK** (full/premium distribution only — not loaded or shipped in the WordPress.org zip) may contact Freemius for account, licensing, and updates per the SDK; keep `is_org_compliant` and omit `checklistdek-freemius.php`, `vendor/`, and all licensing PHP from Community builds (`bin/build-community-zip.php` → `dist/checklistdek-free.zip`).
 - Integrations **Telemetry Sync Mapping Rules** store field-mapping preferences only (`telemetry_sync_rules`); they do not emit tracking data.
 - Webhook and integration behavior must be documented in `readme.txt`. Email notification behavior (opt-in events, `wp_mail`, recipient fallback) must also be documented in `readme.txt`.
 - No spammy readme or deceptive behavior.
@@ -70,7 +70,7 @@ See `checklistdek-project.mdc` (architecture), `checklistdek-standards.mdc` (qua
 - [ ] Webhooks and email notifications opt-in and user-configured
 - [ ] Uninstall via `CHECKLISTDEK_Uninstaller::run()` drops all tables, plugin options, and capabilities (Community `register_uninstall_hook`; full Freemius `after_uninstall`)
 - [ ] Unique `CHECKLISTDEK_` / `checklistdek_` prefix
-- [ ] Community zip excludes Freemius bootstrap, SDK (`vendor/`), and Pro-only PHP/templates
+- [ ] Community zip excludes Freemius bootstrap, SDK (`vendor/`), Pro-only PHP/templates (including `checklistdek-premium-modules.php`, Agency Vault partial/JS), and licensing PHP (`includes/class-checklistdek-licensing.php`); org bootstrap is not patched with `CHECKLISTDEK_BUILD`
 - [ ] Would survive WordPress.org review
 
 ## Unsafe Requests

@@ -3,7 +3,7 @@
 /**
  * Build the Community (WordPress.org) zip — Pro PHP and templates omitted.
  *
- * Usage: php bin/build-community-zip.php [--output=dist/checklistdek-community.zip]
+ * Usage: php bin/build-community-zip.php [--output=dist/checklistdek-free.zip]
  *
  * @package ChecklistDek
  */
@@ -14,7 +14,7 @@ if ( 'cli' !== PHP_SAPI ) {
 }
 
 $root = dirname( __DIR__ );
-$out  = $root . '/dist/checklistdek-community.zip';
+$out  = $root . '/dist/checklistdek-free.zip';
 
 foreach ( array_slice( $argv, 1 ) as $arg ) {
 	if ( 0 === strpos( $arg, '--output=' ) ) {
@@ -44,6 +44,8 @@ $exclude_paths = array(
 	'node_modules',
 	'dist',
 	'bin',
+	'includes/checklistdek-premium-modules.php',
+	'includes/class-checklistdek-installer-vault-cleanup.php',
 	'includes/class-checklistdek-auto-capture.php',
 	'mu-plugin/checklistdek-client/class-auto-capture.php',
 	'includes/class-checklistdek-mu-plugin-installer.php',
@@ -52,9 +54,11 @@ $exclude_paths = array(
 	'includes/class-checklistdek-email-notifier.php',
 	'includes/class-checklistdek-webhook-dispatcher.php',
 	'includes/class-checklistdek-drift-cron.php',
+	'includes/class-checklistdek-agency-vault.php',
+	'admin/partials/checklistdek-checklists-vault-section.php',
+	'admin/js/checklistdek-admin-vault.js',
 	'includes/class-checklistdek-licensing.php',
 	'includes/checklistdek-freemius.php',
-	'includes/community/class-checklistdek-licensing.php',
 	'includes/client-panel-layouts.php',
 	'admin/partials/checklistdek-billing-page.php',
 	'composer.json',
@@ -182,22 +186,27 @@ function filter_community_pot( $pot_path ) {
 		'includes/class-checklistdek-email-notifier.php',
 		'includes/class-checklistdek-webhook-dispatcher.php',
 		'includes/class-checklistdek-drift-cron.php',
+		'includes/class-checklistdek-agency-vault.php',
+		'admin/partials/checklistdek-checklists-vault-section.php',
+		'admin/js/checklistdek-admin-vault.js',
 		'includes/class-checklistdek-mu-plugin-installer.php',
 		'includes/integrations/class-checklistdek-mainwp-agent.php',
 		'mu-plugin/checklistdek-client/class-rest-api-install.php',
 		'mu-plugin/checklistdek-client/class-auto-capture.php',
 		'includes/checklistdek-freemius.php',
 		'includes/class-checklistdek-licensing.php',
-		'includes/community/class-checklistdek-licensing.php',
 	);
 
 	$exclude_msgid_fragments = array(
+		'Upgrade to Pro',
+		'Upgrade URL is not configured',
 		'Upgrade on Billing',
 		'Get Pro',
 		'site limit',
 		'Compare Community and paid plans',
 		'Pro and Agency plans',
 		'Billing admin page',
+		'vaulting or launching',
 	);
 
 	$pos     = strpos( $content, "\n#:" );
@@ -321,4 +330,17 @@ foreach ( $files as $file ) {
 $zip->close();
 rrmdir( $staging );
 
-fwrite( STDOUT, "Community build written to {$out}\n" );
+fwrite( STDOUT, "Free build written to {$out}\n" );
+
+require_once __DIR__ . '/verify-community-zip.php';
+
+$verify_errors = checklistdek_verify_community_zip( $out );
+if ( ! empty( $verify_errors ) ) {
+	fwrite( STDERR, "Community zip verification failed:\n" );
+	foreach ( $verify_errors as $error ) {
+		fwrite( STDERR, "  - {$error}\n" );
+	}
+	exit( 1 );
+}
+
+fwrite( STDOUT, "Community zip verification passed.\n" );

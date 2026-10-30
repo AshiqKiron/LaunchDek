@@ -3484,13 +3484,6 @@
 	function refreshCustomChecklistUi(forceRefresh) {
 		return fetchCustomChecklistSummaries(forceRefresh).then(function (checklists) {
 			fillCustomChecklistSelect(document.getElementById('checklistdek-checklist-select'), checklists);
-			fillSelect(
-				document.getElementById('checklistdek-vault-checklist'),
-				checklists,
-				'id',
-				'title',
-				strings.pushChecklistSelect || 'Select checklist…'
-			);
 			return checklists;
 		});
 	}
@@ -6523,38 +6516,8 @@
 		});
 	}
 
-	function refreshVaultChecklistSelect() {
-		fetchCustomChecklistSummaries().then(function (wfs) {
-			fillSelect(document.getElementById('checklistdek-vault-checklist'), wfs, 'id', 'title', 'Select checklist…');
-		});
-	}
-
 	function loadCustomChecklists() {
 		refreshCustomChecklistUi();
-	}
-
-	function loadVaultTemplates() {
-		var grid = document.getElementById('checklistdek-vault-list');
-		if (!grid) {
-			return;
-		}
-
-		get('/templates/vault').then(function (vault) {
-			var grid = document.getElementById('checklistdek-vault-list');
-			grid.innerHTML = '';
-			if (!vault.length) {
-				grid.innerHTML = '<p class="checklistdek-muted">' + escHtml(strings.noVaultTemplates || 'No vault templates yet.') + '</p>';
-				return;
-			}
-			vault.forEach(function (tpl) {
-				grid.appendChild(createTemplateCard(tpl, {
-					badge: 'Vault',
-					onChecklist: function () {
-						duplicateChecklist(tpl);
-					}
-				}));
-			});
-		});
 	}
 
 	function initTemplates() {
@@ -6577,24 +6540,6 @@
 		});
 
 		refreshCustomChecklistUi();
-		loadVaultTemplates();
-
-		var saveVaultBtn = document.getElementById('checklistdek-save-vault');
-		if (saveVaultBtn) {
-			saveVaultBtn.onclick = function () {
-				var id = document.getElementById('checklistdek-vault-checklist').value;
-				var noticeEl = document.getElementById('checklistdek-vault-notice');
-				if (!id) return;
-				post('/templates/vault', { checklist_id: parseInt(id, 10) }).then(function () {
-					notice(noticeEl, strings.savedToVault || 'Saved to vault.', 'success');
-					document.getElementById('checklistdek-vault-checklist').value = '';
-					refreshCustomChecklistUi(true);
-					loadVaultTemplates();
-				}).catch(function (err) {
-					notice(noticeEl, err.message, 'error');
-				});
-			};
-		}
 	}
 
 	// ─── Integrations ────────────────────────────────────────
@@ -6980,5 +6925,15 @@
 		initTemplates();
 		initIntegrations();
 		initSettings();
+
+		document.addEventListener('checklistdek:checklists-changed', function () {
+			refreshCustomChecklistUi(true);
+		});
+		document.addEventListener('checklistdek:open-checklist-editor', function (event) {
+			var id = event.detail && event.detail.id;
+			if (id) {
+				openChecklistEditor(id);
+			}
+		});
 	});
 })();

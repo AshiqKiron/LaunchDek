@@ -1,0 +1,27 @@
+name: Community zip
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+
+jobs:
+  build-and-verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: zip
+
+      - name: Build WordPress.org zip
+        run: php bin/build-community-zip.php
+
+      - name: Verify Community zip contents
+        run: php bin/verify-community-zip.php

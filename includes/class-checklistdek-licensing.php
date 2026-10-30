@@ -61,19 +61,23 @@ class CHECKLISTDEK_Licensing {
 	/**
 	 * @return bool
 	 */
-	public static function can_use_agency_vault() {
-		return self::can_use_premium_code();
-	}
-
-	/**
-	 * @return bool
-	 */
 	public static function can_use_auto_capture() {
 		if ( ! self::can_use_premium_code() ) {
 			return false;
 		}
 
 		return is_readable( CHECKLISTDEK_PLUGIN_DIR . 'includes/class-checklistdek-auto-capture.php' );
+	}
+
+	/**
+	 * @return bool
+	 */
+	public static function can_use_agency_vault() {
+		if ( ! self::can_use_premium_code() ) {
+			return false;
+		}
+
+		return is_readable( CHECKLISTDEK_PLUGIN_DIR . 'includes/class-checklistdek-agency-vault.php' );
 	}
 
 	/**

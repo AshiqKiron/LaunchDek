@@ -10,7 +10,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Credential vault using WordPress salts.
+ * Hub-side Application Password encryption (Settings toggle). Not Private Agency Vault (Pro checklist templates).
  */
 class CHECKLISTDEK_Credential_Vault {
 

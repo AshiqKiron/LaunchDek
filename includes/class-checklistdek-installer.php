@@ -19,7 +19,7 @@ class CHECKLISTDEK_Installer {
 	 *
 	 * @var string
 	 */
-	const DB_VERSION = '1.7.0';
+	const DB_VERSION = '1.8.0';
 
 	/**
 	 * Option key storing installed DB version.
@@ -35,6 +35,10 @@ class CHECKLISTDEK_Installer {
 	 */
 	public static function maybe_install() {
 		self::migrate_launchdek_branding();
+
+		if ( function_exists( 'checklistdek_premium_installer_migrations' ) ) {
+			checklistdek_premium_installer_migrations();
+		}
 
 		$installed = get_option( self::DB_VERSION_OPTION, '' );
 		if ( '' === $installed ) {
@@ -84,6 +88,12 @@ class CHECKLISTDEK_Installer {
 
 		if ( '' === $installed || version_compare( $installed, '1.6.0', '<' ) ) {
 			self::migrate_performance_indexes();
+		}
+
+		if ( '' === $installed || version_compare( $installed, '1.8.0', '<' ) ) {
+			if ( function_exists( 'checklistdek_premium_installer_migrations' ) ) {
+				checklistdek_premium_installer_migrations();
+			}
 		}
 	}
 
@@ -246,7 +256,7 @@ class CHECKLISTDEK_Installer {
 	 * @param string $columns_sql Comma-separated column list (trusted).
 	 * @return void
 	 */
-	protected static function add_index_if_missing( $table, $index_name, $columns_sql ) {
+	public static function add_index_if_missing( $table, $index_name, $columns_sql ) {
 		global $wpdb;
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
@@ -498,6 +508,14 @@ class CHECKLISTDEK_Installer {
 		$audit           = $wpdb->prefix . 'checklistdek_audit_log';
 		$connections     = $wpdb->prefix . 'checklistdek_connection_events';
 
+		$vault_column = '';
+		$vault_index  = '';
+		if ( function_exists( 'checklistdek_premium_checklists_table_create_fragments' ) ) {
+			$vault_fragments = checklistdek_premium_checklists_table_create_fragments();
+			$vault_column    = $vault_fragments['column'] ?? '';
+			$vault_index     = $vault_fragments['index'] ?? '';
+		}
+
 		$sql = "CREATE TABLE {$sites} (
 			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
 			name varchar(255) NOT NULL DEFAULT '',
@@ -537,16 +555,14 @@ class CHECKLISTDEK_Installer {
 			title varchar(255) NOT NULL DEFAULT '',
 			description text,
 			steps_json longtext NOT NULL,
-			is_template tinyint(1) NOT NULL DEFAULT 0,
-			is_vault tinyint(1) NOT NULL DEFAULT 0,
+			is_template tinyint(1) NOT NULL DEFAULT 0,{$vault_column}
 			template_slug varchar(100) NOT NULL DEFAULT '',
 			version varchar(20) NOT NULL DEFAULT '1.0.0',
 			created_by bigint(20) unsigned NOT NULL DEFAULT 0,
 			created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
 			updated_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
 			PRIMARY KEY  (id),
-			KEY is_template (is_template),
-			KEY is_vault (is_vault),
+			KEY is_template (is_template),{$vault_index}
 			KEY template_slug (template_slug)
 		) {$charset_collate};
 
